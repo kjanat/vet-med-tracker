@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@config "../tailwind.config.ts";
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
