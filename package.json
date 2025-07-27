@@ -7,10 +7,14 @@
     "dev": "next dev",
     "dev:turbo": "next dev --turbopack",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "db:generate": "pnpm dlx drizzle-kit generate",
+    "db:migrate": "pnpm dlx drizzle-kit migrate",
+    "db:push": "pnpm dlx drizzle-kit push"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",
+    "@neondatabase/serverless": "^1.0.1",
     "@next/env": "^15.4.4",
     "@radix-ui/react-accordion": "1.2.11",
     "@radix-ui/react-alert-dialog": "1.1.14",
@@ -50,6 +54,8 @@
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
     "date-fns": "latest",
+    "drizzle-orm": "^0.44.3",
+    "drizzle-zod": "^0.8.2",
     "embla-carousel-react": "8.6.0",
     "geist": "^1.4.2",
     "input-otp": "1.4.2",
@@ -75,6 +81,7 @@
     "@types/node": "^24.1.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "drizzle-kit": "^0.31.4",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3"
