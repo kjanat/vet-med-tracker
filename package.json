@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",
+    "@next/env": "^15.4.4",
     "@radix-ui/react-accordion": "1.2.11",
     "@radix-ui/react-alert-dialog": "1.1.14",
     "@radix-ui/react-aspect-ratio": "1.1.7",
@@ -45,6 +46,7 @@
     "@trpc/server": "^11.4.3",
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
+    "client-only": "^0.0.1",
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
     "date-fns": "latest",
@@ -61,6 +63,7 @@
     "react-hook-form": "^7.61.1",
     "react-resizable-panels": "^3.0.3",
     "recharts": "3.1.0",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",

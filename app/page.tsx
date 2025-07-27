@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { AnimalAvatar } from "@/components/ui/animal-avatar"
 import { RecordButton } from "@/components/ui/record-button"
 import { Clock, CheckCircle, AlertTriangle, Calendar } from "lucide-react"
+import { trpc } from '@/trpc/server';
+import { ClientGreeting } from './client-greeting';
 
 export default function HomePage() {
   const { selectedAnimal, animals } = useApp()
