@@ -325,7 +325,7 @@ export default function RecordPage() {
                 {["Normal", "Improved", "No Change", "Worse", "Side Effects"].map((tag) => (
                   <Button
                     key={tag}
-                    variant={conditionTags.includes(tag) ? "default" : "outline"}
+                    variant={conditionTags.includes(tag) ? "default" : "outline-solid"}
                     size="sm"
                     onClick={() => {
                       setConditionTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))

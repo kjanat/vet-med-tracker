@@ -74,7 +74,7 @@ export function HistoryList({ groups, onLoadMore, hasMore, onUndo, onDelete, onC
     <div className="space-y-6">
       {groups.map((group) => (
         <div key={group.date.toISOString()} className="space-y-3">
-          <div className="sticky top-20 bg-background/95 backdrop-blur py-2">
+          <div className="sticky top-20 bg-background/95 backdrop-blur-sm py-2">
             <h3 className="font-semibold text-lg">
               {isToday(group.date)
                 ? "Today"

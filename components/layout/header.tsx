@@ -11,7 +11,7 @@ export function Header() {
   const inventoryAlerts = 2 // This would come from a hook or context
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-4">
           <HouseholdSwitcher />

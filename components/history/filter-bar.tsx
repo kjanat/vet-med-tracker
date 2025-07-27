@@ -32,7 +32,7 @@ export function FilterBar() {
   }
 
   return (
-    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-4">
+    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 border-b p-4">
       <div className="flex flex-wrap items-center gap-4">
         {/* View Toggle */}
         <div className="flex rounded-lg border p-1">

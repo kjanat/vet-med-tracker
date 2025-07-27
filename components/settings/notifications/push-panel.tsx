@@ -158,7 +158,7 @@ export function PushPanel() {
             <Button
               onClick={isSubscribed ? unsubscribeFromPush : subscribeToPush}
               disabled={isLoading}
-              variant={isSubscribed ? "outline" : "default"}
+              variant={isSubscribed ? "outline-solid" : "default"}
             >
               {isLoading ? "Loading..." : isSubscribed ? "Unsubscribe" : "Subscribe"}
             </Button>
