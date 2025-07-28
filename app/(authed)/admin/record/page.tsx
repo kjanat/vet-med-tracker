@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Camera, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -50,7 +50,7 @@ interface InventorySource {
 export default function RecordPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { animals, selectedHousehold } = useApp()
+  const { animals } = useApp()
   const { isOnline, enqueue } = useOfflineQueue()
 
   const [step, setStep] = useState<RecordStep>("select")
@@ -65,7 +65,7 @@ export default function RecordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Mock data - replace with tRPC queries
-  const dueRegimens: DueRegimen[] = [
+  const dueRegimens = useMemo<DueRegimen[]>(() => [
     {
       id: "1",
       animalId: "1",
@@ -107,7 +107,7 @@ export default function RecordPage() {
       compliance: 78,
       section: "prn",
     },
-  ]
+  ], [])
 
   const inventorySources: InventorySource[] = [
     {
@@ -149,7 +149,7 @@ export default function RecordPage() {
         setStep("confirm")
       }
     }
-  }, [searchParams])
+  }, [searchParams, dueRegimens])
 
   const handleRegimenSelect = (regimen: DueRegimen) => {
     setSelectedRegimen(regimen)
@@ -163,7 +163,7 @@ export default function RecordPage() {
 
     setIsSubmitting(true)
 
-    const animal = animals.find((a) => a.id === selectedAnimalId)
+    // const animal = animals.find((a) => a.id === selectedAnimalId)
     const now = new Date()
     const localDay = localDayISO(now, "America/New_York") // Use animal's timezone
     const idempotencyKey = adminKey(
@@ -390,7 +390,7 @@ export default function RecordPage() {
         <Card className="border-yellow-200 bg-yellow-50">
           <CardContent className="pt-6">
             <p className="text-sm text-yellow-800">
-              You're offline. Recordings will be saved and synced when connection is restored.
+              You&apos;re offline. Recordings will be saved and synced when connection is restored.
             </p>
           </CardContent>
         </Card>

@@ -277,7 +277,10 @@ export function MemberList() {
                     </Select>
                   ) : (
                     <Badge className={roleColors[member.role]}>
-                      \{roleIcons[member.role] && <roleIcons[member.role] className=\"h-3 w-3 mr-1" />}
+                      {(() => {
+                        const Icon = roleIcons[member.role];
+                        return Icon ? <Icon className="h-3 w-3 mr-1" /> : null;
+                      })()}
                       {member.role}
                     </Badge>
                   )}
@@ -316,7 +319,10 @@ export function MemberList() {
 
                   <div className="flex items-center gap-3">
                     <Badge className={roleColors[invite.role]}>
-                      {roleIcons[invite.role] && <roleIcons[invite.role] className=\"h-3 w-3 mr-1" />}
+                      {(() => {
+                        const Icon = roleIcons[invite.role];
+                        return Icon ? <Icon className="h-3 w-3 mr-1" /> : null;
+                      })()}
                       {invite.role}
                     </Badge>
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "next/navigation"
+// import { useParams } from "next/navigation"
 import { Printer, Calendar, Pill, TrendingUp, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -63,8 +63,8 @@ const mockNotableEvents = [
 ]
 
 export default function AnimalReportPage() {
-  const params = useParams()
-  const animalId = params.id as string
+  // const params = useParams()
+  // const animalId = params.id as string
 
   const handlePrint = () => {
     window.print()

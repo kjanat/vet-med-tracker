@@ -127,7 +127,7 @@ export default function InventoryPage() {
     })
 
     return { expiringSoon, lowStock }
-  }, [mockItems, daysLeftMap])
+  }, [daysLeftMap])
 
   // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
@@ -175,9 +175,24 @@ export default function InventoryPage() {
     })
 
     return sorted
-  }, [mockItems, searchQuery, sortBy, daysLeftMap])
+  }, [searchQuery, sortBy, daysLeftMap])
 
-  const handleAddItem = async (data: any) => {
+  const handleAddItem = async (data: {
+    name: string;
+    brand?: string;
+    route: string;
+    form: string;
+    strength: string;
+    concentration?: string;
+    quantityUnits: number;
+    unitsRemaining: number;
+    lot: string;
+    expiresOn: string;
+    storage: string;
+    assignedAnimalId?: string;
+    barcode?: string;
+    setInUse: boolean;
+  }) => {
     const itemId = crypto.randomUUID()
     const payload = {
       ...data,

@@ -187,7 +187,7 @@ export function SummaryCards({ range }: SummaryCardsProps) {
       {/* Animal Leaderboard */}
       <Card className="md:col-span-2 lg:col-span-4">
         <CardHeader>
-          <CardTitle className="text-lg">This Month's Leaderboard</CardTitle>
+          <CardTitle className="text-lg">This Month&apos;s Leaderboard</CardTitle>
           <CardDescription>Compliance by animal</CardDescription>
         </CardHeader>
         <CardContent>

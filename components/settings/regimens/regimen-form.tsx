@@ -149,8 +149,8 @@ export function RegimenForm({ regimen, open, onOpenChange, onSave }: RegimenForm
     formData.scheduleType === "FIXED" && formData.timesLocal?.length ? (
       <Card className="mt-4">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Today's Schedule Preview</CardTitle>
-          <CardDescription>Times shown in animal's timezone</CardDescription>
+          <CardTitle className="text-sm">Today&apos;s Schedule Preview</CardTitle>
+          <CardDescription>Times shown in animal&apos;s timezone</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
@@ -234,7 +234,7 @@ export function RegimenForm({ regimen, open, onOpenChange, onSave }: RegimenForm
                             }
                           }}
                         >
-                          Create "{medicationSearch}"
+                          Create &quot;{medicationSearch}&quot;
                         </Button>
                       </div>
                     </CommandEmpty>
@@ -383,7 +383,7 @@ export function RegimenForm({ regimen, open, onOpenChange, onSave }: RegimenForm
                   <SelectItem value="720">12 hours</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Time after scheduled dose when it's marked as "missed"</p>
+              <p className="text-xs text-muted-foreground">Time after scheduled dose when it&apos;s marked as &quot;missed&quot;</p>
             </div>
 
             <div className="flex items-center space-x-2">

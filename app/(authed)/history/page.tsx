@@ -215,8 +215,9 @@ export default function HistoryPage() {
 
   const handleSelectDay = (day: Date) => {
     // Update filters to show only that day
-    const dayStr = day.toISOString().split("T")[0]
+    // const dayStr = day.toISOString().split("T")[0]
     // setFilters({ ...filters, from: dayStr, to: dayStr, view: "list" })
+    console.log("Selected day:", day)
   }
 
   return (

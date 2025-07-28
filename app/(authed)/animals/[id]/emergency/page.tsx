@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "next/navigation"
+// import { useParams } from "next/navigation"
 import { Phone, AlertTriangle, Pill } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -45,8 +45,8 @@ const mockRegimens = [
 ]
 
 export default function EmergencyCardPage() {
-  const params = useParams()
-  const animalId = params.id as string
+  // const params = useParams()
+  // const animalId = params.id as string
 
   const handlePrint = () => {
     window.print()

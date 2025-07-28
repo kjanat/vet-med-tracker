@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { AnimalAvatar } from "@/components/ui/animal-avatar"
 import { RecordButton } from "@/components/ui/record-button"
 import { Clock, CheckCircle, AlertTriangle, Calendar } from "lucide-react"
-import { trpc } from '@/trpc/server';
-import { ClientGreeting } from './client-greeting';
+// import { trpc } from '@/trpc/server';
+// import { ClientGreeting } from './client-greeting';
 
 export default function HomePage() {
   const { selectedAnimal, animals } = useApp()
@@ -64,7 +64,7 @@ export default function HomePage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Progress</CardTitle>
+            <CardTitle className="text-sm font-medium">Today&apos;s Progress</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -114,7 +114,7 @@ export default function HomePage() {
                     {action.animal} - {action.medication}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {action.route} • Due {action.dueTime}
+                    {action.route} &bull; Due {action.dueTime}
                   </div>
                 </div>
               </div>
@@ -137,7 +137,16 @@ export default function HomePage() {
   )
 }
 
-function SingleAnimalView({ animal }: { animal: any }) {
+interface Animal {
+  id: string;
+  name: string;
+  species: string;
+  breed?: string;
+  pendingMeds: number;
+  avatar?: string;
+}
+
+function SingleAnimalView({ animal }: { animal: Animal }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">

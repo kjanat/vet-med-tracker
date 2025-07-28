@@ -40,7 +40,7 @@ export function OfflineBanner() {
         <AlertDescription className="flex-1">
           {!isOnline ? (
             <>
-              <strong>You're offline.</strong> Changes will be saved and synced when connection is restored.
+              <strong>You&apos;re offline.</strong> Changes will be saved and synced when connection is restored.
               {queueSize > 0 && ` ${queueSize} items queued.`}
             </>
           ) : queueSize > 0 ? (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+// import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -36,7 +36,7 @@ interface HistoryCalendarProps {
 }
 
 export function HistoryCalendar({ month, counts, records, onSelectDay, onMonthChange }: HistoryCalendarProps) {
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null)
+  // const [selectedDay] = useState<Date | null>(null)
 
   const monthStart = startOfMonth(month)
   const monthEnd = endOfMonth(month)

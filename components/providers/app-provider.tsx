@@ -46,7 +46,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null)
   const [isOffline, setIsOffline] = useState(false)
-  const [pendingSyncCount, setPendingSyncCount] = useState(0)
+  const [pendingSyncCount] = useState(0)
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false)

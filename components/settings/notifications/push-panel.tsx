@@ -168,7 +168,7 @@ export function PushPanel() {
         {permission === "denied" && (
           <Alert>
             <AlertDescription>
-              To enable notifications, click the lock icon in your browser's address bar and allow notifications for
+              To enable notifications, click the lock icon in your browser&apos;s address bar and allow notifications for
               this site.
             </AlertDescription>
           </Alert>

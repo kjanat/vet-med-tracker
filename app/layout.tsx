@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { AppProvider } from "@/components/providers/app-provider"
 import { GlobalLayout } from "@/components/layout/global-layout"
+import { TRPCProvider } from "@/server/trpc/client"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,9 +22,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AppProvider>
-          <GlobalLayout>{children}</GlobalLayout>
-        </AppProvider>
+        <TRPCProvider>
+          <AppProvider>
+            <GlobalLayout>{children}</GlobalLayout>
+          </AppProvider>
+        </TRPCProvider>
       </body>
     </html>
   )

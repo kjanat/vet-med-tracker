@@ -169,7 +169,7 @@ export function DataPanel() {
             <Download className="h-5 w-5" />
             Export Data
           </CardTitle>
-          <CardDescription>Download your household's medication data</CardDescription>
+          <CardDescription>Download your household&apos;s medication data</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
@@ -186,7 +186,7 @@ export function DataPanel() {
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Exports include all medication records, inventory, and animal profiles. Times are shown in each animal's
+              Exports include all medication records, inventory, and animal profiles. Times are shown in each animal&apos;s
               local timezone.
             </AlertDescription>
           </Alert>
@@ -213,7 +213,7 @@ export function DataPanel() {
 
             <div className="space-y-3">
               <div className="space-y-2">
-                <Label htmlFor="confirm">Type "DELETE" to confirm</Label>
+                <Label htmlFor="confirm">Type &quot;DELETE&quot; to confirm</Label>
                 <Input
                   id="confirm"
                   value={clearConfirm}

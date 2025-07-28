@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useApp } from "@/components/providers/app-provider"
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner"
-import { useOfflineQueue } from "@/hooks/useOfflineQueue"
+// import { useOfflineQueue } from "@/hooks/useOfflineQueue"
 
 interface AddItemData {
   name: string
@@ -67,7 +67,7 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
   })
 
   const { animals } = useApp()
-  const { enqueue } = useOfflineQueue()
+  // const { enqueue } = useOfflineQueue()
 
   const { isScanning, hasPermission, videoRef, startScanning, stopScanning } = useBarcodeScanner({
     onScan: (barcode) => {
@@ -434,7 +434,7 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
                     }
                   />
                   <Label htmlFor="setInUse" className="text-sm">
-                    Set as "In Use" for this animal
+                    Set as &quot;In Use&quot; for this animal
                   </Label>
                 </div>
               )}
