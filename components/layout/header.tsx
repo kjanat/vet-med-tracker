@@ -1,15 +1,10 @@
 "use client";
 
-import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { HouseholdSwitcher } from "../ui/household-switcher";
 import { AnimalSwitcher } from "../ui/animal-switcher";
+import { NotificationDropdown } from "../ui/notification-dropdown";
 
 export function Header() {
-	// Add inventory alerts to the notification count
-	const inventoryAlerts = 2; // This would come from a hook or context
-
 	return (
 		<header className="border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
 			<div className="flex h-16 items-center justify-between px-4">
@@ -18,12 +13,7 @@ export function Header() {
 				</div>
 
 				<div className="flex items-center gap-4">
-					<Button variant="ghost" size="icon" className="relative">
-						<Bell className="h-5 w-5" />
-						<Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">
-							{3 + inventoryAlerts}
-						</Badge>
-					</Button>
+					<NotificationDropdown />
 				</div>
 			</div>
 
