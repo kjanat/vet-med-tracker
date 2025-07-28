@@ -1,122 +1,140 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Download, FileText, Printer } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useApp } from "@/components/providers/app-provider"
+import { useState } from "react";
+import { Download, FileText, Printer } from "lucide-react";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { useApp } from "@/components/providers/app-provider";
 
 export function ExportPanel() {
-  const [isExporting, setIsExporting] = useState(false)
-  const [selectedAnimalId, setSelectedAnimalId] = useState<string>("all")
-  const { animals } = useApp()
+	const [isExporting, setIsExporting] = useState(false);
+	const [selectedAnimalId, setSelectedAnimalId] = useState<string>("all");
+	const { animals } = useApp();
 
-  const handleExportCSV = async () => {
-    setIsExporting(true)
-    try {
-      console.log("Exporting compliance CSV")
+	const handleExportCSV = async () => {
+		setIsExporting(true);
+		try {
+			console.log("Exporting compliance CSV");
 
-      // Fire instrumentation event
-      window.dispatchEvent(
-        new CustomEvent("insights_export_csv", {
-          detail: { animalId: selectedAnimalId },
-        }),
-      )
+			// Fire instrumentation event
+			window.dispatchEvent(
+				new CustomEvent("insights_export_csv", {
+					detail: { animalId: selectedAnimalId },
+				}),
+			);
 
-      // TODO: Replace with tRPC mutation
-      // const data = await reports.csv.query({
-      //   householdId,
-      //   animalId: selectedAnimalId === "all" ? undefined : selectedAnimalId,
-      //   from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      //   to: new Date()
-      // })
+			// TODO: Replace with tRPC mutation
+			// const data = await reports.csv.query({
+			//   householdId,
+			//   animalId: selectedAnimalId === "all" ? undefined : selectedAnimalId,
+			//   from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+			//   to: new Date()
+			// })
 
-      // Create mock CSV
-      const csvContent = [
-        "Date,Animal,Medication,Scheduled Time,Recorded Time,Status,Notes",
-        "2024-01-15,Buddy,Rimadyl 75mg,08:00,08:05,On Time,Given with food",
-        "2024-01-15,Whiskers,Insulin 2 units,07:00,07:02,On Time,Left shoulder",
-        "2024-01-15,Buddy,Rimadyl 75mg,20:00,20:15,Late,",
-      ].join("\n")
+			// Create mock CSV
+			const csvContent = [
+				"Date,Animal,Medication,Scheduled Time,Recorded Time,Status,Notes",
+				"2024-01-15,Buddy,Rimadyl 75mg,08:00,08:05,On Time,Given with food",
+				"2024-01-15,Whiskers,Insulin 2 units,07:00,07:02,On Time,Left shoulder",
+				"2024-01-15,Buddy,Rimadyl 75mg,20:00,20:15,Late,",
+			].join("\n");
 
-      const blob = new Blob([csvContent], { type: "text/csv" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `compliance-report-${new Date().toISOString().split("T")[0]}.csv`
-      a.click()
-      URL.revokeObjectURL(url)
+			const blob = new Blob([csvContent], { type: "text/csv" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `compliance-report-${new Date().toISOString().split("T")[0]}.csv`;
+			a.click();
+			URL.revokeObjectURL(url);
 
-      console.log("CSV exported successfully")
-    } catch (error) {
-      console.error("Failed to export CSV:", error)
-    } finally {
-      setIsExporting(false)
-    }
-  }
+			console.log("CSV exported successfully");
+		} catch (error) {
+			console.error("Failed to export CSV:", error);
+		} finally {
+			setIsExporting(false);
+		}
+	};
 
-  const handlePrintReport = (animalId: string) => {
-    // Open print-friendly report page
-    const url = `/reports/animal/${animalId}`
-    window.open(url, "_blank")
+	const handlePrintReport = (animalId: string) => {
+		// Open print-friendly report page
+		const url = `/reports/animal/${animalId}`;
+		window.open(url, "_blank");
 
-    // Fire instrumentation event
-    window.dispatchEvent(
-      new CustomEvent("insights_print_report", {
-        detail: { animalId },
-      }),
-    )
-  }
+		// Fire instrumentation event
+		window.dispatchEvent(
+			new CustomEvent("insights_print_report", {
+				detail: { animalId },
+			}),
+		);
+	};
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Download className="h-5 w-5" />
-          Export Reports
-        </CardTitle>
-        <CardDescription>Generate compliance reports and summaries</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Select value={selectedAnimalId} onValueChange={setSelectedAnimalId}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Animals</SelectItem>
-              {animals.map((animal) => (
-                <SelectItem key={animal.id} value={animal.id}>
-                  {animal.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<Download className="h-5 w-5" />
+					Export Reports
+				</CardTitle>
+				<CardDescription>
+					Generate compliance reports and summaries
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				<div className="flex items-center gap-4">
+					<Select value={selectedAnimalId} onValueChange={setSelectedAnimalId}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All Animals</SelectItem>
+							{animals.map((animal) => (
+								<SelectItem key={animal.id} value={animal.id}>
+									{animal.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 
-          <Button onClick={handleExportCSV} disabled={isExporting} className="gap-2">
-            <FileText className="h-4 w-4" />
-            Export CSV
-          </Button>
-        </div>
+					<Button
+						onClick={handleExportCSV}
+						disabled={isExporting}
+						className="gap-2"
+					>
+						<FileText className="h-4 w-4" />
+						Export CSV
+					</Button>
+				</div>
 
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">Individual Animal Reports</h4>
-          <div className="grid gap-2">
-            {animals.map((animal) => (
-              <Button
-                key={animal.id}
-                variant="outline"
-                onClick={() => handlePrintReport(animal.id)}
-                className="justify-start gap-2"
-              >
-                <Printer className="h-4 w-4" />
-                {animal.name} Report (PDF)
-              </Button>
-            ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+				<div className="space-y-2">
+					<h4 className="text-sm font-medium">Individual Animal Reports</h4>
+					<div className="grid gap-2">
+						{animals.map((animal) => (
+							<Button
+								key={animal.id}
+								variant="outline"
+								onClick={() => handlePrintReport(animal.id)}
+								className="justify-start gap-2"
+							>
+								<Printer className="h-4 w-4" />
+								{animal.name} Report (PDF)
+							</Button>
+						))}
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+	);
 }

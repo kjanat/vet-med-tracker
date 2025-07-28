@@ -1,14 +1,18 @@
-import { DateTime } from "luxon"
+import { DateTime } from "luxon";
 
-export const toAnimalLocal = (d: Date, tz: string) => DateTime.fromJSDate(d).setZone(tz)
+export const toAnimalLocal = (d: Date, tz: string) =>
+	DateTime.fromJSDate(d).setZone(tz);
 
-export const localDayISO = (d: Date, tz: string) => toAnimalLocal(d, tz).toISODate()!
+export const localDayISO = (d: Date, tz: string) =>
+	toAnimalLocal(d, tz).toISODate()!;
 
 // 08:00 -> Date for given local day
 export function expandFixedTimes(times: string[], dayISO: string, tz: string) {
-  return times.map((t) => DateTime.fromISO(`${dayISO}T${t}`, { zone: tz }).toUTC().toJSDate())
+	return times.map((t) =>
+		DateTime.fromISO(`${dayISO}T${t}`, { zone: tz }).toUTC().toJSDate(),
+	);
 }
 
 export function formatTimeLocal(date: Date, tz: string) {
-  return toAnimalLocal(date, tz).toFormat("h:mm a")
+	return toAnimalLocal(date, tz).toFormat("h:mm a");
 }

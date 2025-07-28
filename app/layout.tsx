@@ -1,33 +1,33 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { AppProvider } from "@/components/providers/app-provider"
-import { GlobalLayout } from "@/components/layout/global-layout"
-import { TRPCProvider } from "@/server/trpc/client"
+import type React from "react";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { AppProvider } from "@/components/providers/app-provider";
+import { GlobalLayout } from "@/components/layout/global-layout";
+import { TRPCProvider } from "@/server/trpc/client";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VetMed Tracker",
-  description: "Veterinary medication management system",
-    generator: 'v0.dev'
-}
+	title: "VetMed Tracker",
+	description: "Veterinary medication management system",
+	generator: "v0.dev",
+};
 
 export default function RootLayout({
-  children,
+	children,
 }: {
-  children: React.ReactNode
+	children: React.ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>
-        <TRPCProvider>
-          <AppProvider>
-            <GlobalLayout>{children}</GlobalLayout>
-          </AppProvider>
-        </TRPCProvider>
-      </body>
-    </html>
-  )
+	return (
+		<html lang="en">
+			<body className={inter.className}>
+				<TRPCProvider>
+					<AppProvider>
+						<GlobalLayout>{children}</GlobalLayout>
+					</AppProvider>
+				</TRPCProvider>
+			</body>
+		</html>
+	);
 }
