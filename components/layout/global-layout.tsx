@@ -33,7 +33,7 @@ export function GlobalLayout({ children }: { children: ReactNode }) {
 			{/* Mobile Layout */}
 			<div className="md:hidden">
 				{!isDevRoute && <Header />}
-				<main className={isDevRoute ? "min-h-screen" : "pb-16 p-4"}>
+				<main className={isDevRoute ? "min-h-screen" : "pb-20 p-4"}>
 					{children}
 				</main>
 				{!isDevRoute && <BottomNav />}
