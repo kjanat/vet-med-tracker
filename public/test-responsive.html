@@ -1,77 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Responsive Test</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mobile Responsive Test — Color Scheme Toggle</title>
     <style>
+        :root {
+            --bg: #0b0c10;
+            --panel: #16181d;
+            --text: #e8ecf1;
+            --muted: #9aa4b2;
+            --accent: #0070f3;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 20px;
-            font-family: sans-serif;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
         }
+
+        h2 {
+            margin: 0 0 10px;
+            font-weight: 700;
+        }
+
+        .toolbar {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 1fr auto auto;
+            align-items: center;
+            background: var(--panel);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .toolbar .title {
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
+        }
+
+        select,
+        button,
+        input[type="text"] {
+            border: 1px solid #2a2f37;
+            background: #111319;
+            color: var(--text);
+            font-size: 14px;
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .device-buttons {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            margin-bottom: 16px;
+        }
+
+        .device-buttons button {
+            text-align: left;
+        }
+
+        .chip {
+            font-size: 12px;
+            color: var(--muted);
+            display: inline-block;
+            margin-left: 6px;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .segmented {
+            display: inline-flex;
+            border: 1px solid #2a2f37;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .segmented button {
+            border: 0;
+            background: #0f1218;
+            padding: 8px 12px;
+        }
+
+        .segmented button.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
         iframe {
-            border: 2px solid #333;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            border: 2px solid #2a2f37;
+            box-shadow: 0 0 20px rgba(0, 0, 0, .35);
             display: block;
             margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
         }
-        .controls {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 0 5px;
-            font-size: 16px;
-            cursor: pointer;
-            background: #0070f3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
-            background: #0051cc;
-        }
+
         .info {
             text-align: center;
             margin-top: 10px;
             font-size: 14px;
-            color: #666;
+            color: var(--muted);
         }
     </style>
 </head>
+
 <body>
-    <div class="controls">
-        <h2>VetMed Tracker - Mobile Responsive Test</h2>
-        <button onclick="setSize(375, 667)">iPhone SE</button>
-        <button onclick="setSize(390, 844)">iPhone 12</button>
-        <button onclick="setSize(414, 896)">iPhone 11 Pro Max</button>
-        <button onclick="setSize(768, 1024)">iPad</button>
-        <button onclick="setSize(1200, 800)">Desktop</button>
+    <div class="toolbar">
+        <div class="title">
+            <h2 style="margin:0">VetMed Tracker — Mobile Responsive Test</h2>
+            <span class="chip" id="brandCount"></span>
+        </div>
+
+        <div class="row">
+            <label for="brandFilter" class="chip">Brand</label>
+            <select id="brandFilter"></select>
+
+            <span class="chip" style="margin-left:12px">OS theme</span>
+            <div class="segmented" id="schemeToggle" role="tablist" aria-label="OS color scheme">
+                <button type="button" data-scheme="system" class="active" aria-selected="true">System</button>
+                <button type="button" data-scheme="light">Light</button>
+                <button type="button" data-scheme="dark">Dark</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <input id="urlInput" type="text" value="http://localhost:3000/" style="width:340px" />
+            <button id="applyUrlBtn" class="primary">Load</button>
+            <button id="rotateBtn">Rotate</button>
+            <button id="resetBtn">Reset</button>
+        </div>
     </div>
-    
-    <iframe id="preview" src="http://localhost:3000/insights" width="375" height="667"></iframe>
-    
-    <div class="info" id="sizeInfo">Current size: 375x667 (iPhone SE)</div>
-    
+
+    <div class="device-buttons" id="deviceButtons"></div>
+
+    <iframe id="preview" src="http://localhost:3000/" width="375" height="667" title="Preview"></iframe>
+    <div class="info" id="sizeInfo">Current size: 375 × 667 — Apple iPhone SE (2nd/3rd gen) [portrait] · scheme: system</div>
+
     <script>
-        function setSize(width, height) {
-            const iframe = document.getElementById('preview');
-            const info = document.getElementById('sizeInfo');
-            iframe.width = width;
-            iframe.height = height;
-            
-            const deviceNames = {
-                '375x667': 'iPhone SE',
-                '390x844': 'iPhone 12',
-                '414x896': 'iPhone 11 Pro Max',
-                '768x1024': 'iPad',
-                '1200x800': 'Desktop'
-            };
-            
-            info.textContent = `Current size: ${width}x${height} (${deviceNames[width + 'x' + height] || 'Custom'})`;
+        //
+        // ---- Device config (name, brand, CSS viewport width/height in portrait) ----
+        // NOTE: These are typical portrait CSS viewport sizes (layout viewport). Actual values may
+        // vary slightly depending on browser UI chrome and the user's display-size setting.
+        //
+        const deviceConfig = [
+            // Apple (original set, clarified)
+            { brand: 'Apple', name: 'iPhone SE (2nd/3rd gen)', width: 375, height: 667 },
+            { brand: 'Apple', name: 'iPhone 12 / 12 Pro', width: 390, height: 844 },
+            { brand: 'Apple', name: 'iPhone 11 Pro Max', width: 414, height: 896 },
+            { brand: 'Apple', name: 'iPad 9.7\" (portrait)', width: 768, height: 1024 },
+            { brand: 'Desktop', name: 'Desktop (example)', width: 1200, height: 800 },
+
+            // Samsung — 2024/2025 generation (typical portrait CSS viewports)
+            { brand: 'Samsung', name: 'Galaxy S24 Ultra', width: 412, height: 915 },
+            { brand: 'Samsung', name: 'Galaxy S24+', width: 412, height: 915 },
+            { brand: 'Samsung', name: 'Galaxy S24', width: 360, height: 780 },
+            { brand: 'Samsung', name: 'Galaxy A54', width: 412, height: 915 },
+
+            // Google
+            { brand: 'Google', name: 'Pixel 8 Pro', width: 412, height: 917 },
+            { brand: 'Google', name: 'Pixel 8', width: 412, height: 915 },
+
+            // OnePlus
+            { brand: 'OnePlus', name: 'OnePlus 12', width: 412, height: 919 },
+
+            // Xiaomi
+            { brand: 'Xiaomi', name: 'Xiaomi 14', width: 393, height: 852 },
+
+            // Nothing
+            { brand: 'Nothing', name: 'Phone (2)', width: 412, height: 892 },
+        ];
+
+        // ---- State ----
+        const state = {
+            width: 375,
+            height: 667,
+            brand: 'Apple',
+            name: 'iPhone SE (2nd/3rd gen)',
+            orientation: 'portrait',
+            scheme: 'system',
+            baseUrl: 'http://localhost:3000/',
+        };
+
+        // ---- Elements ----
+        const deviceButtonsEl = document.getElementById('deviceButtons');
+        const brandFilterEl = document.getElementById('brandFilter');
+        const brandCountEl = document.getElementById('brandCount');
+        const preview = document.getElementById('preview');
+        const info = document.getElementById('sizeInfo');
+        const rotateBtn = document.getElementById('rotateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const schemeToggle = document.getElementById('schemeToggle');
+        const urlInput = document.getElementById('urlInput');
+        const applyUrlBtn = document.getElementById('applyUrlBtn');
+
+        // ---- Helpers ----
+        const uniqueBrands = (list) => Array.from(new Set(list.map((d) => d.brand)));
+
+        function populateBrandFilter() {
+            const brands = [ 'All', ...uniqueBrands(deviceConfig) ];
+            brandFilterEl.innerHTML = brands
+                .map((b) => `<option value="${b}">${b}</option>`)
+                .join('');
+            brandCountEl.textContent = `${deviceConfig.length} presets`;
         }
+
+        function renderButtons() {
+            const filter = brandFilterEl.value || 'All';
+            const filtered = deviceConfig.filter((d) =>
+                filter === 'All' ? true : d.brand === filter
+            );
+            deviceButtonsEl.innerHTML = filtered
+                .map((d, idx) => {
+                    return `<button class="preset" data-index="${idx}" data-brand="${d.brand}" data-name="${d.name}" data-w="${d.width}" data-h="${d.height}">
+                  <strong>${d.name}</strong><br/>
+                  <span class="chip">${d.brand} · ${d.width}×${d.height}</span>
+                </button>`;
+                })
+                .join('');
+
+            deviceButtonsEl.querySelectorAll('button.preset').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const w = parseInt(btn.dataset.w, 10);
+                    const h = parseInt(btn.dataset.h, 10);
+                    const brand = btn.dataset.brand;
+                    const name = btn.dataset.name;
+                    setSize(w, h, brand, name);
+                });
+            });
+        }
+
+        function setSize(width, height, brand, name) {
+            preview.width = width;
+            preview.height = height;
+            state.width = width;
+            state.height = height;
+            if (brand) state.brand = brand;
+            if (name) state.name = name;
+            state.orientation = width >= height ? 'landscape' : 'portrait';
+            updateInfo();
+        }
+
+        function updateInfo() {
+            info.textContent = `Current size: ${state.width} × ${state.height} — ${state.brand} ${state.name} [${state.orientation}] · scheme: ${state.scheme}`;
+        }
+
+        // ---- Color scheme simulation ----
+        // We simulate OS light/dark preference by appending a query param to the preview URL.
+        // Your app can read it and force its theme accordingly, e.g. `new URLSearchParams(location.search).get('simulatedPrefersColorScheme')`.
+        function withSchemeParam(url, scheme) {
+            try {
+                const u = new URL(url, window.location.href);
+                if (scheme && scheme !== 'system') {
+                    u.searchParams.set('simulatedPrefersColorScheme', scheme);
+                } else {
+                    u.searchParams.delete('simulatedPrefersColorScheme');
+                }
+                return u.toString();
+            } catch (_) {
+                // Fallback: naive string append
+                const sep = url.includes('?') ? '&' : '?';
+                return scheme && scheme !== 'system' ?
+                    `${url}${sep}simulatedPrefersColorScheme=${scheme}`
+                    : url;
+            }
+        }
+
+        function applyScheme() {
+            const newSrc = withSchemeParam(state.baseUrl, state.scheme);
+            if (preview.src !== newSrc) preview.src = newSrc; // triggers reload
+            // Also set a data attribute for CSS-based demos in this outer page
+            document.documentElement.setAttribute('data-simulated-scheme', state.scheme);
+            updateInfo();
+        }
+
+        schemeToggle.querySelectorAll('button').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                schemeToggle
+                    .querySelectorAll('button')
+                    .forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.scheme = btn.dataset.scheme;
+                applyScheme();
+            });
+        });
+
+        // ---- URL controls ----
+        applyUrlBtn.addEventListener('click', () => {
+            state.baseUrl = urlInput.value.trim() || state.baseUrl;
+            applyScheme();
+        });
+
+        // Rotate and reset
+        rotateBtn.addEventListener('click', () =>
+            setSize(state.height, state.width, state.brand, state.name)
+        );
+        resetBtn.addEventListener('click', () => {
+            state.scheme = 'system';
+            schemeToggle
+                .querySelectorAll('button')
+                .forEach((b) => b.classList.remove('active'));
+            schemeToggle
+                .querySelector('button[data-scheme="system"]')
+                .classList.add('active');
+            setSize(375, 667, 'Apple', 'iPhone SE (2nd/3rd gen)');
+            state.baseUrl = 'http://localhost:3000/';
+            urlInput.value = state.baseUrl;
+            applyScheme();
+        });
+
+        brandFilterEl.addEventListener('change', renderButtons);
+
+        // Init
+        populateBrandFilter();
+        renderButtons();
+        updateInfo();
     </script>
+
+    <!--
+    NOTE: To make this truly affect your app regardless of query params, you can optionally
+    add a tiny snippet in your app that also listens for postMessage and/or the query param:
+
+    window.addEventListener('message', (e) => {
+      if (!e.data || e.data.type !== 'setColorScheme') return;
+      const scheme = e.data.value; // 'light' | 'dark' | 'system'
+      // force your app's theme here
+    });
+
+    // If you prefer no reloads, you can modify applyScheme() to send:
+    preview.contentWindow?.postMessage({ type: 'setColorScheme', value: state.scheme }, '*');
+  -->
 </body>
+
 </html>
