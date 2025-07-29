@@ -341,8 +341,29 @@ async function detectNavigationMethod(page, viewportName) {
 	// Check for tabs first (more specific)
 	const tabButtons = await page.$$('button[role="tab"]');
 	if (tabButtons.length > 0) {
-		console.log(`  ℹ️  Using tab navigation (found ${tabButtons.length} tabs)`);
-		return "tabs";
+		// Verify at least one tab is visible
+		for (const tab of tabButtons) {
+			const isVisible = await tab
+				.evaluate((el) => {
+					const rect = el.getBoundingClientRect();
+					const style = window.getComputedStyle(el);
+					return (
+						rect.width > 0 &&
+						rect.height > 0 &&
+						style.display !== "none" &&
+						style.visibility !== "hidden" &&
+						style.opacity !== "0"
+					);
+				})
+				.catch(() => false);
+
+			if (isVisible) {
+				console.log(
+					`  ℹ️  Using tab navigation (found ${tabButtons.length} tabs)`,
+				);
+				return "tabs";
+			}
+		}
 	}
 
 	// Check for dropdown using shared helper

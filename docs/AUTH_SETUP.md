@@ -53,10 +53,10 @@ DATABASE_URL=postgresql://...
 
 ### 2. OpenAuth Server Configuration
 
-Your OpenAuth server at https://auth.kajkowalski.nl should be configured to:
+Your OpenAuth server at `https://auth.kajkowalski.nl` should be configured to:
 
-1. Accept the redirect URI: `{NEXT_PUBLIC_APP_URL}/api/auth/callback`
-2. Include the following claims in the access token:
+1. **Redirect URI**: Accept `{NEXT_PUBLIC_APP_URL}/api/auth/callback`
+2. **Access Token Claims**: Include the following:
    - `userId` - Unique user identifier
    - `email` - User's email address
    - `name` - User's display name (optional)
@@ -128,7 +128,7 @@ export const myProcedure = protectedProcedure
 
 ## Security
 
-- Tokens stored in httpOnly cookies (not accessible via JavaScript)
+- Tokens stored in httpOnly cookies (inaccessible via JavaScript)
 - CSRF protection using state parameter
 - Automatic token refresh when expired
 - Secure cookie settings in production
