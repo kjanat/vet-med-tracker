@@ -45,10 +45,16 @@ Create a `.env.local` file in the project root:
 # OpenAuth Configuration
 OPENAUTH_ISSUER=https://auth.kajkowalski.nl
 OPENAUTH_CLIENT_ID=vetmed-tracker
+OPENAUTH_CLIENT_SECRET=your-client-secret-here  # Required for confidential client flows
 NEXT_PUBLIC_APP_URL=http://localhost:3000  # Change for production
 
 # Database Configuration (Neon)
 DATABASE_URL=postgresql://...
+
+# Optional: Security Settings (Recommended for production)
+COOKIE_SECURE=true              # Ensure cookies are only sent over HTTPS
+COOKIE_SAME_SITE=strict         # Strict same-site cookie policy
+DEFAULT_TIMEZONE=UTC            # Default timezone for new households
 ```
 
 ### 2. OpenAuth Server Configuration
@@ -67,7 +73,11 @@ Your OpenAuth server at `https://auth.kajkowalski.nl` should be configured to:
 Run the database migrations to create the necessary tables:
 
 ```bash
-pnpm db:push  # or pnpm db:migrate
+# Development (pushes schema directly - can be destructive)
+pnpm db:push
+
+# Production (uses proper migrations - safer)
+pnpm db:migrate
 ```
 
 ## Usage
