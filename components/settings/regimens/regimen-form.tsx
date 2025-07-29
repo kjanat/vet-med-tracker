@@ -23,6 +23,13 @@ import {
 	CommandItem,
 	CommandList,
 } from "@/components/ui/command";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -37,13 +44,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-} from "@/components/ui/sheet";
 import type { Regimen } from "./regimen-list";
 
 interface RegimenFormProps {
@@ -211,16 +211,16 @@ export function RegimenForm({
 	const isFormValid = checkFormValidity(formData);
 
 	return (
-		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="w-[600px] sm:max-w-[600px] overflow-y-auto">
-				<SheetHeader>
-					<SheetTitle>{regimen ? "Edit Regimen" : "Add Regimen"}</SheetTitle>
-					<SheetDescription>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-[95vw] sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>{regimen ? "Edit Regimen" : "Add Regimen"}</DialogTitle>
+					<DialogDescription>
 						{regimen
 							? "Update medication schedule and dosing"
 							: "Create a new medication regimen"}
-					</SheetDescription>
-				</SheetHeader>
+					</DialogDescription>
+				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className="space-y-6 mt-6">
 					{/* Animal Selection */}
@@ -415,8 +415,8 @@ export function RegimenForm({
 						</Button>
 					</div>
 				</form>
-			</SheetContent>
-		</Sheet>
+			</DialogContent>
+		</Dialog>
 	);
 }
 

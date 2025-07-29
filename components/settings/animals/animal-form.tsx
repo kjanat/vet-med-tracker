@@ -6,6 +6,13 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,13 +22,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-} from "@/components/ui/sheet";
 import type { Animal } from "./animal-list";
 
 interface AnimalFormProps {
@@ -144,16 +144,16 @@ export function AnimalForm({
 	};
 
 	return (
-		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="w-[600px] sm:max-w-[600px] overflow-y-auto">
-				<SheetHeader>
-					<SheetTitle>{animal ? "Edit Animal" : "Add Animal"}</SheetTitle>
-					<SheetDescription>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-[95vw] sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>{animal ? "Edit Animal" : "Add Animal"}</DialogTitle>
+					<DialogDescription>
 						{animal
 							? "Update animal profile and medical information"
 							: "Create a new animal profile"}
-					</SheetDescription>
-				</SheetHeader>
+					</DialogDescription>
+				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className="space-y-6 mt-6">
 					{/* Basic Info */}
@@ -482,7 +482,7 @@ export function AnimalForm({
 						</Button>
 					</div>
 				</form>
-			</SheetContent>
-		</Sheet>
+			</DialogContent>
+		</Dialog>
 	);
 }
