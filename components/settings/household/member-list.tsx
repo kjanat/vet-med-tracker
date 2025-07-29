@@ -327,10 +327,10 @@ export function MemberList() {
 						{members.map((member) => (
 							<div
 								key={member.id}
-								className="flex items-center justify-between p-4 border rounded-lg"
+								className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3"
 							>
-								<div className="flex items-center gap-4">
-									<Avatar>
+								<div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+									<Avatar className="flex-shrink-0">
 										{member.avatar && <AvatarImage src={member.avatar} />}
 										<AvatarFallback
 											className={cn(
@@ -346,26 +346,30 @@ export function MemberList() {
 										</AvatarFallback>
 									</Avatar>
 
-									<div>
-										<div className="font-medium">
+									<div className="min-w-0 flex-1">
+										<div className="font-medium truncate">
 											{member.name || member.email}
 										</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-sm text-muted-foreground truncate">
 											{member.email}
 										</div>
 										<div className="text-xs text-muted-foreground">
-											Joined {member.joinedAt.toLocaleDateString()}
+											<span className="block sm:inline">
+												Joined {member.joinedAt.toLocaleDateString()}
+											</span>
 											{member.lastActiveAt && (
-												<span>
-													{" "}
-													• Last active {member.lastActiveAt.toLocaleString()}
+												<span className="block sm:inline">
+													<span className="hidden sm:inline"> • </span>
+													<span className="sm:hidden">Last active </span>
+													<span className="hidden sm:inline">Last active </span>
+													{member.lastActiveAt.toLocaleString()}
 												</span>
 											)}
 										</div>
 									</div>
 								</div>
 
-								<div className="flex items-center gap-3">
+								<div className="flex items-center gap-3 self-end sm:self-center">
 									{canManageRoles && member.id !== currentUser.id ? (
 										<Select
 											value={member.role}
@@ -439,18 +443,23 @@ export function MemberList() {
 							{pendingInvites.map((invite) => (
 								<div
 									key={invite.id}
-									className="flex items-center justify-between p-4 border rounded-lg bg-muted/50"
+									className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg bg-muted/50 gap-3"
 								>
-									<div className="flex items-center gap-4">
-										<div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+									<div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+										<div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
 											<Mail className="h-4 w-4 text-muted-foreground" />
 										</div>
 
-										<div>
-											<div className="font-medium">{invite.email}</div>
+										<div className="min-w-0 flex-1">
+											<div className="font-medium truncate">{invite.email}</div>
 											<div className="text-sm text-muted-foreground">
-												Invited by {invite.invitedBy} •{" "}
-												{invite.invitedAt.toLocaleDateString()}
+												<span className="block sm:inline">
+													Invited by {invite.invitedBy}
+												</span>
+												<span className="hidden sm:inline"> • </span>
+												<span className="block sm:inline">
+													{invite.invitedAt.toLocaleDateString()}
+												</span>
 											</div>
 											<div className="text-xs text-muted-foreground">
 												Expires {invite.expiresAt.toLocaleDateString()}
@@ -458,13 +467,16 @@ export function MemberList() {
 										</div>
 									</div>
 
-									<div className="flex items-center gap-3">
-										<Badge className={roleColors[invite.role]}>
+									<div className="flex items-center gap-3 self-end sm:self-center">
+										<Badge className={cn(roleColors[invite.role], "text-xs sm:text-sm")}>
 											{(() => {
 												const Icon = roleIcons[invite.role];
 												return Icon ? <Icon className="h-3 w-3 mr-1" /> : null;
 											})()}
-											{invite.role}
+											<span className="hidden sm:inline">{invite.role}</span>
+											<span className="sm:hidden">
+												{invite.role === "VetReadOnly" ? "VetReadOnly" : invite.role}
+											</span>
 										</Badge>
 
 										{canManageRoles && (
