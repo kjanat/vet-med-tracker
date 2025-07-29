@@ -1,7 +1,7 @@
 "use client";
 
 import { endOfMonth, parseISO, startOfMonth } from "date-fns";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { FilterBar } from "@/components/history/filter-bar";
 import { HistoryCalendar } from "@/components/history/history-calendar";
 import {
@@ -93,7 +93,7 @@ const mockRecords: AdministrationRecord[] = [
 	},
 ];
 
-export default function HistoryPage() {
+function HistoryContent() {
 	const { filters } = useHistoryFilters();
 	const { enqueue } = useOfflineQueue();
 	const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -268,5 +268,21 @@ export default function HistoryPage() {
 				)}
 			</div>
 		</div>
+	);
+}
+
+export default function HistoryPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+					<div className="p-4 md:p-6">
+						<div className="text-muted-foreground">Loading history...</div>
+					</div>
+				</div>
+			}
+		>
+			<HistoryContent />
+		</Suspense>
 	);
 }

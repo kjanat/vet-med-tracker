@@ -21,9 +21,10 @@
 		"puppeteer:install": "pnpm dlx puppeteer browsers install"
 	},
 	"dependencies": {
-		"@hookform/resolvers": "^5.2.0",
+		"@hookform/resolvers": "^5.2.1",
 		"@neondatabase/serverless": "^1.0.1",
 		"@next/env": "^15.4.4",
+		"@openauthjs/openauth": "^0.4.3",
 		"@radix-ui/react-accordion": "1.2.11",
 		"@radix-ui/react-alert-dialog": "1.1.14",
 		"@radix-ui/react-aspect-ratio": "1.1.7",
@@ -67,7 +68,7 @@
 		"embla-carousel-react": "8.6.0",
 		"geist": "^1.4.2",
 		"input-otp": "1.4.2",
-		"lucide-react": "^0.533.0",
+		"lucide-react": "^0.534.0",
 		"luxon": "latest",
 		"next": "15.4.4",
 		"next-themes": "^0.4.6",

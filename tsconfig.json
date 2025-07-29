@@ -26,6 +26,13 @@
 			"@/trpc/*": ["./server/trpc/*"]
 		}
 	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-	"exclude": ["node_modules"]
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		"**/*.cjs",
+		"**/*.js",
+		".next/types/**/*.ts"
+	],
+	"exclude": ["node_modules", "sample-components"]
 }

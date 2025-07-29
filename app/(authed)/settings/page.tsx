@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { AnimalList } from "@/components/settings/animals/animal-list";
 import { DataPanel } from "@/components/settings/data/data-panel";
 import { MemberList } from "@/components/settings/household/member-list";
@@ -18,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { type SettingsTab, useSettingsTabs } from "@/hooks/useSettingsTabs";
 
-export default function SettingsPage() {
+function SettingsContent() {
 	const { activeTab, setActiveTab } = useSettingsTabs();
 	const isMobile = useMediaQuery("(max-width: 640px)");
 
@@ -114,5 +115,26 @@ export default function SettingsPage() {
 				</Tabs>
 			</div>
 		</div>
+	);
+}
+
+export default function SettingsPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+					<div className="p-4 md:p-6 space-y-6">
+						<div>
+							<h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
+							<p className="text-sm md:text-base text-muted-foreground">
+								Loading settings...
+							</p>
+						</div>
+					</div>
+				</div>
+			}
+		>
+			<SettingsContent />
+		</Suspense>
 	);
 }

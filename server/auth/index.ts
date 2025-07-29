@@ -1,13 +1,19 @@
 import { MockAuthProvider } from "./mock-provider";
+import { OpenAuthProvider } from "./openauth-provider";
 import type { AuthProvider } from "./types";
 
+export * from "./subjects";
 // Export types
 export * from "./types";
 
 // Initialize the auth provider based on environment
 let authProvider: AuthProvider;
 
-if (process.env.NEXT_PUBLIC_STACK_PROJECT_ID) {
+if (process.env.OPENAUTH_ISSUER) {
+	// OpenAuth is configured
+	console.log("OpenAuth detected, initializing OpenAuth provider");
+	authProvider = new OpenAuthProvider();
+} else if (process.env.NEXT_PUBLIC_STACK_PROJECT_ID) {
 	// Stack Auth is configured
 	// TODO: Implement StackAuthProvider
 	console.log("Stack Auth detected, using mock provider for now");
@@ -25,6 +31,11 @@ if (process.env.NEXT_PUBLIC_STACK_PROJECT_ID) {
 
 // Export singleton instance
 export const auth = authProvider;
+
+// Export OpenAuth provider instance if configured
+export const openAuth = process.env.OPENAUTH_ISSUER
+	? (authProvider as OpenAuthProvider)
+	: null;
 
 // Helper to get auth context for tRPC
 export async function getAuthContext(
