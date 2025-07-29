@@ -1,0 +1,27 @@
+name: 'Setup VetMed Tracker Environment'
+description: 'Sets up Node.js, pnpm, dependencies, and mock database'
+runs:
+  using: 'composite'
+  steps:
+    - name: Enable corepack
+      shell: bash
+      run: corepack enable
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Setup mock environment
+      shell: bash
+      run: |
+        # Create mock environment variables
+        echo "DATABASE_URL_POOLED=postgresql://mock:mock@localhost:5432/vetmed" >> $GITHUB_ENV
+        echo "DATABASE_URL_UNPOOLED=postgresql://mock:mock@localhost:5432/vetmed?pool=false" >> $GITHUB_ENV
+        echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
+        echo "NEXTAUTH_SECRET=mock-secret-for-testing" >> $GITHUB_ENV
