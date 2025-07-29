@@ -1,4 +1,4 @@
-import { neon, neonConfig, type Pool } from "@neondatabase/serverless";
+import { neon, type Pool } from "@neondatabase/serverless";
 import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
 import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
 import * as schema from "./schema";
@@ -12,7 +12,7 @@ for (const envVar of requiredEnvVars) {
 }
 
 // Configure Neon for serverless environments
-neonConfig.fetchConnectionCache = true;
+// fetchConnectionCache is deprecated and now always true
 
 // After validation we know these are defined
 const DATABASE_URL_POOLED = process.env.DATABASE_URL_POOLED as string;

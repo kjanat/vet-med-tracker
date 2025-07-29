@@ -28,7 +28,7 @@
 - Sample regimens and inventory items
 - Run with: `pnpm db:seed`
 
-### 5. **Test Implementation** 
+### 5. **Test Implementation**
 - **Household router** with real database queries
 - **Test page** at `/test-trpc` to verify everything works
 

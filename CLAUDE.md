@@ -39,7 +39,7 @@ pnpm lint         # Run ESLint
 - **State Management**: React Context API (AppProvider) + React Query
 - **API Layer**: tRPC (server + client) for type-safe APIs
 - **Database**: Prisma + Postgres
-- **Authentication**: NextAuth (Email/Google/Apple SSO)
+- **Authentication**: OpenAuth.js (OAuth 2.0 with custom auth server)
 - **Forms**: React Hook Form with Zod validation
 - **Package Manager**: pnpm 10.13.1
 - **Deployment**: Vercel (edge functions where beneficial)
@@ -108,6 +108,18 @@ The app uses responsive design with distinct mobile and desktop layouts:
 - Mobile: Header + Bottom Navigation
 - Desktop: Left Rail + Header
 - Components use `useMediaQuery` or CSS for responsive behavior
+
+### Authentication
+
+The app uses OpenAuth.js for authentication:
+- **OAuth 2.0 Server**: https://auth.kajkowalski.nl (custom OpenAuth server)
+- **Protected Routes**: All routes under `app/(authed)/` require authentication
+- **Auth Hooks**: `useAuth()` for client-side auth state
+- **Token Storage**: httpOnly cookies for security
+- **Auto-refresh**: Tokens are refreshed automatically when expired
+- **User Creation**: New users are created on first login with a default household
+
+See `docs/AUTH_SETUP.md` for detailed authentication setup instructions.
 
 ## Core Domain Concepts
 
@@ -210,7 +222,7 @@ insightsRouter  // Analytics and patterns
 
 ## Critical Security Patterns
 
-1. **Authorization Middleware**: 
+1. **Authorization Middleware**:
    - Extract householdId from URL or input
    - Verify membership and role
    - Resource-level access checks

@@ -1,5 +1,6 @@
 "use client";
 
+import { UserMenu } from "../auth/user-menu";
 import { AnimalSwitcher } from "../ui/animal-switcher";
 import { HouseholdSwitcher } from "../ui/household-switcher";
 import { NotificationDropdown } from "../ui/notification-dropdown";
@@ -14,6 +15,7 @@ export function Header() {
 
 				<div className="flex items-center gap-4">
 					<NotificationDropdown />
+					<UserMenu />
 				</div>
 			</div>
 

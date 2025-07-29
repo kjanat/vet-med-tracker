@@ -156,49 +156,53 @@ async function takeScreenshot(page, filepath, fullPage = true) {
 	}
 }
 
+// Tab labels used in settings
+const SETTINGS_TAB_LABELS = [
+	"Animals",
+	"Regimens",
+	"Household",
+	"Notifications",
+	"Data & Privacy",
+	"Preferences",
+];
+
+// Find dropdown trigger button
+async function findDropdownTrigger(page) {
+	const buttons = await page.$$("button");
+
+	for (const button of buttons) {
+		try {
+			const text = await button.evaluate((el) => el.textContent?.trim());
+			if (text && SETTINGS_TAB_LABELS.includes(text)) {
+				// Verify it has a dropdown icon (chevron)
+				const hasIcon = await button.evaluate((el) => {
+					return (
+						el.querySelector("svg") !== null ||
+						el.querySelector('[class*="chevron"]') !== null
+					);
+				});
+
+				if (hasIcon) {
+					console.log(`  ℹ️  Found dropdown button with value: ${text}`);
+					return button;
+				}
+			}
+		} catch (_e) {
+			// Button might be stale, continue
+		}
+	}
+
+	return null;
+}
+
 // Handle mobile tab selection
 async function selectMobileTab(page, tabLabel) {
 	try {
 		// Wait for any previous animations to complete
 		await new Promise((resolve) => setTimeout(resolve, 800));
 
-		// Find the select trigger button - it should contain the current value
-		const buttons = await page.$$("button");
-		let selectTrigger = null;
-
-		for (const button of buttons) {
-			try {
-				const text = await button.evaluate((el) => el.textContent?.trim());
-				// Check if this button contains one of our tab labels and has a dropdown indicator
-				if (
-					text &&
-					[
-						"Animals",
-						"Regimens",
-						"Household",
-						"Notifications",
-						"Data & Privacy",
-						"Preferences",
-					].includes(text)
-				) {
-					// Verify it has a dropdown icon (chevron)
-					const hasIcon = await button.evaluate((el) => {
-						return (
-							el.querySelector("svg") !== null ||
-							el.querySelector('[class*="chevron"]') !== null
-						);
-					});
-
-					if (hasIcon) {
-						selectTrigger = button;
-						console.log(`  ℹ️  Found dropdown button with value: ${text}`);
-						break;
-					}
-				}
-			} catch (e) {
-				// Button might be stale, continue
-			}
-		}
+		// Find the select trigger button
+		const selectTrigger = await findDropdownTrigger(page);
 
 		if (!selectTrigger) {
 			console.warn(`  ⚠️  Could not find select trigger button`);
@@ -224,7 +228,7 @@ async function selectMobileTab(page, tabLabel) {
 					timeout: 3000,
 				},
 			);
-		} catch (e) {
+		} catch (_e) {
 			console.warn(`  ⚠️  Dropdown did not open`);
 			return false;
 		}
@@ -247,7 +251,7 @@ async function selectMobileTab(page, tabLabel) {
 					console.log(`  ✓ Selected ${tabLabel}`);
 					return true;
 				}
-			} catch (e) {
+			} catch (_e) {
 				// Option might be stale, continue
 			}
 		}
@@ -313,70 +317,56 @@ async function selectDesktopTab(page, tabLabel) {
 	}
 }
 
-// Capture settings page with all tabs
-async function captureSettingsTabs(page, viewportName, OUT_DIR) {
-	// Determine navigation method once at the beginning
-	let navigationMethod = null;
-
+// Detect navigation method (tabs or dropdown)
+async function detectNavigationMethod(page, viewportName) {
 	// Check for tabs first (more specific)
 	const tabButtons = await page.$$('button[role="tab"]');
 	if (tabButtons.length > 0) {
-		navigationMethod = "tabs";
 		console.log(`  ℹ️  Using tab navigation (found ${tabButtons.length} tabs)`);
-	} else {
-		// Check for dropdown - be more specific to avoid false positives
-		// Look for a button that contains one of our expected tab values
-		const buttons = await page.$$("button");
-		for (const button of buttons) {
-			try {
-				const text = await button.evaluate((el) => el.textContent?.trim());
-				if (
-					text &&
-					[
-						"Animals",
-						"Regimens",
-						"Household",
-						"Notifications",
-						"Data & Privacy",
-						"Preferences",
-					].includes(text)
-				) {
-					// This looks like our settings dropdown
-					const parent = await button.evaluate(
-						(el) => el.parentElement?.tagName,
+		return "tabs";
+	}
+
+	// Check for dropdown
+	const buttons = await page.$$("button");
+	for (const button of buttons) {
+		try {
+			const text = await button.evaluate((el) => el.textContent?.trim());
+			if (text && SETTINGS_TAB_LABELS.includes(text)) {
+				// This looks like our settings dropdown
+				const parent = await button.evaluate((el) => el.parentElement?.tagName);
+				if (parent !== "LI" && parent !== "NAV") {
+					// Not a nav item
+					console.log(
+						`  ℹ️  Using dropdown navigation (found select with value: ${text})`,
 					);
-					if (parent !== "LI" && parent !== "NAV") {
-						// Not a nav item
-						navigationMethod = "dropdown";
-						console.log(
-							`  ℹ️  Using dropdown navigation (found select with value: ${text})`,
-						);
-						break;
-					}
+					return "dropdown";
 				}
-			} catch (e) {
-				// Continue checking
 			}
+		} catch (_e) {
+			// Continue checking
 		}
 	}
 
-	if (!navigationMethod) {
-		console.warn(
-			`  ⚠️  Could not determine navigation method for ${viewportName}`,
-		);
-		// Default to checking what viewport we're on
-		navigationMethod = viewportName === "mobile" ? "dropdown" : "tabs";
-		console.log(`  ℹ️  Defaulting to ${navigationMethod} based on viewport`);
-	}
+	// Default based on viewport
+	const defaultMethod = viewportName === "mobile" ? "dropdown" : "tabs";
+	console.warn(
+		`  ⚠️  Could not determine navigation method for ${viewportName}`,
+	);
+	console.log(`  ℹ️  Defaulting to ${defaultMethod} based on viewport`);
+	return defaultMethod;
+}
+
+// Capture settings page with all tabs
+async function captureSettingsTabs(page, viewportName, OUT_DIR) {
+	// Determine navigation method
+	const navigationMethod = await detectNavigationMethod(page, viewportName);
 
 	// Now capture all tabs using the determined method
 	for (const tab of SETTINGS_TABS) {
-		let success = false;
-
 		if (navigationMethod === "dropdown") {
-			success = await selectMobileTab(page, tab.label);
+			await selectMobileTab(page, tab.label);
 		} else if (navigationMethod === "tabs") {
-			success = await selectDesktopTab(page, tab.label);
+			await selectDesktopTab(page, tab.label);
 		}
 
 		// Always wait and take screenshot, even if selection failed
@@ -425,7 +415,7 @@ async function captureInventoryModal(page, viewportName, OUT_DIR) {
 						break;
 					}
 				}
-			} catch (err) {
+			} catch (_err) {
 				// Button might have been removed from DOM, continue
 			}
 		}
