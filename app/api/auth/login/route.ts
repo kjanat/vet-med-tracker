@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { openAuth } from "@/server/auth";
+import { AUTH_COOKIES, SESSION_DURATION } from "@/server/auth/constants";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -15,19 +16,19 @@ export async function GET(request: NextRequest) {
 			request.nextUrl.searchParams.get("redirect_uri") ||
 			`${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
 
-		// Generate random state for CSRF protection
-		const state = Math.random().toString(36).substring(7);
+		// Generate random state for CSRF protection using crypto
+		const state = crypto.randomUUID();
 
 		// Get the authorization URL
 		const authUrl = await openAuth.getAuthorizeUrl(redirectUri, state);
 
 		// Store state in a secure httpOnly cookie for verification
 		const response = NextResponse.redirect(authUrl);
-		response.cookies.set("oauth_state", state, {
+		response.cookies.set(AUTH_COOKIES.OAUTH_STATE, state, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "lax",
-			maxAge: 60 * 10, // 10 minutes
+			maxAge: SESSION_DURATION.OAUTH_STATE,
 			path: "/",
 		});
 

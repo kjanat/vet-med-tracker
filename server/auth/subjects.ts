@@ -17,4 +17,7 @@ export const subjects = createSubjects({
 	}),
 });
 
+/**
+ * Type representing a user subject with authentication and authorization data
+ */
 export type UserSubject = typeof subjects.user._type;

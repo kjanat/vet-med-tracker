@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { AUTH_COOKIES } from "@/server/auth/constants";
 
 // Routes that require authentication
 const protectedRoutes = [
@@ -13,7 +14,7 @@ const protectedRoutes = [
 ];
 
 // Routes that should redirect to dashboard if authenticated
-const authRoutes = ["/login", "/signin", "/signup"];
+const authRoutes = ["/login", "/signin", "/signup", "/register"];
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
@@ -27,7 +28,7 @@ export async function middleware(request: NextRequest) {
 	const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
 	// Get auth tokens from cookies
-	const hasAccessToken = request.cookies.has("vetmed-access-token");
+	const hasAccessToken = request.cookies.has(AUTH_COOKIES.ACCESS_TOKEN);
 
 	// Redirect to login if accessing protected route without auth
 	if (isProtectedRoute && !hasAccessToken) {

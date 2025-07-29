@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { openAuth } from "@/server/auth";
+import { AUTH_COOKIES } from "@/server/auth/constants";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Verify state for CSRF protection
-		const storedState = request.cookies.get("oauth_state")?.value;
+		const storedState = request.cookies.get(AUTH_COOKIES.OAUTH_STATE)?.value;
 		if (!state || state !== storedState) {
 			return NextResponse.redirect(
 				`${request.nextUrl.origin}/?error=${encodeURIComponent(
@@ -46,7 +47,9 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Exchange code for tokens
-		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
+		const redirectUri =
+			request.nextUrl.searchParams.get("redirect_uri") ||
+			`${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
 		const { accessToken } = await openAuth.exchangeCode(code, redirectUri);
 
 		// Create or update user from the access token
@@ -54,7 +57,7 @@ export async function GET(request: NextRequest) {
 
 		// Clear the state cookie
 		const response = NextResponse.redirect(`${request.nextUrl.origin}/`);
-		response.cookies.delete("oauth_state");
+		response.cookies.delete(AUTH_COOKIES.OAUTH_STATE);
 
 		// The OpenAuthProvider already set the auth cookies in exchangeCode
 		return response;

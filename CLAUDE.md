@@ -112,7 +112,7 @@ The app uses responsive design with distinct mobile and desktop layouts:
 ### Authentication
 
 The app uses OpenAuth.js for authentication:
-- **OAuth 2.0 Server**: https://auth.kajkowalski.nl (custom OpenAuth server)
+- **OAuth 2.0 Server**: [https://auth.kajkowalski.nl](https://auth.kajkowalski.nl) (custom OpenAuth server)
 - **Protected Routes**: All routes under `app/(authed)/` require authentication
 - **Auth Hooks**: `useAuth()` for client-side auth state
 - **Token Storage**: httpOnly cookies for security
