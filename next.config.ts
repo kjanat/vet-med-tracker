@@ -1,4 +1,5 @@
 const nextConfig = {
+	devIndicators: false,
 	eslint: {
 		ignoreDuringBuilds: true,
 	},
