@@ -33,7 +33,9 @@ export function useAuth() {
 
 	const fetchUser = useCallback(async () => {
 		try {
-			const response = await fetch("/api/auth/me");
+			const response = await fetch("/api/auth/me", {
+				credentials: "same-origin",
+			});
 			if (response.ok) {
 				const data = await response.json();
 				setAuthState({
@@ -78,6 +80,7 @@ export function useAuth() {
 		try {
 			const response = await fetch("/api/auth/logout", {
 				method: "POST",
+				credentials: "same-origin",
 			});
 
 			if (response.ok) {

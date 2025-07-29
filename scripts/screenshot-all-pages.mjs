@@ -157,35 +157,54 @@ async function takeScreenshot(page, filepath, fullPage = true) {
 }
 
 // Tab labels used in settings
-const SETTINGS_TAB_LABELS = [
-	"Animals",
-	"Regimens",
-	"Household",
-	"Notifications",
-	"Data & Privacy",
-	"Preferences",
-];
+const SETTINGS_TAB_LABELS = SETTINGS_TABS.map((tab) => tab.label);
 
-// Find dropdown trigger button
-async function findDropdownTrigger(page) {
+// Helper to check if a button has dropdown indicators
+async function hasDropdownIndicators(button) {
+	return button.evaluate((el) => {
+		return (
+			el.querySelector(
+				'svg[class*="chevron"], svg[class*="arrow"], svg[class*="caret"]',
+			) !== null ||
+			el.querySelector('[class*="chevron-down"], [class*="arrow-down"]') !==
+				null ||
+			el.querySelector('[data-icon*="chevron"], [data-icon*="arrow"]') !== null
+		);
+	});
+}
+
+// Helper to find buttons with specific labels
+async function findButtonsWithLabels(page, labels) {
 	const buttons = await page.$$("button");
+	const matchingButtons = [];
 
 	for (const button of buttons) {
 		try {
 			const text = await button.evaluate((el) => el.textContent?.trim());
-			if (text && SETTINGS_TAB_LABELS.includes(text)) {
-				// Verify it has a dropdown icon (chevron)
-				const hasIcon = await button.evaluate((el) => {
-					return (
-						el.querySelector("svg") !== null ||
-						el.querySelector('[class*="chevron"]') !== null
-					);
-				});
+			if (text && labels.includes(text)) {
+				matchingButtons.push({ button, text });
+			}
+		} catch (_e) {
+			// Button might be stale, continue
+		}
+	}
 
-				if (hasIcon) {
-					console.log(`  ℹ️  Found dropdown button with value: ${text}`);
-					return button;
-				}
+	return matchingButtons;
+}
+
+// Find dropdown trigger button
+async function findDropdownTrigger(page) {
+	const matchingButtons = await findButtonsWithLabels(
+		page,
+		SETTINGS_TAB_LABELS,
+	);
+
+	for (const { button, text } of matchingButtons) {
+		try {
+			// Verify it has a dropdown icon
+			if (await hasDropdownIndicators(button)) {
+				console.log(`  ℹ️  Found dropdown button with value: ${text}`);
+				return button;
 			}
 		} catch (_e) {
 			// Button might be stale, continue
@@ -326,21 +345,22 @@ async function detectNavigationMethod(page, viewportName) {
 		return "tabs";
 	}
 
-	// Check for dropdown
-	const buttons = await page.$$("button");
-	for (const button of buttons) {
+	// Check for dropdown using shared helper
+	const matchingButtons = await findButtonsWithLabels(
+		page,
+		SETTINGS_TAB_LABELS,
+	);
+
+	for (const { button, text } of matchingButtons) {
 		try {
-			const text = await button.evaluate((el) => el.textContent?.trim());
-			if (text && SETTINGS_TAB_LABELS.includes(text)) {
-				// This looks like our settings dropdown
-				const parent = await button.evaluate((el) => el.parentElement?.tagName);
-				if (parent !== "LI" && parent !== "NAV") {
-					// Not a nav item
-					console.log(
-						`  ℹ️  Using dropdown navigation (found select with value: ${text})`,
-					);
-					return "dropdown";
-				}
+			// This looks like our settings dropdown
+			const parent = await button.evaluate((el) => el.parentElement?.tagName);
+			if (parent !== "LI" && parent !== "NAV") {
+				// Not a nav item
+				console.log(
+					`  ℹ️  Using dropdown navigation (found select with value: ${text})`,
+				);
+				return "dropdown";
 			}
 		} catch (_e) {
 			// Continue checking

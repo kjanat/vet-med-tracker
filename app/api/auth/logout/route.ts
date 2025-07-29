@@ -1,12 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 
-export async function POST(_request: NextRequest) {
-	try {
-		// Clear session
-		await auth.invalidateSession("");
+async function performLogout(request: NextRequest) {
+	const session = await auth.getSession(request.headers);
+	if (session) {
+		await auth.invalidateSession(session.id);
+	}
+}
 
-		// Redirect to home page
+export async function POST(request: NextRequest) {
+	try {
+		await performLogout(request);
 		return NextResponse.json({ success: true });
 	} catch (error) {
 		console.error("Logout error:", error);
@@ -16,10 +20,7 @@ export async function POST(_request: NextRequest) {
 
 export async function GET(request: NextRequest) {
 	try {
-		// Clear session
-		await auth.invalidateSession("");
-
-		// Redirect to home page
+		await performLogout(request);
 		return NextResponse.redirect(`${request.nextUrl.origin}/`);
 	} catch (error) {
 		console.error("Logout error:", error);

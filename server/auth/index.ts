@@ -33,9 +33,8 @@ if (process.env.OPENAUTH_ISSUER) {
 export const auth = authProvider;
 
 // Export OpenAuth provider instance if configured
-export const openAuth = process.env.OPENAUTH_ISSUER
-	? (authProvider as OpenAuthProvider)
-	: null;
+export const openAuth =
+	authProvider instanceof OpenAuthProvider ? authProvider : null;
 
 // Helper to get auth context for tRPC
 export async function getAuthContext(

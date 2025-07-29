@@ -10,7 +10,7 @@ VetMed Tracker uses OpenAuth.js for authentication, which provides a centralized
 
 ### Components
 
-1. **OpenAuth Server** (https://auth.kajkowalski.nl)
+1. **OpenAuth Server** ([https://auth.kajkowalski.nl](https://auth.kajkowalski.nl))
    - Centralized authentication server
    - Handles OAuth flows and token management
    - Configured separately from this application
@@ -202,7 +202,7 @@ The app is designed to seamlessly migrate from mock auth to OpenAuth:
   - `logout()` - Clear session
   - `refreshAuth()` - Refresh user data
 
-- `useRequireAuth(redirectTo?)` - Require auth or redirect
+- `useRequireAuth()` - Require auth or redirect
   - Automatically redirects to login if not authenticated
   - Returns user and loading state
 

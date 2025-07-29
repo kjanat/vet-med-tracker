@@ -3,12 +3,10 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "../db";
 import type { User } from "../db/schema";
-import { memberships, users } from "../db/schema";
+import { households, memberships, users } from "../db/schema";
+import { AUTH_COOKIES, SESSION_DURATION } from "./constants";
 import { subjects } from "./subjects";
 import type { AuthProvider, Session } from "./types";
-
-const ACCESS_TOKEN_COOKIE = "vetmed-access-token";
-const REFRESH_TOKEN_COOKIE = "vetmed-refresh-token";
 
 export class OpenAuthProvider implements AuthProvider {
 	private client;
@@ -33,8 +31,8 @@ export class OpenAuthProvider implements AuthProvider {
 		try {
 			// Get cookies from the request
 			const cookieStore = await cookies();
-			const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
-			const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIE)?.value;
+			const accessToken = cookieStore.get(AUTH_COOKIES.ACCESS_TOKEN)?.value;
+			const refreshToken = cookieStore.get(AUTH_COOKIES.REFRESH_TOKEN)?.value;
 
 			if (!accessToken) {
 				return null;
@@ -77,7 +75,7 @@ export class OpenAuthProvider implements AuthProvider {
 				userId: user.id,
 				user,
 				householdMemberships: userMemberships,
-				expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+				expiresAt: new Date(Date.now() + SESSION_DURATION.ACCESS_TOKEN * 1000),
 			};
 		} catch (error) {
 			console.error("Error verifying session:", error);
@@ -102,7 +100,7 @@ export class OpenAuthProvider implements AuthProvider {
 		const isProduction = process.env.NODE_ENV === "production";
 
 		// Set access token cookie
-		cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
+		cookieStore.set(AUTH_COOKIES.ACCESS_TOKEN, accessToken, {
 			httpOnly: true,
 			secure: isProduction,
 			sameSite: "lax",
@@ -111,7 +109,7 @@ export class OpenAuthProvider implements AuthProvider {
 		});
 
 		// Set refresh token cookie
-		cookieStore.set(REFRESH_TOKEN_COOKIE, refreshToken, {
+		cookieStore.set(AUTH_COOKIES.REFRESH_TOKEN, refreshToken, {
 			httpOnly: true,
 			secure: isProduction,
 			sameSite: "lax",
@@ -122,8 +120,8 @@ export class OpenAuthProvider implements AuthProvider {
 
 	private async clearAuthCookies() {
 		const cookieStore = await cookies();
-		cookieStore.delete(ACCESS_TOKEN_COOKIE);
-		cookieStore.delete(REFRESH_TOKEN_COOKIE);
+		cookieStore.delete(AUTH_COOKIES.ACCESS_TOKEN);
+		cookieStore.delete(AUTH_COOKIES.REFRESH_TOKEN);
 	}
 
 	// OAuth-specific methods
@@ -203,12 +201,11 @@ export class OpenAuthProvider implements AuthProvider {
 			user = newUser;
 
 			// Create default household for new user
-			const { households } = await import("../db/schema");
 			const [household] = await db
 				.insert(households)
 				.values({
 					name: `${user.name}'s Household`,
-					timezone: "America/New_York", // Default timezone
+					timezone: process.env.DEFAULT_TIMEZONE || "UTC",
 				})
 				.returning();
 
