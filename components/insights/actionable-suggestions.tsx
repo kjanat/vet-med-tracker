@@ -79,8 +79,10 @@ const suggestionIcons = {
 };
 
 const suggestionColors = {
-	ADD_REMINDER: "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950",
-	SHIFT_TIME: "border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950",
+	ADD_REMINDER:
+		"border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950",
+	SHIFT_TIME:
+		"border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950",
 	ENABLE_COSIGN: "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950",
 };
 
@@ -247,7 +249,9 @@ export function ActionableSuggestions() {
 											<Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
 												<Check className="h-4 w-4 text-green-600 dark:text-green-400" />
 												<AlertDescription className="flex items-center justify-between">
-													<span className="text-green-800 dark:text-green-200">Applied successfully!</span>
+													<span className="text-green-800 dark:text-green-200">
+														Applied successfully!
+													</span>
 													<Button
 														variant="ghost"
 														size="sm"

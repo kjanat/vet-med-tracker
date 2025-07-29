@@ -468,14 +468,21 @@ export function MemberList() {
 									</div>
 
 									<div className="flex items-center gap-3 self-end sm:self-center">
-										<Badge className={cn(roleColors[invite.role], "text-xs sm:text-sm")}>
+										<Badge
+											className={cn(
+												roleColors[invite.role],
+												"text-xs sm:text-sm",
+											)}
+										>
 											{(() => {
 												const Icon = roleIcons[invite.role];
 												return Icon ? <Icon className="h-3 w-3 mr-1" /> : null;
 											})()}
 											<span className="hidden sm:inline">{invite.role}</span>
 											<span className="sm:hidden">
-												{invite.role === "VetReadOnly" ? "VetReadOnly" : invite.role}
+												{invite.role === "VetReadOnly"
+													? "VetReadOnly"
+													: invite.role}
 											</span>
 										</Badge>
 

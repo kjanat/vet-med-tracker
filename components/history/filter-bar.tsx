@@ -42,44 +42,59 @@ export function FilterBar() {
 
 	return (
 		<div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 border-b">
-			<div className="container max-w-full px-4 py-3">
-				<div className="flex flex-col gap-3">
-					{/* View Toggle - Full width on mobile */}
-					<div className="flex rounded-lg border p-1 w-full md:w-auto">
-						<Button
-							variant={filters.view === "list" ? "default" : "ghost"}
-							size="sm"
-							className="flex-1 md:flex-none min-h-[44px]"
-							onClick={() => {
-								setFilter("view", "list");
-								window.dispatchEvent(
-									new CustomEvent("history_view_toggle", {
-										detail: { view: "list" },
-									}),
-								);
-							}}
-						>
-							List
-						</Button>
-						<Button
-							variant={filters.view === "calendar" ? "default" : "ghost"}
-							size="sm"
-							className="flex-1 md:flex-none min-h-[44px]"
-							onClick={() => {
-								setFilter("view", "calendar");
-								window.dispatchEvent(
-									new CustomEvent("history_view_toggle", {
-										detail: { view: "calendar" },
-									}),
-								);
-							}}
-						>
-							Calendar
-						</Button>
+			<div className="container max-w-full px-4 py-2 md:py-3">
+				<div className="flex flex-col gap-2 md:gap-3">
+					{/* Mobile: View toggle and date on same row */}
+					<div className="flex gap-2 md:flex-wrap md:gap-3">
+						{/* View Toggle */}
+						<div className="flex rounded-lg border p-1 md:w-auto">
+							<Button
+								variant={filters.view === "list" ? "default" : "ghost"}
+								size="sm"
+								className="px-3 md:px-4"
+								onClick={() => {
+									setFilter("view", "list");
+									window.dispatchEvent(
+										new CustomEvent("history_view_toggle", {
+											detail: { view: "list" },
+										}),
+									);
+								}}
+							>
+								List
+							</Button>
+							<Button
+								variant={filters.view === "calendar" ? "default" : "ghost"}
+								size="sm"
+								className="px-3 md:px-4"
+								onClick={() => {
+									setFilter("view", "calendar");
+									window.dispatchEvent(
+										new CustomEvent("history_view_toggle", {
+											detail: { view: "calendar" },
+										}),
+									);
+								}}
+							>
+								Calendar
+							</Button>
+						</div>
+
+						{/* Date Range - Show on same row on mobile */}
+						<div className="flex-1 md:flex-none">
+							<DateRangePicker
+								from={filters.from ? new Date(filters.from) : undefined}
+								to={filters.to ? new Date(filters.to) : undefined}
+								onSelect={(from, to) => {
+									if (from) setFilter("from", from.toISOString().split("T")[0]);
+									if (to) setFilter("to", to.toISOString().split("T")[0]);
+								}}
+							/>
+						</div>
 					</div>
 
-					{/* Filters section - Stack on mobile, flex wrap on desktop */}
-					<div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-3">
+					{/* Animal and Type filters on same row */}
+					<div className="flex gap-2 md:flex-row md:flex-wrap md:items-center md:gap-3">
 						{/* Animal Filter */}
 						<Select
 							value={filters.animalId || "all"}
@@ -87,7 +102,7 @@ export function FilterBar() {
 								setFilter("animalId", value === "all" ? undefined : value)
 							}
 						>
-							<SelectTrigger className="w-full md:w-[180px] min-h-[44px]">
+							<SelectTrigger className="flex-1 md:w-[180px]">
 								<SelectValue placeholder="All Animals" />
 							</SelectTrigger>
 							<SelectContent>
@@ -105,7 +120,7 @@ export function FilterBar() {
 							value={filters.type}
 							onValueChange={(value) => setFilter("type", value)}
 						>
-							<SelectTrigger className="w-full md:w-[140px] min-h-[44px]">
+							<SelectTrigger className="flex-1 md:w-[140px]">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -114,16 +129,6 @@ export function FilterBar() {
 								<SelectItem value="prn">PRN</SelectItem>
 							</SelectContent>
 						</Select>
-
-						{/* Date Range */}
-						<DateRangePicker
-							from={filters.from ? new Date(filters.from) : undefined}
-							to={filters.to ? new Date(filters.to) : undefined}
-							onSelect={(from, to) => {
-								if (from) setFilter("from", from.toISOString().split("T")[0]);
-								if (to) setFilter("to", to.toISOString().split("T")[0]);
-							}}
-						/>
 
 						{/* Active Filters Badge */}
 						{activeFilterCount > 0 && (
@@ -204,10 +209,11 @@ function DateRangePicker({
 			<PopoverTrigger asChild>
 				<Button
 					variant="outline"
-					className="gap-2 bg-transparent w-full md:w-auto min-h-[44px] justify-start text-left font-normal"
+					size="sm"
+					className="gap-2 bg-transparent w-full md:w-auto justify-start text-left font-normal"
 				>
 					<Calendar className="h-4 w-4 shrink-0" />
-					<span className="truncate">
+					<span className="truncate text-xs md:text-sm">
 						{from && to
 							? `${format(from, "MMM d")} - ${format(to, "MMM d")}`
 							: "Select dates"}

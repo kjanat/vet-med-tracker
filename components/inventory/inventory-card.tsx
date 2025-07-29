@@ -99,12 +99,18 @@ function StatusBadges({
 				</Badge>
 			)}
 			{isExpiring && !isExpired && (
-				<Badge variant="secondary" className="text-xs text-orange-600 dark:text-orange-400">
+				<Badge
+					variant="secondary"
+					className="text-xs text-orange-600 dark:text-orange-400"
+				>
 					Expiring
 				</Badge>
 			)}
 			{isLowStock && (
-				<Badge variant="secondary" className="text-xs text-orange-600 dark:text-orange-400">
+				<Badge
+					variant="secondary"
+					className="text-xs text-orange-600 dark:text-orange-400"
+				>
 					Low
 				</Badge>
 			)}
@@ -163,7 +169,8 @@ export function InventoryCard({
 			className={cn(
 				"transition-all duration-200 hover:shadow-md",
 				item.inUse && "ring-2 ring-primary ring-offset-2",
-				isExpired && "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950",
+				isExpired &&
+					"border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950",
 			)}
 		>
 			<CardContent className="p-4">

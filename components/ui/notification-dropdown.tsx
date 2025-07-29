@@ -139,7 +139,7 @@ export function NotificationDropdown({
 					)}
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-[380px]">
+			<DropdownMenuContent align="end" className="w-[280px] sm:w-[380px]">
 				<div className="flex items-center justify-between p-2">
 					<DropdownMenuLabel>Notifications</DropdownMenuLabel>
 					{unreadCount > 0 && (
@@ -154,7 +154,7 @@ export function NotificationDropdown({
 					)}
 				</div>
 				<DropdownMenuSeparator />
-				<ScrollArea className="h-[400px]">
+				<ScrollArea className="h-[300px] sm:h-[400px]">
 					{notifications.length === 0 ? (
 						<div className="p-4 text-center text-muted-foreground">
 							No notifications

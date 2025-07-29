@@ -208,10 +208,15 @@ export default function InventoryPage() {
 			{(alerts.expiringSoon.length > 0 || alerts.lowStock.length > 0) && (
 				<div className="space-y-2">
 					{alerts.lowStock.map((alert) => (
-						<Alert key={alert.id} className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+						<Alert
+							key={alert.id}
+							className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950"
+						>
 							<AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
 							<AlertDescription className="flex items-center justify-between">
-								<span className="text-orange-800 dark:text-orange-200">{alert.message}</span>
+								<span className="text-orange-800 dark:text-orange-200">
+									{alert.message}
+								</span>
 								<Button
 									variant="outline"
 									size="sm"
@@ -225,10 +230,15 @@ export default function InventoryPage() {
 					))}
 
 					{alerts.expiringSoon.map((alert) => (
-						<Alert key={alert.id} className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
+						<Alert
+							key={alert.id}
+							className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950"
+						>
 							<AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
 							<AlertDescription className="flex items-center justify-between">
-								<span className="text-yellow-800 dark:text-yellow-200">{alert.message}</span>
+								<span className="text-yellow-800 dark:text-yellow-200">
+									{alert.message}
+								</span>
 								<Button
 									variant="outline"
 									size="sm"
