@@ -338,7 +338,11 @@ export function MemberList() {
 												"text-white font-medium text-sm",
 											)}
 										>
-											{member.name?.[0] || member.email[0].toUpperCase()}
+											{(
+												member.name?.[0] ||
+												member.email?.[0] ||
+												"?"
+											).toUpperCase()}
 										</AvatarFallback>
 									</Avatar>
 

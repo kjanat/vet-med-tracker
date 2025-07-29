@@ -112,7 +112,7 @@ export const COLOR_SCHEMES: ColorScheme[] = ["system", "light", "dark"];
 export const DEVICES_API_URL =
 	"https://cdn.jsdelivr.net/gh/bitcomplete/labs-viewports@refs/heads/main/items.json";
 
-export const withSchemeParam = (url: string, scheme: ColorScheme): string => {
+export const withSchemeParam = (url: string): string => {
 	// No longer adding URL parameters - theme will be controlled via postMessage
 	return url;
 };

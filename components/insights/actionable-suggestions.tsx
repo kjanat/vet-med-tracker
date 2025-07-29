@@ -34,10 +34,6 @@ interface Suggestion {
 	};
 }
 
-interface ActionableSuggestionsProps {
-	range: { from: Date; to: Date };
-}
-
 // Mock data - replace with tRPC
 const mockSuggestions: Suggestion[] = [
 	{
@@ -88,7 +84,7 @@ const suggestionColors = {
 	ENABLE_COSIGN: "border-red-200 bg-red-50",
 };
 
-export function ActionableSuggestions({}: ActionableSuggestionsProps) {
+export function ActionableSuggestions() {
 	const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 	const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(
 		new Set(),

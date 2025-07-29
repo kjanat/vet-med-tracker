@@ -88,9 +88,8 @@ export class MockAuthProvider implements AuthProvider {
 						userId: userId,
 						householdId: "household-1",
 						role: "OWNER",
-						joinedAt: new Date(),
-						invitedBy: null,
-						invitedAt: null,
+						createdAt: new Date(),
+						updatedAt: new Date(),
 					},
 				];
 
@@ -182,7 +181,7 @@ export class MockAuthProvider implements AuthProvider {
 			return {
 				id: `user-${Date.now()}`,
 				email,
-				name: name || email.split("@")[0],
+				name: name || email.split("@")[0] || email,
 				emailVerified: new Date(),
 				image: null,
 				createdAt: new Date(),

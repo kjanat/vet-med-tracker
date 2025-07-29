@@ -3,7 +3,10 @@
 import { differenceInDays } from "date-fns";
 import { AlertTriangle, Package, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { AddItemModal } from "@/components/inventory/add-item-modal";
+import {
+	type AddItemData,
+	AddItemModal,
+} from "@/components/inventory/add-item-modal";
 import { AssignModal } from "@/components/inventory/assign-modal";
 import {
 	InventoryCard,
@@ -110,39 +113,7 @@ export default function InventoryPage() {
 
 	// Generate alerts
 	const alerts = useMemo(() => {
-		const expiringSoon: Array<{
-			id: string;
-			message: string;
-			type: "expiring";
-		}> = [];
-		const lowStock: Array<{ id: string; message: string; type: "low-stock" }> =
-			[];
-
-		mockItems.forEach((item) => {
-			const daysUntilExpiry = differenceInDays(item.expiresOn, new Date());
-			const daysLeft = daysLeftMap.get(item.id);
-
-			// Expiring alerts
-			if (daysUntilExpiry <= 14 && daysUntilExpiry > 0) {
-				expiringSoon.push({
-					id: item.id,
-					message: `${item.name} lot ${item.lot} expires in ${daysUntilExpiry} days`,
-					type: "expiring",
-				});
-			}
-
-			// Low stock alerts
-			if (daysLeft !== null && daysLeft <= 7) {
-				const animalName = item.assignedAnimalId ? "Buddy" : ""; // Mock animal name
-				lowStock.push({
-					id: item.id,
-					message: `${item.name}${animalName ? ` (${animalName})` : ""} ~${daysLeft} days left`,
-					type: "low-stock",
-				});
-			}
-		});
-
-		return { expiringSoon, lowStock };
+		return generateInventoryAlerts(mockItems, daysLeftMap);
 	}, [daysLeftMap]);
 
 	// Filter and sort items
@@ -161,59 +132,19 @@ export default function InventoryPage() {
 		}
 
 		// Sort
-		const sorted = [...filtered].sort((a, b) => {
-			if (sortBy === "priority") {
-				// In Use first → Expiring soon → Low stock → A–Z
-				const aInUse = a.inUse ? 1 : 0;
-				const bInUse = b.inUse ? 1 : 0;
-				if (aInUse !== bInUse) return bInUse - aInUse;
-
-				const aDaysUntilExpiry = differenceInDays(a.expiresOn, new Date());
-				const bDaysUntilExpiry = differenceInDays(b.expiresOn, new Date());
-				const aExpiring = aDaysUntilExpiry <= 14 ? 1 : 0;
-				const bExpiring = bDaysUntilExpiry <= 14 ? 1 : 0;
-				if (aExpiring !== bExpiring) return bExpiring - aExpiring;
-
-				const aDaysLeft = daysLeftMap.get(a.id);
-				const bDaysLeft = daysLeftMap.get(b.id);
-				const aLowStock = aDaysLeft !== null && aDaysLeft <= 7 ? 1 : 0;
-				const bLowStock = bDaysLeft !== null && bDaysLeft <= 7 ? 1 : 0;
-				if (aLowStock !== bLowStock) return bLowStock - aLowStock;
-
-				return a.name.localeCompare(b.name);
-			} else if (sortBy === "name") {
-				return a.name.localeCompare(b.name);
-			} else if (sortBy === "expiry") {
-				return a.expiresOn.getTime() - b.expiresOn.getTime();
-			}
-
-			return 0;
-		});
+		const sorted = [...filtered].sort(
+			getInventorySortFunction(sortBy, daysLeftMap),
+		);
 
 		return sorted;
 	}, [searchQuery, sortBy, daysLeftMap]);
 
-	const handleAddItem = async (data: {
-		name: string;
-		brand?: string;
-		route: string;
-		form: string;
-		strength: string;
-		concentration?: string;
-		quantityUnits: number;
-		unitsRemaining: number;
-		lot: string;
-		expiresOn: string;
-		storage: string;
-		assignedAnimalId?: string;
-		barcode?: string;
-		setInUse: boolean;
-	}) => {
+	const handleAddItem = async (data: AddItemData) => {
 		const itemId = crypto.randomUUID();
 		const payload = {
 			...data,
 			householdId: "household-1", // From context
-			catalogId: `${data.name.toLowerCase().replace(/\s+/g, "-")}-${data.strength}`,
+			catalogId: `${data.name.toLowerCase().replace(/\s+/g, "-")}-${data.strength || ""}`,
 		};
 
 		// Optimistic update would go here
@@ -408,4 +339,92 @@ export default function InventoryPage() {
 			/>
 		</div>
 	);
+}
+
+// Helper function to generate inventory alerts
+function generateInventoryAlerts(
+	items: InventoryItem[],
+	daysLeftMap: Map<string, number | null>,
+) {
+	const expiringSoon: Array<{
+		id: string;
+		message: string;
+		type: "expiring";
+	}> = [];
+	const lowStock: Array<{ id: string; message: string; type: "low-stock" }> =
+		[];
+
+	for (const item of items) {
+		const daysUntilExpiry = differenceInDays(item.expiresOn, new Date());
+		const daysLeft = daysLeftMap.get(item.id);
+
+		// Expiring alerts
+		if (daysUntilExpiry <= 14 && daysUntilExpiry > 0) {
+			expiringSoon.push({
+				id: item.id,
+				message: `${item.name} lot ${item.lot} expires in ${daysUntilExpiry} days`,
+				type: "expiring",
+			});
+		}
+
+		// Low stock alerts
+		if (daysLeft !== undefined && daysLeft !== null && daysLeft <= 7) {
+			const animalName = item.assignedAnimalId ? "Buddy" : ""; // Mock animal name
+			lowStock.push({
+				id: item.id,
+				message: `${item.name}${animalName ? ` (${animalName})` : ""} ~${daysLeft} days left`,
+				type: "low-stock",
+			});
+		}
+	}
+
+	return { expiringSoon, lowStock };
+}
+
+// Helper function to get the sort comparator
+function getInventorySortFunction(
+	sortBy: string,
+	daysLeftMap: Map<string, number | null>,
+) {
+	return (a: InventoryItem, b: InventoryItem) => {
+		if (sortBy === "priority") {
+			return sortByPriority(a, b, daysLeftMap);
+		} else if (sortBy === "name") {
+			return a.name.localeCompare(b.name);
+		} else if (sortBy === "expiry") {
+			return a.expiresOn.getTime() - b.expiresOn.getTime();
+		}
+		return 0;
+	};
+}
+
+// Helper function for priority sorting
+function sortByPriority(
+	a: InventoryItem,
+	b: InventoryItem,
+	daysLeftMap: Map<string, number | null>,
+) {
+	// In Use first
+	const aInUse = a.inUse ? 1 : 0;
+	const bInUse = b.inUse ? 1 : 0;
+	if (aInUse !== bInUse) return bInUse - aInUse;
+
+	// Expiring soon
+	const aDaysUntilExpiry = differenceInDays(a.expiresOn, new Date());
+	const bDaysUntilExpiry = differenceInDays(b.expiresOn, new Date());
+	const aExpiring = aDaysUntilExpiry <= 14 ? 1 : 0;
+	const bExpiring = bDaysUntilExpiry <= 14 ? 1 : 0;
+	if (aExpiring !== bExpiring) return bExpiring - aExpiring;
+
+	// Low stock
+	const aDaysLeft = daysLeftMap.get(a.id);
+	const bDaysLeft = daysLeftMap.get(b.id);
+	const aLowStock =
+		aDaysLeft !== undefined && aDaysLeft !== null && aDaysLeft <= 7 ? 1 : 0;
+	const bLowStock =
+		bDaysLeft !== undefined && bDaysLeft !== null && bDaysLeft <= 7 ? 1 : 0;
+	if (aLowStock !== bLowStock) return bLowStock - aLowStock;
+
+	// Alphabetical
+	return a.name.localeCompare(b.name);
 }

@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-interface QueuedRecord {
+interface QueuedRecord<T = unknown> {
 	id: string;
-	payload: any;
+	payload: T;
 	timestamp: Date;
 	retries: number;
 }
 
-export function useOfflineQueue() {
+export function useOfflineQueue<T = unknown>() {
 	const [isOnline, setIsOnline] = useState(true);
 	const [queueSize, setQueueSize] = useState(0);
 	const [isProcessing, setIsProcessing] = useState(false);
@@ -29,9 +29,9 @@ export function useOfflineQueue() {
 		};
 	}, []);
 
-	const enqueue = async (payload: any, idempotencyKey: string) => {
+	const enqueue = async (payload: T, idempotencyKey: string) => {
 		// In real app, this would use IndexedDB
-		const record: QueuedRecord = {
+		const record: QueuedRecord<T> = {
 			id: idempotencyKey,
 			payload,
 			timestamp: new Date(),
@@ -44,7 +44,7 @@ export function useOfflineQueue() {
 		return record.id;
 	};
 
-	const flush = async () => {
+	const flush = useCallback(async () => {
 		if (!isOnline) return;
 
 		setIsProcessing(true);
@@ -52,7 +52,7 @@ export function useOfflineQueue() {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		setQueueSize(0);
 		setIsProcessing(false);
-	};
+	}, [isOnline]);
 
 	useEffect(() => {
 		if (isOnline && queueSize > 0) {

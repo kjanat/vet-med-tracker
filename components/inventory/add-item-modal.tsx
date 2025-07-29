@@ -39,7 +39,7 @@ import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 
 // import { useOfflineQueue } from "@/hooks/useOfflineQueue"
 
-interface AddItemData {
+export interface AddItemData {
 	name: string;
 	brand?: string;
 	route: string;
@@ -49,7 +49,7 @@ interface AddItemData {
 	quantityUnits: number;
 	unitsRemaining: number;
 	lot?: string;
-	expiresOn: string;
+	expiresOn?: string;
 	storage: "FRIDGE" | "ROOM";
 	assignedAnimalId?: string;
 	barcode?: string;
@@ -449,12 +449,15 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 												? new Date(formData.expiresOn)
 												: undefined
 										}
-										onChange={(date) =>
+										onChange={(date) => {
+											const expiresOn = date
+												? date.toISOString().split("T")[0]
+												: "";
 											setFormData((prev) => ({
 												...prev,
-												expiresOn: date ? date.toISOString().split("T")[0] : "",
-											}))
-										}
+												expiresOn,
+											}));
+										}}
 										placeholder="Select expiry date"
 										fromDate={new Date(new Date().setHours(0, 0, 0, 0))}
 									/>

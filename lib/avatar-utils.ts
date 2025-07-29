@@ -26,5 +26,5 @@ export function getAvatarColor(name: string): string {
 	}
 
 	const index = Math.abs(hash) % colors.length;
-	return colors[index];
+	return colors[index] || colors[0] || "#9CA3AF";
 }

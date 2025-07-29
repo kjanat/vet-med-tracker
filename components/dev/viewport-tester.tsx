@@ -9,12 +9,35 @@ import {
 	DEFAULT_VIEWPORT_STATE,
 	DEVICES_API_URL,
 	type DeviceItem,
+	type DeviceType,
 	type ViewportState,
 	withSchemeParam,
 } from "./viewport/constants";
 import { DeviceCard } from "./viewport/device-card";
 import { ViewportPreview } from "./viewport/viewport-preview";
 import { ViewportToolbar } from "./viewport/viewport-toolbar";
+
+// Helper function to sort devices
+function sortDevices(a: DeviceItem, b: DeviceItem): number {
+	const dateA = a.properties.releaseDate
+		? new Date(a.properties.releaseDate).getTime()
+		: 0;
+	const dateB = b.properties.releaseDate
+		? new Date(b.properties.releaseDate).getTime()
+		: 0;
+
+	// If both have dates, sort by date (descending)
+	if (dateA && dateB) {
+		return dateB - dateA;
+	}
+
+	// If only one has a date, put the one with date first
+	if (dateA && !dateB) return -1;
+	if (!dateA && dateB) return 1;
+
+	// If neither has a date, fall back to ranking
+	return a.attributes.ranking.amongAll - b.attributes.ranking.amongAll;
+}
 
 const MobileResponsiveTester: React.FC = () => {
 	const [devices, setDevices] = useState<DeviceItem[]>([]);
@@ -91,7 +114,7 @@ const MobileResponsiveTester: React.FC = () => {
 	useEffect(() => {
 		if (
 			deviceTypeFilter !== "All" &&
-			!availableDeviceTypes.has(deviceTypeFilter)
+			!availableDeviceTypes.has(deviceTypeFilter as DeviceType)
 		) {
 			setDeviceTypeFilter("All");
 		}
@@ -109,27 +132,7 @@ const MobileResponsiveTester: React.FC = () => {
 					device.properties.deviceType === deviceTypeFilter;
 				return brandMatch && typeMatch;
 			})
-			.sort((a, b) => {
-				// Sort by release date descending (newest first)
-				const dateA = a.properties.releaseDate
-					? new Date(a.properties.releaseDate).getTime()
-					: 0;
-				const dateB = b.properties.releaseDate
-					? new Date(b.properties.releaseDate).getTime()
-					: 0;
-
-				// If both have dates, sort by date (descending)
-				if (dateA && dateB) {
-					return dateB - dateA;
-				}
-
-				// If only one has a date, put the one with date first
-				if (dateA && !dateB) return -1;
-				if (!dateA && dateB) return 1;
-
-				// If neither has a date, fall back to ranking
-				return a.attributes.ranking.amongAll - b.attributes.ranking.amongAll;
-			});
+			.sort(sortDevices);
 	}, [devices, brandFilter, deviceTypeFilter]);
 
 	// Device selection handler
@@ -190,7 +193,7 @@ const MobileResponsiveTester: React.FC = () => {
 	}, []);
 
 	// Compute iframe source with scheme parameter
-	const iframeSrc = withSchemeParam(state.baseUrl, state.scheme);
+	const iframeSrc = withSchemeParam(state.baseUrl);
 
 	// Loading state
 	if (loading) {

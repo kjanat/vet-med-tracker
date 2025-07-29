@@ -85,10 +85,14 @@ export default function HomePage() {
 								className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
 							>
 								{/* Avatar */}
-								<AnimalAvatar
-									animal={animals.find((a) => a.name === action.animal)!}
-									size="md"
-								/>
+								{(() => {
+									const foundAnimal = animals.find(
+										(a) => a.name === action.animal,
+									);
+									return foundAnimal ? (
+										<AnimalAvatar animal={foundAnimal} size="md" />
+									) : null;
+								})()}
 
 								{/* Main content - grows to fill space */}
 								<div className="flex-1 min-w-0">

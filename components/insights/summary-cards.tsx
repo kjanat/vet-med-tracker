@@ -89,17 +89,15 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
 	const handleCardClick = (filter: string) => {
 		// Deep-link to History with filters
-		const params = new URLSearchParams({
-			from: range.from.toISOString().split("T")[0],
-			to: range.to.toISOString().split("T")[0],
-			...filter.split("&").reduce(
-				(acc, param) => {
-					const [key, value] = param.split("=");
-					acc[key] = value;
-					return acc;
-				},
-				{} as Record<string, string>,
-			),
+		const params = new URLSearchParams();
+		params.set("from", range.from.toISOString().split("T")[0] || "");
+		params.set("to", range.to.toISOString().split("T")[0] || "");
+
+		filter.split("&").forEach((param) => {
+			const [key, value] = param.split("=");
+			if (key && value) {
+				params.set(key, value);
+			}
 		});
 
 		router.push(`/history?${params.toString()}`);
@@ -182,12 +180,15 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 				<CardContent>
 					{sortedAnimals[0] && (
 						<div className="flex items-center gap-2">
-							<AnimalAvatar
-								animal={
-									animals.find((a) => a.id === sortedAnimals[0].animalId)!
-								}
-								size="sm"
-							/>
+							{(() => {
+								const topPerformer = sortedAnimals[0];
+								const topAnimal = animals.find(
+									(a) => a.id === topPerformer.animalId,
+								);
+								return topAnimal ? (
+									<AnimalAvatar animal={topAnimal} size="sm" />
+								) : null;
+							})()}
 							<div>
 								<div className="font-bold">{sortedAnimals[0].animalName}</div>
 								<div className="text-sm text-muted-foreground">

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useSettingsTabs } from "@/hooks/useSettingsTabs";
+import { type SettingsTab, useSettingsTabs } from "@/hooks/useSettingsTabs";
 
 export default function SettingsPage() {
 	const { activeTab, setActiveTab } = useSettingsTabs();
@@ -57,7 +57,10 @@ export default function SettingsPage() {
 					</Select>
 				)}
 
-				<Tabs value={activeTab} onValueChange={setActiveTab}>
+				<Tabs
+					value={activeTab}
+					onValueChange={(value) => setActiveTab(value as SettingsTab)}
+				>
 					{/* Desktop: Tab list */}
 					{!isMobile && (
 						<TabsList className="w-full h-auto p-1 grid grid-cols-3 lg:grid-cols-6 gap-1">

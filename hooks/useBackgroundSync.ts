@@ -16,7 +16,13 @@ export function useBackgroundSync() {
 
 		try {
 			const registration = await navigator.serviceWorker.ready;
-			await registration.sync.register(`sync:${domain}`);
+			// TypeScript doesn't have types for sync API yet
+			const syncManager = (
+				registration as ServiceWorkerRegistration & {
+					sync: { register: (tag: string) => Promise<void> };
+				}
+			).sync;
+			await syncManager.register(`sync:${domain}`);
 			console.log(`Background sync registered for: ${domain}`);
 			return true;
 		} catch (error) {

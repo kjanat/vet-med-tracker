@@ -79,7 +79,7 @@ export const householdProcedure = protectedProcedure.use(
 	async ({ ctx, next, input }) => {
 		// Get householdId from input, context, or headers
 		const householdId =
-			(input as any)?.householdId ||
+			(input as { householdId?: string })?.householdId ||
 			ctx.currentHouseholdId ||
 			ctx.requestedHouseholdId;
 

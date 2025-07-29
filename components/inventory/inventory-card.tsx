@@ -51,6 +51,73 @@ const formIcons = {
 	Drops: "💧",
 };
 
+// Helper component for expiry info
+function ExpiryInfo({
+	item,
+	isExpired,
+	isExpiring,
+}: {
+	item: InventoryItem;
+	isExpired: boolean;
+	isExpiring: boolean;
+}) {
+	return (
+		<div className="flex items-center gap-1">
+			<Calendar className="h-3 w-3" />
+			<span
+				className={cn(
+					isExpired
+						? "text-red-600 font-medium"
+						: isExpiring
+							? "text-orange-600"
+							: "",
+				)}
+			>
+				Expires {format(item.expiresOn, "MMM d, yyyy")}
+			</span>
+		</div>
+	);
+}
+
+// Helper component for status badges
+function StatusBadges({
+	isExpired,
+	isExpiring,
+	isLowStock,
+	storage,
+}: {
+	isExpired: boolean;
+	isExpiring: boolean;
+	isLowStock: boolean;
+	storage: "FRIDGE" | "ROOM";
+}) {
+	return (
+		<div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center">
+			{isExpired && (
+				<Badge variant="destructive" className="text-xs">
+					Expired
+				</Badge>
+			)}
+			{isExpiring && !isExpired && (
+				<Badge variant="secondary" className="text-xs text-orange-600">
+					Expiring
+				</Badge>
+			)}
+			{isLowStock && (
+				<Badge variant="secondary" className="text-xs text-orange-600">
+					Low
+				</Badge>
+			)}
+			{storage === "FRIDGE" && (
+				<Badge variant="outline" className="text-xs">
+					<MapPin className="h-3 w-3 mr-1" />
+					Fridge
+				</Badge>
+			)}
+		</div>
+	);
+}
+
 export function InventoryCard({
 	item,
 	daysLeft,
@@ -133,20 +200,11 @@ export function InventoryCard({
 								</div>
 
 								<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-									<div className="flex items-center gap-1">
-										<Calendar className="h-3 w-3" />
-										<span
-											className={cn(
-												isExpired
-													? "text-red-600 font-medium"
-													: isExpiring
-														? "text-orange-600"
-														: "",
-											)}
-										>
-											Expires {format(item.expiresOn, "MMM d, yyyy")}
-										</span>
-									</div>
+									<ExpiryInfo
+										item={item}
+										isExpired={isExpired}
+										isExpiring={isExpiring}
+									/>
 
 									<div className="flex items-center gap-1">
 										<Package className="h-3 w-3" />
@@ -221,29 +279,12 @@ export function InventoryCard({
 					</div>
 
 					{/* Status Chips */}
-					<div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center">
-						{isExpired && (
-							<Badge variant="destructive" className="text-xs">
-								Expired
-							</Badge>
-						)}
-						{isExpiring && !isExpired && (
-							<Badge variant="secondary" className="text-xs text-orange-600">
-								Expiring
-							</Badge>
-						)}
-						{isLowStock && (
-							<Badge variant="secondary" className="text-xs text-orange-600">
-								Low
-							</Badge>
-						)}
-						{item.storage === "FRIDGE" && (
-							<Badge variant="outline" className="text-xs">
-								<MapPin className="h-3 w-3 mr-1" />
-								Fridge
-							</Badge>
-						)}
-					</div>
+					<StatusBadges
+						isExpired={isExpired}
+						isExpiring={isExpiring}
+						isLowStock={isLowStock}
+						storage={item.storage}
+					/>
 				</div>
 			</CardContent>
 		</Card>

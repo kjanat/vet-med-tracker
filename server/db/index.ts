@@ -7,16 +7,20 @@ import * as schema from "./schema";
 const requiredEnvVars = ["DATABASE_URL_POOLED", "DATABASE_URL_UNPOOLED"];
 for (const envVar of requiredEnvVars) {
 	if (!process.env[envVar]) {
-		throw new Error(`${envVar} is not set. Check your ${envFile} file.`);
+		throw new Error(`${envVar} is not set. Check your .env file.`);
 	}
 }
 
 // Configure Neon for serverless environments
 neonConfig.fetchConnectionCache = true;
 
+// After validation we know these are defined
+const DATABASE_URL_POOLED = process.env.DATABASE_URL_POOLED as string;
+const DATABASE_URL_UNPOOLED = process.env.DATABASE_URL_UNPOOLED as string;
+
 // Pooled connection for API routes (short-lived queries)
 // This is more efficient for Neon free tier
-const sqlPooled = neon(process.env.DATABASE_URL_POOLED!);
+const sqlPooled = neon(DATABASE_URL_POOLED);
 export const db = drizzleHttp(sqlPooled, {
 	schema,
 	logger: process.env.NODE_ENV === "development",
@@ -24,7 +28,7 @@ export const db = drizzleHttp(sqlPooled, {
 
 // Unpooled connection for migrations and long-running operations
 // Only use when necessary (e.g., migrations, batch operations)
-const sqlUnpooled = neon(process.env.DATABASE_URL_UNPOOLED!);
+const sqlUnpooled = neon(DATABASE_URL_UNPOOLED);
 export const dbUnpooled = drizzleHttp(sqlUnpooled, {
 	schema,
 	logger: process.env.NODE_ENV === "development",
@@ -32,13 +36,10 @@ export const dbUnpooled = drizzleHttp(sqlUnpooled, {
 
 // WebSocket connection for transactions (when needed)
 // Use sparingly on free tier due to connection limits
-export const dbTransaction = drizzleServerless(
-	process.env.DATABASE_URL_UNPOOLED!,
-	{
-		schema,
-		logger: process.env.NODE_ENV === "development",
-	},
-);
+export const dbTransaction = drizzleServerless(DATABASE_URL_UNPOOLED, {
+	schema,
+	logger: process.env.NODE_ENV === "development",
+});
 
 // Connection pool for better performance (when using Node.js runtime)
 // Only initialize if not in edge runtime

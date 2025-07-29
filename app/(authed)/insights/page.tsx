@@ -62,7 +62,7 @@ export default function InsightsPage() {
 
 					{/* Right rail - Actionable Suggestions */}
 					<div className="space-y-6">
-						<ActionableSuggestions range={selectedRange} />
+						<ActionableSuggestions />
 					</div>
 				</div>
 			</div>

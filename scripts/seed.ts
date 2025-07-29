@@ -18,7 +18,10 @@ const projectDir = process.cwd();
 loadEnvConfig(projectDir);
 
 // Use unpooled connection for seeding
-const sql = neon(process.env.DATABASE_URL_UNPOOLED!);
+if (!process.env.DATABASE_URL_UNPOOLED) {
+	throw new Error("DATABASE_URL_UNPOOLED environment variable is not set");
+}
+const sql = neon(process.env.DATABASE_URL_UNPOOLED);
 const db = drizzle(sql, { schema });
 
 async function seed() {
@@ -84,6 +87,9 @@ async function seed() {
 
 		// Create memberships
 		console.log("Creating memberships...");
+		if (!user1 || !user2 || !user3 || !household1 || !household2) {
+			throw new Error("Failed to create users or households");
+		}
 		await db.insert(memberships).values([
 			{
 				userId: user1.id,
@@ -118,9 +124,8 @@ async function seed() {
 					name: "Buddy",
 					species: "dog",
 					breed: "Golden Retriever",
-					dateOfBirth: new Date("2020-03-15"),
-					weight: 32.5,
-					weightUnit: "kg",
+					dob: "2020-03-15",
+					weightKg: "32.5",
 				},
 				{
 					id: "animal-2",
@@ -128,9 +133,8 @@ async function seed() {
 					name: "Whiskers",
 					species: "cat",
 					breed: "Siamese",
-					dateOfBirth: new Date("2019-07-22"),
-					weight: 4.2,
-					weightUnit: "kg",
+					dob: "2019-07-22",
+					weightKg: "4.2",
 				},
 				{
 					id: "animal-3",
@@ -138,9 +142,8 @@ async function seed() {
 					name: "Charlie",
 					species: "dog",
 					breed: "Labrador",
-					dateOfBirth: new Date("2021-11-08"),
-					weight: 28.0,
-					weightUnit: "kg",
+					dob: "2021-11-08",
+					weightKg: "28.0",
 				},
 				{
 					id: "animal-4",
@@ -148,9 +151,8 @@ async function seed() {
 					name: "Luna",
 					species: "cat",
 					breed: "Maine Coon",
-					dateOfBirth: new Date("2022-01-30"),
-					weight: 5.5,
-					weightUnit: "kg",
+					dob: "2022-01-30",
+					weightKg: "5.5",
 				},
 			])
 			.returning();
@@ -163,43 +165,38 @@ async function seed() {
 				{
 					id: "med-1",
 					genericName: "Carprofen",
-					brandNames: ["Rimadyl", "Novox", "Vetprofen"],
-					form: "tablet",
-					commonDosages: ["25mg", "75mg", "100mg"],
-					route: "oral",
-					species: ["dog"],
-					isControlled: false,
+					brandName: "Rimadyl",
+					strength: "75mg",
+					form: "TABLET",
+					route: "ORAL",
+					controlledSubstance: false,
 				},
 				{
 					id: "med-2",
 					genericName: "Insulin",
-					brandNames: ["Vetsulin", "ProZinc"],
-					form: "injection",
-					commonDosages: ["10U/mL", "40U/mL"],
-					route: "subcutaneous",
-					species: ["dog", "cat"],
-					isControlled: false,
-					requiresRefrigeration: true,
+					brandName: "Vetsulin",
+					strength: "40U/mL",
+					form: "INJECTION",
+					route: "SC",
+					controlledSubstance: false,
 				},
 				{
 					id: "med-3",
 					genericName: "Amoxicillin",
-					brandNames: ["Amoxi-Tabs", "Amoxi-Drop"],
-					form: "tablet",
-					commonDosages: ["250mg", "500mg"],
-					route: "oral",
-					species: ["dog", "cat"],
-					isControlled: false,
+					brandName: "Amoxi-Tabs",
+					strength: "250mg",
+					form: "TABLET",
+					route: "ORAL",
+					controlledSubstance: false,
 				},
 				{
 					id: "med-4",
 					genericName: "Gabapentin",
-					brandNames: ["Neurontin"],
-					form: "capsule",
-					commonDosages: ["100mg", "300mg"],
-					route: "oral",
-					species: ["dog", "cat"],
-					isControlled: false,
+					brandName: "Neurontin",
+					strength: "100mg",
+					form: "CAPSULE",
+					route: "ORAL",
+					controlledSubstance: false,
 				},
 			])
 			.returning();
@@ -212,94 +209,105 @@ async function seed() {
 		const in10Days = new Date(now);
 		in10Days.setDate(in10Days.getDate() + 10);
 
+		if (!buddy || !whiskers || !luna) {
+			throw new Error("Failed to create animals");
+		}
+		if (!medications[0] || !medications[1] || !medications[3]) {
+			throw new Error("Failed to create medications");
+		}
+		const nowDateStr = now.toISOString().split("T")[0];
+		const in10DaysStr = in10Days.toISOString().split("T")[0];
+		if (!nowDateStr || !in10DaysStr) {
+			throw new Error("Failed to format dates");
+		}
 		await db.insert(regimens).values([
 			{
 				id: "regimen-1",
 				animalId: buddy.id,
 				medicationId: medications[0].id, // Carprofen
 				name: "Arthritis Management",
-				dosageAmount: 75,
-				dosageUnit: "mg",
+				dose: "75mg",
 				route: "oral",
-				frequency: "BID",
 				scheduleType: "FIXED",
-				scheduleTimes: ["08:00", "20:00"],
-				startDate: now,
-				endDate: in10Days,
+				timesLocal: ["08:00", "20:00"],
+				startDate: nowDateStr,
+				endDate: in10DaysStr,
 				instructions: "Give with food",
-				createdBy: user1.id,
 			},
 			{
 				id: "regimen-2",
 				animalId: whiskers.id,
 				medicationId: medications[1].id, // Insulin
 				name: "Diabetes Management",
-				dosageAmount: 2,
-				dosageUnit: "units",
+				dose: "2 units",
 				route: "subcutaneous",
-				frequency: "BID",
 				scheduleType: "FIXED",
-				scheduleTimes: ["07:00", "19:00"],
-				startDate: now,
+				timesLocal: ["07:00", "19:00"],
+				startDate: nowDateStr,
 				instructions: "Give 30 minutes before meals. Monitor glucose levels.",
-				createdBy: user1.id,
-				isHighRisk: true,
+				highRisk: true,
 			},
 			{
 				id: "regimen-3",
 				animalId: luna.id,
 				medicationId: medications[3].id, // Gabapentin
 				name: "Pain Management",
-				dosageAmount: 100,
-				dosageUnit: "mg",
+				dose: "100mg",
 				route: "oral",
-				frequency: "PRN",
 				scheduleType: "PRN",
 				maxDailyDoses: 3,
-				minHoursBetweenDoses: 8,
-				startDate: now,
+				startDate: nowDateStr,
 				instructions: "Give as needed for pain, max 3 times daily",
-				createdBy: user2.id,
+				prnReason: "for pain",
 			},
 		]);
 
 		// Create inventory items
 		console.log("Creating inventory items...");
+		const openedOnStr = now.toISOString().split("T")[0];
+		if (!openedOnStr) {
+			throw new Error("Failed to format opened date");
+		}
 		await db.insert(inventoryItems).values([
 			{
 				id: "inv-1",
 				householdId: household1.id,
 				medicationId: medications[0].id, // Carprofen
-				name: "Rimadyl 75mg",
-				quantity: 60,
-				unit: "tablets",
-				expirationDate: new Date("2025-06-01"),
-				lotNumber: "LOT123456",
-				status: "in_use",
+				brandOverride: "Rimadyl 75mg",
+				quantityUnits: 60,
+				unitsRemaining: 60,
+				unitType: "tablets",
+				expiresOn: "2025-06-01",
+				lot: "LOT123456",
+				inUse: true,
 				assignedAnimalId: buddy.id,
 			},
 			{
 				id: "inv-2",
 				householdId: household1.id,
 				medicationId: medications[1].id, // Insulin
-				name: "Vetsulin 10U/mL",
-				quantity: 1,
-				unit: "vial",
-				expirationDate: new Date("2025-03-01"),
-				lotNumber: "INS789012",
-				status: "in_use",
+				brandOverride: "Vetsulin 10U/mL",
+				concentration: "10U/mL",
+				quantityUnits: 1,
+				unitsRemaining: 1,
+				unitType: "vial",
+				expiresOn: "2025-03-01",
+				lot: "INS789012",
+				inUse: true,
 				assignedAnimalId: whiskers.id,
-				openedAt: now,
+				openedOn: openedOnStr,
+				storage: "FRIDGE",
 			},
 			{
 				id: "inv-3",
 				householdId: household1.id,
 				medicationId: medications[3].id, // Gabapentin
-				name: "Gabapentin 100mg",
-				quantity: 30,
-				unit: "capsules",
-				expirationDate: new Date("2026-01-01"),
-				status: "available",
+				brandOverride: "Gabapentin 100mg",
+				quantityUnits: 30,
+				unitsRemaining: 30,
+				unitType: "capsules",
+				expiresOn: "2026-01-01",
+				inUse: false,
 			},
 		]);
 
@@ -308,32 +316,43 @@ async function seed() {
 		const yesterday = new Date(now);
 		yesterday.setDate(yesterday.getDate() - 1);
 
+		// Create timestamps for yesterday's administrations
+		const yesterday8am = new Date(yesterday);
+		yesterday8am.setHours(8, 0, 0, 0);
+
+		const yesterday805am = new Date(yesterday);
+		yesterday805am.setHours(8, 5, 0, 0);
+
+		const yesterday8pm = new Date(yesterday);
+		yesterday8pm.setHours(20, 0, 0, 0);
+
+		const yesterday815pm = new Date(yesterday);
+		yesterday815pm.setHours(20, 15, 0, 0);
+
 		await db.insert(administrations).values([
 			{
 				id: "admin-1",
 				animalId: buddy.id,
+				householdId: household1.id,
 				regimenId: "regimen-1",
-				medicationId: medications[0].id,
-				scheduledSlotLocalDate: yesterday.toISOString().split("T")[0],
-				scheduledSlotIndex: 0,
-				scheduledTime: "08:00",
-				actualTime: new Date(yesterday.setHours(8, 5, 0, 0)),
+				caregiverId: user1.id,
+				scheduledFor: yesterday8am,
+				recordedAt: yesterday805am,
 				status: "ON_TIME",
-				administeredBy: user1.id,
-				inventoryItemId: "inv-1",
+				sourceItemId: "inv-1",
+				idempotencyKey: "admin-key-1",
 			},
 			{
 				id: "admin-2",
 				animalId: buddy.id,
+				householdId: household1.id,
 				regimenId: "regimen-1",
-				medicationId: medications[0].id,
-				scheduledSlotLocalDate: yesterday.toISOString().split("T")[0],
-				scheduledSlotIndex: 1,
-				scheduledTime: "20:00",
-				actualTime: new Date(yesterday.setHours(20, 15, 0, 0)),
+				caregiverId: user2.id,
+				scheduledFor: yesterday8pm,
+				recordedAt: yesterday815pm,
 				status: "LATE",
-				administeredBy: user2.id,
-				inventoryItemId: "inv-1",
+				sourceItemId: "inv-1",
+				idempotencyKey: "admin-key-2",
 			},
 		]);
 

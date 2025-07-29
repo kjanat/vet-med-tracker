@@ -107,7 +107,7 @@ export const animalRouter = createTRPCRouter({
 	update: householdProcedure
 		.input(updateAnimalSchema)
 		.mutation(async ({ ctx, input }) => {
-			const { id, householdId, ...updateData } = input;
+			const { id, ...updateData } = input;
 
 			// Verify animal belongs to household
 			const existing = await ctx.db
@@ -116,7 +116,7 @@ export const animalRouter = createTRPCRouter({
 				.where(
 					and(
 						eq(animals.id, id),
-						eq(animals.householdId, householdId),
+						eq(animals.householdId, ctx.householdId),
 						isNull(animals.deletedAt),
 					),
 				)

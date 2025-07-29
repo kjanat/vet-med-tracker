@@ -211,13 +211,7 @@ function AdministrationRow({
 									{formatTimeLocal(record.recordedAt, "America/New_York")}
 								</div>
 
-								{animal && (
-									<AnimalAvatar
-										animal={animal}
-										size="sm"
-										className="shrink-0"
-									/>
-								)}
+								{animal && <AnimalAvatar animal={animal} size="sm" />}
 
 								<div className="flex-1 min-w-0">
 									<div className="font-medium truncate">

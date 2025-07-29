@@ -24,7 +24,7 @@ export const householdRouter = createTRPCRouter({
 		return userMemberships.map(({ household, membership }) => ({
 			...household,
 			role: membership.role,
-			joinedAt: membership.joinedAt,
+			joinedAt: membership.createdAt,
 		}));
 	}),
 
@@ -75,6 +75,13 @@ export const householdRouter = createTRPCRouter({
 					timezone: input.timezone,
 				})
 				.returning();
+
+			if (!household) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to create household",
+				});
+			}
 
 			// Add creator as owner
 			await ctx.db.insert(memberships).values({

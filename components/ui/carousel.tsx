@@ -133,16 +133,16 @@ const Carousel = React.forwardRef<
 					canScrollNext,
 				}}
 			>
-				<div
+				<section
 					ref={ref}
 					onKeyDownCapture={handleKeyDown}
 					className={cn("relative", className)}
-					role="region"
 					aria-roledescription="carousel"
+					aria-label="carousel"
 					{...props}
 				>
 					{children}
-				</div>
+				</section>
 			</CarouselContext.Provider>
 		);
 	},
@@ -196,7 +196,7 @@ CarouselItem.displayName = "CarouselItem";
 const CarouselPrevious = React.forwardRef<
 	HTMLButtonElement,
 	React.ComponentProps<typeof Button>
->(({ className, variant = "outline-solid", size = "icon", ...props }, ref) => {
+>(({ className, variant = "outline", size = "icon", ...props }, ref) => {
 	const { orientation, scrollPrev, canScrollPrev } = useCarousel();
 
 	return (
@@ -225,7 +225,7 @@ CarouselPrevious.displayName = "CarouselPrevious";
 const CarouselNext = React.forwardRef<
 	HTMLButtonElement,
 	React.ComponentProps<typeof Button>
->(({ className, variant = "outline-solid", size = "icon", ...props }, ref) => {
+>(({ className, variant = "outline", size = "icon", ...props }, ref) => {
 	const { orientation, scrollNext, canScrollNext } = useCarousel();
 
 	return (

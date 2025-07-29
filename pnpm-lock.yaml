@@ -207,6 +207,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.1.11
         version: 4.1.11
+      '@types/luxon':
+        specifier: ^3.7.0
+        version: 3.7.0
       '@types/node':
         specifier: ^24.1.0
         version: 24.1.0
@@ -1673,6 +1676,9 @@ packages:
 
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+
+  '@types/luxon@3.7.0':
+    resolution: {integrity: sha512-zNduyjkTXTttOp0KUG7ueFORgq6eyFsjbCZ/B8UfrVmfkHD1V9xC9wN/Vk0XUg0R/k/aIX1NeFwZgwe5hsDXfA==}
 
   '@types/node@22.16.5':
     resolution: {integrity: sha512-bJFoMATwIGaxxx8VJPeM8TonI8t579oRvgAuT8zFugJsJZgzqv0Fu8Mhp68iecjzG7cnN3mO2dJQ5uUM2EFrgQ==}
@@ -4777,6 +4783,8 @@ snapshots:
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
+
+  '@types/luxon@3.7.0': {}
 
   '@types/node@22.16.5':
     dependencies:

@@ -3,8 +3,13 @@ import { DateTime } from "luxon";
 export const toAnimalLocal = (d: Date, tz: string) =>
 	DateTime.fromJSDate(d).setZone(tz);
 
-export const localDayISO = (d: Date, tz: string) =>
-	toAnimalLocal(d, tz).toISODate()!;
+export const localDayISO = (d: Date, tz: string) => {
+	const isoDate = toAnimalLocal(d, tz).toISODate();
+	if (!isoDate) {
+		throw new Error(`Failed to convert date to ISO format in timezone ${tz}`);
+	}
+	return isoDate;
+};
 
 // 08:00 -> Date for given local day
 export function expandFixedTimes(times: string[], dayISO: string, tz: string) {

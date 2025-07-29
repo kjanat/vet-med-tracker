@@ -127,12 +127,13 @@ export function ComplianceHeatmap({
 	const handleOpenInHistory = () => {
 		if (!selectedCell) return;
 
-		const params = new URLSearchParams({
-			from: range.from.toISOString().split("T")[0],
-			to: range.to.toISOString().split("T")[0],
-			animalId: selectedAnimalId === "all" ? "" : selectedAnimalId,
-			// Add hour/dow filters when History supports them
-		});
+		const params = new URLSearchParams();
+		params.set("from", range.from.toISOString().split("T")[0] || "");
+		params.set("to", range.to.toISOString().split("T")[0] || "");
+		if (selectedAnimalId !== "all") {
+			params.set("animalId", selectedAnimalId);
+		}
+		// Add hour/dow filters when History supports them
 
 		router.push(`/history?${params.toString()}`);
 		setSheetOpen(false);
@@ -197,7 +198,7 @@ export function ComplianceHeatmap({
 							<PopoverContent className="w-auto p-0" align="start">
 								<div className="p-4 space-y-4">
 									<div className="space-y-2">
-										<label className="text-sm font-medium">From</label>
+										<p className="text-sm font-medium">From</p>
 										<CalendarComponent
 											mode="single"
 											selected={range.from}
@@ -208,7 +209,7 @@ export function ComplianceHeatmap({
 										/>
 									</div>
 									<div className="space-y-2">
-										<label className="text-sm font-medium">To</label>
+										<p className="text-sm font-medium">To</p>
 										<CalendarComponent
 											mode="single"
 											selected={range.to}
@@ -242,7 +243,7 @@ export function ComplianceHeatmap({
 							{/* Day rows */}
 							{dayNames.map((day, dow) => (
 								<div
-									key={dow}
+									key={`day-${day}`}
 									className="grid grid-cols-[40px_repeat(24,_1fr)] gap-1"
 								>
 									<div className="text-xs font-medium text-muted-foreground py-1">

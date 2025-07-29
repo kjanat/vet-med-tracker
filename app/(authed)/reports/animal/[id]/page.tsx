@@ -22,6 +22,7 @@ const mockAnimal = {
 	breed: "Golden Retriever",
 	weightKg: 32,
 	avatar: undefined,
+	pendingMeds: 0,
 };
 
 const mockComplianceData = {
@@ -36,6 +37,7 @@ const mockComplianceData = {
 
 const mockRegimens = [
 	{
+		id: "regimen-1",
 		medicationName: "Rimadyl",
 		strength: "75mg",
 		route: "Oral",
@@ -44,6 +46,7 @@ const mockRegimens = [
 		notes: "Give with food",
 	},
 	{
+		id: "regimen-2",
 		medicationName: "Joint Supplement",
 		strength: "1 tablet",
 		route: "Oral",
@@ -55,12 +58,14 @@ const mockRegimens = [
 
 const mockNotableEvents = [
 	{
+		id: "event-1",
 		date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
 		medication: "Rimadyl",
 		note: "Took with food as recommended",
 		tags: ["Normal"],
 	},
 	{
+		id: "event-2",
 		date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
 		medication: "Joint Supplement",
 		note: "Slight improvement in mobility",
@@ -205,9 +210,9 @@ export default function AnimalReportPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							{mockRegimens.map((regimen, index) => (
+							{mockRegimens.map((regimen) => (
 								<div
-									key={index}
+									key={regimen.id}
 									className="flex items-center justify-between p-4 border rounded-lg"
 								>
 									<div className="flex-1">
@@ -245,8 +250,8 @@ export default function AnimalReportPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-3">
-							{mockNotableEvents.map((event, index) => (
-								<div key={index} className="p-3 border rounded-lg">
+							{mockNotableEvents.map((event) => (
+								<div key={event.id} className="p-3 border rounded-lg">
 									<div className="flex items-center justify-between mb-2">
 										<div className="font-medium">{event.medication}</div>
 										<div className="text-sm text-muted-foreground">

@@ -88,10 +88,10 @@ export function useHistoryFilters() {
 
 			const params = new URLSearchParams(searchParams.toString());
 			if (!searchParams.get("from")) {
-				params.set("from", thirtyDaysAgo.toISOString().split("T")[0]);
+				params.set("from", thirtyDaysAgo.toISOString().split("T")[0] || "");
 			}
 			if (!searchParams.get("to")) {
-				params.set("to", now.toISOString().split("T")[0]);
+				params.set("to", now.toISOString().split("T")[0] || "");
 			}
 			router.replace(`/history?${params.toString()}`, { scroll: false });
 		}

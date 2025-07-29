@@ -1,12 +1,14 @@
 import { TRPCError } from "@trpc/server";
-import { t } from "../trpc";
+import { and, eq } from "drizzle-orm";
+import { protectedProcedure } from "../../api/trpc/init";
+import { memberships } from "../../db/schema";
 
 export type Role = "OWNER" | "CAREGIVER" | "VETREADONLY";
 
 export const requireMembership = (
 	allowedRoles: Role[] = ["OWNER", "CAREGIVER"],
 ) =>
-	t.middleware(async ({ ctx, next, rawInput }) => {
+	protectedProcedure.use(async ({ ctx, next, input }) => {
 		if (!ctx.user) {
 			throw new TRPCError({
 				code: "UNAUTHORIZED",
@@ -14,12 +16,10 @@ export const requireMembership = (
 			});
 		}
 
-		// Extract householdId from input
-		const householdId = (
-			"householdId" in rawInput
-				? (rawInput as any).householdId
-				: ctx.householdId
-		) as string | undefined;
+		// Extract householdId from input or context
+		const householdId =
+			(input as { householdId?: string })?.householdId ||
+			ctx.requestedHouseholdId;
 
 		if (!householdId) {
 			throw new TRPCError({
@@ -28,13 +28,19 @@ export const requireMembership = (
 			});
 		}
 
-		// Check membership
-		const membership = await ctx.db.membership.findFirst({
-			where: {
-				householdId,
-				userId: ctx.user.id,
-			},
-		});
+		// Check membership using Drizzle
+		const membershipResult = await ctx.db
+			.select()
+			.from(memberships)
+			.where(
+				and(
+					eq(memberships.householdId, householdId),
+					eq(memberships.userId, ctx.user.id),
+				),
+			)
+			.limit(1);
+
+		const membership = membershipResult[0];
 
 		if (!membership) {
 			throw new TRPCError({
@@ -69,39 +75,56 @@ export const requireReadAccess = requireMembership([
 
 // Verify resource belongs to household
 export const verifyResourceAccess = async (
-	db: any,
+	db: typeof import("../../db").db,
 	householdId: string,
 	resourceType: "animal" | "regimen" | "inventory",
 	resourceId: string,
 ) => {
 	let belongsToHousehold = false;
 
+	const { animals, regimens, inventoryItems } = await import("../../db/schema");
+
 	switch (resourceType) {
 		case "animal": {
-			const animal = await db.animal.findFirst({
-				where: { id: resourceId, householdId },
-			});
-			belongsToHousehold = !!animal;
+			const animalResult = await db
+				.select()
+				.from(animals)
+				.where(
+					and(eq(animals.id, resourceId), eq(animals.householdId, householdId)),
+				)
+				.limit(1);
+			belongsToHousehold = animalResult.length > 0;
 			break;
 		}
 
 		case "regimen": {
-			const regimen = await db.regimen.findFirst({
-				where: {
-					id: resourceId,
-					animal: { householdId },
-				},
-				include: { animal: true },
-			});
-			belongsToHousehold = !!regimen;
+			const regimenResult = await db
+				.select()
+				.from(regimens)
+				.innerJoin(animals, eq(regimens.animalId, animals.id))
+				.where(
+					and(
+						eq(regimens.id, resourceId),
+						eq(animals.householdId, householdId),
+					),
+				)
+				.limit(1);
+			belongsToHousehold = regimenResult.length > 0;
 			break;
 		}
 
 		case "inventory": {
-			const inventory = await db.inventoryItem.findFirst({
-				where: { id: resourceId, householdId },
-			});
-			belongsToHousehold = !!inventory;
+			const inventoryResult = await db
+				.select()
+				.from(inventoryItems)
+				.where(
+					and(
+						eq(inventoryItems.id, resourceId),
+						eq(inventoryItems.householdId, householdId),
+					),
+				)
+				.limit(1);
+			belongsToHousehold = inventoryResult.length > 0;
 			break;
 		}
 	}
@@ -114,9 +137,9 @@ export const verifyResourceAccess = async (
 	}
 };
 
-// Audit logging helper
+// Audit logging helper - TODO: Implement when audit_log table is added
 export const createAuditLog = async (
-	db: any,
+	_db: typeof import("../../db").db,
 	{
 		userId,
 		householdId,
@@ -130,21 +153,17 @@ export const createAuditLog = async (
 		action: string;
 		resourceType: string;
 		resourceId?: string;
-		details?: Record<string, any>;
+		details?: Record<string, unknown>;
 	},
 ) => {
-	await db.auditLog.create({
-		data: {
-			id: crypto.randomUUID(),
-			userId,
-			householdId,
-			action,
-			resourceType,
-			resourceId,
-			details: details ? JSON.stringify(details) : null,
-			timestamp: new Date(),
-			ipAddress: "unknown", // TODO: Extract from request
-			userAgent: "unknown", // TODO: Extract from request
-		},
+	// TODO: Implement audit logging when audit_log table is added to schema
+	console.log("Audit log:", {
+		userId,
+		householdId,
+		action,
+		resourceType,
+		resourceId,
+		details,
+		timestamp: new Date(),
 	});
 };

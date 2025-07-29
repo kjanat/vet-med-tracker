@@ -24,9 +24,9 @@ export function MedConfirmButton({
 	const [isHolding, setIsHolding] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const [isComplete, setIsComplete] = useState(false);
-	const timeoutRef = useRef<NodeJS.Timeout>();
-	const intervalRef = useRef<NodeJS.Timeout>();
-	const startTimeRef = useRef<number>();
+	const timeoutRef = useRef<number | undefined>(undefined);
+	const intervalRef = useRef<number | undefined>(undefined);
+	const startTimeRef = useRef<number | undefined>(undefined);
 
 	const HOLD_DURATION = 3000; // 3 seconds
 
@@ -38,14 +38,14 @@ export function MedConfirmButton({
 		startTimeRef.current = Date.now();
 
 		// Progress animation
-		intervalRef.current = setInterval(() => {
+		intervalRef.current = window.setInterval(() => {
 			const elapsed = Date.now() - (startTimeRef.current || 0);
 			const newProgress = Math.min((elapsed / HOLD_DURATION) * 100, 100);
 			setProgress(newProgress);
 		}, 16); // ~60fps
 
 		// Complete after hold duration
-		timeoutRef.current = setTimeout(() => {
+		timeoutRef.current = window.setTimeout(() => {
 			setIsComplete(true);
 			setIsHolding(false);
 			setProgress(100);

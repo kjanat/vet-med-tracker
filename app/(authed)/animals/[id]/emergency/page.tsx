@@ -29,6 +29,7 @@ const mockAnimal = {
 
 const mockRegimens = [
 	{
+		id: "regimen-1",
 		medicationName: "Rimadyl",
 		strength: "75mg",
 		route: "Oral",
@@ -36,6 +37,7 @@ const mockRegimens = [
 		notes: "Give with food",
 	},
 	{
+		id: "regimen-2",
 		medicationName: "Joint Supplement",
 		strength: "1 tablet",
 		route: "Oral",
@@ -209,8 +211,8 @@ export default function EmergencyCardPage() {
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-4">
-								{mockRegimens.map((regimen, index) => (
-									<div key={index} className="p-4 border rounded-lg">
+								{mockRegimens.map((regimen) => (
+									<div key={regimen.id} className="p-4 border rounded-lg">
 										<div className="flex justify-between items-start mb-2">
 											<div>
 												<div className="font-medium text-lg">

@@ -118,7 +118,7 @@ export const ViewportPreview: React.FC<ViewportPreviewProps> = ({
 					})();
 				`;
 				iframeDoc.head.appendChild(script);
-			} catch (error) {
+			} catch {
 				// Cross-origin iframe, can't inject script
 				console.warn(
 					"Cannot inject theme script - possible cross-origin iframe",

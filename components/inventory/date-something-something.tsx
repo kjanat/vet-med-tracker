@@ -38,17 +38,13 @@ export function Calendar13() {
 				</Label>
 				<Select
 					value={dropdown}
-					onValueChange={(value: any) =>
+					onValueChange={(value) =>
 						setDropdown(
 							value as React.ComponentProps<typeof Calendar>["captionLayout"],
 						)
 					}
 				>
-					<SelectTrigger
-						id="dropdown"
-						size="sm"
-						className="bg-background w-full"
-					>
+					<SelectTrigger id="dropdown" className="bg-background w-full">
 						<SelectValue placeholder="Dropdown" />
 					</SelectTrigger>
 					<SelectContent align="center">

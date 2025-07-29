@@ -180,7 +180,8 @@ export default function HistoryPage() {
 				counts.set(dayKey, { total: 0, onTime: 0, late: 0, missed: 0, prn: 0 });
 			}
 
-			const count = counts.get(dayKey)!;
+			const count = counts.get(dayKey);
+			if (!count) return;
 			count.total++;
 
 			switch (record.status) {

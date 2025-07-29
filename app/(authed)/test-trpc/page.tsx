@@ -17,8 +17,323 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/server/trpc/client";
 
-export default function TestTRPCPage() {
+interface AuthTestResult {
+	isError: boolean;
+	error?: { message: string } | null;
+	data?: unknown;
+}
+
+interface HouseholdListItem {
+	id: string;
+	name: string;
+	timezone: string;
+	role: "OWNER" | "CAREGIVER" | "VETREADONLY";
+}
+
+interface HouseholdDetailsData {
+	animals?: Array<{ id: string; name: string; species: string }>;
+	memberships?: Array<{
+		id: string;
+		role: string;
+		user?: { name?: string | null; email?: string | null };
+	}>;
+}
+
+// Extract connection status component
+function ConnectionStatus({ authTest }: { authTest: AuthTestResult }) {
+	const getStatusContent = () => {
+		if (authTest.isError) {
+			return (
+				<span className="text-red-600">
+					❌ Auth Error: {authTest.error?.message}
+				</span>
+			);
+		}
+		if (authTest.data !== undefined) {
+			return (
+				<span className="text-green-600">
+					✅ Mock auth working, database connected
+				</span>
+			);
+		}
+		return <span>🔄 Testing connection...</span>;
+	};
+
+	return (
+		<Alert className={authTest.isError ? "border-red-500" : "border-green-500"}>
+			<AlertCircle className="h-4 w-4" />
+			<AlertTitle>Auth & Database Status</AlertTitle>
+			<AlertDescription>{getStatusContent()}</AlertDescription>
+		</Alert>
+	);
+}
+
+// Extract household list component
+function HouseholdsList({
+	households,
+	isLoading,
+	error,
+	selectedId,
+	onSelect,
+}: {
+	households: HouseholdListItem[] | undefined;
+	isLoading: boolean;
+	error: { message: string } | null;
+	selectedId: string | null;
+	onSelect: (id: string) => void;
+}) {
+	if (isLoading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Your Households</CardTitle>
+					<CardDescription>Click on a household to see details</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-2">
+						<Skeleton className="h-12 w-full" />
+						<Skeleton className="h-12 w-full" />
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	if (error) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Your Households</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Alert variant="destructive">
+						<AlertDescription>
+							Error loading households: {error.message}
+						</AlertDescription>
+					</Alert>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Your Households</CardTitle>
+				<CardDescription>Click on a household to see details</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{households && households.length > 0 ? (
+					<div className="space-y-2">
+						{households.map((household) => (
+							<HouseholdItem
+								key={household.id}
+								household={household}
+								isSelected={selectedId === household.id}
+								onClick={() => onSelect(household.id)}
+							/>
+						))}
+					</div>
+				) : (
+					<p className="text-muted-foreground">
+						No households found. Create one above or run the seed script!
+					</p>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
+
+// Extract household item
+function HouseholdItem({
+	household,
+	isSelected,
+	onClick,
+}: {
+	household: HouseholdListItem;
+	isSelected: boolean;
+	onClick: () => void;
+}) {
+	return (
+		<button
+			type="button"
+			className={`p-4 border rounded-lg cursor-pointer transition-colors w-full text-left ${
+				isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+			}`}
+			onClick={onClick}
+		>
+			<div className="flex items-center justify-between">
+				<div>
+					<h3 className="font-semibold">{household.name}</h3>
+					<p className="text-sm text-muted-foreground">{household.timezone}</p>
+				</div>
+				<Badge variant={household.role === "OWNER" ? "default" : "secondary"}>
+					{household.role}
+				</Badge>
+			</div>
+		</button>
+	);
+}
+
+// Extract household details component
+function HouseholdDetails({
+	details,
+	isLoading,
+}: {
+	details: HouseholdDetailsData | undefined;
+	isLoading: boolean;
+}) {
+	if (isLoading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Household Details</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Skeleton className="h-32 w-full" />
+				</CardContent>
+			</Card>
+		);
+	}
+
+	if (!details) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Household Details</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<p className="text-muted-foreground">Failed to load details</p>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Household Details</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div className="space-y-4">
+					<DetailSection
+						title={`Animals (${details.animals?.length || 0})`}
+						items={details.animals}
+						renderItem={(animal) => `${animal.name} (${animal.species})`}
+						emptyMessage="No animals yet"
+					/>
+					<DetailSection
+						title={`Members (${details.memberships?.length || 0})`}
+						items={details.memberships}
+						renderItem={(membership) =>
+							`${membership.user?.name || membership.user?.email} - ${membership.role}`
+						}
+						emptyMessage="No members"
+					/>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+// Helper component for detail sections
+function DetailSection<T extends { id?: string }>({
+	title,
+	items,
+	renderItem,
+	emptyMessage,
+}: {
+	title: string;
+	items: T[] | undefined;
+	renderItem: (item: T) => string;
+	emptyMessage: string;
+}) {
+	return (
+		<div>
+			<h4 className="font-semibold mb-2">{title}</h4>
+			{items && items.length > 0 ? (
+				<ul className="space-y-1">
+					{items.map((item, index) => (
+						<li key={item.id || index} className="text-sm">
+							• {renderItem(item)}
+						</li>
+					))}
+				</ul>
+			) : (
+				<p className="text-sm text-muted-foreground">{emptyMessage}</p>
+			)}
+		</div>
+	);
+}
+
+// Extract household form component
+function CreateHouseholdForm({ onSuccess }: { onSuccess: () => void }) {
 	const [newHouseholdName, setNewHouseholdName] = useState("");
+
+	const createHouseholdMutation = trpc.household.create.useMutation({
+		onSuccess: () => {
+			onSuccess();
+			setNewHouseholdName("");
+		},
+		onError: (error) => {
+			console.error("Error creating household:", error);
+		},
+	});
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!newHouseholdName) return;
+
+		await createHouseholdMutation.mutate({
+			name: newHouseholdName,
+			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		});
+	};
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Create New Household</CardTitle>
+				<CardDescription>
+					This will create a new household in the database
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div className="space-y-2">
+						<Label htmlFor="household-name">Household Name</Label>
+						<Input
+							id="household-name"
+							value={newHouseholdName}
+							onChange={(e) => setNewHouseholdName(e.target.value)}
+							placeholder="Enter household name"
+							disabled={createHouseholdMutation.isPending}
+						/>
+					</div>
+					<Button
+						type="submit"
+						disabled={!newHouseholdName || createHouseholdMutation.isPending}
+						className="w-full"
+					>
+						{createHouseholdMutation.isPending
+							? "Creating..."
+							: "Create Household"}
+					</Button>
+					{createHouseholdMutation.error && (
+						<Alert variant="destructive">
+							<AlertCircle className="h-4 w-4" />
+							<AlertDescription>
+								{createHouseholdMutation.error.message}
+							</AlertDescription>
+						</Alert>
+					)}
+				</form>
+			</CardContent>
+		</Card>
+	);
+}
+
+export default function TestTRPCPage() {
 	const [selectedHouseholdId, setSelectedHouseholdId] = useState<string | null>(
 		null,
 	);
@@ -39,30 +354,9 @@ export default function TestTRPCPage() {
 	// Get selected household details
 	const { data: householdDetails, isLoading: detailsLoading } =
 		trpc.household.get.useQuery(
-			{ householdId: selectedHouseholdId! },
+			{ householdId: selectedHouseholdId || "" },
 			{ enabled: !!selectedHouseholdId },
 		);
-
-	// Create household mutation
-	const createHouseholdMutation = trpc.household.create.useMutation({
-		onSuccess: () => {
-			refetchHouseholds();
-			setNewHouseholdName("");
-		},
-		onError: (error) => {
-			console.error("Error creating household:", error);
-		},
-	});
-
-	const handleCreateHousehold = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!newHouseholdName) return;
-
-		await createHouseholdMutation.mutate({
-			name: newHouseholdName,
-			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-		});
-	};
 
 	return (
 		<div className="space-y-6">
@@ -74,174 +368,26 @@ export default function TestTRPCPage() {
 			</div>
 
 			{/* Connection Status */}
-			<Alert
-				className={authTest.isError ? "border-red-500" : "border-green-500"}
-			>
-				<AlertCircle className="h-4 w-4" />
-				<AlertTitle>Auth & Database Status</AlertTitle>
-				<AlertDescription>
-					{authTest.isError ? (
-						<span className="text-red-600">
-							❌ Auth Error: {authTest.error?.message}
-						</span>
-					) : authTest.data !== undefined ? (
-						<span className="text-green-600">
-							✅ Mock auth working, database connected
-						</span>
-					) : (
-						<span>🔄 Testing connection...</span>
-					)}
-				</AlertDescription>
-			</Alert>
+			<ConnectionStatus authTest={authTest} />
 
 			{/* Create Household Form */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Create New Household</CardTitle>
-					<CardDescription>Test the create mutation</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<form onSubmit={handleCreateHousehold} className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="householdName">Household Name</Label>
-							<Input
-								id="householdName"
-								value={newHouseholdName}
-								onChange={(e) => setNewHouseholdName(e.target.value)}
-								placeholder="e.g., Smith Family"
-								required
-							/>
-						</div>
-						<Button
-							type="submit"
-							disabled={createHouseholdMutation.isPending || authTest.isError}
-						>
-							{createHouseholdMutation.isPending
-								? "Creating..."
-								: "Create Household"}
-						</Button>
-						{createHouseholdMutation.error && (
-							<Alert variant="destructive">
-								<AlertDescription>
-									Error: {createHouseholdMutation.error.message}
-								</AlertDescription>
-							</Alert>
-						)}
-					</form>
-				</CardContent>
-			</Card>
+			<CreateHouseholdForm onSuccess={refetchHouseholds} />
 
 			{/* Households List */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Your Households</CardTitle>
-					<CardDescription>Click on a household to see details</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{householdsLoading ? (
-						<div className="space-y-2">
-							<Skeleton className="h-12 w-full" />
-							<Skeleton className="h-12 w-full" />
-						</div>
-					) : householdsError ? (
-						<Alert variant="destructive">
-							<AlertDescription>
-								Error loading households: {householdsError.message}
-							</AlertDescription>
-						</Alert>
-					) : households && households.length > 0 ? (
-						<div className="space-y-2">
-							{households.map((household) => (
-								<button
-									type="button"
-									key={household.id}
-									className={`p-4 border rounded-lg cursor-pointer transition-colors w-full text-left ${
-										selectedHouseholdId === household.id
-											? "border-primary bg-primary/5"
-											: "hover:bg-muted/50"
-									}`}
-									onClick={() => setSelectedHouseholdId(household.id)}
-								>
-									<div className="flex items-center justify-between">
-										<div>
-											<h3 className="font-semibold">{household.name}</h3>
-											<p className="text-sm text-muted-foreground">
-												{household.timezone}
-											</p>
-										</div>
-										<Badge
-											variant={
-												household.role === "OWNER" ? "default" : "secondary"
-											}
-										>
-											{household.role}
-										</Badge>
-									</div>
-								</button>
-							))}
-						</div>
-					) : (
-						<p className="text-muted-foreground">
-							No households found. Create one above or run the seed script!
-						</p>
-					)}
-				</CardContent>
-			</Card>
+			<HouseholdsList
+				households={households}
+				isLoading={householdsLoading}
+				error={householdsError}
+				selectedId={selectedHouseholdId}
+				onSelect={setSelectedHouseholdId}
+			/>
 
 			{/* Household Details */}
 			{selectedHouseholdId && (
-				<Card>
-					<CardHeader>
-						<CardTitle>Household Details</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{detailsLoading ? (
-							<Skeleton className="h-32 w-full" />
-						) : householdDetails ? (
-							<div className="space-y-4">
-								<div>
-									<h4 className="font-semibold mb-2">
-										Animals ({householdDetails.animals?.length || 0})
-									</h4>
-									{householdDetails.animals &&
-									householdDetails.animals.length > 0 ? (
-										<ul className="space-y-1">
-											{householdDetails.animals.map((animal) => (
-												<li key={animal.id} className="text-sm">
-													• {animal.name} ({animal.species})
-												</li>
-											))}
-										</ul>
-									) : (
-										<p className="text-sm text-muted-foreground">
-											No animals yet
-										</p>
-									)}
-								</div>
-								<div>
-									<h4 className="font-semibold mb-2">
-										Members ({householdDetails.memberships?.length || 0})
-									</h4>
-									{householdDetails.memberships &&
-									householdDetails.memberships.length > 0 ? (
-										<ul className="space-y-1">
-											{householdDetails.memberships.map((membership) => (
-												<li key={membership.id} className="text-sm">
-													• {membership.user?.name || membership.user?.email} -{" "}
-													{membership.role}
-												</li>
-											))}
-										</ul>
-									) : (
-										<p className="text-sm text-muted-foreground">No members</p>
-									)}
-								</div>
-							</div>
-						) : (
-							<p className="text-muted-foreground">Failed to load details</p>
-						)}
-					</CardContent>
-				</Card>
+				<HouseholdDetails
+					details={householdDetails}
+					isLoading={detailsLoading}
+				/>
 			)}
 
 			{/* Instructions */}

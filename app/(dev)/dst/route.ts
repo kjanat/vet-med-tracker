@@ -78,14 +78,16 @@ export async function GET() {
 
 		// Expand slots across DST transition
 		for (let d = start; d <= end; d = d.plus({ days: 1 })) {
-			const slotsUTC = expandFixedTimes(["08:00", "18:00"], d.toISODate()!, tz);
+			const dateStr = d.toISODate();
+			if (!dateStr) continue;
+			const slotsUTC = expandFixedTimes(["08:00", "18:00"], dateStr, tz);
 
 			for (const targetUTC of slotsUTC) {
 				const targetLocal = DateTime.fromJSDate(targetUTC, { zone: tz });
 				const cutoffUTC = new Date(targetUTC.getTime() + 240 * 60 * 1000); // +4 hours
 
 				slots.push({
-					date: d.toISODate()!,
+					date: dateStr,
 					timeLocal: targetLocal.toFormat("HH:mm"),
 					timeUTC: targetUTC.toISOString(),
 					targetUTC,

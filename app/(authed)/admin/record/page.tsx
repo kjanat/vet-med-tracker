@@ -53,12 +53,7 @@ interface InventorySource {
 	inUse: boolean;
 }
 
-export default function RecordPage() {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const { animals } = useApp();
-	const { isOnline, enqueue } = useOfflineQueue();
-
+function useRecordState() {
 	const [step, setStep] = useState<RecordStep>("select");
 	const [selectedRegimen, setSelectedRegimen] = useState<DueRegimen | null>(
 		null,
@@ -73,6 +68,37 @@ export default function RecordPage() {
 	const [site, setSite] = useState("");
 	const [conditionTags, setConditionTags] = useState<string[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	return {
+		step,
+		setStep,
+		selectedRegimen,
+		setSelectedRegimen,
+		selectedAnimalId,
+		setSelectedAnimalId,
+		inventorySourceId,
+		setInventorySourceId,
+		allowOverride,
+		setAllowOverride,
+		requiresCoSign,
+		setRequiresCoSign,
+		notes,
+		setNotes,
+		site,
+		setSite,
+		conditionTags,
+		setConditionTags,
+		isSubmitting,
+		setIsSubmitting,
+	};
+}
+
+export default function RecordPage() {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const { animals } = useApp();
+	const { isOnline, enqueue } = useOfflineQueue();
+	const state = useRecordState();
 
 	// Mock data - replace with tRPC queries
 	const dueRegimens = useMemo<DueRegimen[]>(
@@ -151,261 +177,67 @@ export default function RecordPage() {
 		const regimenId = searchParams.get("regimenId");
 
 		if (animalId) {
-			setSelectedAnimalId(animalId);
+			state.setSelectedAnimalId(animalId);
 		}
 
 		if (regimenId) {
 			const regimen = dueRegimens.find((r) => r.id === regimenId);
 			if (regimen) {
-				setSelectedRegimen(regimen);
-				setSelectedAnimalId(regimen.animalId);
-				setStep("confirm");
+				state.setSelectedRegimen(regimen);
+				state.setSelectedAnimalId(regimen.animalId);
+				state.setStep("confirm");
 			}
 		}
-	}, [searchParams, dueRegimens]);
+	}, [searchParams, dueRegimens, state]);
 
 	const handleRegimenSelect = (regimen: DueRegimen) => {
-		setSelectedRegimen(regimen);
-		setSelectedAnimalId(regimen.animalId);
-		setRequiresCoSign(regimen.isHighRisk);
-		setStep("confirm");
+		state.setSelectedRegimen(regimen);
+		state.setSelectedAnimalId(regimen.animalId);
+		state.setRequiresCoSign(regimen.isHighRisk);
+		state.setStep("confirm");
 	};
 
 	const handleConfirm = async () => {
-		if (!selectedRegimen) return;
+		if (!state.selectedRegimen) return;
 
-		setIsSubmitting(true);
-
-		// const animal = animals.find((a) => a.id === selectedAnimalId)
-		const now = new Date();
-		const localDay = localDayISO(now, "America/New_York"); // Use animal's timezone
-		const idempotencyKey = adminKey(
-			selectedRegimen.animalId,
-			selectedRegimen.id,
-			localDay,
-			selectedRegimen.isPRN ? undefined : 0,
-		);
-
-		const payload = {
-			idempotencyKey,
-			animalId: selectedRegimen.animalId,
-			regimenId: selectedRegimen.id,
-			medicationName: selectedRegimen.medicationName,
-			administeredAt: now.toISOString(),
-			inventorySourceId,
-			notes,
-			site,
-			conditionTags,
-			requiresCoSign,
-			allowOverride,
-		};
+		state.setIsSubmitting(true);
 
 		try {
+			const payload = createAdminPayload(state);
+
 			if (!isOnline) {
-				await enqueue(payload, idempotencyKey);
+				await enqueue(payload, payload.idempotencyKey);
 			} else {
 				// In real app: await createAdmin.mutateAsync(payload)
 				console.log("Recording administration:", payload);
 				await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
 			}
 
-			setStep("success");
+			state.setStep("success");
 		} catch (error) {
 			console.error("Failed to record administration:", error);
 		} finally {
-			setIsSubmitting(false);
+			state.setIsSubmitting(false);
 		}
 	};
 
-	const filteredRegimens = selectedAnimalId
-		? dueRegimens.filter((r) => r.animalId === selectedAnimalId)
-		: dueRegimens;
+	const groupedRegimens = getGroupedRegimens(
+		dueRegimens,
+		state.selectedAnimalId,
+	);
 
-	const groupedRegimens = {
-		due: filteredRegimens.filter((r) => r.section === "due"),
-		later: filteredRegimens.filter((r) => r.section === "later"),
-		prn: filteredRegimens.filter((r) => r.section === "prn"),
-	};
-
-	if (step === "success") {
-		return (
-			<div className="max-w-md mx-auto space-y-6">
-				<div className="text-center space-y-4">
-					<div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-						<div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
-							✓
-						</div>
-					</div>
-
-					<div>
-						<h1 className="text-2xl font-bold text-green-700">
-							Recorded Successfully
-						</h1>
-						<p className="text-muted-foreground">
-							Recorded at {formatTimeLocal(new Date(), "America/New_York")} by
-							You
-							{!isOnline && " (will sync when online)"}
-						</p>
-					</div>
-				</div>
-
-				<div className="space-y-3">
-					<Button
-						variant="outline"
-						className="w-full bg-transparent"
-						onClick={() => {
-							// TODO: Open reminder adjustment sheet
-							console.log("Adjust reminder");
-						}}
-					>
-						Adjust Reminder
-					</Button>
-
-					<Button className="w-full" onClick={() => router.push("/")}>
-						Back to Home
-					</Button>
-				</div>
-			</div>
-		);
+	if (state.step === "success") {
+		return <SuccessStep isOnline={isOnline} router={router} />;
 	}
 
-	if (step === "confirm" && selectedRegimen) {
-		const animal = animals.find((a) => a.id === selectedAnimalId);
-		const relevantSources = inventorySources.filter((s) =>
-			s.name
-				.toLowerCase()
-				.includes(selectedRegimen.medicationName.toLowerCase()),
-		);
-
+	if (state.step === "confirm" && state.selectedRegimen) {
 		return (
-			<div className="max-w-2xl mx-auto space-y-6">
-				<div className="flex items-center gap-4">
-					<Button variant="ghost" size="icon" onClick={() => setStep("select")}>
-						<ArrowLeft className="h-4 w-4" />
-					</Button>
-					<h1 className="text-2xl font-bold">Confirm Administration</h1>
-				</div>
-
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-3">
-							{animal && <AnimalAvatar animal={animal} size="md" />}
-							<div>
-								<div>
-									{animal?.name} - {selectedRegimen.medicationName}
-								</div>
-								<div className="text-sm font-normal text-muted-foreground">
-									{selectedRegimen.strength} • {selectedRegimen.route} •{" "}
-									{selectedRegimen.form}
-								</div>
-							</div>
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-6">
-						<div>
-							<Label>Inventory Source</Label>
-							<InventorySourceSelect
-								sources={relevantSources}
-								selectedId={inventorySourceId}
-								onSelect={setInventorySourceId}
-								allowOverride={true}
-								onOverrideChange={setAllowOverride}
-							/>
-						</div>
-
-						<div className="grid grid-cols-2 gap-4">
-							<div>
-								<Label htmlFor="site">Site/Side (Optional)</Label>
-								<Input
-									id="site"
-									placeholder="Left ear, right leg..."
-									value={site}
-									onChange={(e) => setSite(e.target.value)}
-								/>
-							</div>
-							<div>
-								<Label>Photo/Video</Label>
-								<Button variant="outline" className="w-full bg-transparent">
-									<Camera className="mr-2 h-4 w-4" />
-									Add Media
-								</Button>
-							</div>
-						</div>
-
-						<div>
-							<Label htmlFor="notes">Notes (Optional)</Label>
-							<Textarea
-								id="notes"
-								placeholder="Any observations or notes..."
-								value={notes}
-								onChange={(e) => setNotes(e.target.value)}
-							/>
-						</div>
-
-						<div>
-							<Label>Condition Tags</Label>
-							<div className="flex flex-wrap gap-2 mt-2">
-								{[
-									"Normal",
-									"Improved",
-									"No Change",
-									"Worse",
-									"Side Effects",
-								].map((tag) => (
-									<Button
-										key={tag}
-										variant={
-											conditionTags.includes(tag) ? "default" : "outline-solid"
-										}
-										size="sm"
-										onClick={() => {
-											setConditionTags((prev) =>
-												prev.includes(tag)
-													? prev.filter((t) => t !== tag)
-													: [...prev, tag],
-											);
-										}}
-									>
-										<Tag className="mr-1 h-3 w-3" />
-										{tag}
-									</Button>
-								))}
-							</div>
-						</div>
-
-						{selectedRegimen.isHighRisk && (
-							<div className="flex items-center space-x-2 p-4 bg-orange-50 rounded-lg border border-orange-200">
-								<Checkbox
-									id="cosign"
-									checked={requiresCoSign}
-									onCheckedChange={setRequiresCoSign}
-								/>
-								<Label htmlFor="cosign" className="text-sm">
-									Requires co-sign (high-risk medication)
-								</Label>
-							</div>
-						)}
-
-						<Separator />
-
-						<MedConfirmButton
-							onConfirm={handleConfirm}
-							disabled={
-								isSubmitting ||
-								(relevantSources.some(
-									(s) =>
-										s.id === inventorySourceId && (s.isExpired || s.isWrongMed),
-								) &&
-									!allowOverride)
-							}
-							requiresCoSign={requiresCoSign}
-							className="w-full"
-						>
-							{isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
-						</MedConfirmButton>
-					</CardContent>
-				</Card>
-			</div>
+			<ConfirmStep
+				state={state}
+				animals={animals}
+				inventorySources={inventorySources}
+				handleConfirm={handleConfirm}
+			/>
 		);
 	}
 
@@ -415,8 +247,8 @@ export default function RecordPage() {
 				<div>
 					<h1 className="text-3xl font-bold">Record Medication</h1>
 					<p className="text-muted-foreground">
-						{selectedAnimalId
-							? `Recording for ${animals.find((a) => a.id === selectedAnimalId)?.name}`
+						{state.selectedAnimalId
+							? `Recording for ${animals.find((a) => a.id === state.selectedAnimalId)?.name}`
 							: "Select a medication to record"}
 					</p>
 				</div>
@@ -560,5 +392,269 @@ function RegimenCard({
 				{regimen.isHighRisk && <Badge variant="secondary">High-risk</Badge>}
 			</div>
 		</button>
+	);
+}
+
+// Helper functions to reduce complexity
+function createAdminPayload(state: ReturnType<typeof useRecordState>) {
+	if (!state.selectedRegimen) throw new Error("No regimen selected");
+
+	const now = new Date();
+	const localDay = localDayISO(now, "America/New_York"); // Use animal's timezone
+	const idempotencyKey = adminKey(
+		state.selectedRegimen.animalId,
+		state.selectedRegimen.id,
+		localDay,
+		state.selectedRegimen.isPRN ? undefined : 0,
+	);
+
+	return {
+		idempotencyKey,
+		animalId: state.selectedRegimen.animalId,
+		regimenId: state.selectedRegimen.id,
+		medicationName: state.selectedRegimen.medicationName,
+		administeredAt: now.toISOString(),
+		inventorySourceId: state.inventorySourceId,
+		notes: state.notes,
+		site: state.site,
+		conditionTags: state.conditionTags,
+		requiresCoSign: state.requiresCoSign,
+		allowOverride: state.allowOverride,
+	};
+}
+
+function getGroupedRegimens(
+	regimens: DueRegimen[],
+	selectedAnimalId: string | null,
+) {
+	const filteredRegimens = selectedAnimalId
+		? regimens.filter((r) => r.animalId === selectedAnimalId)
+		: regimens;
+
+	return {
+		due: filteredRegimens.filter((r) => r.section === "due"),
+		later: filteredRegimens.filter((r) => r.section === "later"),
+		prn: filteredRegimens.filter((r) => r.section === "prn"),
+	};
+}
+
+// Success Step Component
+function SuccessStep({
+	isOnline,
+	router,
+}: {
+	isOnline: boolean;
+	router: ReturnType<typeof useRouter>;
+}) {
+	return (
+		<div className="max-w-md mx-auto space-y-6">
+			<div className="text-center space-y-4">
+				<div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+					<div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
+						✓
+					</div>
+				</div>
+
+				<div>
+					<h1 className="text-2xl font-bold text-green-700">
+						Recorded Successfully
+					</h1>
+					<p className="text-muted-foreground">
+						Recorded at {formatTimeLocal(new Date(), "America/New_York")} by You
+						{!isOnline && " (will sync when online)"}
+					</p>
+				</div>
+			</div>
+
+			<div className="space-y-3">
+				<Button
+					variant="outline"
+					className="w-full bg-transparent"
+					onClick={() => {
+						// TODO: Open reminder adjustment sheet
+						console.log("Adjust reminder");
+					}}
+				>
+					Adjust Reminder
+				</Button>
+
+				<Button className="w-full" onClick={() => router.push("/")}>
+					Back to Home
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+// Confirm Step Component
+function ConfirmStep({
+	state,
+	animals,
+	inventorySources,
+	handleConfirm,
+}: {
+	state: ReturnType<typeof useRecordState>;
+	animals: Array<{
+		id: string;
+		name: string;
+		species: string;
+		pendingMeds: number;
+		avatar?: string;
+	}>;
+	inventorySources: InventorySource[];
+	handleConfirm: () => Promise<void>;
+}) {
+	const animal = animals.find((a) => a.id === state.selectedAnimalId);
+	const relevantSources = inventorySources.filter((s) =>
+		s.name
+			.toLowerCase()
+			.includes(state.selectedRegimen?.medicationName.toLowerCase() || ""),
+	);
+
+	const isDisabled =
+		state.isSubmitting ||
+		(relevantSources.some(
+			(s) => s.id === state.inventorySourceId && (s.isExpired || s.isWrongMed),
+		) &&
+			!state.allowOverride);
+
+	return (
+		<div className="max-w-2xl mx-auto space-y-6">
+			<div className="flex items-center gap-4">
+				<Button
+					variant="ghost"
+					size="icon"
+					onClick={() => state.setStep("select")}
+				>
+					<ArrowLeft className="h-4 w-4" />
+				</Button>
+				<h1 className="text-2xl font-bold">Confirm Administration</h1>
+			</div>
+
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-3">
+						{animal && <AnimalAvatar animal={animal} size="md" />}
+						<div>
+							<div>
+								{animal?.name} - {state.selectedRegimen?.medicationName}
+							</div>
+							<div className="text-sm font-normal text-muted-foreground">
+								{state.selectedRegimen?.strength} •{" "}
+								{state.selectedRegimen?.route} • {state.selectedRegimen?.form}
+							</div>
+						</div>
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					<div>
+						<Label>Inventory Source</Label>
+						<InventorySourceSelect
+							sources={relevantSources}
+							selectedId={state.inventorySourceId ?? undefined}
+							onSelect={state.setInventorySourceId}
+							allowOverride={true}
+							onOverrideChange={state.setAllowOverride}
+						/>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4">
+						<div>
+							<Label htmlFor="site">Site/Side (Optional)</Label>
+							<Input
+								id="site"
+								placeholder="Left ear, right leg..."
+								value={state.site}
+								onChange={(e) => state.setSite(e.target.value)}
+							/>
+						</div>
+						<div>
+							<Label>Photo/Video</Label>
+							<Button variant="outline" className="w-full bg-transparent">
+								<Camera className="mr-2 h-4 w-4" />
+								Add Media
+							</Button>
+						</div>
+					</div>
+
+					<div>
+						<Label htmlFor="notes">Notes (Optional)</Label>
+						<Textarea
+							id="notes"
+							placeholder="Any observations or notes..."
+							value={state.notes}
+							onChange={(e) => state.setNotes(e.target.value)}
+						/>
+					</div>
+
+					<ConditionTagSelector
+						conditionTags={state.conditionTags}
+						setConditionTags={state.setConditionTags}
+					/>
+
+					{state.selectedRegimen?.isHighRisk && (
+						<div className="flex items-center space-x-2 p-4 bg-orange-50 rounded-lg border border-orange-200">
+							<Checkbox
+								id="cosign"
+								checked={state.requiresCoSign}
+								onCheckedChange={(checked) =>
+									state.setRequiresCoSign(checked === true)
+								}
+							/>
+							<Label htmlFor="cosign" className="text-sm">
+								Requires co-sign (high-risk medication)
+							</Label>
+						</div>
+					)}
+
+					<Separator />
+
+					<MedConfirmButton
+						onConfirm={handleConfirm}
+						disabled={isDisabled}
+						requiresCoSign={state.requiresCoSign}
+						className="w-full"
+					>
+						{state.isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
+					</MedConfirmButton>
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
+
+// Condition Tag Selector Component
+function ConditionTagSelector({
+	conditionTags,
+	setConditionTags,
+}: {
+	conditionTags: string[];
+	setConditionTags: React.Dispatch<React.SetStateAction<string[]>>;
+}) {
+	const tags = ["Normal", "Improved", "No Change", "Worse", "Side Effects"];
+
+	return (
+		<div>
+			<Label>Condition Tags</Label>
+			<div className="flex flex-wrap gap-2 mt-2">
+				{tags.map((tag) => (
+					<Button
+						key={tag}
+						variant={conditionTags.includes(tag) ? "default" : "outline"}
+						size="sm"
+						onClick={() => {
+							setConditionTags((prev) =>
+								prev.includes(tag)
+									? prev.filter((t) => t !== tag)
+									: [...prev, tag],
+							);
+						}}
+					>
+						<Tag className="mr-1 h-3 w-3" />
+						{tag}
+					</Button>
+				))}
+			</div>
+		</div>
 	);
 }

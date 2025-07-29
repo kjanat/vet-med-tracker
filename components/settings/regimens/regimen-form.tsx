@@ -63,6 +63,35 @@ interface MedicationOption {
 }
 
 // Mock medication catalog - replace with tRPC
+// Helper functions
+function getInitialFormData(): Partial<Regimen> {
+	return {
+		animalId: "",
+		medicationId: "",
+		medicationName: "",
+		route: "",
+		form: "",
+		strength: "",
+		scheduleType: "FIXED",
+		timesLocal: [],
+		startDate: undefined,
+		endDate: undefined,
+		cutoffMins: 60,
+		highRisk: false,
+	};
+}
+
+function checkFormValidity(formData: Partial<Regimen>): boolean {
+	const hasBasicInfo = !!(formData.animalId && formData.medicationName);
+	const hasValidSchedule =
+		formData.scheduleType === "PRN" ||
+		(formData.scheduleType === "FIXED" &&
+			formData.timesLocal &&
+			formData.timesLocal.length > 0);
+
+	return !!(hasBasicInfo && hasValidSchedule);
+}
+
 const mockMedications: MedicationOption[] = [
 	{
 		id: "rimadyl-75mg",
@@ -106,46 +135,14 @@ export function RegimenForm({
 	const [medicationSearch, setMedicationSearch] = useState("");
 	const [medicationOpen, setMedicationOpen] = useState(false);
 	const [newTime, setNewTime] = useState("");
-	const [formData, setFormData] = useState<Partial<Regimen>>({
-		animalId: "",
-		medicationId: "",
-		medicationName: "",
-		route: "",
-		form: "",
-		strength: "",
-		scheduleType: "FIXED",
-		timesLocal: [],
-		startDate: undefined,
-		endDate: undefined,
-		cutoffMins: 60,
-		highRisk: false,
-	});
+	const [formData, setFormData] = useState<Partial<Regimen>>(
+		getInitialFormData(),
+	);
 
 	const { animals } = useApp();
 
 	useEffect(() => {
-		if (regimen) {
-			setFormData({
-				...regimen,
-				startDate: regimen.startDate,
-				endDate: regimen.endDate,
-			});
-		} else {
-			setFormData({
-				animalId: "",
-				medicationId: "",
-				medicationName: "",
-				route: "",
-				form: "",
-				strength: "",
-				scheduleType: "FIXED",
-				timesLocal: [],
-				startDate: undefined,
-				endDate: undefined,
-				cutoffMins: 60,
-				highRisk: false,
-			});
-		}
+		setFormData(regimen ? { ...regimen } : getInitialFormData());
 	}, [regimen]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -196,29 +193,22 @@ export function RegimenForm({
 			med.brand?.toLowerCase().includes(medicationSearch.toLowerCase()),
 	);
 
-	// Generate preview of today's slots
-	const todaySlots =
-		formData.scheduleType === "FIXED" && formData.timesLocal?.length ? (
-			<Card className="mt-4">
-				<CardHeader className="pb-3">
-					<CardTitle className="text-sm">
-						Today&apos;s Schedule Preview
-					</CardTitle>
-					<CardDescription>
-						Times shown in animal&apos;s timezone
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<div className="flex flex-wrap gap-2">
-						{formData.timesLocal.map((time) => (
-							<Badge key={time} variant="outline">
-								{format(new Date(`2000-01-01T${time}`), "h:mm a")}
-							</Badge>
-						))}
-					</div>
-				</CardContent>
-			</Card>
-		) : null;
+	const handleCreateCustomMedication = () => {
+		const customName = medicationSearch.trim();
+		if (customName) {
+			setFormData((prev) => ({
+				...prev,
+				medicationId: `custom-${Date.now()}`,
+				medicationName: customName,
+				route: "",
+				form: "",
+				strength: "",
+			}));
+			setMedicationOpen(false);
+		}
+	};
+
+	const isFormValid = checkFormValidity(formData);
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -234,26 +224,13 @@ export function RegimenForm({
 
 				<form onSubmit={handleSubmit} className="space-y-6 mt-6">
 					{/* Animal Selection */}
-					<div className="space-y-2">
-						<Label htmlFor="animal">Animal *</Label>
-						<Select
-							value={formData.animalId}
-							onValueChange={(value) =>
-								setFormData((prev) => ({ ...prev, animalId: value }))
-							}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Select animal" />
-							</SelectTrigger>
-							<SelectContent>
-								{animals.map((animal) => (
-									<SelectItem key={animal.id} value={animal.id}>
-										{animal.name} ({animal.species})
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+					<AnimalSelector
+						animals={animals}
+						value={formData.animalId}
+						onChange={(value) =>
+							setFormData((prev) => ({ ...prev, animalId: value }))
+						}
+					/>
 
 					{/* Medication Selection */}
 					<div className="space-y-2">
@@ -277,55 +254,18 @@ export function RegimenForm({
 									/>
 									<CommandList>
 										<CommandEmpty>
-											<div className="p-4 text-center">
-												<p className="text-sm text-muted-foreground mb-2">
-													No medication found
-												</p>
-												<Button
-													size="sm"
-													onClick={() => {
-														// Create custom medication
-														const customName = medicationSearch.trim();
-														if (customName) {
-															setFormData((prev) => ({
-																...prev,
-																medicationId: `custom-${Date.now()}`,
-																medicationName: customName,
-																route: "",
-																form: "",
-																strength: "",
-															}));
-															setMedicationOpen(false);
-														}
-													}}
-												>
-													Create &quot;{medicationSearch}&quot;
-												</Button>
-											</div>
+											<MedicationEmpty
+												medicationSearch={medicationSearch}
+												onCreateCustom={handleCreateCustomMedication}
+											/>
 										</CommandEmpty>
 										<CommandGroup>
 											{filteredMedications.map((medication) => (
-												<CommandItem
+												<MedicationItem
 													key={medication.id}
-													onSelect={() => handleMedicationSelect(medication)}
-												>
-													<div>
-														<div className="font-medium">
-															{medication.brand || medication.generic}
-															{medication.brand &&
-																medication.brand !== medication.generic && (
-																	<span className="text-muted-foreground font-normal">
-																		{" "}
-																		({medication.generic})
-																	</span>
-																)}
-														</div>
-														<div className="text-sm text-muted-foreground">
-															{medication.strength} • {medication.route} •{" "}
-															{medication.form}
-														</div>
-													</div>
-												</CommandItem>
+													medication={medication}
+													onSelect={handleMedicationSelect}
+												/>
 											))}
 										</CommandGroup>
 									</CommandList>
@@ -341,80 +281,22 @@ export function RegimenForm({
 					</div>
 
 					{/* Schedule Type */}
-					<div className="space-y-3">
-						<Label>Schedule Type *</Label>
-						<div className="grid grid-cols-2 gap-4">
-							<Card
-								className={`cursor-pointer transition-colors ${
-									formData.scheduleType === "FIXED"
-										? "ring-2 ring-primary"
-										: "hover:bg-accent"
-								}`}
-								onClick={() =>
-									setFormData((prev) => ({ ...prev, scheduleType: "FIXED" }))
-								}
-							>
-								<CardContent className="p-4">
-									<div className="font-medium">Fixed Schedule</div>
-									<div className="text-sm text-muted-foreground">
-										Regular times each day
-									</div>
-								</CardContent>
-							</Card>
-
-							<Card
-								className={`cursor-pointer transition-colors ${
-									formData.scheduleType === "PRN"
-										? "ring-2 ring-primary"
-										: "hover:bg-accent"
-								}`}
-								onClick={() =>
-									setFormData((prev) => ({ ...prev, scheduleType: "PRN" }))
-								}
-							>
-								<CardContent className="p-4">
-									<div className="font-medium">PRN (As Needed)</div>
-									<div className="text-sm text-muted-foreground">
-										Given when required
-									</div>
-								</CardContent>
-							</Card>
-						</div>
-					</div>
+					<ScheduleTypeSelector
+						value={formData.scheduleType}
+						onChange={(value) =>
+							setFormData((prev) => ({ ...prev, scheduleType: value }))
+						}
+					/>
 
 					{/* Fixed Schedule Times */}
 					{formData.scheduleType === "FIXED" && (
-						<div className="space-y-3">
-							<Label>Daily Times *</Label>
-							<div className="flex gap-2">
-								<Input
-									type="time"
-									value={newTime}
-									onChange={(e) => setNewTime(e.target.value)}
-									placeholder="Add time"
-								/>
-								<Button type="button" onClick={addTime} size="sm">
-									<Plus className="h-4 w-4" />
-								</Button>
-							</div>
-
-							<div className="flex flex-wrap gap-2">
-								{formData.timesLocal?.map((time) => (
-									<Badge key={time} variant="secondary" className="gap-1">
-										{format(new Date(`2000-01-01T${time}`), "h:mm a")}
-										<button type="button" onClick={() => removeTime(time)}>
-											<X className="h-3 w-3" />
-										</button>
-									</Badge>
-								))}
-							</div>
-
-							{formData.timesLocal?.length === 0 && (
-								<p className="text-sm text-muted-foreground">
-									Add at least one daily time
-								</p>
-							)}
-						</div>
+						<FixedScheduleTimes
+							timesLocal={formData.timesLocal}
+							newTime={newTime}
+							setNewTime={setNewTime}
+							addTime={addTime}
+							removeTime={removeTime}
+						/>
 					)}
 
 					{/* Course Dates */}
@@ -511,7 +393,9 @@ export function RegimenForm({
 					</div>
 
 					{/* Preview */}
-					{todaySlots}
+					{formData.scheduleType === "FIXED" && formData.timesLocal?.length ? (
+						<SchedulePreview timesLocal={formData.timesLocal} />
+					) : null}
 
 					{/* Actions */}
 					<div className="flex justify-end gap-2 pt-4">
@@ -522,16 +406,7 @@ export function RegimenForm({
 						>
 							Cancel
 						</Button>
-						<Button
-							type="submit"
-							disabled={
-								isSubmitting ||
-								!formData.animalId ||
-								!formData.medicationName ||
-								(formData.scheduleType === "FIXED" &&
-									(!formData.timesLocal || formData.timesLocal.length === 0))
-							}
-						>
+						<Button type="submit" disabled={isSubmitting || !isFormValid}>
 							{isSubmitting
 								? "Saving..."
 								: regimen
@@ -542,5 +417,192 @@ export function RegimenForm({
 				</form>
 			</SheetContent>
 		</Sheet>
+	);
+}
+
+// Helper components
+function MedicationEmpty({
+	medicationSearch,
+	onCreateCustom,
+}: {
+	medicationSearch: string;
+	onCreateCustom: () => void;
+}) {
+	return (
+		<div className="p-4 text-center">
+			<p className="text-sm text-muted-foreground mb-2">No medication found</p>
+			<Button size="sm" onClick={onCreateCustom}>
+				Create &quot;{medicationSearch}&quot;
+			</Button>
+		</div>
+	);
+}
+
+function MedicationItem({
+	medication,
+	onSelect,
+}: {
+	medication: MedicationOption;
+	onSelect: (medication: MedicationOption) => void;
+}) {
+	return (
+		<CommandItem onSelect={() => onSelect(medication)}>
+			<div>
+				<div className="font-medium">
+					{medication.brand || medication.generic}
+					{medication.brand && medication.brand !== medication.generic && (
+						<span className="text-muted-foreground font-normal">
+							{" "}
+							({medication.generic})
+						</span>
+					)}
+				</div>
+				<div className="text-sm text-muted-foreground">
+					{medication.strength} • {medication.route} • {medication.form}
+				</div>
+			</div>
+		</CommandItem>
+	);
+}
+
+function SchedulePreview({ timesLocal }: { timesLocal: string[] }) {
+	return (
+		<Card className="mt-4">
+			<CardHeader className="pb-3">
+				<CardTitle className="text-sm">Today&apos;s Schedule Preview</CardTitle>
+				<CardDescription>Times shown in animal&apos;s timezone</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<div className="flex flex-wrap gap-2">
+					{timesLocal.map((time) => (
+						<Badge key={time} variant="outline">
+							{format(new Date(`2000-01-01T${time}`), "h:mm a")}
+						</Badge>
+					))}
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+// Animal Selector Component
+function AnimalSelector({
+	animals,
+	value,
+	onChange,
+}: {
+	animals: Array<{ id: string; name: string; species: string }>;
+	value: string | undefined;
+	onChange: (value: string) => void;
+}) {
+	return (
+		<div className="space-y-2">
+			<Label htmlFor="animal">Animal *</Label>
+			<Select value={value || ""} onValueChange={onChange}>
+				<SelectTrigger>
+					<SelectValue placeholder="Select animal" />
+				</SelectTrigger>
+				<SelectContent>
+					{animals.map((animal) => (
+						<SelectItem key={animal.id} value={animal.id}>
+							{animal.name} ({animal.species})
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		</div>
+	);
+}
+
+// Schedule Type Selector Component
+function ScheduleTypeSelector({
+	value,
+	onChange,
+}: {
+	value: "FIXED" | "PRN" | undefined;
+	onChange: (value: "FIXED" | "PRN") => void;
+}) {
+	return (
+		<div className="space-y-3">
+			<Label>Schedule Type *</Label>
+			<div className="grid grid-cols-2 gap-4">
+				<Card
+					className={`cursor-pointer transition-colors ${
+						value === "FIXED" ? "ring-2 ring-primary" : "hover:bg-accent"
+					}`}
+					onClick={() => onChange("FIXED")}
+				>
+					<CardContent className="p-4">
+						<div className="font-medium">Fixed Schedule</div>
+						<div className="text-sm text-muted-foreground">
+							Regular times each day
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card
+					className={`cursor-pointer transition-colors ${
+						value === "PRN" ? "ring-2 ring-primary" : "hover:bg-accent"
+					}`}
+					onClick={() => onChange("PRN")}
+				>
+					<CardContent className="p-4">
+						<div className="font-medium">PRN (As Needed)</div>
+						<div className="text-sm text-muted-foreground">
+							Given when required
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		</div>
+	);
+}
+
+// Fixed Schedule Times Component
+function FixedScheduleTimes({
+	timesLocal,
+	newTime,
+	setNewTime,
+	addTime,
+	removeTime,
+}: {
+	timesLocal?: string[];
+	newTime: string;
+	setNewTime: (time: string) => void;
+	addTime: () => void;
+	removeTime: (time: string) => void;
+}) {
+	return (
+		<div className="space-y-3">
+			<Label>Daily Times *</Label>
+			<div className="flex gap-2">
+				<Input
+					type="time"
+					value={newTime}
+					onChange={(e) => setNewTime(e.target.value)}
+					placeholder="Add time"
+				/>
+				<Button type="button" onClick={addTime} size="sm">
+					<Plus className="h-4 w-4" />
+				</Button>
+			</div>
+
+			<div className="flex flex-wrap gap-2">
+				{timesLocal?.map((time) => (
+					<Badge key={time} variant="secondary" className="gap-1">
+						{format(new Date(`2000-01-01T${time}`), "h:mm a")}
+						<button type="button" onClick={() => removeTime(time)}>
+							<X className="h-3 w-3" />
+						</button>
+					</Badge>
+				))}
+			</div>
+
+			{timesLocal?.length === 0 && (
+				<p className="text-sm text-muted-foreground">
+					Add at least one daily time
+				</p>
+			)}
+		</div>
 	);
 }

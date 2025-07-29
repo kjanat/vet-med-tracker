@@ -71,7 +71,7 @@ export function mockSuggestions(_householdId: string): Suggestion[] {
 			action: {
 				animalId: "charlie",
 				regimenId: "insulin-regimen",
-				dow: null, // All days
+				dow: undefined, // All days
 				time: "08:00",
 				leadMinutes: 30,
 			},
