@@ -1,85 +1,36 @@
 "use client";
 
-import { AlertCircle, Loader2, RefreshCw, RotateCw } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
-
-interface DeviceItem {
-	id: string;
-	slug: string;
-	active: boolean;
-	labels: {
-		primary: string;
-		secondary: string;
-	};
-	tags: string[];
-	attributes: {
-		ranking: {
-			amongAll: number;
-			amongBrand: number;
-		};
-		icons: string[];
-		width: number;
-		height: number;
-	};
-	properties: {
-		screen: {
-			width: number;
-			height: number;
-		};
-		viewport: {
-			width: number;
-			height: number;
-		};
-		releaseDate: string;
-		discontinuedDate: string | null;
-		devicePixelRatio: number;
-		operatingSystem: string;
-		deviceType: string;
-		brand: string;
-	};
-}
-
-type ColorScheme = "system" | "light" | "dark";
-type Orientation = "portrait" | "landscape";
-
-interface AppState {
-	width: number;
-	height: number;
-	brand: string;
-	name: string;
-	orientation: Orientation;
-	scheme: ColorScheme;
-	baseUrl: string;
-	deviceType: string;
-}
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+	type ColorScheme,
+	DEFAULT_VIEWPORT_STATE,
+	DEVICES_API_URL,
+	type DeviceItem,
+	type ViewportState,
+	withSchemeParam,
+} from "./viewport/constants";
+import { DeviceCard } from "./viewport/device-card";
+import { ViewportPreview } from "./viewport/viewport-preview";
+import { ViewportToolbar } from "./viewport/viewport-toolbar";
 
 const MobileResponsiveTester: React.FC = () => {
 	const [devices, setDevices] = useState<DeviceItem[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	const [state, setState] = useState<AppState>({
-		width: 375,
-		height: 667,
-		brand: "Apple",
-		name: "iPhone SE",
-		orientation: "portrait",
-		scheme: "system",
-		baseUrl: "http://localhost:3000/",
-		deviceType: "phone",
-	});
-
+	const [state, setState] = useState<ViewportState>(DEFAULT_VIEWPORT_STATE);
 	const [brandFilter, setBrandFilter] = useState<string>("All");
 	const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>("All");
 	const [urlInput, setUrlInput] = useState(state.baseUrl);
 
+	// Fetch devices on mount
 	useEffect(() => {
 		const fetchDevices = async () => {
 			try {
-				const response = await fetch(
-					"https://cdn.jsdelivr.net/gh/bitcomplete/labs-viewports@refs/heads/main/items.json",
-				);
+				const response = await fetch(DEVICES_API_URL);
 				if (!response.ok) throw new Error("Failed to fetch device data");
 				const data: DeviceItem[] = await response.json();
 				setDevices(data.filter((d) => d.active));
@@ -93,10 +44,11 @@ const MobileResponsiveTester: React.FC = () => {
 		fetchDevices();
 	}, []);
 
+	// Compute unique brands and device types
 	const brands = useMemo(() => {
 		const uniqueBrands = Array.from(
-			new Set(devices.map((d) => d.properties.brand)),
-		);
+			new Set(devices.map((d) => d.properties.brand).filter(Boolean)),
+		) as string[];
 		return ["All", ...uniqueBrands.sort()];
 	}, [devices]);
 
@@ -107,11 +59,13 @@ const MobileResponsiveTester: React.FC = () => {
 		return ["All", ...types.sort()];
 	}, [devices]);
 
+	// Filter devices based on current filters
 	const filteredDevices = useMemo(() => {
 		return devices
 			.filter((device) => {
 				const brandMatch =
-					brandFilter === "All" || device.properties.brand === brandFilter;
+					brandFilter === "All" ||
+					(device.properties.brand || "Unknown") === brandFilter;
 				const typeMatch =
 					deviceTypeFilter === "All" ||
 					device.properties.deviceType === deviceTypeFilter;
@@ -122,48 +76,32 @@ const MobileResponsiveTester: React.FC = () => {
 			);
 	}, [devices, brandFilter, deviceTypeFilter]);
 
-	const isPortrait = state.height > state.width;
-
-	const withSchemeParam = (url: string, scheme: ColorScheme): string => {
-		try {
-			const u = new URL(url);
-			if (scheme !== "system") {
-				u.searchParams.set("simulatedPrefersColorScheme", scheme);
-			} else {
-				u.searchParams.delete("simulatedPrefersColorScheme");
-			}
-			return u.toString();
-		} catch {
-			const sep = url.includes("?") ? "&" : "?";
-			return scheme !== "system"
-				? `${url}${sep}simulatedPrefersColorScheme=${scheme}`
-				: url;
-		}
-	};
-
-	const setDevice = (device: DeviceItem) => {
+	// Device selection handler
+	const setDevice = useCallback((device: DeviceItem) => {
 		const { width, height } = device.attributes;
 		setState((prev) => ({
 			...prev,
 			width,
 			height,
-			brand: device.properties.brand,
+			brand: device.properties.brand || "Unknown",
 			name: device.labels.primary,
 			orientation: width >= height ? "landscape" : "portrait",
 			deviceType: device.properties.deviceType,
 		}));
-	};
+	}, []);
 
-	const rotate = () => {
+	// Rotate device handler
+	const rotate = useCallback(() => {
 		setState((prev) => ({
 			...prev,
 			width: prev.height,
 			height: prev.width,
 			orientation: prev.orientation === "portrait" ? "landscape" : "portrait",
 		}));
-	};
+	}, []);
 
-	const reset = () => {
+	// Reset to defaults handler
+	const reset = useCallback(() => {
 		const defaultDevice =
 			devices.find((d) => d.slug === "iphone-se") || devices[0];
 		if (defaultDevice) {
@@ -177,237 +115,117 @@ const MobileResponsiveTester: React.FC = () => {
 		setUrlInput("http://localhost:3000/");
 		setBrandFilter("All");
 		setDeviceTypeFilter("All");
-	};
+	}, [devices, setDevice]);
 
-	const applyUrl = () => {
+	// Apply URL handler
+	const applyUrl = useCallback(() => {
 		setState((prev) => ({ ...prev, baseUrl: urlInput }));
-	};
+	}, [urlInput]);
 
+	// Color scheme change handler
+	const handleColorSchemeChange = useCallback((scheme: ColorScheme) => {
+		setState((prev) => ({ ...prev, scheme }));
+	}, []);
+
+	// Compute iframe source with scheme parameter
 	const iframeSrc = withSchemeParam(state.baseUrl, state.scheme);
 
-	const getDeviceIcon = (device: DeviceItem) => {
-		if (device.properties.deviceType === "phone") return "📱";
-		if (device.properties.deviceType === "tablet") return "📋";
-		if (device.properties.deviceType === "desktop") return "🖥️";
-		if (device.properties.deviceType === "laptop") return "💻";
-		return "📱";
-	};
-
-	const DeviceButtons = () => (
-		<div
-			className={
-				isPortrait
-					? "space-y-2"
-					: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2"
-			}
-		>
-			{filteredDevices.map((device) => (
-				<button
-					type="button"
-					key={device.id}
-					onClick={() => setDevice(device)}
-					className={`bg-gray-800 border border-gray-700 p-3 rounded-lg text-left hover:bg-gray-700 transition-colors ${
-						device.labels.primary === state.name &&
-						device.properties.brand === state.brand
-							? "border-blue-500 bg-gray-700"
-							: ""
-					}`}
-				>
-					<div className="flex items-start justify-between">
-						<div className="flex-1">
-							<div className="font-semibold text-sm flex items-center gap-1">
-								<span className="text-lg">{getDeviceIcon(device)}</span>
-								{device.labels.primary}
-							</div>
-							<div className="text-gray-400 text-xs mt-1">
-								{device.properties.brand} · {device.attributes.width}×
-								{device.attributes.height}
-							</div>
-							<div className="text-gray-500 text-xs mt-1">
-								DPR: {device.properties.devicePixelRatio} ·{" "}
-								{device.properties.operatingSystem}
-							</div>
-						</div>
-					</div>
-				</button>
-			))}
-		</div>
-	);
-
+	// Loading state
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center">
+			<div className="flex min-h-screen items-center justify-center">
 				<div className="text-center">
-					<Loader2 className="animate-spin mx-auto mb-4" size={48} />
+					<Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin" />
 					<p>Loading device data...</p>
 				</div>
 			</div>
 		);
 	}
 
+	// Error state
 	if (error) {
 		return (
-			<div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center">
+			<div className="flex min-h-screen items-center justify-center">
 				<div className="text-center">
-					<AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
-					<p className="text-red-400">{error}</p>
+					<AlertCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
+					<p className="text-destructive">{error}</p>
 				</div>
 			</div>
 		);
 	}
 
+	// Main render
+	const isPortrait = state.height > state.width;
+
 	return (
-		<div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
-			<style jsx>{`
-        :global(body) {
-          margin: 0;
-          font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-        }
-      `}</style>
-
+		<div className="flex min-h-screen flex-col bg-background">
 			{/* Toolbar */}
-			<div className="bg-gray-800 p-3 shadow-lg">
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-center">
-					{/* Title */}
-					<div className="flex items-baseline gap-2">
-						<h2 className="text-xl font-bold m-0">Mobile Responsive Tester</h2>
-						<span className="text-gray-400 text-sm">
-							{filteredDevices.length} of {devices.length} devices
-						</span>
-					</div>
+			<ViewportToolbar
+				brands={brands}
+				deviceTypes={deviceTypes}
+				brandFilter={brandFilter}
+				deviceTypeFilter={deviceTypeFilter}
+				colorScheme={state.scheme}
+				urlInput={urlInput}
+				deviceCount={filteredDevices.length}
+				totalDevices={devices.length}
+				onBrandFilterChange={setBrandFilter}
+				onDeviceTypeFilterChange={setDeviceTypeFilter}
+				onColorSchemeChange={handleColorSchemeChange}
+				onUrlInputChange={setUrlInput}
+				onApplyUrl={applyUrl}
+				onRotate={rotate}
+				onReset={reset}
+			/>
 
-					{/* Filters & Theme */}
-					<div className="flex items-center gap-2 flex-wrap">
-						<select
-							value={brandFilter}
-							onChange={(e) => setBrandFilter(e.target.value)}
-							className="bg-gray-900 border border-gray-700 text-gray-100 px-2 py-1.5 rounded-lg text-sm"
-							title="Filter by brand"
-						>
-							{brands.map((brand) => (
-								<option key={brand} value={brand}>
-									{brand === "All" ? "All Brands" : brand}
-								</option>
-							))}
-						</select>
-
-						<select
-							value={deviceTypeFilter}
-							onChange={(e) => setDeviceTypeFilter(e.target.value)}
-							className="bg-gray-900 border border-gray-700 text-gray-100 px-2 py-1.5 rounded-lg text-sm"
-							title="Filter by device type"
-						>
-							{deviceTypes.map((type) => (
-								<option key={type} value={type}>
-									{type === "All" ? "All Types" : type}
-								</option>
-							))}
-						</select>
-
-						<div className="inline-flex border border-gray-700 rounded-lg overflow-hidden ml-2">
-							{(["system", "light", "dark"] as ColorScheme[]).map((scheme) => (
-								<button
-									type="button"
-									key={scheme}
-									onClick={() => setState((prev) => ({ ...prev, scheme }))}
-									className={`px-3 py-1.5 text-sm capitalize transition-colors ${
-										state.scheme === scheme
-											? "bg-blue-600 text-white"
-											: "bg-gray-900 text-gray-300 hover:bg-gray-800"
-									}`}
-								>
-									{scheme}
-								</button>
-							))}
-						</div>
-					</div>
-
-					{/* URL controls */}
-					<div className="flex items-center gap-2">
-						<input
-							type="text"
-							value={urlInput}
-							onChange={(e) => setUrlInput(e.target.value)}
-							className="flex-1 bg-gray-900 border border-gray-700 text-gray-100 px-3 py-1.5 rounded-lg text-sm"
-							placeholder="Enter URL..."
-						/>
-						<button
-							type="button"
-							onClick={applyUrl}
-							className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-700 transition-colors"
-						>
-							Load
-						</button>
-						<button
-							type="button"
-							onClick={rotate}
-							className="bg-gray-700 text-gray-100 p-1.5 rounded-lg hover:bg-gray-600 transition-colors"
-							title="Rotate device"
-						>
-							<RotateCw size={16} />
-						</button>
-						<button
-							type="button"
-							onClick={reset}
-							className="bg-gray-700 text-gray-100 p-1.5 rounded-lg hover:bg-gray-600 transition-colors"
-							title="Reset all"
-						>
-							<RefreshCw size={16} />
-						</button>
-					</div>
-				</div>
-			</div>
-
-			{/* Main content area */}
-			<div className="flex-1 flex overflow-hidden">
+			{/* Main content */}
+			<div className="flex flex-1 overflow-hidden">
 				{isPortrait ? (
 					<>
 						{/* Sidebar for portrait mode */}
-						<div className="w-96 bg-gray-850 border-r border-gray-700 overflow-y-auto p-4">
-							<DeviceButtons />
-						</div>
+						<ScrollArea className="w-96 border-r">
+							<div className="grid gap-2 p-4">
+								{filteredDevices.map((device) => (
+									<DeviceCard
+										key={device.id}
+										device={device}
+										isSelected={
+											device.labels.primary === state.name &&
+											(device.properties.brand || "Unknown") === state.brand
+										}
+										onClick={() => setDevice(device)}
+									/>
+								))}
+							</div>
+						</ScrollArea>
 
 						{/* Preview area */}
-						<div className="flex-1 flex flex-col items-center justify-center p-5">
-							<iframe
-								src={iframeSrc}
-								width={state.width}
-								height={state.height}
-								className="border-2 border-gray-700 rounded-xl shadow-2xl bg-white"
-								title="Device Preview"
-							/>
-
-							{/* Info */}
-							<div className="text-center mt-3 text-gray-400 text-sm">
-								{state.width} × {state.height} — {state.brand} {state.name} [
-								{state.orientation}] · {state.deviceType} · scheme:{" "}
-								{state.scheme}
-							</div>
+						<div className="flex flex-1 items-center justify-center p-8">
+							<ViewportPreview src={iframeSrc} state={state} />
 						</div>
 					</>
 				) : (
-					<div className="flex-1 p-5 overflow-auto">
-						{/* Device buttons above preview for landscape */}
-						<div className="mb-4 max-w-7xl mx-auto">
-							<DeviceButtons />
+					/* Landscape layout */
+					<div className="flex-1 overflow-auto p-8">
+						{/* Device grid above preview */}
+						<div className="mx-auto mb-8 max-w-7xl">
+							<div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+								{filteredDevices.map((device) => (
+									<DeviceCard
+										key={device.id}
+										device={device}
+										isSelected={
+											device.labels.primary === state.name &&
+											(device.properties.brand || "Unknown") === state.brand
+										}
+										onClick={() => setDevice(device)}
+									/>
+								))}
+							</div>
 						</div>
 
-						{/* Preview iframe */}
-						<div className="flex justify-center">
-							<iframe
-								src={iframeSrc}
-								width={state.width}
-								height={state.height}
-								className="border-2 border-gray-700 rounded-xl shadow-2xl bg-white"
-								title="Device Preview"
-							/>
-						</div>
-
-						{/* Info */}
-						<div className="text-center mt-3 text-gray-400 text-sm">
-							{state.width} × {state.height} — {state.brand} {state.name} [
-							{state.orientation}] · {state.deviceType} · scheme: {state.scheme}
-						</div>
+						{/* Preview centered */}
+						<ViewportPreview src={iframeSrc} state={state} />
 					</div>
 				)}
 			</div>
