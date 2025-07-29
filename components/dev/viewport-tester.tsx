@@ -109,9 +109,27 @@ const MobileResponsiveTester: React.FC = () => {
 					device.properties.deviceType === deviceTypeFilter;
 				return brandMatch && typeMatch;
 			})
-			.sort(
-				(a, b) => a.attributes.ranking.amongAll - b.attributes.ranking.amongAll,
-			);
+			.sort((a, b) => {
+				// Sort by release date descending (newest first)
+				const dateA = a.properties.releaseDate
+					? new Date(a.properties.releaseDate).getTime()
+					: 0;
+				const dateB = b.properties.releaseDate
+					? new Date(b.properties.releaseDate).getTime()
+					: 0;
+
+				// If both have dates, sort by date (descending)
+				if (dateA && dateB) {
+					return dateB - dateA;
+				}
+
+				// If only one has a date, put the one with date first
+				if (dateA && !dateB) return -1;
+				if (!dateA && dateB) return 1;
+
+				// If neither has a date, fall back to ranking
+				return a.attributes.ranking.amongAll - b.attributes.ranking.amongAll;
+			});
 	}, [devices, brandFilter, deviceTypeFilter]);
 
 	// Device selection handler

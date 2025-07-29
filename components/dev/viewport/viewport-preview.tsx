@@ -136,12 +136,13 @@ export const ViewportPreview: React.FC<ViewportPreviewProps> = ({
 	// Calculate scale to fit within viewport constraints
 	// Account for padding, toolbar, and device info text
 	const containerPadding = 32; // p-8 = 2rem = 32px on each side
-	const toolbarAndDeviceListHeight = 300; // Rough estimate for toolbar + device selection
-	const deviceInfoHeight = 100; // Space for device info text below
+	const toolbarHeight = 120; // Toolbar height
+	const deviceListHeight = 100; // Device selection area
+	const deviceInfoHeight = 80; // Space for device info text below
 
 	const maxWidth = windowSize.width - containerPadding * 2;
 	const maxHeight =
-		windowSize.height - toolbarAndDeviceListHeight - deviceInfoHeight;
+		windowSize.height - toolbarHeight - deviceListHeight - deviceInfoHeight;
 
 	// Always scale down if needed, never scale up
 	const scaleX = state.width > maxWidth ? maxWidth / state.width : 1;

@@ -96,24 +96,6 @@ export interface ViewportState {
 	deviceType: DeviceType;
 }
 
-export const DEVICE_ICONS: Record<string, string> = {
-	phone: "📱",
-	mobile: "📱",
-	tablet: "📋",
-	desktop: "🖥️",
-	laptop: "💻",
-	touch: "📋",
-	apple: "📱",
-	samsung: "📱",
-	huawei: "📱",
-	lenovo: "📱",
-	google: "📱",
-	lg: "📱",
-	oneplus: "📱",
-	xiaomi: "📱",
-	default: "📱",
-};
-
 export const DEFAULT_VIEWPORT_STATE: ViewportState = {
 	width: 375,
 	height: 667,
@@ -129,10 +111,6 @@ export const COLOR_SCHEMES: ColorScheme[] = ["system", "light", "dark"];
 
 export const DEVICES_API_URL =
 	"https://cdn.jsdelivr.net/gh/bitcomplete/labs-viewports@refs/heads/main/items.json";
-
-export const getDeviceIcon = (device: DeviceItem): string => {
-	return DEVICE_ICONS[device.properties.deviceType] || DEVICE_ICONS.default;
-};
 
 export const withSchemeParam = (url: string, scheme: ColorScheme): string => {
 	// No longer adding URL parameters - theme will be controlled via postMessage

@@ -4,7 +4,7 @@ import type React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { DeviceItem } from "./constants";
-import { getDeviceIcon } from "./constants";
+import { DeviceIcon } from "./device-icon";
 
 interface DeviceCardProps {
 	device: DeviceItem;
@@ -26,10 +26,11 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
 			onClick={onClick}
 		>
 			<CardContent className="p-4">
-				<div className="flex items-start gap-2">
-					<span className="text-2xl" aria-hidden="true">
-						{getDeviceIcon(device)}
-					</span>
+				<div className="flex items-start gap-3">
+					<DeviceIcon
+						device={device}
+						className="h-5 w-5 text-muted-foreground mt-0.5"
+					/>
 					<div className="flex-1 min-w-0">
 						<h3 className="font-semibold text-sm truncate">
 							{device.labels.primary}
