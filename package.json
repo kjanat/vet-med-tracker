@@ -17,7 +17,8 @@
 		"db:seed": "tsx scripts/seed.ts",
 		"db:studio": "pnpm dlx drizzle-kit studio",
 		"type-check": "tsc --noEmit",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"puppeteer:install": "pnpm dlx puppeteer browsers install"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.0",
@@ -61,18 +62,18 @@
 		"clsx": "^2.1.1",
 		"cmdk": "1.1.1",
 		"date-fns": "latest",
-		"drizzle-orm": "^0.44.3",
+		"drizzle-orm": "^0.44.4",
 		"drizzle-zod": "^0.8.2",
 		"embla-carousel-react": "8.6.0",
 		"geist": "^1.4.2",
 		"input-otp": "1.4.2",
-		"lucide-react": "^0.526.0",
+		"lucide-react": "^0.533.0",
 		"luxon": "latest",
 		"next": "15.4.4",
 		"next-themes": "^0.4.6",
-		"react": "^19.1.0",
+		"react": "^19.1.1",
 		"react-day-picker": "9.8.1",
-		"react-dom": "^19.1.0",
+		"react-dom": "^19.1.1",
 		"react-hook-form": "^7.61.1",
 		"react-resizable-panels": "^3.0.3",
 		"recharts": "3.1.0",
@@ -82,7 +83,7 @@
 		"tailwind-merge": "^3.3.1",
 		"tailwindcss-animate": "^1.0.7",
 		"vaul": "^1.1.2",
-		"zod": "^4.0.10"
+		"zod": "^4.0.13"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.1",
@@ -90,12 +91,13 @@
 		"@tailwindcss/postcss": "^4.1.11",
 		"@types/luxon": "^3.7.0",
 		"@types/node": "^24.1.0",
-		"@types/react": "^19.1.8",
-		"@types/react-dom": "^19.1.6",
+		"@types/react": "^19.1.9",
+		"@types/react-dom": "^19.1.7",
 		"drizzle-kit": "^0.31.4",
 		"eslint": "^9.32.0",
 		"eslint-config-next": "15.4.4",
 		"postcss": "^8.5.6",
+		"puppeteer": "^24.15.0",
 		"tailwindcss": "^4.1.11",
 		"typescript": "^5.8.3"
 	},
@@ -104,5 +106,5 @@
 			"name": "pnpm"
 		}
 	},
-	"packageManager": "pnpm@10.14.0-0+sha512.2cd47a0cbf5f1d1de7693a88307a0ede5be94e0d3b34853d800ee775efbea0650cb562b77605ec80bc8d925f5cd27c4dfe8bb04d3a0b76090784c664450d32d6"
+	"packageManager": "pnpm@10.14.0-0"
 }

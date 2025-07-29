@@ -1,0 +1,22 @@
+# Browser download options
+chrome:
+  skipDownload: false  # Download Chrome (default: false)
+firefox:
+  skipDownload: false  # Download Firefox (default: true; set to false to enable)
+cacheDirectory: ./.cache/puppeteer  # Custom cache path relative to project
+
+# Launch options
+launch:
+  headless: true  # Run in headless mode for automation
+  dumpio: true    # Log browser console output to Node.js process
+  args:
+    - --no-sandbox  # Disable sandbox for CI environments
+    - --disable-setuid-sandbox  # Additional security disable for compatibility
+  defaultViewport:
+    width: 1280
+    height: 800   # Set a default viewport size
+server:
+  command: pnpm dev  # Example server startup command (customize as needed)
+  port: 3000
+  launchTimeout: 30000     # Timeout in ms for server to start
+exitOnPageError: true      # Exit if a page error occurs

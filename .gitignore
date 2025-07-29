@@ -285,3 +285,10 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/nextjs,linux,windows,macos,node
+
+# Puppeteer
+.cache/puppeteer/
+screenshots/
+
+# Nano temp files
+*.swp
