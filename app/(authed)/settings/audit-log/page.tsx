@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Database, Download, Filter } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,6 +94,11 @@ export default function AuditLogPage() {
 	const [auditEntries] = useState(mockAuditEntries);
 	const [filterUser, setFilterUser] = useState("");
 	const [filterAction, setFilterAction] = useState("all");
+	const [isClient, setIsClient] = useState(false);
+
+	useEffect(() => {
+		setIsClient(true);
+	}, []);
 
 	const filteredEntries = auditEntries.filter((entry) => {
 		if (
@@ -200,7 +205,7 @@ export default function AuditLogPage() {
 											{entry.details}
 										</div>
 										<div className="text-xs text-muted-foreground">
-											{entry.timestamp.toLocaleString()}
+											{isClient ? entry.timestamp.toLocaleString() : "..."}
 											{entry.ipAddress && ` • ${entry.ipAddress}`}
 										</div>
 									</div>

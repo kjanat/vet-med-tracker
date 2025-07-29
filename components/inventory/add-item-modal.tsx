@@ -556,15 +556,15 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Scanning Error</AlertDialogTitle>
-						<AlertDialogDescription className="flex flex-col gap-2">
-							<div className="flex items-center gap-2">
+						<AlertDialogDescription>
+							<span className="flex items-center gap-2">
 								<AlertCircle className="h-4 w-4" />
 								{scanError}
-							</div>
-							<div className="text-sm text-muted-foreground">
-								You can still add the item manually using the Manual tab.
-							</div>
+							</span>
 						</AlertDialogDescription>
+						<p className="text-sm text-muted-foreground mt-2">
+							You can still add the item manually using the Manual tab.
+						</p>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogAction onClick={() => setScanError(null)}>

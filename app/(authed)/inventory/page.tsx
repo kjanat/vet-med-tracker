@@ -106,7 +106,9 @@ export default function InventoryPage() {
 
 	// Fire page view event
 	useState(() => {
-		window.dispatchEvent(new CustomEvent("inventory_view"));
+		if (typeof window !== "undefined") {
+			window.dispatchEvent(new CustomEvent("inventory_view"));
+		}
 	});
 
 	const daysLeftMap = useDaysOfSupply(mockItems, mockDaysOfSupply);
@@ -184,11 +186,13 @@ export default function InventoryPage() {
 		// Scroll to item or highlight it
 		console.log("Alert clicked:", alertId);
 
-		window.dispatchEvent(
-			new CustomEvent("inventory_alert_click", {
-				detail: { alertId },
-			}),
-		);
+		if (typeof window !== "undefined") {
+			window.dispatchEvent(
+				new CustomEvent("inventory_alert_click", {
+					detail: { alertId },
+				}),
+			);
+		}
 	};
 
 	return (

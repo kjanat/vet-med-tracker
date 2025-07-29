@@ -292,3 +292,6 @@ screenshots/
 
 # Nano temp files
 *.swp
+
+# Components
+sample-components/
