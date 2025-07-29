@@ -15,14 +15,13 @@ export interface Attributes {
 	height: number;
 }
 
-export enum Icon {
-	BrandAndroid = "brandAndroid",
-	BrandApple = "brandApple",
-	BrandGoogle = "brandGoogle",
-	DeviceDesktop = "deviceDesktop",
-	DeviceMobile = "deviceMobile",
-	DeviceTablet = "deviceTablet",
-}
+export type Icon =
+	| "brandAndroid"
+	| "brandApple"
+	| "brandGoogle"
+	| "deviceDesktop"
+	| "deviceMobile"
+	| "deviceTablet";
 
 export interface Ranking {
 	amongAll: number;
@@ -31,11 +30,7 @@ export interface Ranking {
 
 export interface Labels {
 	primary: string;
-	secondary: Secondary;
-}
-
-export enum Secondary {
-	ItemAttributesWidthXItemAttributesHeight = "{{item.attributes.width}}x{{item.attributes.height}}",
+	secondary: string; // This was an enum with a template string, but it should just be string
 }
 
 export interface Properties {
@@ -49,41 +44,38 @@ export interface Properties {
 	brand: Brand | null;
 }
 
-export enum Brand {
-	Apple = "Apple",
-	Google = "Google",
-	Huawei = "Huawei",
-	Lenovo = "Lenovo",
-	Lg = "LG",
-	OnePlus = "OnePlus",
-	Samsung = "Samsung",
-	Xiaomi = "Xiaomi",
-}
+export type Brand =
+	| "Apple"
+	| "Google"
+	| "Huawei"
+	| "Lenovo"
+	| "LG"
+	| "OnePlus"
+	| "Samsung"
+	| "Xiaomi";
 
-export enum DeviceType {
-	Apple = "apple",
-	Desktop = "desktop",
-	Google = "google",
-	Huawei = "huawei",
-	Lenovo = "lenovo",
-	Lg = "lg",
-	Mobile = "mobile",
-	Oneplus = "oneplus",
-	Phone = "phone",
-	Samsung = "samsung",
-	Tablet = "tablet",
-	Touch = "touch",
-	Xiaomi = "xiaomi",
-}
+export type DeviceType =
+	| "apple"
+	| "desktop"
+	| "google"
+	| "huawei"
+	| "lenovo"
+	| "lg"
+	| "mobile"
+	| "oneplus"
+	| "phone"
+	| "samsung"
+	| "tablet"
+	| "touch"
+	| "xiaomi";
 
-export enum OperatingSystem {
-	Android = "Android",
-	HarmonyOS = "HarmonyOS",
-	IOS = "iOS",
-	IPadOS = "iPadOS",
-	MACOS = "macOS",
-	Windows = "Windows",
-}
+export type OperatingSystem =
+	| "Android"
+	| "HarmonyOS"
+	| "iOS"
+	| "iPadOS"
+	| "macOS"
+	| "Windows";
 
 export interface Dimensions {
 	width: number;
@@ -130,7 +122,7 @@ export const DEFAULT_VIEWPORT_STATE: ViewportState = {
 	orientation: "portrait",
 	scheme: "system",
 	baseUrl: "http://localhost:3000/",
-	deviceType: "phone" as DeviceType,
+	deviceType: "phone",
 };
 
 export const COLOR_SCHEMES: ColorScheme[] = ["system", "light", "dark"];
@@ -143,18 +135,6 @@ export const getDeviceIcon = (device: DeviceItem): string => {
 };
 
 export const withSchemeParam = (url: string, scheme: ColorScheme): string => {
-	try {
-		const u = new URL(url);
-		if (scheme !== "system") {
-			u.searchParams.set("simulatedPrefersColorScheme", scheme);
-		} else {
-			u.searchParams.delete("simulatedPrefersColorScheme");
-		}
-		return u.toString();
-	} catch {
-		const sep = url.includes("?") ? "&" : "?";
-		return scheme !== "system"
-			? `${url}${sep}simulatedPrefersColorScheme=${scheme}`
-			: url;
-	}
+	// No longer adding URL parameters - theme will be controlled via postMessage
+	return url;
 };

@@ -1,6 +1,12 @@
 "use client";
 
-import { RefreshCw, RotateCw } from "lucide-react";
+import {
+	LayoutPanelLeft,
+	LayoutPanelTop,
+	RefreshCw,
+	RotateCw,
+	X,
+} from "lucide-react";
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,12 +24,14 @@ import { COLOR_SCHEMES } from "./constants";
 interface ViewportToolbarProps {
 	brands: string[];
 	deviceTypes: string[];
+	availableDeviceTypes: Set<string>;
 	brandFilter: string;
 	deviceTypeFilter: string;
 	colorScheme: ColorScheme;
 	urlInput: string;
 	deviceCount: number;
 	totalDevices: number;
+	layoutMode: "sidebar" | "topbar";
 	onBrandFilterChange: (value: string) => void;
 	onDeviceTypeFilterChange: (value: string) => void;
 	onColorSchemeChange: (value: ColorScheme) => void;
@@ -31,17 +39,21 @@ interface ViewportToolbarProps {
 	onApplyUrl: () => void;
 	onRotate: () => void;
 	onReset: () => void;
+	onResetFilters: () => void;
+	onLayoutModeChange: (value: "sidebar" | "topbar") => void;
 }
 
 export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
 	brands,
 	deviceTypes,
+	availableDeviceTypes,
 	brandFilter,
 	deviceTypeFilter,
 	colorScheme,
 	urlInput,
 	deviceCount,
 	totalDevices,
+	layoutMode,
 	onBrandFilterChange,
 	onDeviceTypeFilterChange,
 	onColorSchemeChange,
@@ -49,6 +61,8 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
 	onApplyUrl,
 	onRotate,
 	onReset,
+	onResetFilters,
+	onLayoutModeChange,
 }) => {
 	const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
@@ -92,12 +106,29 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
 							</SelectTrigger>
 							<SelectContent>
 								{deviceTypes.map((type) => (
-									<SelectItem key={type} value={type}>
+									<SelectItem
+										key={type}
+										value={type}
+										disabled={type !== "All" && !availableDeviceTypes.has(type)}
+									>
 										{type === "All" ? "All Types" : type}
 									</SelectItem>
 								))}
 							</SelectContent>
 						</Select>
+
+						{/* Reset Filters Button */}
+						{(brandFilter !== "All" || deviceTypeFilter !== "All") && (
+							<Button
+								onClick={onResetFilters}
+								size="sm"
+								variant="ghost"
+								className="h-8 px-2"
+								title="Reset filters"
+							>
+								<X className="h-3 w-3" />
+							</Button>
+						)}
 
 						<ToggleGroup
 							type="single"
@@ -133,6 +164,31 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
 						<Button onClick={onApplyUrl} size="default">
 							Load
 						</Button>
+
+						{/* Layout Toggle */}
+						<ToggleGroup
+							type="single"
+							value={layoutMode}
+							onValueChange={(value) => {
+								if (value) onLayoutModeChange(value as "sidebar" | "topbar");
+							}}
+						>
+							<ToggleGroupItem
+								value="sidebar"
+								aria-label="Sidebar layout"
+								title="Sidebar layout"
+							>
+								<LayoutPanelLeft className="h-4 w-4" />
+							</ToggleGroupItem>
+							<ToggleGroupItem
+								value="topbar"
+								aria-label="Topbar layout"
+								title="Topbar layout"
+							>
+								<LayoutPanelTop className="h-4 w-4" />
+							</ToggleGroupItem>
+						</ToggleGroup>
+
 						<Button
 							onClick={onRotate}
 							size="icon"
