@@ -1,7 +1,8 @@
 "use client";
 
+import { Clock, Home, Monitor, Moon, Sun, Weight } from "lucide-react";
 import { useState } from "react";
-import { Monitor, Sun, Moon, Clock, Weight, Home } from "lucide-react";
+import { useApp } from "@/components/providers/app-provider";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,6 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -17,8 +19,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { useApp } from "@/components/providers/app-provider";
 
 interface UserPreferences {
 	theme: "system" | "light" | "dark";
@@ -113,7 +113,7 @@ export function PrefsPanel() {
 							>
 								<CardContent className="p-4 text-center">
 									<Monitor className="h-6 w-6 mx-auto mb-2" />
-									<div className="font-medium">System</div>
+									<div className="font-medium truncate">System</div>
 								</CardContent>
 							</Card>
 
@@ -129,7 +129,7 @@ export function PrefsPanel() {
 							>
 								<CardContent className="p-4 text-center">
 									<Sun className="h-6 w-6 mx-auto mb-2" />
-									<div className="font-medium">Light</div>
+									<div className="font-medium truncate">Light</div>
 								</CardContent>
 							</Card>
 
@@ -143,7 +143,7 @@ export function PrefsPanel() {
 							>
 								<CardContent className="p-4 text-center">
 									<Moon className="h-6 w-6 mx-auto mb-2" />
-									<div className="font-medium">Dark</div>
+									<div className="font-medium truncate">Dark</div>
 								</CardContent>
 							</Card>
 						</div>
@@ -232,8 +232,8 @@ export function PrefsPanel() {
 								}
 							>
 								<CardContent className="p-4 text-center">
-									<div className="font-medium">Metric</div>
-									<div className="text-sm text-muted-foreground">
+									<div className="font-medium truncate">Metric</div>
+									<div className="text-sm text-muted-foreground truncate">
 										kg, ml, cm
 									</div>
 								</CardContent>
@@ -250,8 +250,8 @@ export function PrefsPanel() {
 								}
 							>
 								<CardContent className="p-4 text-center">
-									<div className="font-medium">Imperial</div>
-									<div className="text-sm text-muted-foreground">
+									<div className="font-medium truncate">Imperial</div>
+									<div className="text-sm text-muted-foreground truncate">
 										lbs, fl oz, in
 									</div>
 								</CardContent>
@@ -285,14 +285,14 @@ export function PrefsPanel() {
 									}))
 								}
 							>
-								<SelectTrigger>
+								<SelectTrigger className="truncate">
 									<SelectValue placeholder="No default" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="none">No default</SelectItem>
 									{households.map((household) => (
 										<SelectItem key={household.id} value={household.id}>
-											{household.name}
+											<span className="truncate">{household.name}</span>
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -310,14 +310,14 @@ export function PrefsPanel() {
 									}))
 								}
 							>
-								<SelectTrigger>
+								<SelectTrigger className="truncate">
 									<SelectValue placeholder="No default" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="none">No default</SelectItem>
 									{animals.map((animal) => (
 										<SelectItem key={animal.id} value={animal.id}>
-											{animal.name}
+											<span className="truncate">{animal.name}</span>
 										</SelectItem>
 									))}
 								</SelectContent>

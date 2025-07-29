@@ -1,9 +1,9 @@
 import { createTRPCRouter } from "../trpc/init";
+import { adminRouter } from "./admin";
 import { animalRouter } from "./animals";
 import { householdRouter } from "./households";
-import { regimenRouter } from "./regimens";
-import { adminRouter } from "./admin";
 import { inventoryRouter } from "./inventory";
+import { regimenRouter } from "./regimens";
 
 // Root router combining all sub-routers
 export const appRouter = createTRPCRouter({

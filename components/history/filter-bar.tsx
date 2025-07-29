@@ -1,8 +1,16 @@
 "use client";
 
+import { format } from "date-fns";
 import { Calendar, Filter, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useApp } from "@/components/providers/app-provider";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -10,16 +18,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Label } from "@/components/ui/label";
-import { useApp } from "@/components/providers/app-provider";
 import { useHistoryFilters } from "@/hooks/useHistoryFilters";
-import { format } from "date-fns";
 
 export function FilterBar() {
 	const { animals } = useApp();
@@ -42,114 +41,128 @@ export function FilterBar() {
 	};
 
 	return (
-		<div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 border-b p-4">
-			<div className="flex flex-wrap items-center gap-4">
-				{/* View Toggle */}
-				<div className="flex rounded-lg border p-1">
-					<Button
-						variant={filters.view === "list" ? "default" : "ghost"}
-						size="sm"
-						onClick={() => {
-							setFilter("view", "list");
-							window.dispatchEvent(
-								new CustomEvent("history_view_toggle", {
-									detail: { view: "list" },
-								}),
-							);
-						}}
-					>
-						List
-					</Button>
-					<Button
-						variant={filters.view === "calendar" ? "default" : "ghost"}
-						size="sm"
-						onClick={() => {
-							setFilter("view", "calendar");
-							window.dispatchEvent(
-								new CustomEvent("history_view_toggle", {
-									detail: { view: "calendar" },
-								}),
-							);
-						}}
-					>
-						Calendar
-					</Button>
-				</div>
-
-				{/* Animal Filter */}
-				<Select
-					value={filters.animalId || "all"}
-					onValueChange={(value) =>
-						setFilter("animalId", value === "all" ? undefined : value)
-					}
-				>
-					<SelectTrigger className="w-[180px]">
-						<SelectValue placeholder="All Animals" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">All Animals</SelectItem>
-						{animals.map((animal) => (
-							<SelectItem key={animal.id} value={animal.id}>
-								{animal.name}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-
-				{/* Type Filter */}
-				<Select
-					value={filters.type}
-					onValueChange={(value) => setFilter("type", value)}
-				>
-					<SelectTrigger className="w-[140px]">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">All Types</SelectItem>
-						<SelectItem value="scheduled">Scheduled</SelectItem>
-						<SelectItem value="prn">PRN</SelectItem>
-					</SelectContent>
-				</Select>
-
-				{/* Date Range */}
-				<DateRangePicker
-					from={new Date(filters.from)}
-					to={new Date(filters.to)}
-					onSelect={(from, to) => {
-						if (from) setFilter("from", from.toISOString().split("T")[0]);
-						if (to) setFilter("to", to.toISOString().split("T")[0]);
-					}}
-				/>
-
-				{/* Active Filters */}
-				{activeFilterCount > 0 && (
-					<div className="flex items-center gap-2">
-						<Badge variant="secondary" className="gap-1">
-							<Filter className="h-3 w-3" />
-							{activeFilterCount} active
-						</Badge>
-						<Button variant="ghost" size="sm" onClick={clearFilters}>
-							<X className="h-4 w-4" />
-							Clear
+		<div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 border-b">
+			<div className="container max-w-full px-4 py-3">
+				<div className="flex flex-col gap-3">
+					{/* View Toggle - Full width on mobile */}
+					<div className="flex rounded-lg border p-1 w-full md:w-auto">
+						<Button
+							variant={filters.view === "list" ? "default" : "ghost"}
+							size="sm"
+							className="flex-1 md:flex-none min-h-[44px]"
+							onClick={() => {
+								setFilter("view", "list");
+								window.dispatchEvent(
+									new CustomEvent("history_view_toggle", {
+										detail: { view: "list" },
+									}),
+								);
+							}}
+						>
+							List
+						</Button>
+						<Button
+							variant={filters.view === "calendar" ? "default" : "ghost"}
+							size="sm"
+							className="flex-1 md:flex-none min-h-[44px]"
+							onClick={() => {
+								setFilter("view", "calendar");
+								window.dispatchEvent(
+									new CustomEvent("history_view_toggle", {
+										detail: { view: "calendar" },
+									}),
+								);
+							}}
+						>
+							Calendar
 						</Button>
 					</div>
-				)}
-			</div>
 
-			{/* Active Filter Pills */}
-			<div className="flex flex-wrap gap-2 mt-3">
-				{filters.animalId && (
-					<FilterPill
-						label={`Animal: ${animals.find((a) => a.id === filters.animalId)?.name}`}
-						onRemove={() => setFilter("animalId", undefined)}
-					/>
-				)}
-				{filters.type !== "all" && (
-					<FilterPill
-						label={`Type: ${filters.type}`}
-						onRemove={() => setFilter("type", "all")}
-					/>
-				)}
+					{/* Filters section - Stack on mobile, flex wrap on desktop */}
+					<div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-3">
+						{/* Animal Filter */}
+						<Select
+							value={filters.animalId || "all"}
+							onValueChange={(value) =>
+								setFilter("animalId", value === "all" ? undefined : value)
+							}
+						>
+							<SelectTrigger className="w-full md:w-[180px] min-h-[44px]">
+								<SelectValue placeholder="All Animals" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All Animals</SelectItem>
+								{animals.map((animal) => (
+									<SelectItem key={animal.id} value={animal.id}>
+										{animal.name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+
+						{/* Type Filter */}
+						<Select
+							value={filters.type}
+							onValueChange={(value) => setFilter("type", value)}
+						>
+							<SelectTrigger className="w-full md:w-[140px] min-h-[44px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All Types</SelectItem>
+								<SelectItem value="scheduled">Scheduled</SelectItem>
+								<SelectItem value="prn">PRN</SelectItem>
+							</SelectContent>
+						</Select>
+
+						{/* Date Range */}
+						<DateRangePicker
+							from={filters.from ? new Date(filters.from) : undefined}
+							to={filters.to ? new Date(filters.to) : undefined}
+							onSelect={(from, to) => {
+								if (from) setFilter("from", from.toISOString().split("T")[0]);
+								if (to) setFilter("to", to.toISOString().split("T")[0]);
+							}}
+						/>
+
+						{/* Active Filters Badge */}
+						{activeFilterCount > 0 && (
+							<div className="flex items-center gap-2 w-full md:w-auto">
+								<Badge variant="secondary" className="gap-1">
+									<Filter className="h-3 w-3" />
+									{activeFilterCount} active
+								</Badge>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-9 px-2"
+									onClick={clearFilters}
+								>
+									<X className="h-4 w-4" />
+									<span className="ml-1">Clear</span>
+								</Button>
+							</div>
+						)}
+					</div>
+
+					{/* Active Filter Pills - Only show on desktop to save mobile space */}
+					{activeFilterCount > 0 && (
+						<div className="hidden md:flex flex-wrap gap-2">
+							{filters.animalId && (
+								<FilterPill
+									label={`Animal: ${animals.find((a) => a.id === filters.animalId)?.name}`}
+									onRemove={() => setFilter("animalId", undefined)}
+								/>
+							)}
+							{filters.type !== "all" && (
+								<FilterPill
+									label={`Type: ${filters.type}`}
+									onRemove={() => setFilter("type", "all")}
+								/>
+							)}
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);
@@ -182,36 +195,47 @@ function DateRangePicker({
 	to,
 	onSelect,
 }: {
-	from: Date;
-	to: Date;
+	from: Date | undefined;
+	to: Date | undefined;
 	onSelect: (from: Date | undefined, to: Date | undefined) => void;
 }) {
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
-				<Button variant="outline" className="gap-2 bg-transparent">
-					<Calendar className="h-4 w-4" />
-					{format(from, "MMM d")} - {format(to, "MMM d")}
+				<Button
+					variant="outline"
+					className="gap-2 bg-transparent w-full md:w-auto min-h-[44px] justify-start text-left font-normal"
+				>
+					<Calendar className="h-4 w-4 shrink-0" />
+					<span className="truncate">
+						{from && to
+							? `${format(from, "MMM d")} - ${format(to, "MMM d")}`
+							: "Select dates"}
+					</span>
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-auto p-0" align="start">
-				<div className="p-4 space-y-4">
-					<div className="space-y-2">
-						<Label>From</Label>
-						<CalendarComponent
-							mode="single"
-							selected={from}
-							onSelect={(date) => onSelect(date, to)}
-							initialFocus
-						/>
+			<PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
+				<div className="flex flex-col md:flex-row">
+					<div className="p-3 border-b md:border-b-0 md:border-r">
+						<div className="space-y-2">
+							<p className="text-sm font-medium">From</p>
+							<CalendarComponent
+								mode="single"
+								selected={from}
+								onSelect={(date) => onSelect(date, to)}
+								initialFocus
+							/>
+						</div>
 					</div>
-					<div className="space-y-2">
-						<Label>To</Label>
-						<CalendarComponent
-							mode="single"
-							selected={to}
-							onSelect={(date) => onSelect(from, date)}
-						/>
+					<div className="p-3">
+						<div className="space-y-2">
+							<p className="text-sm font-medium">To</p>
+							<CalendarComponent
+								mode="single"
+								selected={to}
+								onSelect={(date) => onSelect(from, date)}
+							/>
+						</div>
 					</div>
 				</div>
 			</PopoverContent>

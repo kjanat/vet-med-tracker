@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { endOfMonth, parseISO, startOfMonth } from "date-fns";
+import { useMemo, useState } from "react";
 import { FilterBar } from "@/components/history/filter-bar";
-import {
-	HistoryList,
-	type AdministrationRecord,
-} from "@/components/history/history-list";
 import { HistoryCalendar } from "@/components/history/history-calendar";
+import {
+	type AdministrationRecord,
+	HistoryList,
+} from "@/components/history/history-list";
 import { useHistoryFilters } from "@/hooks/useHistoryFilters";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { localDayISO } from "@/utils/tz";
-import { startOfMonth, endOfMonth, parseISO } from "date-fns";
 
 // Mock data - replace with tRPC queries
 const mockRecords: AdministrationRecord[] = [
@@ -142,7 +142,7 @@ export default function HistoryPage() {
 			if (!groups.has(localDay)) {
 				groups.set(localDay, []);
 			}
-			groups.get(localDay)!.push(record);
+			groups.get(localDay)?.push(record);
 		});
 
 		return Array.from(groups.entries())
@@ -243,10 +243,10 @@ export default function HistoryPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-background">
+		<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
 			<FilterBar />
 
-			<div className="p-6">
+			<div className="p-4 md:p-6">
 				{filters.view === "list" ? (
 					<HistoryList
 						groups={groupedRecords}

@@ -1,6 +1,10 @@
 "use client";
 
+import { AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react";
 import { useApp } from "@/components/providers/app-provider";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -8,11 +12,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { RecordButton } from "@/components/ui/record-button";
-import { Clock, CheckCircle, AlertTriangle, Calendar } from "lucide-react";
 // import { trpc } from '@/trpc/server';
 // import { ClientGreeting } from './client-greeting';
 
@@ -58,111 +58,119 @@ export default function HomePage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Dashboard</h1>
 					<p className="text-muted-foreground">
 						Managing {animals.length} animals across all households
 					</p>
 				</div>
-				<RecordButton prefilled />
+				<RecordButton prefilled className="w-full sm:w-auto" />
 			</div>
 
-			{/* Today's Summary */}
-			<div className="grid gap-4 md:grid-cols-3">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Today&apos;s Progress
-						</CardTitle>
-						<CheckCircle className="h-4 w-4 text-muted-foreground" />
+			{/* Main content with flexible ordering */}
+			<div className="flex flex-col gap-6 md:flex-col">
+				{/* Next Actions - shows first on mobile, second on desktop */}
+				<Card className="order-1 md:order-2">
+					<CardHeader>
+						<CardTitle>Next Actions</CardTitle>
+						<CardDescription>
+							Medications due soon, sorted by priority
+						</CardDescription>
 					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							{todayStats.completed}/{todayStats.total}
-						</div>
-						<p className="text-xs text-muted-foreground">
-							medications completed
-						</p>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Compliance Rate
-						</CardTitle>
-						<Calendar className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{todayStats.compliance}%</div>
-						<p className="text-xs text-muted-foreground">this week</p>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Pending Actions
-						</CardTitle>
-						<AlertTriangle className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							{animals.reduce((sum, animal) => sum + animal.pendingMeds, 0)}
-						</div>
-						<p className="text-xs text-muted-foreground">medications due</p>
-					</CardContent>
-				</Card>
-			</div>
-
-			{/* Next Actions */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Next Actions</CardTitle>
-					<CardDescription>
-						Medications due soon, sorted by priority
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					{nextActions.map((action) => (
-						<div
-							key={action.id}
-							className="flex items-center justify-between p-4 border rounded-lg"
-						>
-							<div className="flex items-center gap-3">
+					<CardContent className="space-y-3">
+						{nextActions.map((action) => (
+							<div
+								key={action.id}
+								className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+							>
+								{/* Avatar */}
 								<AnimalAvatar
 									animal={animals.find((a) => a.name === action.animal)!}
 									size="md"
 								/>
-								<div>
-									<div className="font-medium">
-										{action.animal} - {action.medication}
+
+								{/* Main content - grows to fill space */}
+								<div className="flex-1 min-w-0">
+									<div className="flex items-start justify-between gap-2 mb-1">
+										<div className="font-medium truncate">
+											{action.animal} - {action.medication}
+										</div>
+										<Badge
+											variant={
+												action.status === "overdue"
+													? "destructive"
+													: action.status === "due"
+														? "default"
+														: "secondary"
+											}
+											className="shrink-0"
+										>
+											{action.status}
+										</Badge>
 									</div>
 									<div className="text-sm text-muted-foreground">
 										{action.route} &bull; Due {action.dueTime}
 									</div>
 								</div>
-							</div>
 
-							<div className="flex items-center gap-2">
-								<Badge
-									variant={
-										action.status === "overdue"
-											? "destructive"
-											: action.status === "due"
-												? "default"
-												: "secondary"
-									}
-								>
-									{action.status}
-								</Badge>
-								<Button size="sm">Record</Button>
+								{/* Action button - fixed width on desktop */}
+								<Button size="sm" className="shrink-0 w-20">
+									Record
+								</Button>
 							</div>
-						</div>
-					))}
-				</CardContent>
-			</Card>
+						))}
+					</CardContent>
+				</Card>
+
+				{/* Today's Summary - shows second on mobile, first on desktop */}
+				<div className="grid gap-4 md:grid-cols-3 order-2 md:order-1">
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">
+								Today&apos;s Progress
+							</CardTitle>
+							<CheckCircle className="h-4 w-4 text-muted-foreground" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">
+								{todayStats.completed}/{todayStats.total}
+							</div>
+							<p className="text-xs text-muted-foreground">
+								medications completed
+							</p>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">
+								Compliance Rate
+							</CardTitle>
+							<Calendar className="h-4 w-4 text-muted-foreground" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">{todayStats.compliance}%</div>
+							<p className="text-xs text-muted-foreground">this week</p>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">
+								Pending Actions
+							</CardTitle>
+							<AlertTriangle className="h-4 w-4 text-muted-foreground" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">
+								{animals.reduce((sum, animal) => sum + animal.pendingMeds, 0)}
+							</div>
+							<p className="text-xs text-muted-foreground">medications due</p>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
 		</div>
 	);
 }

@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
-	Lightbulb,
-	Clock,
 	ArrowRight,
-	Shield,
 	Check,
+	Clock,
+	Lightbulb,
+	Shield,
 	Undo2,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -16,9 +19,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Suggestion {
 	id: string;
@@ -88,7 +88,7 @@ const suggestionColors = {
 	ENABLE_COSIGN: "border-red-200 bg-red-50",
 };
 
-export function ActionableSuggestions({ range }: ActionableSuggestionsProps) {
+export function ActionableSuggestions({}: ActionableSuggestionsProps) {
 	const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 	const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(
 		new Set(),
@@ -105,7 +105,7 @@ export function ActionableSuggestions({ range }: ActionableSuggestionsProps) {
 		// })
 
 		setSuggestions(mockSuggestions);
-	}, [range]);
+	}, []);
 
 	const handleApplySuggestion = async (suggestion: Suggestion) => {
 		try {

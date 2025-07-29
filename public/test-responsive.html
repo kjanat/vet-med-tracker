@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Responsive Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: sans-serif;
+        }
+        iframe {
+            border: 2px solid #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            display: block;
+            margin: 0 auto;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #0070f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #0051cc;
+        }
+        .info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <h2>VetMed Tracker - Mobile Responsive Test</h2>
+        <button onclick="setSize(375, 667)">iPhone SE</button>
+        <button onclick="setSize(390, 844)">iPhone 12</button>
+        <button onclick="setSize(414, 896)">iPhone 11 Pro Max</button>
+        <button onclick="setSize(768, 1024)">iPad</button>
+        <button onclick="setSize(1200, 800)">Desktop</button>
+    </div>
+    
+    <iframe id="preview" src="http://localhost:3000/insights" width="375" height="667"></iframe>
+    
+    <div class="info" id="sizeInfo">Current size: 375x667 (iPhone SE)</div>
+    
+    <script>
+        function setSize(width, height) {
+            const iframe = document.getElementById('preview');
+            const info = document.getElementById('sizeInfo');
+            iframe.width = width;
+            iframe.height = height;
+            
+            const deviceNames = {
+                '375x667': 'iPhone SE',
+                '390x844': 'iPhone 12',
+                '414x896': 'iPhone 11 Pro Max',
+                '768x1024': 'iPad',
+                '1200x800': 'Desktop'
+            };
+            
+            info.textContent = `Current size: ${width}x${height} (${deviceNames[width + 'x' + height] || 'Custom'})`;
+        }
+    </script>
+</body>
+</html>

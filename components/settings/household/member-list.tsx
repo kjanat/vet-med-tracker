@@ -1,19 +1,31 @@
 "use client";
 
-import { useState } from "react";
 import {
-	Plus,
 	Crown,
-	Shield,
 	Eye,
-	MoreHorizontal,
 	Mail,
+	MoreHorizontal,
+	Plus,
+	Shield,
 	Trash2,
 } from "lucide-react";
+import { useState } from "react";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
 	Select,
 	SelectContent,
@@ -21,15 +33,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { InviteForm } from "./invite-form";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { getAvatarColor } from "@/lib/avatar-utils";
 import { cn } from "@/lib/utils";
+import { InviteForm } from "./invite-form";
 
 export interface Member {
 	id: string;
@@ -105,6 +112,7 @@ export function MemberList() {
 	const [inviteFormOpen, setInviteFormOpen] = useState(false);
 	const [members, setMembers] = useState(mockMembers);
 	const [pendingInvites, setPendingInvites] = useState(mockPendingInvites);
+	const isMobile = useMediaQuery("(max-width: 768px)");
 
 	const canManageRoles = currentUser.role === "Owner";
 
@@ -213,45 +221,99 @@ export function MemberList() {
 					<CardTitle className="text-lg">Role Permissions</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="grid gap-4 md:grid-cols-3">
-						<div className="space-y-2">
-							<div className="flex items-center gap-2">
-								<Crown className="h-4 w-4 text-yellow-600" />
-								<span className="font-medium">Owner</span>
-							</div>
-							<ul className="text-sm text-muted-foreground space-y-1">
-								<li>• Full access to everything</li>
-								<li>• Manage members and roles</li>
-								<li>• Delete household data</li>
-							</ul>
-						</div>
+					{isMobile ? (
+						<Accordion type="single" collapsible className="w-full">
+							<AccordionItem value="owner">
+								<AccordionTrigger className="text-left">
+									<div className="flex items-center gap-2">
+										<Crown className="h-4 w-4 text-yellow-600" />
+										<span className="font-medium">Owner</span>
+									</div>
+								</AccordionTrigger>
+								<AccordionContent>
+									<ul className="text-sm text-muted-foreground space-y-1 pl-6">
+										<li>• Full access to everything</li>
+										<li>• Manage members and roles</li>
+										<li>• Delete household data</li>
+									</ul>
+								</AccordionContent>
+							</AccordionItem>
 
-						<div className="space-y-2">
-							<div className="flex items-center gap-2">
-								<Shield className="h-4 w-4 text-blue-600" />
-								<span className="font-medium">Caregiver</span>
-							</div>
-							<ul className="text-sm text-muted-foreground space-y-1">
-								<li>• Record medications</li>
-								<li>• Edit own records (10min window)</li>
-								<li>• Manage inventory</li>
-								<li>• Create non-high-risk regimens</li>
-								<li>• Co-sign medications</li>
-							</ul>
-						</div>
+							<AccordionItem value="caregiver">
+								<AccordionTrigger className="text-left">
+									<div className="flex items-center gap-2">
+										<Shield className="h-4 w-4 text-blue-600" />
+										<span className="font-medium">Caregiver</span>
+									</div>
+								</AccordionTrigger>
+								<AccordionContent>
+									<ul className="text-sm text-muted-foreground space-y-1 pl-6">
+										<li>• Record medications</li>
+										<li>• Edit own records (10min window)</li>
+										<li>• Manage inventory</li>
+										<li>• Create non-high-risk regimens</li>
+										<li>• Co-sign medications</li>
+									</ul>
+								</AccordionContent>
+							</AccordionItem>
 
-						<div className="space-y-2">
-							<div className="flex items-center gap-2">
-								<Eye className="h-4 w-4 text-gray-600" />
-								<span className="font-medium">Vet Read-Only</span>
+							<AccordionItem value="vet">
+								<AccordionTrigger className="text-left">
+									<div className="flex items-center gap-2">
+										<Eye className="h-4 w-4 text-gray-600" />
+										<span className="font-medium">Vet Read-Only</span>
+									</div>
+								</AccordionTrigger>
+								<AccordionContent>
+									<ul className="text-sm text-muted-foreground space-y-1 pl-6">
+										<li>• View history and insights</li>
+										<li>• Export data</li>
+										<li>• No write permissions</li>
+									</ul>
+								</AccordionContent>
+							</AccordionItem>
+						</Accordion>
+					) : (
+						<div className="grid gap-4 md:grid-cols-3">
+							<div className="space-y-2">
+								<div className="flex items-center gap-2">
+									<Crown className="h-4 w-4 text-yellow-600" />
+									<span className="font-medium">Owner</span>
+								</div>
+								<ul className="text-sm text-muted-foreground space-y-1">
+									<li>• Full access to everything</li>
+									<li>• Manage members and roles</li>
+									<li>• Delete household data</li>
+								</ul>
 							</div>
-							<ul className="text-sm text-muted-foreground space-y-1">
-								<li>• View history and insights</li>
-								<li>• Export data</li>
-								<li>• No write permissions</li>
-							</ul>
+
+							<div className="space-y-2">
+								<div className="flex items-center gap-2">
+									<Shield className="h-4 w-4 text-blue-600" />
+									<span className="font-medium">Caregiver</span>
+								</div>
+								<ul className="text-sm text-muted-foreground space-y-1">
+									<li>• Record medications</li>
+									<li>• Edit own records (10min window)</li>
+									<li>• Manage inventory</li>
+									<li>• Create non-high-risk regimens</li>
+									<li>• Co-sign medications</li>
+								</ul>
+							</div>
+
+							<div className="space-y-2">
+								<div className="flex items-center gap-2">
+									<Eye className="h-4 w-4 text-gray-600" />
+									<span className="font-medium">Vet Read-Only</span>
+								</div>
+								<ul className="text-sm text-muted-foreground space-y-1">
+									<li>• View history and insights</li>
+									<li>• Export data</li>
+									<li>• No write permissions</li>
+								</ul>
+							</div>
 						</div>
-					</div>
+					)}
 				</CardContent>
 			</Card>
 
@@ -307,37 +369,52 @@ export function MemberList() {
 												handleRoleChange(member.id, value as typeof member.role)
 											}
 										>
-											<SelectTrigger className="w-[140px]">
+											<SelectTrigger className="w-[110px] sm:w-[140px]">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="Owner">
 													<div className="flex items-center gap-2">
 														<Crown className="h-4 w-4" />
-														Owner
+														<span className="hidden sm:inline">Owner</span>
+														<span className="sm:hidden">Own</span>
 													</div>
 												</SelectItem>
 												<SelectItem value="Caregiver">
 													<div className="flex items-center gap-2">
 														<Shield className="h-4 w-4" />
-														Caregiver
+														<span className="hidden sm:inline">Caregiver</span>
+														<span className="sm:hidden">Care</span>
 													</div>
 												</SelectItem>
 												<SelectItem value="VetReadOnly">
 													<div className="flex items-center gap-2">
 														<Eye className="h-4 w-4" />
-														Vet Read-Only
+														<span className="hidden sm:inline">
+															Vet Read-Only
+														</span>
+														<span className="sm:hidden">Vet</span>
 													</div>
 												</SelectItem>
 											</SelectContent>
 										</Select>
 									) : (
-										<Badge className={roleColors[member.role]}>
+										<Badge
+											className={cn(
+												roleColors[member.role],
+												"text-xs sm:text-sm",
+											)}
+										>
 											{(() => {
 												const Icon = roleIcons[member.role];
 												return Icon ? <Icon className="h-3 w-3 mr-1" /> : null;
 											})()}
-											{member.role}
+											<span className="hidden sm:inline">{member.role}</span>
+											<span className="sm:hidden">
+												{member.role === "VetReadOnly"
+													? "Vet"
+													: member.role.slice(0, 4)}
+											</span>
 										</Badge>
 									)}
 								</div>

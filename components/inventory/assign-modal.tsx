@@ -3,6 +3,8 @@
 import type React from "react";
 
 import { useState } from "react";
+import { useApp } from "@/components/providers/app-provider";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -18,8 +20,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { useApp } from "@/components/providers/app-provider";
 import type { InventoryItem } from "./inventory-card";
 
 interface AssignModalProps {

@@ -1,8 +1,8 @@
 "use client";
 
+import { BarChart3, History, Home, Package, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, History, Package, BarChart3, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [

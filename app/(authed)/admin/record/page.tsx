@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Camera, Tag } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useApp } from "@/components/providers/app-provider";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -11,16 +14,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { MedConfirmButton } from "@/components/ui/med-confirm-button";
+import { Input } from "@/components/ui/input";
 import { InventorySourceSelect } from "@/components/ui/inventory-source-select";
-import { useApp } from "@/components/providers/app-provider";
+import { Label } from "@/components/ui/label";
+import { MedConfirmButton } from "@/components/ui/med-confirm-button";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { adminKey } from "@/utils/idempotency";
 import { formatTimeLocal, localDayISO } from "@/utils/tz";
@@ -533,8 +533,9 @@ function RegimenCard({
 		: "As needed";
 
 	return (
-		<div
-			className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+		<button
+			type="button"
+			className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors w-full text-left"
 			onClick={() => onSelect(regimen)}
 		>
 			<div className="flex items-center gap-3">
@@ -558,6 +559,6 @@ function RegimenCard({
 				{regimen.isPRN && <Badge variant="outline">PRN</Badge>}
 				{regimen.isHighRisk && <Badge variant="secondary">High-risk</Badge>}
 			</div>
-		</div>
+		</button>
 	);
 }

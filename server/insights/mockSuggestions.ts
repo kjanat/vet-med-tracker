@@ -19,7 +19,7 @@ export interface Suggestion {
 	estimatedImpact: string;
 }
 
-export function mockSuggestions(householdId: string): Suggestion[] {
+export function mockSuggestions(_householdId: string): Suggestion[] {
 	const suggestions: Suggestion[] = [
 		{
 			id: "sugg-add-reminder-1",

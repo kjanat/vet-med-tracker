@@ -1,9 +1,19 @@
 "use client";
 
+import {
+	addMonths,
+	eachDayOfInterval,
+	endOfMonth,
+	format,
+	isSameDay,
+	isSameMonth,
+	startOfMonth,
+	subMonths,
+} from "date-fns";
 // import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
@@ -12,16 +22,6 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import {
-	format,
-	startOfMonth,
-	endOfMonth,
-	eachDayOfInterval,
-	isSameMonth,
-	isSameDay,
-	addMonths,
-	subMonths,
-} from "date-fns";
 import type { AdministrationRecord } from "./history-list";
 
 interface DayCount {
@@ -90,7 +90,7 @@ export function HistoryCalendar({
 			</div>
 
 			{/* Legend */}
-			<div className="flex items-center gap-4 text-sm">
+			<div className="flex flex-wrap items-center gap-3 text-sm">
 				<div className="flex items-center gap-1">
 					<div className="w-3 h-3 rounded-full bg-green-500" />
 					<span>On-time</span>
@@ -131,6 +131,7 @@ export function HistoryCalendar({
 						<Sheet key={day.toISOString()}>
 							<SheetTrigger asChild>
 								<button
+									type="button"
 									className={cn(
 										"relative p-2 h-16 border rounded-lg hover:bg-accent transition-colors",
 										!isCurrentMonth && "opacity-50",
@@ -138,7 +139,6 @@ export function HistoryCalendar({
 									)}
 									onClick={() => {
 										if (dayCount) {
-											setSelectedDay(day);
 											onSelectDay(day);
 										}
 									}}
@@ -159,7 +159,10 @@ export function HistoryCalendar({
 							</SheetTrigger>
 
 							{dayCount && (
-								<SheetContent side="right" className="w-[400px] sm:w-[540px]">
+								<SheetContent
+									side="right"
+									className="w-full sm:w-[400px] md:w-[540px]"
+								>
 									<SheetHeader>
 										<SheetTitle>{format(day, "EEEE, MMMM d, yyyy")}</SheetTitle>
 									</SheetHeader>

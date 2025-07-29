@@ -1,10 +1,11 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useEffect } from "react";
 import { Upload, X } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,8 +15,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import {
 	Sheet,
 	SheetContent,
@@ -382,9 +381,12 @@ export function AnimalForm({
 										placeholder="Add allergy"
 										value={newAllergy}
 										onChange={(e) => setNewAllergy(e.target.value)}
-										onKeyDown={(e) =>
-											e.key === "Enter" && (e.preventDefault(), addAllergy())
-										}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.preventDefault();
+												addAllergy();
+											}
+										}}
 									/>
 									<Button type="button" onClick={addAllergy} size="sm">
 										Add
@@ -416,9 +418,12 @@ export function AnimalForm({
 										placeholder="Add condition"
 										value={newCondition}
 										onChange={(e) => setNewCondition(e.target.value)}
-										onKeyDown={(e) =>
-											e.key === "Enter" && (e.preventDefault(), addCondition())
-										}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.preventDefault();
+												addCondition();
+											}
+										}}
 									/>
 									<Button type="button" onClick={addCondition} size="sm">
 										Add

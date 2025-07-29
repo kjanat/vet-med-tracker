@@ -1,10 +1,30 @@
 "use client";
 
+import { AlertCircle, Camera, Plus, Scan } from "lucide-react";
 import type React from "react";
-
 import { useState } from "react";
-import { Camera, Plus, Scan } from "lucide-react";
+import { useApp } from "@/components/providers/app-provider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DateInput } from "@/components/ui/date-input";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,19 +34,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useApp } from "@/components/providers/app-provider";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
+
 // import { useOfflineQueue } from "@/hooks/useOfflineQueue"
 
 interface AddItemData {
@@ -55,6 +65,7 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 	const [activeTab, setActiveTab] = useState("scan");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [scannedBarcode, setScannedBarcode] = useState("");
+	const [scanError, setScanError] = useState<string | null>(null);
 	const [formData, setFormData] = useState<AddItemData>({
 		name: "",
 		brand: "",
@@ -93,6 +104,7 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 			},
 			onError: (error) => {
 				console.error("Barcode scan error:", error);
+				setScanError(error);
 			},
 		});
 
@@ -149,372 +161,415 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogTrigger asChild>
-				<Button className="gap-2">
-					<Plus className="h-4 w-4" />
-					Add Item
-				</Button>
-			</DialogTrigger>
+		<>
+			<Dialog open={open} onOpenChange={handleOpenChange}>
+				<DialogTrigger asChild>
+					<Button className="gap-2">
+						<Plus className="h-4 w-4" />
+						Add Item
+					</Button>
+				</DialogTrigger>
 
-			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle>Add Inventory Item</DialogTitle>
-					<DialogDescription>
-						Scan a barcode or manually enter medication details
-					</DialogDescription>
-				</DialogHeader>
+				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+					<DialogHeader>
+						<DialogTitle>Add Inventory Item</DialogTitle>
+						<DialogDescription>
+							Scan a barcode or manually enter medication details
+						</DialogDescription>
+					</DialogHeader>
 
-				<Tabs value={activeTab} onValueChange={setActiveTab}>
-					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="scan" className="gap-2">
-							<Scan className="h-4 w-4" />
-							Scan
-						</TabsTrigger>
-						<TabsTrigger value="manual" className="gap-2">
-							Manual
-						</TabsTrigger>
-					</TabsList>
+					<Tabs value={activeTab} onValueChange={setActiveTab}>
+						<TabsList className="grid w-full grid-cols-2">
+							<TabsTrigger value="scan" className="gap-2">
+								<Scan className="h-4 w-4" />
+								Scan
+							</TabsTrigger>
+							<TabsTrigger value="manual" className="gap-2">
+								Manual
+							</TabsTrigger>
+						</TabsList>
 
-					<TabsContent value="scan" className="space-y-4">
-						{hasPermission === false ? (
-							<Alert>
-								<Camera className="h-4 w-4" />
-								<AlertDescription>
-									Camera access denied. Please use manual entry or enable camera
-									permissions.
-								</AlertDescription>
-							</Alert>
-						) : (
-							<div className="space-y-4">
-								{!isScanning ? (
-									<div className="text-center py-8">
-										<Button onClick={startScanning} size="lg" className="gap-2">
-											<Camera className="h-5 w-5" />
-											Start Scanning
-										</Button>
-										<p className="text-sm text-muted-foreground mt-2">
-											Point your camera at a barcode
-										</p>
-									</div>
-								) : (
-									<div className="space-y-4">
-										<div className="relative">
-											<video
-												ref={videoRef}
-												className="w-full h-64 bg-black rounded-lg object-cover"
-												playsInline
-												muted
-											/>
-											<div className="absolute inset-0 border-2 border-primary rounded-lg pointer-events-none">
-												<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-24 border-2 border-white rounded-lg"></div>
+						<TabsContent value="scan" className="space-y-4">
+							{hasPermission === false ? (
+								<Alert>
+									<Camera className="h-4 w-4" />
+									<AlertDescription>
+										Camera access denied. Please use manual entry or enable
+										camera permissions.
+									</AlertDescription>
+								</Alert>
+							) : (
+								<div className="space-y-4">
+									{!isScanning ? (
+										<div className="text-center py-8">
+											<Button
+												onClick={startScanning}
+												size="lg"
+												className="gap-2"
+											>
+												<Camera className="h-5 w-5" />
+												Start Scanning
+											</Button>
+											<p className="text-sm text-muted-foreground mt-2">
+												Point your camera at a barcode
+											</p>
+										</div>
+									) : (
+										<div className="space-y-4">
+											<div className="relative">
+												<video
+													ref={videoRef}
+													className="w-full h-64 bg-black rounded-lg object-cover"
+													playsInline
+													muted
+												/>
+												<div className="absolute inset-0 border-2 border-primary rounded-lg pointer-events-none">
+													<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-24 border-2 border-white rounded-lg"></div>
+												</div>
+											</div>
+
+											<div className="flex justify-center">
+												<Button variant="outline" onClick={stopScanning}>
+													Stop Scanning
+												</Button>
 											</div>
 										</div>
+									)}
 
-										<div className="flex justify-center">
-											<Button variant="outline" onClick={stopScanning}>
-												Stop Scanning
-											</Button>
+									{scannedBarcode && (
+										<Alert>
+											<AlertDescription>
+												Scanned:{" "}
+												<span className="font-mono bg-muted px-1.5 py-0.5 rounded select-all">
+													{scannedBarcode}
+												</span>
+												<br />
+												<span className="text-sm text-muted-foreground">
+													Switch to Manual tab to complete the details
+												</span>
+											</AlertDescription>
+										</Alert>
+									)}
+
+									{/* Manual barcode input fallback */}
+									<div className="space-y-2">
+										<Label htmlFor="manual-barcode">
+											Or enter barcode manually
+										</Label>
+										<Input
+											id="manual-barcode"
+											placeholder="Enter barcode number"
+											value={formData.barcode}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													barcode: e.target.value,
+												}))
+											}
+										/>
+									</div>
+								</div>
+							)}
+						</TabsContent>
+
+						<TabsContent value="manual">
+							<form onSubmit={handleSubmit} className="space-y-4">
+								<div className="grid grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="name">Medication Name *</Label>
+										<Input
+											id="name"
+											required
+											value={formData.name}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													name: e.target.value,
+												}))
+											}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="brand">Brand Name</Label>
+										<Input
+											id="brand"
+											value={formData.brand}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													brand: e.target.value,
+												}))
+											}
+										/>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="route">Route *</Label>
+										<Select
+											value={formData.route}
+											onValueChange={(value) =>
+												setFormData((prev) => ({ ...prev, route: value }))
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select route" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="Oral">Oral</SelectItem>
+												<SelectItem value="Subcutaneous">
+													Subcutaneous
+												</SelectItem>
+												<SelectItem value="Intramuscular">
+													Intramuscular
+												</SelectItem>
+												<SelectItem value="Topical">Topical</SelectItem>
+												<SelectItem value="Ophthalmic">Ophthalmic</SelectItem>
+												<SelectItem value="Otic">Otic</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="form">Form *</Label>
+										<Select
+											value={formData.form}
+											onValueChange={(value) =>
+												setFormData((prev) => ({ ...prev, form: value }))
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select form" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="Tablet">Tablet</SelectItem>
+												<SelectItem value="Capsule">Capsule</SelectItem>
+												<SelectItem value="Liquid">Liquid</SelectItem>
+												<SelectItem value="Injection">Injection</SelectItem>
+												<SelectItem value="Topical">Topical</SelectItem>
+												<SelectItem value="Drops">Drops</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="strength">Strength</Label>
+										<Input
+											id="strength"
+											placeholder="e.g., 75mg, 5ml"
+											value={formData.strength}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													strength: e.target.value,
+												}))
+											}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="concentration">Concentration</Label>
+										<Input
+											id="concentration"
+											placeholder="e.g., 10mg/ml"
+											value={formData.concentration}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													concentration: e.target.value,
+												}))
+											}
+										/>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-3 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="quantity">Total Quantity *</Label>
+										<Input
+											id="quantity"
+											type="number"
+											required
+											min="1"
+											value={formData.quantityUnits}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													quantityUnits: Number.parseInt(e.target.value) || 0,
+													unitsRemaining: Number.parseInt(e.target.value) || 0, // Default remaining to total
+												}))
+											}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="remaining">Units Remaining *</Label>
+										<Input
+											id="remaining"
+											type="number"
+											required
+											min="0"
+											max={formData.quantityUnits}
+											value={formData.unitsRemaining}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													unitsRemaining: Number.parseInt(e.target.value) || 0,
+												}))
+											}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="lot">Lot Number</Label>
+										<Input
+											id="lot"
+											value={formData.lot}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													lot: e.target.value,
+												}))
+											}
+										/>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<DateInput
+										label="Expires On"
+										id="expires"
+										required
+										value={
+											formData.expiresOn
+												? new Date(formData.expiresOn)
+												: undefined
+										}
+										onChange={(date) =>
+											setFormData((prev) => ({
+												...prev,
+												expiresOn: date ? date.toISOString().split("T")[0] : "",
+											}))
+										}
+										placeholder="Select expiry date"
+										fromDate={new Date(new Date().setHours(0, 0, 0, 0))}
+									/>
+
+									<div className="space-y-2">
+										<Label htmlFor="storage">Storage</Label>
+										<Select
+											value={formData.storage}
+											onValueChange={(value: "FRIDGE" | "ROOM") =>
+												setFormData((prev) => ({ ...prev, storage: value }))
+											}
+										>
+											<SelectTrigger>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="ROOM">Room Temperature</SelectItem>
+												<SelectItem value="FRIDGE">Refrigerated</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="assign">Assign to Animal</Label>
+									<Select
+										value={formData.assignedAnimalId}
+										onValueChange={(value) =>
+											setFormData((prev) => ({
+												...prev,
+												assignedAnimalId: value === "unassigned" ? "" : value,
+											}))
+										}
+									>
+										<SelectTrigger>
+											<SelectValue placeholder="Select animal or leave unassigned" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="unassigned">Unassigned</SelectItem>
+											{animals.map((animal) => (
+												<SelectItem key={animal.id} value={animal.id}>
+													{animal.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+
+								{formData.assignedAnimalId && (
+									<div className="flex items-center space-x-2">
+										<Checkbox
+											id="setInUse"
+											checked={formData.setInUse}
+											onCheckedChange={(checked) =>
+												setFormData((prev) => ({
+													...prev,
+													setInUse: checked as boolean,
+												}))
+											}
+										/>
+										<Label htmlFor="setInUse" className="text-sm">
+											Set as &quot;In Use&quot; for this animal
+										</Label>
+									</div>
+								)}
+
+								{formData.barcode && (
+									<div className="space-y-2">
+										<Label>Barcode</Label>
+										<div className="text-sm font-mono bg-muted p-2 rounded select-all">
+											{formData.barcode}
 										</div>
 									</div>
 								)}
 
-								{scannedBarcode && (
-									<Alert>
-										<AlertDescription>
-											Scanned: {scannedBarcode}
-											<br />
-											<span className="text-sm text-muted-foreground">
-												Switch to Manual tab to complete the details
-											</span>
-										</AlertDescription>
-									</Alert>
-								)}
-
-								{/* Manual barcode input fallback */}
-								<div className="space-y-2">
-									<Label htmlFor="manual-barcode">
-										Or enter barcode manually
-									</Label>
-									<Input
-										id="manual-barcode"
-										placeholder="Enter barcode number"
-										value={formData.barcode}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												barcode: e.target.value,
-											}))
-										}
-									/>
-								</div>
-							</div>
-						)}
-					</TabsContent>
-
-					<TabsContent value="manual">
-						<form onSubmit={handleSubmit} className="space-y-4">
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="name">Medication Name *</Label>
-									<Input
-										id="name"
-										required
-										value={formData.name}
-										onChange={(e) =>
-											setFormData((prev) => ({ ...prev, name: e.target.value }))
-										}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="brand">Brand Name</Label>
-									<Input
-										id="brand"
-										value={formData.brand}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												brand: e.target.value,
-											}))
-										}
-									/>
-								</div>
-							</div>
-
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="route">Route *</Label>
-									<Select
-										value={formData.route}
-										onValueChange={(value) =>
-											setFormData((prev) => ({ ...prev, route: value }))
-										}
+								<div className="flex justify-end gap-2 pt-4">
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => setOpen(false)}
 									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select route" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="Oral">Oral</SelectItem>
-											<SelectItem value="Subcutaneous">Subcutaneous</SelectItem>
-											<SelectItem value="Intramuscular">
-												Intramuscular
-											</SelectItem>
-											<SelectItem value="Topical">Topical</SelectItem>
-											<SelectItem value="Ophthalmic">Ophthalmic</SelectItem>
-											<SelectItem value="Otic">Otic</SelectItem>
-										</SelectContent>
-									</Select>
+										Cancel
+									</Button>
+									<Button type="submit" disabled={isSubmitting}>
+										{isSubmitting ? "Adding..." : "Add Item"}
+									</Button>
 								</div>
+							</form>
+						</TabsContent>
+					</Tabs>
+				</DialogContent>
+			</Dialog>
 
-								<div className="space-y-2">
-									<Label htmlFor="form">Form *</Label>
-									<Select
-										value={formData.form}
-										onValueChange={(value) =>
-											setFormData((prev) => ({ ...prev, form: value }))
-										}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select form" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="Tablet">Tablet</SelectItem>
-											<SelectItem value="Capsule">Capsule</SelectItem>
-											<SelectItem value="Liquid">Liquid</SelectItem>
-											<SelectItem value="Injection">Injection</SelectItem>
-											<SelectItem value="Topical">Topical</SelectItem>
-											<SelectItem value="Drops">Drops</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
+			{/* Error Dialog */}
+			<AlertDialog open={!!scanError} onOpenChange={() => setScanError(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Scanning Error</AlertDialogTitle>
+						<AlertDialogDescription className="flex flex-col gap-2">
+							<div className="flex items-center gap-2">
+								<AlertCircle className="h-4 w-4" />
+								{scanError}
 							</div>
-
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="strength">Strength</Label>
-									<Input
-										id="strength"
-										placeholder="e.g., 75mg, 5ml"
-										value={formData.strength}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												strength: e.target.value,
-											}))
-										}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="concentration">Concentration</Label>
-									<Input
-										id="concentration"
-										placeholder="e.g., 10mg/ml"
-										value={formData.concentration}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												concentration: e.target.value,
-											}))
-										}
-									/>
-								</div>
+							<div className="text-sm text-muted-foreground">
+								You can still add the item manually using the Manual tab.
 							</div>
-
-							<div className="grid grid-cols-3 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="quantity">Total Quantity *</Label>
-									<Input
-										id="quantity"
-										type="number"
-										required
-										min="1"
-										value={formData.quantityUnits}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												quantityUnits: Number.parseInt(e.target.value) || 0,
-												unitsRemaining: Number.parseInt(e.target.value) || 0, // Default remaining to total
-											}))
-										}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="remaining">Units Remaining *</Label>
-									<Input
-										id="remaining"
-										type="number"
-										required
-										min="0"
-										max={formData.quantityUnits}
-										value={formData.unitsRemaining}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												unitsRemaining: Number.parseInt(e.target.value) || 0,
-											}))
-										}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="lot">Lot Number</Label>
-									<Input
-										id="lot"
-										value={formData.lot}
-										onChange={(e) =>
-											setFormData((prev) => ({ ...prev, lot: e.target.value }))
-										}
-									/>
-								</div>
-							</div>
-
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="expires">Expires On *</Label>
-									<Input
-										id="expires"
-										type="date"
-										required
-										value={formData.expiresOn}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												expiresOn: e.target.value,
-											}))
-										}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="storage">Storage</Label>
-									<Select
-										value={formData.storage}
-										onValueChange={(value: "FRIDGE" | "ROOM") =>
-											setFormData((prev) => ({ ...prev, storage: value }))
-										}
-									>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="ROOM">Room Temperature</SelectItem>
-											<SelectItem value="FRIDGE">Refrigerated</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="assign">Assign to Animal</Label>
-								<Select
-									value={formData.assignedAnimalId}
-									onValueChange={(value) =>
-										setFormData((prev) => ({
-											...prev,
-											assignedAnimalId: value === "unassigned" ? "" : value,
-										}))
-									}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder="Select animal or leave unassigned" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="unassigned">Unassigned</SelectItem>
-										{animals.map((animal) => (
-											<SelectItem key={animal.id} value={animal.id}>
-												{animal.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-
-							{formData.assignedAnimalId && (
-								<div className="flex items-center space-x-2">
-									<Checkbox
-										id="setInUse"
-										checked={formData.setInUse}
-										onCheckedChange={(checked) =>
-											setFormData((prev) => ({
-												...prev,
-												setInUse: checked as boolean,
-											}))
-										}
-									/>
-									<Label htmlFor="setInUse" className="text-sm">
-										Set as &quot;In Use&quot; for this animal
-									</Label>
-								</div>
-							)}
-
-							{formData.barcode && (
-								<div className="space-y-2">
-									<Label>Barcode</Label>
-									<div className="text-sm text-muted-foreground bg-muted p-2 rounded">
-										{formData.barcode}
-									</div>
-								</div>
-							)}
-
-							<div className="flex justify-end gap-2 pt-4">
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => setOpen(false)}
-								>
-									Cancel
-								</Button>
-								<Button type="submit" disabled={isSubmitting}>
-									{isSubmitting ? "Adding..." : "Add Item"}
-								</Button>
-							</div>
-						</form>
-					</TabsContent>
-				</Tabs>
-			</DialogContent>
-		</Dialog>
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogAction onClick={() => setScanError(null)}>
+							OK
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	);
 }

@@ -1,18 +1,18 @@
+import { relations } from "drizzle-orm";
 import {
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-	integer,
 	boolean,
 	date,
 	decimal,
 	index,
+	integer,
 	pgEnum,
+	pgTable,
+	text,
+	timestamp,
+	uuid,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { households } from "./households";
 import { animals } from "./animals";
+import { households } from "./households";
 
 // Enums
 export const routeEnum = pgEnum("vetmed_route", [
@@ -177,4 +177,4 @@ export type InventoryItem = typeof inventoryItems.$inferSelect;
 export type NewInventoryItem = typeof inventoryItems.$inferInsert;
 
 // Import for relations
-import { regimens, administrations } from "./regimens";
+import { administrations, regimens } from "./regimens";

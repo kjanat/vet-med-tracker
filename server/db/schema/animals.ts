@@ -1,14 +1,14 @@
+import { relations } from "drizzle-orm";
 import {
+	boolean,
+	date,
+	decimal,
+	index,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	boolean,
-	decimal,
-	date,
-	index,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
 import { households } from "./households";
 
 // Animals table
@@ -73,4 +73,4 @@ export type Animal = typeof animals.$inferSelect;
 export type NewAnimal = typeof animals.$inferInsert;
 
 // Import other tables for relations
-import { regimens, administrations } from "./regimens";
+import { administrations, regimens } from "./regimens";

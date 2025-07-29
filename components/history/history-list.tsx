@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { format, isToday, isYesterday } from "date-fns";
 import {
+	AlertTriangle,
+	CheckCircle,
 	ChevronRight,
 	Clock,
-	CheckCircle,
-	AlertTriangle,
 	Trash2,
 	UserCheck,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useApp } from "@/components/providers/app-provider";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
 	Collapsible,
@@ -23,11 +26,8 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { useApp } from "@/components/providers/app-provider";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { formatTimeLocal } from "@/utils/tz";
-import { format, isToday, isYesterday } from "date-fns";
 
 export interface AdministrationRecord {
 	id: string;
@@ -205,16 +205,22 @@ function AdministrationRow({
 			<Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
 				<CollapsibleTrigger asChild>
 					<CardContent className="p-4 cursor-pointer hover:bg-accent/50 transition-colors">
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-4">
-								<div className="text-sm font-mono text-muted-foreground min-w-[60px]">
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+							<div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+								<div className="text-sm font-mono text-muted-foreground shrink-0">
 									{formatTimeLocal(record.recordedAt, "America/New_York")}
 								</div>
 
-								{animal && <AnimalAvatar animal={animal} size="sm" />}
+								{animal && (
+									<AnimalAvatar
+										animal={animal}
+										size="sm"
+										className="shrink-0"
+									/>
+								)}
 
-								<div className="flex-1">
-									<div className="font-medium">
+								<div className="flex-1 min-w-0">
+									<div className="font-medium truncate">
 										{record.animalName} - {record.medicationName}{" "}
 										{record.strength}
 									</div>
@@ -222,48 +228,51 @@ function AdministrationRow({
 										{record.slot || "PRN"} • {record.caregiverName}
 									</div>
 								</div>
+							</div>
 
-								<div className="flex items-center gap-2">
+							<div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger>
+											<div className={`p-1 rounded-full ${status.bg}`}>
+												<status.icon className={`h-4 w-4 ${status.color}`} />
+											</div>
+										</TooltipTrigger>
+										<TooltipContent>{status.label}</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+
+								{record.cosignPending && (
+									<Badge
+										variant="outline"
+										className="text-orange-600 border-orange-200 hidden sm:inline-flex"
+									>
+										Co-sign
+									</Badge>
+								)}
+
+								{record.isEdited && (
 									<TooltipProvider>
 										<Tooltip>
 											<TooltipTrigger>
-												<div className={`p-1 rounded-full ${status.bg}`}>
-													<status.icon className={`h-4 w-4 ${status.color}`} />
-												</div>
+												<Badge
+													variant="secondary"
+													className="text-xs hidden sm:inline-flex"
+												>
+													edited
+												</Badge>
 											</TooltipTrigger>
-											<TooltipContent>{status.label}</TooltipContent>
+											<TooltipContent>
+												Edited by {record.editedBy} at{" "}
+												{record.editedAt?.toLocaleString()}
+											</TooltipContent>
 										</Tooltip>
 									</TooltipProvider>
+								)}
 
-									{record.cosignPending && (
-										<Badge
-											variant="outline"
-											className="text-orange-600 border-orange-200"
-										>
-											Awaiting Co-sign
-										</Badge>
-									)}
-
-									{record.isEdited && (
-										<TooltipProvider>
-											<Tooltip>
-												<TooltipTrigger>
-													<Badge variant="secondary" className="text-xs">
-														edited
-													</Badge>
-												</TooltipTrigger>
-												<TooltipContent>
-													Edited by {record.editedBy} at{" "}
-													{record.editedAt?.toLocaleString()}
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
-									)}
-
-									<ChevronRight
-										className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-									/>
-								</div>
+								<ChevronRight
+									className={`h-4 w-4 transition-transform shrink-0 ${isExpanded ? "rotate-90" : ""}`}
+								/>
 							</div>
 						</div>
 					</CardContent>
@@ -273,7 +282,7 @@ function AdministrationRow({
 					<CardContent className="pt-0 pb-4 px-4">
 						<div className="border-t pt-4 space-y-4">
 							{/* Details */}
-							<div className="grid grid-cols-2 gap-4 text-sm">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
 								{record.scheduledFor && (
 									<div>
 										<span className="font-medium">Scheduled:</span>{" "}
@@ -290,7 +299,7 @@ function AdministrationRow({
 									</div>
 								)}
 								{record.sourceItem && (
-									<div>
+									<div className="sm:col-span-2">
 										<span className="font-medium">Source:</span>{" "}
 										{record.sourceItem.name} (Lot {record.sourceItem.lot})
 									</div>

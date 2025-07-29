@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Bell, BellOff, Smartphone } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,7 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 export function PushPanel() {
 	const [isSupported, setIsSupported] = useState(false);
@@ -18,17 +19,7 @@ export function PushPanel() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [permission, setPermission] =
 		useState<NotificationPermission>("default");
-
-	useEffect(() => {
-		// Check if push notifications are supported
-		const supported = "serviceWorker" in navigator && "PushManager" in window;
-		setIsSupported(supported);
-
-		if (supported) {
-			setPermission(Notification.permission);
-			checkSubscriptionStatus();
-		}
-	}, []);
+	const isMobile = useMediaQuery("(max-width: 640px)");
 
 	const checkSubscriptionStatus = async () => {
 		try {
@@ -39,6 +30,17 @@ export function PushPanel() {
 			console.error("Failed to check subscription status:", error);
 		}
 	};
+
+	useEffect(() => {
+		// Check if push notifications are supported
+		const supported = "serviceWorker" in navigator && "PushManager" in window;
+		setIsSupported(supported);
+
+		if (supported) {
+			setPermission(Notification.permission);
+			checkSubscriptionStatus();
+		}
+	}, [checkSubscriptionStatus]);
 
 	const subscribeToPush = async () => {
 		if (!isSupported) return;
@@ -151,39 +153,65 @@ export function PushPanel() {
 				<CardDescription>Get reminded when medications are due</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="flex items-center justify-between">
-					<div>
-						<div className="font-medium">
-							Status:{" "}
-							{isSubscribed
-								? "Subscribed"
-								: permission === "denied"
-									? "Blocked"
-									: "Not subscribed"}
+				{isMobile ? (
+					// Mobile layout: Full-width button
+					<>
+						{permission !== "denied" && (
+							<Button
+								onClick={isSubscribed ? unsubscribeFromPush : subscribeToPush}
+								disabled={isLoading}
+								variant={isSubscribed ? "destructive" : "default"}
+								className="w-full"
+							>
+								{isLoading
+									? "Loading..."
+									: isSubscribed
+										? "Unsubscribe"
+										: "Subscribe"}
+							</Button>
+						)}
+						{permission === "denied" && (
+							<div className="text-sm text-center text-muted-foreground">
+								Notifications are blocked. Enable them in your browser settings.
+							</div>
+						)}
+					</>
+				) : (
+					// Desktop layout: Original layout
+					<div className="flex items-center justify-between">
+						<div>
+							<div className="font-medium">
+								Status:{" "}
+								{isSubscribed
+									? "Subscribed"
+									: permission === "denied"
+										? "Blocked"
+										: "Not subscribed"}
+							</div>
+							<div className="text-sm text-muted-foreground">
+								{isSubscribed
+									? "You'll receive push notifications for medication reminders"
+									: permission === "denied"
+										? "Notifications are blocked. Enable them in your browser settings."
+										: "Subscribe to receive medication reminders"}
+							</div>
 						</div>
-						<div className="text-sm text-muted-foreground">
-							{isSubscribed
-								? "You'll receive push notifications for medication reminders"
-								: permission === "denied"
-									? "Notifications are blocked. Enable them in your browser settings."
-									: "Subscribe to receive medication reminders"}
-						</div>
-					</div>
 
-					{permission !== "denied" && (
-						<Button
-							onClick={isSubscribed ? unsubscribeFromPush : subscribeToPush}
-							disabled={isLoading}
-							variant={isSubscribed ? "outline-solid" : "default"}
-						>
-							{isLoading
-								? "Loading..."
-								: isSubscribed
-									? "Unsubscribe"
-									: "Subscribe"}
-						</Button>
-					)}
-				</div>
+						{permission !== "denied" && (
+							<Button
+								onClick={isSubscribed ? unsubscribeFromPush : subscribeToPush}
+								disabled={isLoading}
+								variant={isSubscribed ? "outline-solid" : "default"}
+							>
+								{isLoading
+									? "Loading..."
+									: isSubscribed
+										? "Unsubscribe"
+										: "Subscribe"}
+							</Button>
+						)}
+					</div>
+				)}
 
 				{permission === "denied" && (
 					<Alert>

@@ -1,9 +1,9 @@
 "use client";
 
-import { useApp } from "../providers/app-provider";
-import { AnimalAvatar } from "./animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useApp } from "../providers/app-provider";
+import { AnimalAvatar } from "./animal-avatar";
 
 export function AnimalSwitcher() {
 	const { selectedAnimal, setSelectedAnimal, animals } = useApp();
@@ -11,6 +11,7 @@ export function AnimalSwitcher() {
 	return (
 		<div className="flex gap-2 overflow-x-auto pb-2">
 			<button
+				type="button"
 				onClick={() => setSelectedAnimal(null)}
 				className={cn(
 					"flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors whitespace-nowrap",
@@ -27,6 +28,7 @@ export function AnimalSwitcher() {
 
 			{animals.map((animal) => (
 				<button
+					type="button"
 					key={animal.id}
 					onClick={() => setSelectedAnimal(animal)}
 					className={cn(

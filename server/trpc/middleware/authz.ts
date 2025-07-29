@@ -77,14 +77,15 @@ export const verifyResourceAccess = async (
 	let belongsToHousehold = false;
 
 	switch (resourceType) {
-		case "animal":
+		case "animal": {
 			const animal = await db.animal.findFirst({
 				where: { id: resourceId, householdId },
 			});
 			belongsToHousehold = !!animal;
 			break;
+		}
 
-		case "regimen":
+		case "regimen": {
 			const regimen = await db.regimen.findFirst({
 				where: {
 					id: resourceId,
@@ -94,13 +95,15 @@ export const verifyResourceAccess = async (
 			});
 			belongsToHousehold = !!regimen;
 			break;
+		}
 
-		case "inventory":
+		case "inventory": {
 			const inventory = await db.inventoryItem.findFirst({
 				where: { id: resourceId, householdId },
 			});
 			belongsToHousehold = !!inventory;
 			break;
+		}
 	}
 
 	if (!belongsToHousehold) {

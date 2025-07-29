@@ -1,20 +1,20 @@
+import { relations } from "drizzle-orm";
 import {
+	boolean,
+	date,
+	index,
+	integer,
+	pgEnum,
 	pgTable,
 	text,
+	time,
 	timestamp,
 	uuid,
-	boolean,
-	integer,
-	date,
-	time,
-	index,
-	pgEnum,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
 import { animals } from "./animals";
-import { medicationCatalog, inventoryItems } from "./medications";
-import { users } from "./users";
 import { households } from "./households";
+import { inventoryItems, medicationCatalog } from "./medications";
+import { users } from "./users";
 
 // Enums
 export const scheduleTypeEnum = pgEnum("vetmed_schedule_type", [

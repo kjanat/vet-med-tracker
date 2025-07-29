@@ -1,7 +1,7 @@
 "use client";
 
-import { HouseholdSwitcher } from "../ui/household-switcher";
 import { AnimalSwitcher } from "../ui/animal-switcher";
+import { HouseholdSwitcher } from "../ui/household-switcher";
 import { NotificationDropdown } from "../ui/notification-dropdown";
 
 export function Header() {

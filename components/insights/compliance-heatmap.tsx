@@ -1,7 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { Calendar, Filter } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useApp } from "@/components/providers/app-provider";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
 	Card,
 	CardContent,
@@ -10,30 +16,24 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { useApp } from "@/components/providers/app-provider";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 
 interface HeatmapBucket {
 	dow: number; // 0-6 (Sunday-Saturday)
@@ -99,7 +99,7 @@ export function ComplianceHeatmap({
 		// })
 
 		setHeatmapData(mockHeatmapData);
-	}, [selectedAnimalId, selectedRegimenId, range]);
+	}, []);
 
 	const getBucketData = (dow: number, hour: number): HeatmapBucket | null => {
 		return (
@@ -152,12 +152,12 @@ export function ComplianceHeatmap({
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{/* Filters */}
-					<div className="flex flex-wrap items-center gap-4">
+					<div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3">
 						<Select
 							value={selectedAnimalId}
 							onValueChange={setSelectedAnimalId}
 						>
-							<SelectTrigger className="w-[180px]">
+							<SelectTrigger className="w-full sm:w-[180px]">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -174,7 +174,7 @@ export function ComplianceHeatmap({
 							value={selectedRegimenId}
 							onValueChange={setSelectedRegimenId}
 						>
-							<SelectTrigger className="w-[180px]">
+							<SelectTrigger className="w-full sm:w-[180px]">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -186,7 +186,10 @@ export function ComplianceHeatmap({
 
 						<Popover>
 							<PopoverTrigger asChild>
-								<Button variant="outline" className="gap-2 bg-transparent">
+								<Button
+									variant="outline"
+									className="gap-2 bg-transparent w-full sm:w-auto"
+								>
 									<Calendar className="h-4 w-4" />
 									{format(range.from, "MMM d")} - {format(range.to, "MMM d")}
 								</Button>
@@ -220,57 +223,64 @@ export function ComplianceHeatmap({
 					</div>
 
 					{/* Heatmap Grid */}
-					<div className="space-y-2">
-						{/* Hour labels */}
-						<div className="grid grid-cols-25 gap-1 text-xs">
-							<div></div> {/* Empty corner */}
-							{hours.map((hour) => (
-								<div key={hour} className="text-center text-muted-foreground">
-									{hour === 0
-										? "12a"
-										: hour <= 12
-											? `${hour}${hour === 12 ? "p" : "a"}`
-											: `${hour - 12}p`}
+					<div className="overflow-x-auto">
+						<div className="space-y-2 min-w-[640px]">
+							{/* Hour labels */}
+							<div className="grid grid-cols-[40px_repeat(24,_1fr)] gap-1 text-xs">
+								<div></div> {/* Empty corner */}
+								{hours.map((hour) => (
+									<div key={hour} className="text-center text-muted-foreground">
+										{hour === 0
+											? "12a"
+											: hour <= 12
+												? `${hour}${hour === 12 ? "p" : "a"}`
+												: `${hour - 12}p`}
+									</div>
+								))}
+							</div>
+
+							{/* Day rows */}
+							{dayNames.map((day, dow) => (
+								<div
+									key={dow}
+									className="grid grid-cols-[40px_repeat(24,_1fr)] gap-1"
+								>
+									<div className="text-xs font-medium text-muted-foreground py-1">
+										{day}
+									</div>
+									{hours.map((hour) => {
+										const bucket = getBucketData(dow, hour);
+										return (
+											<button
+												type="button"
+												key={hour}
+												className={cn(
+													"aspect-square rounded cursor-pointer transition-all hover:scale-110 hover:shadow-md w-full",
+													getCellColor(bucket),
+													bucket && bucket.count > 0
+														? "hover:ring-2 hover:ring-primary"
+														: "",
+												)}
+												onClick={() =>
+													bucket && bucket.count > 0 && handleCellClick(bucket)
+												}
+												title={
+													bucket && bucket.count > 0
+														? `${day} ${hour}:00 - ${bucket.count} doses, ${bucket.latePct}% late, ${bucket.missedPct}% missed`
+														: "No doses scheduled"
+												}
+												disabled={!bucket || bucket.count === 0}
+											/>
+										);
+									})}
 								</div>
 							))}
 						</div>
-
-						{/* Day rows */}
-						{dayNames.map((day, dow) => (
-							<div key={dow} className="grid grid-cols-25 gap-1">
-								<div className="text-xs font-medium text-muted-foreground py-1">
-									{day}
-								</div>
-								{hours.map((hour) => {
-									const bucket = getBucketData(dow, hour);
-									return (
-										<div
-											key={hour}
-											className={cn(
-												"aspect-square rounded cursor-pointer transition-all hover:scale-110 hover:shadow-md",
-												getCellColor(bucket),
-												bucket && bucket.count > 0
-													? "hover:ring-2 hover:ring-primary"
-													: "",
-											)}
-											onClick={() =>
-												bucket && bucket.count > 0 && handleCellClick(bucket)
-											}
-											title={
-												bucket && bucket.count > 0
-													? `${day} ${hour}:00 - ${bucket.count} doses, ${bucket.latePct}% late, ${bucket.missedPct}% missed`
-													: "No doses scheduled"
-											}
-										/>
-									);
-								})}
-							</div>
-						))}
 					</div>
 
 					{/* Legend */}
-					<div className="flex items-center justify-between text-xs text-muted-foreground">
-						<div className="flex items-center gap-4">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-3">
 							<div className="flex items-center gap-1">
 								<div className="w-3 h-3 bg-gray-100 rounded"></div>
 								<span>No doses</span>

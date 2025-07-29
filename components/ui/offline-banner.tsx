@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Wifi, WifiOff, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { Button } from "@/components/ui/button";
 import { useBackgroundSync } from "@/hooks/useBackgroundSync";
+import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 
 export function OfflineBanner() {
 	const { isOnline, queueSize, isProcessing, flush } = useOfflineQueue();

@@ -1,18 +1,18 @@
 "use client";
 
+import { format, subDays } from "date-fns";
 // import { useParams } from "next/navigation"
 import {
-	Printer,
+	AlertTriangle,
 	Calendar,
 	Pill,
+	Printer,
 	TrendingUp,
-	AlertTriangle,
 } from "lucide-react";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { format, subDays } from "date-fns";
 
 // Mock data - replace with tRPC
 const mockAnimal = {

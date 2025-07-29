@@ -1,38 +1,35 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
+import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { type AuthContext, getAuthContext } from "../../auth";
 import { db } from "../../db";
-import type { User } from "../../db/schema";
 
 // Context type definition
-export interface Context {
+export interface Context extends AuthContext {
 	db: typeof db;
-	user: User | null;
-	householdId: string | null;
-	session: {
-		userId?: string;
-	} | null;
 	headers: Headers;
+	requestedHouseholdId: string | null;
 }
 
 // Create context function for Next.js App Router
 export const createTRPCContext = async (
 	opts: FetchCreateContextFnOptions,
 ): Promise<Context> => {
-	// TODO: Get session from NextAuth
-	const session = null; // await getServerSession();
-	const user = null; // await getUserFromSession(session);
+	// Extract householdId from headers (sent by the frontend)
+	const requestedHouseholdId = opts.req.headers.get("x-household-id") || null;
 
-	// Extract householdId from headers or default
-	const householdId = opts.req.headers.get("x-household-id") || null;
+	// Get auth context
+	const authContext = await getAuthContext(
+		opts.req.headers,
+		requestedHouseholdId,
+	);
 
 	return {
 		db,
-		user,
-		householdId,
-		session,
 		headers: opts.req.headers,
+		requestedHouseholdId,
+		...authContext,
 	};
 };
 
@@ -60,14 +57,19 @@ export const publicProcedure = t.procedure;
 
 // Protected procedure - requires authentication
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
-	if (!ctx.user) {
-		throw new TRPCError({ code: "UNAUTHORIZED" });
+	if (!ctx.session || !ctx.user) {
+		throw new TRPCError({
+			code: "UNAUTHORIZED",
+			message: "You must be logged in to perform this action",
+		});
 	}
 
 	return next({
 		ctx: {
 			...ctx,
-			user: ctx.user, // user is non-null in protected procedures
+			// TypeScript now knows these are non-null
+			session: ctx.session,
+			user: ctx.user,
 		},
 	});
 });
@@ -75,8 +77,11 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 // Household-scoped procedure - requires household membership
 export const householdProcedure = protectedProcedure.use(
 	async ({ ctx, next, input }) => {
-		// Get householdId from input or context
-		const householdId = (input as any)?.householdId || ctx.householdId;
+		// Get householdId from input, context, or headers
+		const householdId =
+			(input as any)?.householdId ||
+			ctx.currentHouseholdId ||
+			ctx.requestedHouseholdId;
 
 		if (!householdId) {
 			throw new TRPCError({
@@ -85,26 +90,29 @@ export const householdProcedure = protectedProcedure.use(
 			});
 		}
 
-		// TODO: Check membership
-		// const membership = await ctx.db.query.memberships.findFirst({
-		//   where: and(
-		//     eq(memberships.userId, ctx.user.id),
-		//     eq(memberships.householdId, householdId)
-		//   ),
-		// });
+		// Check if user has membership in this household
+		let membership = ctx.currentMembership;
 
-		// if (!membership) {
-		//   throw new TRPCError({
-		//     code: 'FORBIDDEN',
-		//     message: 'Not a member of this household'
-		//   });
-		// }
+		// If the requested household is different from current context, verify membership
+		if (householdId !== ctx.currentHouseholdId) {
+			membership =
+				ctx.session.householdMemberships.find(
+					(m) => m.householdId === householdId,
+				) || null;
+		}
+
+		if (!membership) {
+			throw new TRPCError({
+				code: "FORBIDDEN",
+				message: "You are not a member of this household",
+			});
+		}
 
 		return next({
 			ctx: {
 				...ctx,
 				householdId,
-				// membership,
+				membership,
 			},
 		});
 	},

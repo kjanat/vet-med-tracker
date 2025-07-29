@@ -1,12 +1,12 @@
 "use client";
 
+import { FileText, Plus, Search } from "lucide-react";
 import { useState } from "react";
-import { Plus, Search, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { AnimalForm } from "./animal-form";
 
 export interface Animal {
@@ -166,7 +166,7 @@ export function AnimalList() {
 							</div>
 						</CardHeader>
 
-						<CardContent className="space-y-3">
+						<CardContent className="space-y-3 flex flex-col flex-1">
 							<div className="grid grid-cols-2 gap-2 text-sm">
 								{animal.sex && (
 									<div>
@@ -190,10 +190,6 @@ export function AnimalList() {
 										years
 									</div>
 								)}
-								<div>
-									<span className="font-medium">Timezone:</span>{" "}
-									{animal.timezone.split("/")[1]?.replace("_", " ")}
-								</div>
 							</div>
 
 							{animal.conditions.length > 0 && (
@@ -230,7 +226,7 @@ export function AnimalList() {
 								</div>
 							)}
 
-							<div className="flex gap-2 pt-2">
+							<div className="flex gap-2 pt-2 mt-auto">
 								<Button
 									variant="outline"
 									size="sm"

@@ -1,30 +1,77 @@
-import { config } from "dotenv";
+import { neon, neonConfig, type Pool } from "@neondatabase/serverless";
 import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
-import { drizzle as drizzleWs } from "drizzle-orm/neon-serverless";
-import { neon } from "@neondatabase/serverless";
+import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
 import * as schema from "./schema";
 
-config({ path: ".env.local" });
-
-if (!process.env.DATABASE_URL) {
-	throw new Error("DATABASE_URL is not set");
+// Validate required environment variables
+const requiredEnvVars = ["DATABASE_URL_POOLED", "DATABASE_URL_UNPOOLED"];
+for (const envVar of requiredEnvVars) {
+	if (!process.env[envVar]) {
+		throw new Error(`${envVar} is not set. Check your ${envFile} file.`);
+	}
 }
 
-// HTTP client for single queries (better for serverless/edge)
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzleHttp(sql, { schema });
+// Configure Neon for serverless environments
+neonConfig.fetchConnectionCache = true;
 
-// WebSocket client for transactions (when needed)
-// export const dbWs = drizzleWs(process.env.DATABASE_URL, { schema });
+// Pooled connection for API routes (short-lived queries)
+// This is more efficient for Neon free tier
+const sqlPooled = neon(process.env.DATABASE_URL_POOLED!);
+export const db = drizzleHttp(sqlPooled, {
+	schema,
+	logger: process.env.NODE_ENV === "development",
+});
 
-// Helper for tenant-scoped queries
-export function tenantDb<T>(
+// Unpooled connection for migrations and long-running operations
+// Only use when necessary (e.g., migrations, batch operations)
+const sqlUnpooled = neon(process.env.DATABASE_URL_UNPOOLED!);
+export const dbUnpooled = drizzleHttp(sqlUnpooled, {
+	schema,
+	logger: process.env.NODE_ENV === "development",
+});
+
+// WebSocket connection for transactions (when needed)
+// Use sparingly on free tier due to connection limits
+export const dbTransaction = drizzleServerless(
+	process.env.DATABASE_URL_UNPOOLED!,
+	{
+		schema,
+		logger: process.env.NODE_ENV === "development",
+	},
+);
+
+// Connection pool for better performance (when using Node.js runtime)
+// Only initialize if not in edge runtime
+let _pool: Pool | null = null;
+if (typeof process.versions?.node !== "undefined") {
+	const { Pool } = require("@neondatabase/serverless");
+	_pool = new Pool({
+		connectionString: process.env.DATABASE_URL_POOLED,
+		// Optimize for Neon free tier
+		max: 5, // Max connections
+		idleTimeoutMillis: 30000, // 30 seconds
+		connectionTimeoutMillis: 10000, // 10 seconds
+	});
+}
+
+// Helper for tenant-scoped queries with proper isolation
+export async function tenantDb<T>(
 	householdId: string,
 	callback: (tx: typeof db) => T | Promise<T>,
 ): Promise<T> {
-	// In a real implementation, we'd set the tenant context here
-	// For now, we'll ensure all queries include householdId
-	return Promise.resolve(callback(db));
+	if (!householdId) {
+		throw new Error("householdId is required for tenant-scoped queries");
+	}
+
+	// TODO: In production, implement Row Level Security (RLS) or use search_path
+	// For now, we'll ensure all queries include householdId in WHERE clauses
+	try {
+		const result = await callback(db);
+		return result;
+	} catch (error) {
+		console.error(`Tenant query error for household ${householdId}:`, error);
+		throw error;
+	}
 }
 
 // Export all schemas for easy access

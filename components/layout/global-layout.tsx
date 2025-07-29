@@ -1,11 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Header } from "./header";
-import { BottomNav } from "./bottom-nav";
-import { LeftRail } from "./left-rail";
-import { OfflineBanner } from "../ui/offline-banner";
 import { useApp } from "../providers/app-provider";
+import { OfflineBanner } from "../ui/offline-banner";
+import { BottomNav } from "./bottom-nav";
+import { Header } from "./header";
+import { LeftRail } from "./left-rail";
 
 export function GlobalLayout({ children }: { children: ReactNode }) {
 	const { isOffline } = useApp();

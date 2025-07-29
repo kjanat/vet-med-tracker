@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { TrendingUp, Target, Award, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Award, Target, TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useApp } from "@/components/providers/app-provider";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardContent,
@@ -9,10 +13,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { useApp } from "@/components/providers/app-provider";
-import { useRouter } from "next/navigation";
 
 interface ComplianceData {
 	animalId: string;
@@ -231,25 +231,32 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 							if (!animalData) return null;
 
 							return (
-								<div
+								<button
+									type="button"
 									key={animal.animalId}
-									className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors"
+									className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors gap-3 w-full text-left"
 									onClick={() => handleCardClick(`animalId=${animal.animalId}`)}
 								>
-									<div className="flex items-center gap-3">
-										<div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-											{index + 1}
+									{/* Left side: Position, avatar, and animal info */}
+									<div className="flex items-center gap-3 min-w-0">
+										<div className="flex flex-col items-center gap-2 sm:flex-row">
+											<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
+												{index + 1}
+											</div>
+											<AnimalAvatar animal={animalData} size="sm" />
 										</div>
-										<AnimalAvatar animal={animalData} size="sm" />
-										<div>
-											<div className="font-medium">{animal.animalName}</div>
-											<div className="text-sm text-muted-foreground">
+										<div className="min-w-0">
+											<div className="font-medium truncate">
+												{animal.animalName}
+											</div>
+											<div className="text-sm text-muted-foreground truncate">
 												{animal.completed} of {animal.scheduled} doses
 											</div>
 										</div>
 									</div>
 
-									<div className="flex items-center gap-2">
+									{/* Right side: Badges stacked vertically */}
+									<div className="flex flex-col gap-1 items-end shrink-0 sm:flex-row sm:items-center sm:gap-2">
 										<Badge
 											variant={
 												animal.adherencePct >= 90
@@ -258,16 +265,20 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 														? "secondary"
 														: "destructive"
 											}
+											className="w-fit"
 										>
 											{animal.adherencePct}%
 										</Badge>
 										{animal.missed > 0 && (
-											<Badge variant="outline" className="text-orange-600">
+											<Badge
+												variant="outline"
+												className="text-orange-600 whitespace-nowrap w-fit"
+											>
 												{animal.missed} missed
 											</Badge>
 										)}
 									</div>
-								</div>
+								</button>
 							);
 						})}
 					</div>

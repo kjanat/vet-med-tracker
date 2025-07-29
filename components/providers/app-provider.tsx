@@ -2,10 +2,10 @@
 
 import {
 	createContext,
-	useContext,
-	useState,
 	type ReactNode,
+	useContext,
 	useEffect,
+	useState,
 } from "react";
 
 interface Animal {
@@ -73,12 +73,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 		{
 			id: "1",
 			name: "Smith Family",
-			avatar: "/placeholder.svg?height=32&width=32",
+			avatar: undefined,
 		},
 		{
 			id: "2",
 			name: "Johnson Ranch",
-			avatar: "/placeholder.svg?height=32&width=32",
+			avatar: undefined,
 		},
 	];
 

@@ -1,7 +1,19 @@
 "use client";
 
+import { Database, Download, FileText, Shield, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Download, Trash2, Shield, FileText, Database } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,51 +22,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-
-interface AuditEntry {
-	id: string;
-	userId: string;
-	userName: string;
-	action: string;
-	details: string;
-	timestamp: Date;
-	ipAddress?: string;
-}
-
-// Mock audit data - replace with tRPC
-const mockAuditEntries: AuditEntry[] = [
-	{
-		id: "1",
-		userId: "user-1",
-		userName: "John Smith",
-		action: "admin.create",
-		details: "Recorded Rimadyl for Buddy",
-		timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-		ipAddress: "192.168.1.100",
-	},
-	{
-		id: "2",
-		userId: "user-2",
-		userName: "Jane Doe",
-		action: "inventory.set_in_use",
-		details: "Set Insulin as in use for Whiskers",
-		timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-		ipAddress: "192.168.1.101",
-	},
-	{
-		id: "3",
-		userId: "user-1",
-		userName: "John Smith",
-		action: "regimen.create",
-		details: "Created PRN regimen for Buddy - Pain Relief",
-		timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-		ipAddress: "192.168.1.100",
-	},
-];
 
 // Mock current user - replace with auth context
 const currentUser = { role: "Owner" };
@@ -64,7 +33,6 @@ export function DataPanel() {
 	const [isClearing, setIsClearing] = useState(false);
 	const [clearConfirm, setClearConfirm] = useState("");
 	const [holdProgress, setHoldProgress] = useState(0);
-	const [auditEntries] = useState(mockAuditEntries);
 
 	const canViewAudit = currentUser.role === "Owner";
 	const canClearData = currentUser.role === "Owner";
@@ -188,23 +156,59 @@ export function DataPanel() {
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="flex gap-4">
-						<Button
-							onClick={() => handleExport("json")}
-							disabled={isExporting}
-							className="gap-2"
-						>
-							<FileText className="h-4 w-4" />
-							Export JSON
-						</Button>
-						<Button
-							onClick={() => handleExport("csv")}
-							disabled={isExporting}
-							variant="outline"
-							className="gap-2"
-						>
-							<FileText className="h-4 w-4" />
-							Export CSV
-						</Button>
+						<AlertDialog>
+							<AlertDialogTrigger asChild>
+								<Button disabled={isExporting} className="gap-2">
+									<FileText className="h-4 w-4" />
+									Export JSON
+								</Button>
+							</AlertDialogTrigger>
+							<AlertDialogContent>
+								<AlertDialogHeader>
+									<AlertDialogTitle>Export Data as JSON</AlertDialogTitle>
+									<AlertDialogDescription>
+										This will export all medication records, inventory, and
+										animal profiles. Times are shown in each animal&apos;s local
+										timezone.
+									</AlertDialogDescription>
+								</AlertDialogHeader>
+								<AlertDialogFooter>
+									<AlertDialogCancel>Cancel</AlertDialogCancel>
+									<AlertDialogAction onClick={() => handleExport("json")}>
+										Export
+									</AlertDialogAction>
+								</AlertDialogFooter>
+							</AlertDialogContent>
+						</AlertDialog>
+
+						<AlertDialog>
+							<AlertDialogTrigger asChild>
+								<Button
+									disabled={isExporting}
+									variant="outline"
+									className="gap-2"
+								>
+									<FileText className="h-4 w-4" />
+									Export CSV
+								</Button>
+							</AlertDialogTrigger>
+							<AlertDialogContent>
+								<AlertDialogHeader>
+									<AlertDialogTitle>Export Data as CSV</AlertDialogTitle>
+									<AlertDialogDescription>
+										This will export all medication records, inventory, and
+										animal profiles. Times are shown in each animal&apos;s local
+										timezone.
+									</AlertDialogDescription>
+								</AlertDialogHeader>
+								<AlertDialogFooter>
+									<AlertDialogCancel>Cancel</AlertDialogCancel>
+									<AlertDialogAction onClick={() => handleExport("csv")}>
+										Export
+									</AlertDialogAction>
+								</AlertDialogFooter>
+							</AlertDialogContent>
+						</AlertDialog>
 					</div>
 
 					<Alert>
@@ -238,39 +242,59 @@ export function DataPanel() {
 							</AlertDescription>
 						</Alert>
 
-						<div className="space-y-3">
-							<div className="space-y-2">
-								<Label htmlFor="confirm">
-									Type &quot;DELETE&quot; to confirm
-								</Label>
-								<Input
-									id="confirm"
-									value={clearConfirm}
-									onChange={(e) => setClearConfirm(e.target.value)}
-									placeholder="DELETE"
-									className="max-w-[200px]"
-								/>
-							</div>
-
-							<Button
-								variant="destructive"
-								disabled={clearConfirm !== "DELETE" || isClearing}
-								onMouseDown={startHoldToClear}
-								className="relative overflow-hidden"
-							>
-								<div
-									className="absolute inset-0 bg-destructive-foreground/20 transition-all duration-75"
-									style={{ width: `${holdProgress}%` }}
-								/>
-								<span className="relative">
-									{isClearing
-										? "Clearing..."
-										: holdProgress > 0
-											? "Hold to Clear..."
-											: "Hold to Clear History"}
-								</span>
-							</Button>
-						</div>
+						<AlertDialog>
+							<AlertDialogTrigger asChild>
+								<Button variant="destructive" className="gap-2">
+									<Trash2 className="h-4 w-4" />
+									Clear History
+								</Button>
+							</AlertDialogTrigger>
+							<AlertDialogContent>
+								<AlertDialogHeader>
+									<AlertDialogTitle>Clear All History?</AlertDialogTitle>
+									<AlertDialogDescription>
+										This action cannot be undone. All medication records,
+										history, and audit logs will be permanently deleted. Animal
+										profiles and regimens will be preserved.
+									</AlertDialogDescription>
+								</AlertDialogHeader>
+								<div className="my-4 space-y-2">
+									<Label htmlFor="confirm-dialog">
+										Type &quot;DELETE&quot; to confirm
+									</Label>
+									<Input
+										id="confirm-dialog"
+										value={clearConfirm}
+										onChange={(e) => setClearConfirm(e.target.value)}
+										placeholder="DELETE"
+										className="max-w-[200px]"
+									/>
+								</div>
+								<AlertDialogFooter>
+									<AlertDialogCancel onClick={() => setClearConfirm("")}>
+										Cancel
+									</AlertDialogCancel>
+									<Button
+										variant="destructive"
+										disabled={clearConfirm !== "DELETE" || isClearing}
+										onMouseDown={startHoldToClear}
+										className="relative overflow-hidden"
+									>
+										<div
+											className="absolute inset-0 bg-destructive-foreground/20 transition-all duration-75"
+											style={{ width: `${holdProgress}%` }}
+										/>
+										<span className="relative">
+											{isClearing
+												? "Clearing..."
+												: holdProgress > 0
+													? "Hold to Clear..."
+													: "Hold to Clear"}
+										</span>
+									</Button>
+								</AlertDialogFooter>
+							</AlertDialogContent>
+						</AlertDialog>
 					</CardContent>
 				</Card>
 			)}
@@ -283,40 +307,20 @@ export function DataPanel() {
 							<Database className="h-5 w-5" />
 							Audit Log
 						</CardTitle>
-						<CardDescription>Recent activity in your household</CardDescription>
+						<CardDescription>
+							View activity history for your household
+						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-3">
-							{auditEntries.map((entry) => (
-								<div
-									key={entry.id}
-									className="flex items-center justify-between p-3 border rounded-lg"
-								>
-									<div className="flex-1">
-										<div className="flex items-center gap-2">
-											<span className="font-medium">{entry.userName}</span>
-											<Badge variant="outline" className="text-xs">
-												{entry.action}
-											</Badge>
-										</div>
-										<div className="text-sm text-muted-foreground">
-											{entry.details}
-										</div>
-										<div className="text-xs text-muted-foreground">
-											{entry.timestamp.toLocaleString()}
-											{entry.ipAddress && ` • ${entry.ipAddress}`}
-										</div>
-									</div>
-								</div>
-							))}
-
-							{auditEntries.length === 0 && (
-								<div className="text-center py-8 text-muted-foreground">
-									<Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
-									<p>No audit entries found</p>
-								</div>
-							)}
-						</div>
+						<Button
+							onClick={() => {
+								window.location.href = "/settings/audit-log";
+							}}
+							className="gap-2"
+						>
+							<FileText className="h-4 w-4" />
+							View Audit Log
+						</Button>
 					</CardContent>
 				</Card>
 			)}

@@ -7,8 +7,8 @@
 		"defaultBranch": "master"
 	},
 	"files": {
-		"ignoreUnknown": false,
-		"includes": ["!.next/", "!.git/"]
+		"ignoreUnknown": true,
+		"includes": ["**", "!.next/", "!.git/"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -18,6 +18,10 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true
+		},
+		"domains": {
+			"next": "all",
+			"project": "recommended"
 		}
 	},
 	"javascript": {

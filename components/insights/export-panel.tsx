@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Download, FileText, Printer } from "lucide-react";
+import { useState } from "react";
+import { useApp } from "@/components/providers/app-provider";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -9,7 +11,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -17,7 +18,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useApp } from "@/components/providers/app-provider";
 
 export function ExportPanel() {
 	const [isExporting, setIsExporting] = useState(false);
@@ -93,9 +93,9 @@ export function ExportPanel() {
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="flex items-center gap-4">
+				<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 					<Select value={selectedAnimalId} onValueChange={setSelectedAnimalId}>
-						<SelectTrigger className="w-[180px]">
+						<SelectTrigger className="w-full sm:w-[180px]">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -111,7 +111,7 @@ export function ExportPanel() {
 					<Button
 						onClick={handleExportCSV}
 						disabled={isExporting}
-						className="gap-2"
+						className="gap-2 w-full sm:w-auto"
 					>
 						<FileText className="h-4 w-4" />
 						Export CSV

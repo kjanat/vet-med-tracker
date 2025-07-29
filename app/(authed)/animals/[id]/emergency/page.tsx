@@ -1,11 +1,11 @@
 "use client";
 
 // import { useParams } from "next/navigation"
-import { Phone, AlertTriangle, Pill } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, Phone, Pill } from "lucide-react";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Mock data - replace with tRPC
 const mockAnimal = {

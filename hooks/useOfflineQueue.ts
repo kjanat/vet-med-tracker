@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface QueuedRecord {
 	id: string;
@@ -58,7 +58,7 @@ export function useOfflineQueue() {
 		if (isOnline && queueSize > 0) {
 			flush();
 		}
-	}, [isOnline, queueSize]);
+	}, [isOnline, queueSize, flush]);
 
 	return {
 		isOnline,

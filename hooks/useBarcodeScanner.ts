@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 
 interface BarcodeScannerOptions {
 	onScan: (barcode: string) => void;
@@ -12,9 +12,25 @@ export function useBarcodeScanner({ onScan, onError }: BarcodeScannerOptions) {
 	const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const streamRef = useRef<MediaStream | null>(null);
+	const isScanningRef = useRef(false);
+
+	const stopScanning = useCallback(() => {
+		isScanningRef.current = false;
+		setIsScanning(false);
+
+		if (streamRef.current) {
+			streamRef.current.getTracks().forEach((track) => track.stop());
+			streamRef.current = null;
+		}
+
+		if (videoRef.current) {
+			videoRef.current.srcObject = null;
+		}
+	}, []);
 
 	const startScanning = useCallback(async () => {
 		try {
+			isScanningRef.current = true;
 			setIsScanning(true);
 
 			// Check if BarcodeDetector is available
@@ -33,7 +49,7 @@ export function useBarcodeScanner({ onScan, onError }: BarcodeScannerOptions) {
 					const barcodeDetector = new (window as any).BarcodeDetector();
 
 					const detectBarcode = async () => {
-						if (videoRef.current && isScanning) {
+						if (videoRef.current && isScanningRef.current) {
 							try {
 								const barcodes = await barcodeDetector.detect(videoRef.current);
 								if (barcodes.length > 0) {
@@ -45,7 +61,7 @@ export function useBarcodeScanner({ onScan, onError }: BarcodeScannerOptions) {
 								console.warn("Barcode detection failed:", err);
 							}
 
-							if (isScanning) {
+							if (isScanningRef.current) {
 								requestAnimationFrame(detectBarcode);
 							}
 						}
@@ -63,20 +79,7 @@ export function useBarcodeScanner({ onScan, onError }: BarcodeScannerOptions) {
 			onError("Camera access denied. Please use manual entry.");
 			setIsScanning(false);
 		}
-	}, [isScanning, onScan, onError]);
-
-	const stopScanning = useCallback(() => {
-		setIsScanning(false);
-
-		if (streamRef.current) {
-			streamRef.current.getTracks().forEach((track) => track.stop());
-			streamRef.current = null;
-		}
-
-		if (videoRef.current) {
-			videoRef.current.srcObject = null;
-		}
-	}, []);
+	}, [onScan, onError, stopScanning]);
 
 	return {
 		isScanning,

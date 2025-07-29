@@ -1,10 +1,17 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { AlertTriangle, Package, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { differenceInDays } from "date-fns";
+import { AlertTriangle, Package, Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { AddItemModal } from "@/components/inventory/add-item-modal";
+import { AssignModal } from "@/components/inventory/assign-modal";
+import {
+	InventoryCard,
+	type InventoryItem,
+} from "@/components/inventory/inventory-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
@@ -12,15 +19,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	InventoryCard,
-	type InventoryItem,
-} from "@/components/inventory/inventory-card";
-import { AddItemModal } from "@/components/inventory/add-item-modal";
-import { AssignModal } from "@/components/inventory/assign-modal";
 import { useDaysOfSupply } from "@/hooks/useDaysOfSupply";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
-import { differenceInDays } from "date-fns";
 
 // Mock data - replace with tRPC queries
 const mockItems: InventoryItem[] = [
@@ -313,19 +313,10 @@ export default function InventoryPage() {
 			)}
 
 			{/* Filters */}
-			<div className="flex items-center gap-4">
-				<div className="relative flex-1 max-w-sm">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-					<Input
-						placeholder="Search medications..."
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						className="pl-10"
-					/>
-				</div>
-
+			<div className="flex items-center gap-2">
+				{/* Priority dropdown on the left for mobile */}
 				<Select value={sortBy} onValueChange={setSortBy}>
-					<SelectTrigger className="w-[180px]">
+					<SelectTrigger className="w-[140px] sm:w-[180px]">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
@@ -334,6 +325,52 @@ export default function InventoryPage() {
 						<SelectItem value="expiry">Expiry Date</SelectItem>
 					</SelectContent>
 				</Select>
+
+				{/* Search - expandable on mobile */}
+				<div className="relative flex-1">
+					<div className="hidden sm:block">
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+						<Input
+							placeholder="Search medications..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="pl-10"
+						/>
+					</div>
+					<div className="block sm:hidden">
+						{searchQuery ? (
+							<div className="relative">
+								<Input
+									placeholder="Search..."
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									className="pr-10"
+									autoFocus
+								/>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="absolute right-0 top-0 h-full"
+									onClick={() => setSearchQuery("")}
+								>
+									<X className="h-4 w-4" />
+								</Button>
+							</div>
+						) : (
+							<Button
+								variant="outline"
+								size="icon"
+								onClick={() => {
+									// Focus will be set by autoFocus when input appears
+									setSearchQuery(" "); // Set to space to show input
+									setTimeout(() => setSearchQuery(""), 0); // Clear it immediately
+								}}
+							>
+								<Search className="h-4 w-4" />
+							</Button>
+						)}
+					</div>
+				</div>
 			</div>
 
 			{/* Items List */}

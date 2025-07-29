@@ -1,19 +1,19 @@
 "use client";
 
+import { formatDistanceToNow } from "date-fns";
+import { Bell, CheckCircle, Clock, Package } from "lucide-react";
 import { useState } from "react";
-import { Bell, Package, Clock, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuHeader,
 	DropdownMenuItem,
+	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDistanceToNow } from "date-fns";
 
 interface Notification {
 	id: string;
@@ -140,19 +140,19 @@ export function NotificationDropdown({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[380px]">
-				<DropdownMenuHeader className="flex items-center justify-between">
-					<span className="font-semibold">Notifications</span>
+				<div className="flex items-center justify-between p-2">
+					<DropdownMenuLabel>Notifications</DropdownMenuLabel>
 					{unreadCount > 0 && (
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-auto p-0 text-xs"
+							className="h-auto p-0 text-xs hover:bg-transparent"
 							onClick={handleMarkAllAsRead}
 						>
 							Mark all as read
 						</Button>
 					)}
-				</DropdownMenuHeader>
+				</div>
 				<DropdownMenuSeparator />
 				<ScrollArea className="h-[400px]">
 					{notifications.length === 0 ? (

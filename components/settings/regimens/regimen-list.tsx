@@ -1,10 +1,13 @@
 "use client";
 
+import { format } from "date-fns";
+import { AlertTriangle, Archive, Clock, Plus } from "lucide-react";
 import { useState } from "react";
-import { Plus, Clock, AlertTriangle, Archive } from "lucide-react";
+import { useApp } from "@/components/providers/app-provider";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
 	Select,
 	SelectContent,
@@ -12,10 +15,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { RegimenForm } from "./regimen-form";
-import { useApp } from "@/components/providers/app-provider";
-import { format } from "date-fns";
 
 export interface Regimen {
 	id: string;
@@ -284,9 +284,12 @@ function RegimenCard({
 							{regimen.strength} • {regimen.route}
 						</p>
 					</div>
-					<div className="flex items-center gap-1">
+					<div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center">
 						{regimen.highRisk && (
-							<Badge variant="destructive" className="text-xs">
+							<Badge
+								variant="destructive"
+								className="text-xs whitespace-nowrap"
+							>
 								<AlertTriangle className="h-3 w-3 mr-1" />
 								High-risk
 							</Badge>
@@ -295,7 +298,7 @@ function RegimenCard({
 							variant={
 								regimen.scheduleType === "FIXED" ? "default" : "secondary"
 							}
-							className="text-xs"
+							className="text-xs whitespace-nowrap"
 						>
 							{regimen.scheduleType}
 						</Badge>

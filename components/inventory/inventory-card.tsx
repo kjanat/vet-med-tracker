@@ -1,8 +1,11 @@
 "use client";
 
-import { Calendar, Package, MapPin, MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { differenceInDays, format } from "date-fns";
+import { Calendar, MapPin, MoreHorizontal, Package } from "lucide-react";
+import { useApp } from "@/components/providers/app-provider";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
 	DropdownMenu,
@@ -10,10 +13,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { useApp } from "@/components/providers/app-provider";
 import { cn } from "@/lib/utils";
-import { format, differenceInDays } from "date-fns";
 
 export interface InventoryItem {
 	id: string;
@@ -132,7 +132,7 @@ export function InventoryCard({
 									{item.strength || item.concentration} • {item.route}
 								</div>
 
-								<div className="flex items-center gap-4">
+								<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
 									<div className="flex items-center gap-1">
 										<Calendar className="h-3 w-3" />
 										<span
@@ -152,6 +152,15 @@ export function InventoryCard({
 										<Package className="h-3 w-3" />
 										<span>{item.unitsRemaining} units</span>
 									</div>
+
+									{item.lot && (
+										<div className="flex items-center gap-1">
+											<span className="text-muted-foreground">Lot:</span>
+											<span className="font-mono text-xs bg-muted px-1 py-0.5 rounded select-all">
+												{item.lot}
+											</span>
+										</div>
+									)}
 								</div>
 
 								{daysLeft !== null && (
@@ -198,7 +207,7 @@ export function InventoryCard({
 					{/* Assignment */}
 					<div className="flex items-center gap-2">
 						{assignedAnimal ? (
-							<div className="flex items-center gap-2">
+							<div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
 								<AnimalAvatar animal={assignedAnimal} size="sm" />
 								<span className="text-sm">
 									Assigned to {assignedAnimal.name}
@@ -212,7 +221,7 @@ export function InventoryCard({
 					</div>
 
 					{/* Status Chips */}
-					<div className="flex items-center gap-1">
+					<div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center">
 						{isExpired && (
 							<Badge variant="destructive" className="text-xs">
 								Expired

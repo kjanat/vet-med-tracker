@@ -1,6 +1,8 @@
 "use client";
 
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
 	Command,
@@ -15,11 +17,9 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
-import { useApp } from "../providers/app-provider";
-import { cn } from "@/lib/utils";
 import { getAvatarColor } from "@/lib/avatar-utils";
+import { cn } from "@/lib/utils";
+import { useApp } from "../providers/app-provider";
 
 export function HouseholdSwitcher() {
 	const [open, setOpen] = useState(false);

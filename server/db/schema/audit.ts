@@ -1,14 +1,14 @@
+import { relations } from "drizzle-orm";
 import {
+	index,
+	jsonb,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	jsonb,
-	index,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { users } from "./users";
 import { households } from "./households";
+import { users } from "./users";
 
 // Audit log for all data modifications
 export const auditLog = pgTable(
