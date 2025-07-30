@@ -5,7 +5,6 @@ import { db } from "../db";
 import type { User } from "../db/schema";
 import { auditLog, households, memberships, users } from "../db/schema";
 import { AUTH_COOKIES, SESSION_DURATION } from "./constants";
-import { subjects } from "./subjects";
 import type { AuthProvider, Session } from "./types";
 
 interface PKCEChallenge {
@@ -19,19 +18,16 @@ export class OpenAuthProvider implements AuthProvider {
 	constructor() {
 		const issuer = process.env.OPENAUTH_ISSUER;
 		const clientId = process.env.OPENAUTH_CLIENT_ID || "vetmed-tracker";
-		const clientSecret = process.env.OPENAUTH_CLIENT_SECRET;
 
 		if (!issuer) {
 			throw new Error("OPENAUTH_ISSUER environment variable is required");
 		}
 
 		// OpenAuth client initialized
-
+		// Note: PKCE is enabled per-request in the authorize method
 		this.client = createClient({
 			clientID: clientId,
 			issuer,
-			// Force PKCE for better security
-			pkce: true,
 		});
 	}
 
@@ -107,7 +103,10 @@ export class OpenAuthProvider implements AuthProvider {
 			// Check both the error message and the cause
 			if (error instanceof Error) {
 				const errorMessage = error.message || "";
-				const causeMessage = (error as any).cause?.message || "";
+				const errorWithCause = error as Error & {
+					cause?: { message?: string };
+				};
+				const causeMessage = errorWithCause.cause?.message || "";
 
 				if (
 					(errorMessage.includes("relation") &&
@@ -292,13 +291,11 @@ export class OpenAuthProvider implements AuthProvider {
 					throw new Error("Failed to create user");
 				}
 
-				user = newUser;
-
 				// Create default household for new user
 				const [household] = await tx
 					.insert(households)
 					.values({
-						name: `${user.name}'s Household`,
+						name: `${newUser.name}'s Household`,
 						timezone: process.env.DEFAULT_TIMEZONE || "UTC",
 					})
 					.returning();
@@ -309,21 +306,21 @@ export class OpenAuthProvider implements AuthProvider {
 
 				// Create membership
 				await tx.insert(memberships).values({
-					userId: user.id,
+					userId: newUser.id,
 					householdId: household.id,
 					role: "OWNER",
 				});
 
 				// Audit log the user creation
 				await tx.insert(auditLog).values({
-					userId: user.id,
+					userId: newUser.id,
 					householdId: household.id,
 					action: "CREATE",
 					resourceType: "user",
-					resourceId: user.id,
+					resourceId: newUser.id,
 					newValues: {
-						email: user.email,
-						name: user.name,
+						email: newUser.email,
+						name: newUser.name,
 						source: "openauth",
 					},
 					details: {
@@ -331,7 +328,14 @@ export class OpenAuthProvider implements AuthProvider {
 						membership_role: "OWNER",
 					},
 				});
+
+				// Update user reference after transaction
+				user = newUser;
 			});
+		}
+
+		if (!user) {
+			throw new Error("Failed to create or retrieve user");
 		}
 
 		return user;
