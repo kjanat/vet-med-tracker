@@ -4,7 +4,9 @@ import { auth } from "@/server/auth";
 async function performLogout(request: NextRequest) {
 	const session = await auth.getSession(request.headers);
 	if (session) {
-		await auth.invalidateSession(session.id);
+		// For OpenAuth, we invalidate by clearing cookies
+		// The session ID is not exposed, so we pass the user ID
+		await auth.invalidateSession(session.userId);
 	}
 }
 

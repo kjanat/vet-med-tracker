@@ -14,16 +14,23 @@ export class OpenAuthProvider implements AuthProvider {
 	constructor() {
 		const issuer = process.env.OPENAUTH_ISSUER;
 		const clientId = process.env.OPENAUTH_CLIENT_ID || "vetmed-tracker";
+		const clientSecret = process.env.OPENAUTH_CLIENT_SECRET;
 
 		if (!issuer) {
 			throw new Error("OPENAUTH_ISSUER environment variable is required");
 		}
 
-		console.log("Initializing OpenAuth client with:", { issuer, clientId });
+		console.log("Initializing OpenAuth client with:", {
+			issuer,
+			clientId,
+			hasClientSecret: !!clientSecret,
+		});
 
 		this.client = createClient({
 			clientID: clientId,
 			issuer,
+			// Force PKCE for better security
+			pkce: true,
 		});
 	}
 
@@ -38,25 +45,40 @@ export class OpenAuthProvider implements AuthProvider {
 				return null;
 			}
 
+			// Don't use the subjects from this file - the server uses different subjects
+			// We need to verify with a simple schema that matches what the server sends
+			const { createSubjects } = await import("@openauthjs/openauth");
+			const { z } = await import("zod");
+
+			const serverSubjects = createSubjects({
+				user: z.object({
+					id: z.string(),
+					email: z.string().email(),
+				}),
+			});
+
 			// Verify the access token
-			const verified = await this.client.verify(subjects, accessToken, {
+			const verified = await this.client.verify(serverSubjects, accessToken, {
 				refresh: refreshToken,
 			});
 
-			if (!verified.subject) {
+			if (verified.err || !verified.subject) {
 				return null;
 			}
 
 			// If tokens were refreshed, update cookies
-			if (verified.access && verified.refresh) {
-				await this.setAuthCookies(verified.access, verified.refresh);
+			if (verified.tokens) {
+				await this.setAuthCookies(
+					verified.tokens.access,
+					verified.tokens.refresh,
+				);
 			}
 
 			const userSubject = verified.subject.properties;
 
 			// Fetch the user from database to ensure it exists
 			const user = await db.query.users.findFirst({
-				where: eq(users.id, userSubject.userId),
+				where: eq(users.id, userSubject.id), // Use 'id' not 'userId'
 			});
 
 			if (!user) {
@@ -125,27 +147,57 @@ export class OpenAuthProvider implements AuthProvider {
 	}
 
 	// OAuth-specific methods
-	async getAuthorizeUrl(redirectUri: string, state?: string): Promise<string> {
+	async getAuthorizeUrl(
+		redirectUri: string,
+		state?: string,
+	): Promise<{ url: string; codeVerifier?: string }> {
 		try {
-			// For server-side flow, we don't use PKCE
-			const result = await this.client.authorize(redirectUri, "code");
+			// Generate authorization URL with PKCE enabled
+			const result = await this.client.authorize(redirectUri, "code", {
+				pkce: true,
+			});
 
-			console.log("Authorize result:", result);
+			console.log("Authorize result:", {
+				hasUrl: !!result?.url,
+				hasChallenge: !!result?.challenge,
+				challenge: result?.challenge,
+			});
 
 			if (!result || !result.url) {
 				throw new Error("Failed to generate authorization URL");
 			}
 
-			// The state is already included in the URL by OpenAuth
-			// If we provided our own state, verify it matches
-			if (state && result.challenge?.state !== state) {
-				// Use the OpenAuth-generated state instead
-				const authUrl = new URL(result.url);
-				authUrl.searchParams.set("state", state);
-				return authUrl.toString();
+			// For PKCE flow, we need to extract the verifier from the challenge
+			let codeVerifier: string | undefined;
+			if (result.challenge) {
+				// The challenge object should contain the verifier
+				// Try to access it directly or as a property
+				if (typeof result.challenge === "object" && result.challenge !== null) {
+					// Type assertion to access the verifier property
+					const challenge = result.challenge as any;
+					codeVerifier = challenge.verifier;
+					console.log("PKCE challenge extracted:", {
+						hasVerifier: !!codeVerifier,
+						challengeType: typeof result.challenge,
+						challengeKeys: Object.keys(result.challenge),
+					});
+				}
 			}
 
-			return result.url;
+			// If we have our own state, use it instead of OpenAuth's
+			if (state) {
+				const authUrl = new URL(result.url);
+				authUrl.searchParams.set("state", state);
+				return {
+					url: authUrl.toString(),
+					codeVerifier,
+				};
+			}
+
+			return {
+				url: result.url,
+				codeVerifier,
+			};
 		} catch (error) {
 			console.error("Error generating authorize URL:", error);
 			throw error;
@@ -155,27 +207,66 @@ export class OpenAuthProvider implements AuthProvider {
 	async exchangeCode(
 		code: string,
 		redirectUri: string,
+		codeVerifier?: string,
 	): Promise<{ accessToken: string; refreshToken: string }> {
-		const tokens = await this.client.exchange(code, redirectUri);
+		try {
+			console.log("Exchanging authorization code:", {
+				hasCode: !!code,
+				redirectUri,
+				hasCodeVerifier: !!codeVerifier,
+			});
 
-		if (!tokens.access || !tokens.refresh) {
-			throw new Error("Failed to exchange authorization code");
+			const result = await this.client.exchange(
+				code,
+				redirectUri,
+				codeVerifier,
+			);
+
+			console.log("Exchange result:", {
+				hasError: result.err,
+				hasTokens: !result.err && !!result.tokens,
+			});
+
+			if (result.err) {
+				console.error("Exchange error:", result.err);
+				throw new Error(
+					`Failed to exchange authorization code: ${result.err.message || "Unknown error"}`,
+				);
+			}
+
+			const { access, refresh } = result.tokens;
+
+			// Set cookies with the new tokens
+			await this.setAuthCookies(access, refresh);
+
+			return {
+				accessToken: access,
+				refreshToken: refresh,
+			};
+		} catch (error) {
+			console.error("Token exchange failed:", error);
+			throw error;
 		}
-
-		// Set cookies with the new tokens
-		await this.setAuthCookies(tokens.access, tokens.refresh);
-
-		return {
-			accessToken: tokens.access,
-			refreshToken: tokens.refresh,
-		};
 	}
 
 	// Helper to create or update user from OpenAuth token
 	async createOrUpdateUser(accessToken: string): Promise<User> {
-		const verified = await this.client.verify(subjects, accessToken);
+		// Don't use the subjects from this file - the server uses different subjects
+		// We need to verify with a simple schema that matches what the server sends
+		const { createSubjects } = await import("@openauthjs/openauth");
+		const { z } = await import("zod");
 
-		if (!verified.subject) {
+		const serverSubjects = createSubjects({
+			user: z.object({
+				id: z.string(),
+				email: z.string().email(),
+			}),
+		});
+
+		const verified = await this.client.verify(serverSubjects, accessToken);
+
+		if (verified.err || !verified.subject) {
+			console.error("Token verification failed:", verified.err);
 			throw new Error("Invalid access token");
 		}
 
@@ -183,7 +274,7 @@ export class OpenAuthProvider implements AuthProvider {
 
 		// Check if user exists
 		let user = await db.query.users.findFirst({
-			where: eq(users.id, userSubject.userId),
+			where: eq(users.id, userSubject.id), // Use 'id' not 'userId'
 		});
 
 		if (!user) {
@@ -191,12 +282,16 @@ export class OpenAuthProvider implements AuthProvider {
 			const [newUser] = await db
 				.insert(users)
 				.values({
-					id: userSubject.userId,
+					id: userSubject.id, // Use 'id' not 'userId'
 					email: userSubject.email,
-					name: userSubject.name || userSubject.email.split("@")[0],
+					name: userSubject.email.split("@")[0], // Simple default name
 					emailVerified: new Date(), // Assume verified through OpenAuth
 				})
 				.returning();
+
+			if (!newUser) {
+				throw new Error("Failed to create user");
+			}
 
 			user = newUser;
 
@@ -208,6 +303,10 @@ export class OpenAuthProvider implements AuthProvider {
 					timezone: process.env.DEFAULT_TIMEZONE || "UTC",
 				})
 				.returning();
+
+			if (!household) {
+				throw new Error("Failed to create household");
+			}
 
 			// Create membership
 			await db.insert(memberships).values({

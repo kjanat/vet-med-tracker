@@ -34,5 +34,5 @@
 		"**/*.js",
 		".next/types/**/*.ts"
 	],
-	"exclude": ["node_modules", "sample-components"]
+	"exclude": ["node_modules", "sample-components", "public/sw.js"]
 }
