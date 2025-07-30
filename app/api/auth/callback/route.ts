@@ -55,11 +55,14 @@ export async function GET(request: NextRequest) {
 		const codeVerifier = request.cookies.get(AUTH_COOKIES.PKCE_VERIFIER)?.value;
 		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
 
-		console.log("Callback processing:", {
-			hasCode: !!code,
-			redirectUri,
-			hasCodeVerifier: !!codeVerifier,
-		});
+		// Only log in development to avoid exposing auth flow details in production
+		if (process.env.NODE_ENV === "development") {
+			console.log("Callback processing:", {
+				hasCode: !!code,
+				redirectUri,
+				hasCodeVerifier: !!codeVerifier,
+			});
+		}
 
 		// Exchange code for tokens
 		const { accessToken } = await openAuth.exchangeCode(

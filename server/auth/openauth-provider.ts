@@ -12,6 +12,16 @@ interface PKCEChallenge {
 	[key: string]: unknown;
 }
 
+// Type guard for PKCE challenge validation
+function isPKCEChallenge(value: unknown): value is PKCEChallenge {
+	return (
+		!!value &&
+		typeof value === "object" &&
+		"verifier" in value &&
+		typeof (value as PKCEChallenge).verifier === "string"
+	);
+}
+
 export class OpenAuthProvider implements AuthProvider {
 	private client;
 
@@ -185,12 +195,11 @@ export class OpenAuthProvider implements AuthProvider {
 			// For PKCE flow, we need to extract the verifier from the challenge
 			let codeVerifier: string | undefined;
 			if (result.challenge) {
-				// The challenge object should contain the verifier
-				// Try to access it directly or as a property
-				if (typeof result.challenge === "object" && result.challenge !== null) {
-					// Type assertion to access the verifier property
-					const challenge = result.challenge as PKCEChallenge;
-					codeVerifier = challenge.verifier;
+				if (isPKCEChallenge(result.challenge)) {
+					codeVerifier = result.challenge.verifier;
+				} else {
+					console.error("Invalid PKCE challenge structure:", result.challenge);
+					throw new Error("Invalid PKCE challenge from OpenAuth provider");
 				}
 			}
 
