@@ -31,9 +31,40 @@ export class OpenAuthProvider implements AuthProvider {
 		});
 	}
 
+	// Helper to create server subjects for token verification
+	private async getServerSubjects() {
+		const { createSubjects } = await import("@openauthjs/openauth");
+		const { z } = await import("zod");
+
+		return createSubjects({
+			user: z.object({
+				id: z.string(),
+				email: z.string().email(),
+			}),
+		});
+	}
+
+	// Helper to check if error is a database error
+	private isDatabaseError(error: unknown): boolean {
+		if (!(error instanceof Error)) return false;
+
+		const errorMessage = error.message || "";
+		const errorWithCause = error as Error & {
+			cause?: { message?: string };
+		};
+		const causeMessage = errorWithCause.cause?.message || "";
+
+		return (
+			(errorMessage.includes("relation") &&
+				errorMessage.includes("does not exist")) ||
+			(causeMessage.includes("relation") &&
+				causeMessage.includes("does not exist"))
+		);
+	}
+
 	async getSession(_headers: Headers): Promise<Session | null> {
 		try {
-			// Get cookies from the request
+			// Get auth tokens from cookies
 			const cookieStore = await cookies();
 			const accessToken = cookieStore.get(AUTH_COOKIES.ACCESS_TOKEN)?.value;
 			const refreshToken = cookieStore.get(AUTH_COOKIES.REFRESH_TOKEN)?.value;
@@ -42,19 +73,8 @@ export class OpenAuthProvider implements AuthProvider {
 				return null;
 			}
 
-			// Don't use the subjects from this file - the server uses different subjects
-			// We need to verify with a simple schema that matches what the server sends
-			const { createSubjects } = await import("@openauthjs/openauth");
-			const { z } = await import("zod");
-
-			const serverSubjects = createSubjects({
-				user: z.object({
-					id: z.string(),
-					email: z.string().email(),
-				}),
-			});
-
 			// Verify the access token
+			const serverSubjects = await this.getServerSubjects();
 			const verified = await this.client.verify(serverSubjects, accessToken, {
 				refresh: refreshToken,
 			});
@@ -63,7 +83,7 @@ export class OpenAuthProvider implements AuthProvider {
 				return null;
 			}
 
-			// If tokens were refreshed, update cookies
+			// Update cookies if tokens were refreshed
 			if (verified.tokens) {
 				await this.setAuthCookies(
 					verified.tokens.access,
@@ -71,11 +91,10 @@ export class OpenAuthProvider implements AuthProvider {
 				);
 			}
 
+			// Fetch user and memberships from database
 			const userSubject = verified.subject.properties;
-
-			// Fetch the user from database to ensure it exists
 			const user = await db.query.users.findFirst({
-				where: eq(users.id, userSubject.id), // Use 'id' not 'userId'
+				where: eq(users.id, userSubject.id),
 			});
 
 			if (!user) {
@@ -84,8 +103,6 @@ export class OpenAuthProvider implements AuthProvider {
 				return null;
 			}
 
-			// Fetch current household memberships from database
-			// This ensures we have the latest membership data
 			const userMemberships = await db.query.memberships.findMany({
 				where: eq(memberships.userId, user.id),
 			});
@@ -100,22 +117,8 @@ export class OpenAuthProvider implements AuthProvider {
 			console.error("Error verifying session:", error);
 
 			// Re-throw database errors so they can be handled properly
-			// Check both the error message and the cause
-			if (error instanceof Error) {
-				const errorMessage = error.message || "";
-				const errorWithCause = error as Error & {
-					cause?: { message?: string };
-				};
-				const causeMessage = errorWithCause.cause?.message || "";
-
-				if (
-					(errorMessage.includes("relation") &&
-						errorMessage.includes("does not exist")) ||
-					(causeMessage.includes("relation") &&
-						causeMessage.includes("does not exist"))
-				) {
-					throw error;
-				}
+			if (this.isDatabaseError(error)) {
+				throw error;
 			}
 
 			// For other errors, return null (not authenticated)
@@ -245,20 +248,73 @@ export class OpenAuthProvider implements AuthProvider {
 		}
 	}
 
+	// Helper to create a new user with household
+	private async createUserWithHousehold(userSubject: {
+		id: string;
+		email: string;
+	}): Promise<User> {
+		return await db.transaction(async (tx) => {
+			// Create new user
+			const [newUser] = await tx
+				.insert(users)
+				.values({
+					id: userSubject.id,
+					email: userSubject.email,
+					name: userSubject.email.split("@")[0], // Simple default name
+					emailVerified: new Date(), // Assume verified through OpenAuth
+				})
+				.returning();
+
+			if (!newUser) {
+				throw new Error("Failed to create user");
+			}
+
+			// Create default household for new user
+			const [household] = await tx
+				.insert(households)
+				.values({
+					name: `${newUser.name}'s Household`,
+					timezone: process.env.DEFAULT_TIMEZONE || "UTC",
+				})
+				.returning();
+
+			if (!household) {
+				throw new Error("Failed to create household");
+			}
+
+			// Create membership
+			await tx.insert(memberships).values({
+				userId: newUser.id,
+				householdId: household.id,
+				role: "OWNER",
+			});
+
+			// Audit log the user creation
+			await tx.insert(auditLog).values({
+				userId: newUser.id,
+				householdId: household.id,
+				action: "CREATE",
+				resourceType: "user",
+				resourceId: newUser.id,
+				newValues: {
+					email: newUser.email,
+					name: newUser.name,
+					source: "openauth",
+				},
+				details: {
+					household_created: household.id,
+					membership_role: "OWNER",
+				},
+			});
+
+			return newUser;
+		});
+	}
+
 	// Helper to create or update user from OpenAuth token
 	async createOrUpdateUser(accessToken: string): Promise<User> {
-		// Don't use the subjects from this file - the server uses different subjects
-		// We need to verify with a simple schema that matches what the server sends
-		const { createSubjects } = await import("@openauthjs/openauth");
-		const { z } = await import("zod");
-
-		const serverSubjects = createSubjects({
-			user: z.object({
-				id: z.string(),
-				email: z.string().email(),
-			}),
-		});
-
+		// Verify the access token
+		const serverSubjects = await this.getServerSubjects();
 		const verified = await this.client.verify(serverSubjects, accessToken);
 
 		if (verified.err || !verified.subject) {
@@ -270,72 +326,12 @@ export class OpenAuthProvider implements AuthProvider {
 
 		// Check if user exists
 		let user = await db.query.users.findFirst({
-			where: eq(users.id, userSubject.id), // Use 'id' not 'userId'
+			where: eq(users.id, userSubject.id),
 		});
 
+		// Create user if doesn't exist
 		if (!user) {
-			// Wrap in transaction for atomicity
-			await db.transaction(async (tx) => {
-				// Create new user
-				const [newUser] = await tx
-					.insert(users)
-					.values({
-						id: userSubject.id, // Use 'id' not 'userId'
-						email: userSubject.email,
-						name: userSubject.email.split("@")[0], // Simple default name
-						emailVerified: new Date(), // Assume verified through OpenAuth
-					})
-					.returning();
-
-				if (!newUser) {
-					throw new Error("Failed to create user");
-				}
-
-				// Create default household for new user
-				const [household] = await tx
-					.insert(households)
-					.values({
-						name: `${newUser.name}'s Household`,
-						timezone: process.env.DEFAULT_TIMEZONE || "UTC",
-					})
-					.returning();
-
-				if (!household) {
-					throw new Error("Failed to create household");
-				}
-
-				// Create membership
-				await tx.insert(memberships).values({
-					userId: newUser.id,
-					householdId: household.id,
-					role: "OWNER",
-				});
-
-				// Audit log the user creation
-				await tx.insert(auditLog).values({
-					userId: newUser.id,
-					householdId: household.id,
-					action: "CREATE",
-					resourceType: "user",
-					resourceId: newUser.id,
-					newValues: {
-						email: newUser.email,
-						name: newUser.name,
-						source: "openauth",
-					},
-					details: {
-						household_created: household.id,
-						membership_role: "OWNER",
-					},
-				});
-
-				// Update user reference after transaction
-				user = newUser;
-			});
-		}
-
-		if (!user) {
-			throw new Error("Failed to create or retrieve user");
+			user = await this.createUserWithHousehold(userSubject);
 		}
 
 		return user;

@@ -32,24 +32,118 @@ export function useAuth() {
 	// Note: Authentication checks are not suitable for offline queueing
 	// as they need immediate feedback to determine UI state and access control.
 	// The app needs to know synchronously if a user is authenticated or not.
-	const fetchUser = useCallback(async () => {
-		// Prevent rapid retries
+	// Helper to check if we should retry
+	const shouldRetryFetch = useCallback(() => {
 		const now = Date.now();
 		const timeSinceLastFetch = now - authState.lastFetchTime;
 
 		if (timeSinceLastFetch < AUTH_RETRY.INITIAL_DELAY) {
-			return;
+			return false;
 		}
 
-		// Check if we've exceeded max retries
 		if (authState.retryCount >= AUTH_RETRY.MAX_ATTEMPTS) {
 			setAuthState((prev) => ({
 				...prev,
 				isLoading: false,
 				error: "Maximum authentication attempts exceeded",
 			}));
+			return false;
+		}
+
+		return true;
+	}, [authState.lastFetchTime, authState.retryCount]);
+
+	// Helper to handle successful response
+	const handleAuthSuccess = useCallback(
+		(data: { user: User; households: Household[] }, now: number) => {
+			setAuthState({
+				user: data.user,
+				households: data.households,
+				isLoading: false,
+				error: null,
+				retryCount: 0,
+				lastFetchTime: now,
+			});
+		},
+		[],
+	);
+
+	// Helper to handle unauthenticated response
+	const handleUnauthenticated = useCallback((now: number) => {
+		setAuthState({
+			user: null,
+			households: [],
+			isLoading: false,
+			error: null,
+			retryCount: 0,
+			lastFetchTime: now,
+		});
+	}, []);
+
+	// Helper to handle server errors
+	const handleServerError = useCallback(
+		async (response: Response, now: number) => {
+			const errorMessage = `Server error: ${response.status}`;
+			const shouldRetry = response.status === 503 || response.status === 502;
+
+			// Helper to check if error is permanent
+			const isPermanentError = async (): Promise<boolean> => {
+				try {
+					const errorData = await response.json();
+					return (
+						errorData.error?.includes("relation") ||
+						errorData.error?.includes("does not exist") ||
+						errorData.error?.includes("configuration")
+					);
+				} catch {
+					return false;
+				}
+			};
+
+			// Check if it's a permanent error
+			if (!shouldRetry || (await isPermanentError())) {
+				setAuthState({
+					user: null,
+					households: [],
+					isLoading: false,
+					error: errorMessage,
+					retryCount: AUTH_RETRY.MAX_ATTEMPTS,
+					lastFetchTime: now,
+				});
+				return false;
+			}
+
+			throw new Error(errorMessage);
+		},
+		[],
+	);
+
+	// Helper to schedule retry
+	const scheduleRetry = useCallback(
+		(nextRetryCount: number, retryCount: number, callback: () => void) => {
+			if (nextRetryCount >= AUTH_RETRY.MAX_ATTEMPTS) {
+				return;
+			}
+
+			const delay = Math.min(
+				AUTH_RETRY.INITIAL_DELAY * AUTH_RETRY.BACKOFF_FACTOR ** retryCount,
+				AUTH_RETRY.MAX_DELAY,
+			);
+
+			if (fetchTimeoutRef.current) {
+				clearTimeout(fetchTimeoutRef.current);
+			}
+			fetchTimeoutRef.current = setTimeout(callback, delay);
+		},
+		[],
+	);
+
+	const fetchUser = useCallback(async () => {
+		if (!shouldRetryFetch()) {
 			return;
 		}
+
+		const now = Date.now();
 
 		try {
 			const response = await fetch("/api/auth/me", {
@@ -58,67 +152,11 @@ export function useAuth() {
 
 			if (response.ok) {
 				const data = await response.json();
-				setAuthState({
-					user: data.user,
-					households: data.households,
-					isLoading: false,
-					error: null,
-					retryCount: 0,
-					lastFetchTime: now,
-				});
+				handleAuthSuccess(data, now);
 			} else if (response.status === 401) {
-				// Not authenticated - this is expected, not an error
-				setAuthState({
-					user: null,
-					households: [],
-					isLoading: false,
-					error: null,
-					retryCount: 0,
-					lastFetchTime: now,
-				});
+				handleUnauthenticated(now);
 			} else if (response.status >= 500) {
-				// Server errors - check if retryable
-				const shouldRetry = response.status === 503 || response.status === 502;
-
-				// For other 5xx errors, try to get error details
-				const errorMessage = `Server error: ${response.status}`;
-				try {
-					const errorData = await response.json();
-					// Don't retry if it's a database/configuration error
-					if (
-						errorData.error?.includes("relation") ||
-						errorData.error?.includes("does not exist") ||
-						errorData.error?.includes("configuration")
-					) {
-						// Permanent error - don't retry
-						setAuthState({
-							user: null,
-							households: [],
-							isLoading: false,
-							error: errorMessage,
-							retryCount: AUTH_RETRY.MAX_ATTEMPTS, // Prevent retries
-							lastFetchTime: now,
-						});
-						return;
-					}
-				} catch {
-					// Couldn't parse error response
-				}
-
-				if (!shouldRetry) {
-					// Don't retry other server errors
-					setAuthState({
-						user: null,
-						households: [],
-						isLoading: false,
-						error: errorMessage,
-						retryCount: AUTH_RETRY.MAX_ATTEMPTS, // Prevent retries
-						lastFetchTime: now,
-					});
-					return;
-				}
-
-				throw new Error(errorMessage);
+				await handleServerError(response, now);
 			} else {
 				throw new Error(`Authentication check failed: ${response.status}`);
 			}
@@ -126,11 +164,6 @@ export function useAuth() {
 			console.error("Error fetching user:", error);
 
 			const nextRetryCount = authState.retryCount + 1;
-			const delay = Math.min(
-				AUTH_RETRY.INITIAL_DELAY *
-					AUTH_RETRY.BACKOFF_FACTOR ** authState.retryCount,
-				AUTH_RETRY.MAX_DELAY,
-			);
 
 			setAuthState((prev) => ({
 				...prev,
@@ -140,17 +173,16 @@ export function useAuth() {
 				lastFetchTime: now,
 			}));
 
-			// Schedule retry if we haven't exceeded max attempts
-			if (nextRetryCount < AUTH_RETRY.MAX_ATTEMPTS) {
-				if (fetchTimeoutRef.current) {
-					clearTimeout(fetchTimeoutRef.current);
-				}
-				fetchTimeoutRef.current = setTimeout(() => {
-					fetchUser();
-				}, delay);
-			}
+			scheduleRetry(nextRetryCount, authState.retryCount, () => fetchUser());
 		}
-	}, [authState.lastFetchTime, authState.retryCount]);
+	}, [
+		shouldRetryFetch,
+		handleAuthSuccess,
+		handleUnauthenticated,
+		handleServerError,
+		scheduleRetry,
+		authState.retryCount,
+	]);
 
 	// Fetch current user on mount
 	useEffect(() => {
