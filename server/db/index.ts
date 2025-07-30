@@ -12,8 +12,7 @@ for (const envVar of requiredEnvVars) {
 	}
 }
 
-// Configure Neon for serverless environments
-// fetchConnectionCache is deprecated and now always true
+// Neon is configured for serverless environments by default
 
 // After validation we know these are defined
 const DATABASE_URL_POOLED = process.env.DATABASE_URL_POOLED as string;
