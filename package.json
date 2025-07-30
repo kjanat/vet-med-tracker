@@ -11,14 +11,14 @@
 		"start:full": "pnpm build && pnpm start",
 		"format": "biome format --write",
 		"check": "biome check && pnpm type-check",
-		"db:generate": "pnpm dlx drizzle-kit generate",
-		"db:migrate": "pnpm dlx drizzle-kit migrate",
-		"db:push": "pnpm dlx drizzle-kit push",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:push": "drizzle-kit push",
 		"db:seed": "tsx scripts/seed.ts",
-		"db:studio": "pnpm dlx drizzle-kit studio",
+		"db:studio": "drizzle-kit studio",
 		"type-check": "tsc --noEmit",
 		"typecheck": "tsc --noEmit",
-		"puppeteer:install": "pnpm dlx puppeteer browsers install"
+		"puppeteer:install": "puppeteer browsers install"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.1",
@@ -76,7 +76,7 @@
 		"react-day-picker": "9.8.1",
 		"react-dom": "^19.1.1",
 		"react-hook-form": "^7.61.1",
-		"react-resizable-panels": "^3.0.3",
+		"react-resizable-panels": "^3.0.4",
 		"recharts": "3.1.0",
 		"server-only": "^0.0.1",
 		"sonner": "^2.0.6",
@@ -95,11 +95,13 @@
 		"@types/react": "^19.1.9",
 		"@types/react-dom": "^19.1.7",
 		"drizzle-kit": "^0.31.4",
+		"esbuild": "^0.25.8",
 		"eslint": "^9.32.0",
 		"eslint-config-next": "~15.4.5",
 		"postcss": "^8.5.6",
 		"puppeteer": "^24.15.0",
 		"tailwindcss": "^4.1.11",
+		"tsx": "^4.20.3",
 		"typescript": "^5.8.3"
 	},
 	"devEngines": {
