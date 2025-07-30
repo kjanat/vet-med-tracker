@@ -2,6 +2,40 @@ import { type NextRequest, NextResponse } from "next/server";
 import { openAuth } from "@/server/auth";
 import { AUTH_COOKIES } from "@/server/auth/constants";
 
+// Helper function to create error redirect
+function createErrorRedirect(origin: string, message: string) {
+	return NextResponse.redirect(
+		`${origin}/?error=${encodeURIComponent(message)}`,
+	);
+}
+
+// Helper function to validate OAuth parameters
+function validateOAuthParams(
+	request: NextRequest,
+): { error: string } | { code: string; state: string } {
+	const params = request.nextUrl.searchParams;
+	const error = params.get("error");
+
+	if (error) {
+		console.error("OAuth error:", error);
+		const errorDescription = params.get("error_description");
+		return { error: errorDescription || error };
+	}
+
+	const code = params.get("code");
+	if (!code) {
+		return { error: "Authorization code not provided" };
+	}
+
+	const state = params.get("state");
+	const storedState = request.cookies.get(AUTH_COOKIES.OAUTH_STATE)?.value;
+	if (!state || state !== storedState) {
+		return { error: "Invalid state parameter" };
+	}
+
+	return { code, state };
+}
+
 export async function GET(request: NextRequest) {
 	try {
 		if (!openAuth) {
@@ -11,45 +45,14 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Get code and state from query params
-		const code = request.nextUrl.searchParams.get("code");
-		const state = request.nextUrl.searchParams.get("state");
-		const error = request.nextUrl.searchParams.get("error");
-
-		// Handle OAuth errors
-		if (error) {
-			console.error("OAuth error:", error);
-			const errorDescription =
-				request.nextUrl.searchParams.get("error_description");
-			return NextResponse.redirect(
-				`${request.nextUrl.origin}/?error=${encodeURIComponent(
-					errorDescription || error,
-				)}`,
-			);
+		// Validate OAuth parameters
+		const validation = validateOAuthParams(request);
+		if ("error" in validation) {
+			return createErrorRedirect(request.nextUrl.origin, validation.error);
 		}
 
-		if (!code) {
-			return NextResponse.redirect(
-				`${request.nextUrl.origin}/?error=${encodeURIComponent(
-					"Authorization code not provided",
-				)}`,
-			);
-		}
-
-		// Verify state for CSRF protection
-		const storedState = request.cookies.get(AUTH_COOKIES.OAUTH_STATE)?.value;
-		if (!state || state !== storedState) {
-			return NextResponse.redirect(
-				`${request.nextUrl.origin}/?error=${encodeURIComponent(
-					"Invalid state parameter",
-				)}`,
-			);
-		}
-
-		// Get PKCE code verifier if present
+		const { code } = validation;
 		const codeVerifier = request.cookies.get(AUTH_COOKIES.PKCE_VERIFIER)?.value;
-
-		// Use the same redirect URI that was used in the authorization request
 		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
 
 		console.log("Callback processing:", {
@@ -58,6 +61,7 @@ export async function GET(request: NextRequest) {
 			hasCodeVerifier: !!codeVerifier,
 		});
 
+		// Exchange code for tokens
 		const { accessToken } = await openAuth.exchangeCode(
 			code,
 			redirectUri,
@@ -90,8 +94,6 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
-		return NextResponse.redirect(
-			`${request.nextUrl.origin}/?error=${encodeURIComponent(errorMessage)}`,
-		);
+		return createErrorRedirect(request.nextUrl.origin, errorMessage);
 	}
 }
