@@ -46,27 +46,52 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Exchange code for tokens
-		const redirectUri =
-			request.nextUrl.searchParams.get("redirect_uri") ||
-			`${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
-		const { accessToken } = await openAuth.exchangeCode(code, redirectUri);
+		// Get PKCE code verifier if present
+		const codeVerifier = request.cookies.get(AUTH_COOKIES.PKCE_VERIFIER)?.value;
+
+		// Use the same redirect URI that was used in the authorization request
+		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
+
+		console.log("Callback processing:", {
+			hasCode: !!code,
+			redirectUri,
+			hasCodeVerifier: !!codeVerifier,
+		});
+
+		const { accessToken } = await openAuth.exchangeCode(
+			code,
+			redirectUri,
+			codeVerifier,
+		);
 
 		// Create or update user from the access token
 		await openAuth.createOrUpdateUser(accessToken);
 
-		// Clear the state cookie
+		// Clear the state and PKCE cookies
 		const response = NextResponse.redirect(`${request.nextUrl.origin}/`);
 		response.cookies.delete(AUTH_COOKIES.OAUTH_STATE);
+		response.cookies.delete(AUTH_COOKIES.PKCE_VERIFIER);
 
 		// The OpenAuthProvider already set the auth cookies in exchangeCode
 		return response;
 	} catch (error) {
 		console.error("Callback error:", error);
+
+		// Provide more specific error message
+		let errorMessage = "Authentication failed";
+		if (error instanceof Error) {
+			errorMessage = error.message;
+
+			// Map common errors to user-friendly messages
+			if (error.message.includes("exchange")) {
+				errorMessage = "Failed to complete authentication. Please try again.";
+			} else if (error.message.includes("token")) {
+				errorMessage = "Invalid authentication response. Please try again.";
+			}
+		}
+
 		return NextResponse.redirect(
-			`${request.nextUrl.origin}/?error=${encodeURIComponent(
-				"Authentication failed",
-			)}`,
+			`${request.nextUrl.origin}/?error=${encodeURIComponent(errorMessage)}`,
 		);
 	}
 }

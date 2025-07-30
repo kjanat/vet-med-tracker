@@ -11,18 +11,19 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Get the redirect URI from query params or use default
-		const redirectUri =
-			request.nextUrl.searchParams.get("redirect_uri") ||
-			`${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
+		// Always use the same redirect URI that's configured in the allow list
+		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/auth/callback`;
 
 		// Generate random state for CSRF protection using crypto
 		const state = crypto.randomUUID();
 
-		// Get the authorization URL
-		const authUrl = await openAuth.getAuthorizeUrl(redirectUri, state);
+		// Get the authorization URL with PKCE
+		const { url: authUrl, codeVerifier } = await openAuth.getAuthorizeUrl(
+			redirectUri,
+			state,
+		);
 
-		// Store state in a secure httpOnly cookie for verification
+		// Store state and code verifier in secure httpOnly cookies for verification
 		const response = NextResponse.redirect(authUrl);
 		response.cookies.set(AUTH_COOKIES.OAUTH_STATE, state, {
 			httpOnly: true,
@@ -31,6 +32,17 @@ export async function GET(request: NextRequest) {
 			maxAge: SESSION_DURATION.OAUTH_STATE,
 			path: "/",
 		});
+
+		// Store code verifier if PKCE is being used
+		if (codeVerifier) {
+			response.cookies.set(AUTH_COOKIES.PKCE_VERIFIER, codeVerifier, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: SESSION_DURATION.OAUTH_STATE, // Same duration as state
+				path: "/",
+			});
+		}
 
 		return response;
 	} catch (error) {

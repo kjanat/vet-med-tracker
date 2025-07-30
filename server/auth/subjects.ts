@@ -7,17 +7,20 @@ export const subjects = createSubjects({
 		userId: z.string(),
 		email: z.string().email(),
 		name: z.string().optional(),
-		// Include household memberships for authorization
-		householdMemberships: z.array(
-			z.object({
-				householdId: z.string(),
-				role: z.enum(["OWNER", "CAREGIVER", "VETREADONLY"]),
-			}),
-		),
+		// Include household memberships for authorization (optional for new users)
+		householdMemberships: z
+			.array(
+				z.object({
+					householdId: z.string(),
+					role: z.enum(["OWNER", "CAREGIVER", "VETREADONLY"]),
+				}),
+			)
+			.optional()
+			.default([]),
 	}),
 });
 
 /**
  * Type representing a user subject with authentication and authorization data
  */
-export type UserSubject = typeof subjects.user._type;
+export type UserSubject = z.infer<typeof subjects.user>;
