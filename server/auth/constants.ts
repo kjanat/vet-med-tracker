@@ -19,7 +19,7 @@ export const SESSION_DURATION = {
 } as const;
 
 export const AUTH_RETRY = {
-	MAX_ATTEMPTS: 3,
+	MAX_ATTEMPTS: 1, // Only retry once for auth checks
 	INITIAL_DELAY: 1000, // 1 second
 	MAX_DELAY: 10000, // 10 seconds
 	BACKOFF_FACTOR: 2,

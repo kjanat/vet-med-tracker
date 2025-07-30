@@ -23,6 +23,32 @@ export async function GET(request: NextRequest) {
 		});
 	} catch (error) {
 		console.error("Me endpoint error:", error);
+
+		// Check if it's a database configuration error
+		if (error instanceof Error) {
+			// Database table missing or other configuration issues
+			if (
+				error.message.includes("relation") &&
+				error.message.includes("does not exist")
+			) {
+				return NextResponse.json(
+					{ error: "Database configuration error" },
+					{ status: 500 },
+				);
+			}
+
+			// OpenAuth configuration issues
+			if (
+				error.message.includes("OPENAUTH") ||
+				error.message.includes("environment")
+			) {
+				return NextResponse.json(
+					{ error: "Authentication service configuration error" },
+					{ status: 500 },
+				);
+			}
+		}
+
 		return NextResponse.json(
 			{ error: "Failed to get user info" },
 			{ status: 500 },
