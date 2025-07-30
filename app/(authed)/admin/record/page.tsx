@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Camera, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/providers/app-provider";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +93,7 @@ function useRecordState() {
 	};
 }
 
-export default function RecordPage() {
+function RecordContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const { animals } = useApp();
@@ -656,5 +656,13 @@ function ConditionTagSelector({
 				))}
 			</div>
 		</div>
+	);
+}
+
+export default function RecordPage() {
+	return (
+		<Suspense fallback={<div className="min-h-screen bg-background animate-pulse" />}>
+			<RecordContent />
+		</Suspense>
 	);
 }
