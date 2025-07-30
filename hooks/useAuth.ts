@@ -3,18 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AUTH_RETRY } from "@/server/auth/constants";
+import type { Membership, User } from "@/server/db/schema";
 
-interface User {
-	id: string;
-	email: string;
-	name?: string;
-	image?: string | null;
-}
-
-interface Household {
-	householdId: string;
-	role: "OWNER" | "CAREGIVER" | "VETREADONLY";
-}
+// Type alias for clarity
+type Household = Pick<Membership, "householdId" | "role">;
 
 interface AuthState {
 	user: User | null;
@@ -37,6 +29,9 @@ export function useAuth() {
 		lastFetchTime: 0,
 	});
 
+	// Note: Authentication checks are not suitable for offline queueing
+	// as they need immediate feedback to determine UI state and access control.
+	// The app needs to know synchronously if a user is authenticated or not.
 	const fetchUser = useCallback(async () => {
 		// Prevent rapid retries
 		const now = Date.now();
@@ -81,6 +76,49 @@ export function useAuth() {
 					retryCount: 0,
 					lastFetchTime: now,
 				});
+			} else if (response.status >= 500) {
+				// Server errors - check if retryable
+				const shouldRetry = response.status === 503 || response.status === 502;
+
+				// For other 5xx errors, try to get error details
+				const errorMessage = `Server error: ${response.status}`;
+				try {
+					const errorData = await response.json();
+					// Don't retry if it's a database/configuration error
+					if (
+						errorData.error?.includes("relation") ||
+						errorData.error?.includes("does not exist") ||
+						errorData.error?.includes("configuration")
+					) {
+						// Permanent error - don't retry
+						setAuthState({
+							user: null,
+							households: [],
+							isLoading: false,
+							error: errorMessage,
+							retryCount: AUTH_RETRY.MAX_ATTEMPTS, // Prevent retries
+							lastFetchTime: now,
+						});
+						return;
+					}
+				} catch {
+					// Couldn't parse error response
+				}
+
+				if (!shouldRetry) {
+					// Don't retry other server errors
+					setAuthState({
+						user: null,
+						households: [],
+						isLoading: false,
+						error: errorMessage,
+						retryCount: AUTH_RETRY.MAX_ATTEMPTS, // Prevent retries
+						lastFetchTime: now,
+					});
+					return;
+				}
+
+				throw new Error(errorMessage);
 			} else {
 				throw new Error(`Authentication check failed: ${response.status}`);
 			}
@@ -127,7 +165,9 @@ export function useAuth() {
 	}, [fetchUser]);
 
 	const login = useCallback(() => {
-		// Redirect to login endpoint
+		// OAuth flows require full page navigation for security
+		// Using window.location.href is intentional here as the OAuth provider
+		// needs to redirect back to our callback URL with authentication codes
 		window.location.href = "/api/auth/login";
 	}, []);
 
@@ -187,13 +227,19 @@ export function useAuth() {
 // Hook to require authentication
 export function useRequireAuth() {
 	const { user, isLoading } = useAuth();
+	const router = useRouter();
 
 	useEffect(() => {
 		if (!isLoading && !user) {
-			// Redirect to login
+			// OAuth flows require full page navigation for security
+			// Using window.location.href is intentional here as the OAuth provider
+			// needs to redirect back to our callback URL with authentication codes
 			window.location.href = "/api/auth/login";
 		}
 	}, [user, isLoading]);
 
 	return { user, isLoading };
 }
+
+// Export the base hook for the AuthProvider to use
+export { useAuth as useAuthBase };

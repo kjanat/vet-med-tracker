@@ -55,11 +55,11 @@
 
 ## Next Steps
 
-1. **Get the actual client secret** from the OpenAuth server at https://auth.kajkowalski.nl
+1. **Get the actual client secret** from the OpenAuth server at [https://auth.kajkowalski.nl](https://auth.kajkowalski.nl)
 2. **Add it to `.env.development`**: `OPENAUTH_CLIENT_SECRET="your-actual-secret"`
 3. **Restart the dev server**: `pnpm dev`
 4. **Test the auth flow**:
-   - Navigate to http://localhost:3000
+   - Navigate to [http://localhost:3000](http://localhost:3000)
    - Click "Sign In"
    - Complete authentication on the OpenAuth server
    - Should redirect back and create a user

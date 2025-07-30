@@ -3,6 +3,7 @@ import type React from "react";
 import "./globals.css";
 import { GlobalLayout } from "@/components/layout/global-layout";
 import { AppProvider } from "@/components/providers/app-provider";
+import { AuthProvider } from "@/components/providers/auth-provider";
 import { TRPCProvider } from "@/server/trpc/client";
 import { inter, jetbrainsMono } from "./fonts";
 
@@ -21,9 +22,11 @@ export default function RootLayout({
 		<html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
 			<body className={inter.className}>
 				<TRPCProvider>
-					<AppProvider>
-						<GlobalLayout>{children}</GlobalLayout>
-					</AppProvider>
+					<AuthProvider>
+						<AppProvider>
+							<GlobalLayout>{children}</GlobalLayout>
+						</AppProvider>
+					</AuthProvider>
 				</TRPCProvider>
 			</body>
 		</html>

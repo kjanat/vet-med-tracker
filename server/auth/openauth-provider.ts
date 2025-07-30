@@ -3,10 +3,15 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "../db";
 import type { User } from "../db/schema";
-import { households, memberships, users } from "../db/schema";
+import { auditLog, households, memberships, users } from "../db/schema";
 import { AUTH_COOKIES, SESSION_DURATION } from "./constants";
 import { subjects } from "./subjects";
 import type { AuthProvider, Session } from "./types";
+
+interface PKCEChallenge {
+	verifier: string;
+	[key: string]: unknown;
+}
 
 export class OpenAuthProvider implements AuthProvider {
 	private client;
@@ -20,11 +25,7 @@ export class OpenAuthProvider implements AuthProvider {
 			throw new Error("OPENAUTH_ISSUER environment variable is required");
 		}
 
-		console.log("Initializing OpenAuth client with:", {
-			issuer,
-			clientId,
-			hasClientSecret: !!clientSecret,
-		});
+		// OpenAuth client initialized
 
 		this.client = createClient({
 			clientID: clientId,
@@ -101,6 +102,24 @@ export class OpenAuthProvider implements AuthProvider {
 			};
 		} catch (error) {
 			console.error("Error verifying session:", error);
+
+			// Re-throw database errors so they can be handled properly
+			// Check both the error message and the cause
+			if (error instanceof Error) {
+				const errorMessage = error.message || "";
+				const causeMessage = (error as any).cause?.message || "";
+
+				if (
+					(errorMessage.includes("relation") &&
+						errorMessage.includes("does not exist")) ||
+					(causeMessage.includes("relation") &&
+						causeMessage.includes("does not exist"))
+				) {
+					throw error;
+				}
+			}
+
+			// For other errors, return null (not authenticated)
 			return null;
 		}
 	}
@@ -157,12 +176,6 @@ export class OpenAuthProvider implements AuthProvider {
 				pkce: true,
 			});
 
-			console.log("Authorize result:", {
-				hasUrl: !!result?.url,
-				hasChallenge: !!result?.challenge,
-				challenge: result?.challenge,
-			});
-
 			if (!result || !result.url) {
 				throw new Error("Failed to generate authorization URL");
 			}
@@ -174,13 +187,8 @@ export class OpenAuthProvider implements AuthProvider {
 				// Try to access it directly or as a property
 				if (typeof result.challenge === "object" && result.challenge !== null) {
 					// Type assertion to access the verifier property
-					const challenge = result.challenge as any;
+					const challenge = result.challenge as PKCEChallenge;
 					codeVerifier = challenge.verifier;
-					console.log("PKCE challenge extracted:", {
-						hasVerifier: !!codeVerifier,
-						challengeType: typeof result.challenge,
-						challengeKeys: Object.keys(result.challenge),
-					});
 				}
 			}
 
@@ -210,22 +218,11 @@ export class OpenAuthProvider implements AuthProvider {
 		codeVerifier?: string,
 	): Promise<{ accessToken: string; refreshToken: string }> {
 		try {
-			console.log("Exchanging authorization code:", {
-				hasCode: !!code,
-				redirectUri,
-				hasCodeVerifier: !!codeVerifier,
-			});
-
 			const result = await this.client.exchange(
 				code,
 				redirectUri,
 				codeVerifier,
 			);
-
-			console.log("Exchange result:", {
-				hasError: result.err,
-				hasTokens: !result.err && !!result.tokens,
-			});
 
 			if (result.err) {
 				console.error("Exchange error:", result.err);
@@ -278,41 +275,62 @@ export class OpenAuthProvider implements AuthProvider {
 		});
 
 		if (!user) {
-			// Create new user
-			const [newUser] = await db
-				.insert(users)
-				.values({
-					id: userSubject.id, // Use 'id' not 'userId'
-					email: userSubject.email,
-					name: userSubject.email.split("@")[0], // Simple default name
-					emailVerified: new Date(), // Assume verified through OpenAuth
-				})
-				.returning();
+			// Wrap in transaction for atomicity
+			await db.transaction(async (tx) => {
+				// Create new user
+				const [newUser] = await tx
+					.insert(users)
+					.values({
+						id: userSubject.id, // Use 'id' not 'userId'
+						email: userSubject.email,
+						name: userSubject.email.split("@")[0], // Simple default name
+						emailVerified: new Date(), // Assume verified through OpenAuth
+					})
+					.returning();
 
-			if (!newUser) {
-				throw new Error("Failed to create user");
-			}
+				if (!newUser) {
+					throw new Error("Failed to create user");
+				}
 
-			user = newUser;
+				user = newUser;
 
-			// Create default household for new user
-			const [household] = await db
-				.insert(households)
-				.values({
-					name: `${user.name}'s Household`,
-					timezone: process.env.DEFAULT_TIMEZONE || "UTC",
-				})
-				.returning();
+				// Create default household for new user
+				const [household] = await tx
+					.insert(households)
+					.values({
+						name: `${user.name}'s Household`,
+						timezone: process.env.DEFAULT_TIMEZONE || "UTC",
+					})
+					.returning();
 
-			if (!household) {
-				throw new Error("Failed to create household");
-			}
+				if (!household) {
+					throw new Error("Failed to create household");
+				}
 
-			// Create membership
-			await db.insert(memberships).values({
-				userId: user.id,
-				householdId: household.id,
-				role: "OWNER",
+				// Create membership
+				await tx.insert(memberships).values({
+					userId: user.id,
+					householdId: household.id,
+					role: "OWNER",
+				});
+
+				// Audit log the user creation
+				await tx.insert(auditLog).values({
+					userId: user.id,
+					householdId: household.id,
+					action: "CREATE",
+					resourceType: "user",
+					resourceId: user.id,
+					newValues: {
+						email: user.email,
+						name: user.name,
+						source: "openauth",
+					},
+					details: {
+						household_created: household.id,
+						membership_role: "OWNER",
+					},
+				});
 			});
 		}
 
