@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type React from "react";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { GlobalLayout } from "@/components/layout/global-layout";
 import { AppProvider } from "@/components/providers/app-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -28,6 +29,7 @@ export default function RootLayout({
 						</AppProvider>
 					</AuthProvider>
 				</TRPCProvider>
+				<Analytics />
 			</body>
 		</html>
 	);
