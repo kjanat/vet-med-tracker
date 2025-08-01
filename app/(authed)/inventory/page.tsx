@@ -3,6 +3,7 @@
 import { differenceInDays } from "date-fns";
 import { AlertTriangle, Package, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { InventoryErrorBoundary } from "@/components/error-boundary-page";
 import { AddItemButton } from "@/components/inventory/add-item-button";
 import { AssignModal } from "@/components/inventory/assign-modal";
 import {
@@ -46,19 +47,21 @@ const mockDaysOfSupply = [
 
 export default function InventoryPage() {
 	return (
-		<SidebarProvider>
-			<AppSidebar />
-			<SidebarInset>
-				<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-					<SidebarTrigger className="-ml-1" />
-					<Separator orientation="vertical" className="mr-2 h-4" />
-					<AnimalBreadcrumb />
-				</header>
-				<div className="flex flex-1 flex-col gap-4 p-4 pt-6">
-					<InventoryContent />
-				</div>
-			</SidebarInset>
-		</SidebarProvider>
+		<InventoryErrorBoundary>
+			<SidebarProvider>
+				<AppSidebar />
+				<SidebarInset>
+					<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+						<SidebarTrigger className="-ml-1" />
+						<Separator orientation="vertical" className="mr-2 h-4" />
+						<AnimalBreadcrumb />
+					</header>
+					<div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+						<InventoryContent />
+					</div>
+				</SidebarInset>
+			</SidebarProvider>
+		</InventoryErrorBoundary>
 	);
 }
 

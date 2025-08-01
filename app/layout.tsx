@@ -3,6 +3,7 @@ import type React from "react";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 // import { DebugHouseholdState } from "@/components/debug/debug-household-state";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { GlobalLayout } from "@/components/layout/global-layout";
 import { AppProvider } from "@/components/providers/app-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -26,14 +27,16 @@ export default function RootLayout({
 				<meta name="apple-mobile-web-app-title" content="KJANAT" />
 			</head>
 			<body className={inter.className}>
-				<TRPCProvider>
-					<AuthProvider>
-						<AppProvider>
-							<GlobalLayout>{children}</GlobalLayout>
-							{/* {process.env.NODE_ENV === "development" && <DebugHouseholdState />} */}
-						</AppProvider>
-					</AuthProvider>
-				</TRPCProvider>
+				<ErrorBoundary errorBoundaryId="root">
+					<TRPCProvider>
+						<AuthProvider>
+							<AppProvider>
+								<GlobalLayout>{children}</GlobalLayout>
+								{/* {process.env.NODE_ENV === "development" && <DebugHouseholdState />} */}
+							</AppProvider>
+						</AuthProvider>
+					</TRPCProvider>
+				</ErrorBoundary>
 				<Analytics />
 			</body>
 		</html>

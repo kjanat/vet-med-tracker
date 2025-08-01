@@ -4,6 +4,7 @@ import { ArrowLeft, Camera, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { RecordAdminErrorBoundary } from "@/components/error-boundary-page";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useApp } from "@/components/providers/app-provider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -842,24 +843,26 @@ function ConditionTagSelector({
 
 export default function RecordPage() {
 	return (
-		<SidebarProvider>
-			<AppSidebar />
-			<SidebarInset>
-				<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-					<SidebarTrigger className="-ml-1" />
-					<Separator orientation="vertical" className="mr-2 h-4" />
-					<AnimalBreadcrumb />
-				</header>
-				<div className="flex flex-1 flex-col gap-4 p-4 pt-6">
-					<Suspense
-						fallback={
-							<div className="min-h-screen bg-background animate-pulse" />
-						}
-					>
-						<RecordContent />
-					</Suspense>
-				</div>
-			</SidebarInset>
-		</SidebarProvider>
+		<RecordAdminErrorBoundary>
+			<SidebarProvider>
+				<AppSidebar />
+				<SidebarInset>
+					<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+						<SidebarTrigger className="-ml-1" />
+						<Separator orientation="vertical" className="mr-2 h-4" />
+						<AnimalBreadcrumb />
+					</header>
+					<div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+						<Suspense
+							fallback={
+								<div className="min-h-screen bg-background animate-pulse" />
+							}
+						>
+							<RecordContent />
+						</Suspense>
+					</div>
+				</SidebarInset>
+			</SidebarProvider>
+		</RecordAdminErrorBoundary>
 	);
 }
