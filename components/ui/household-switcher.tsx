@@ -25,6 +25,19 @@ export function HouseholdSwitcher() {
 	const [open, setOpen] = useState(false);
 	const { selectedHousehold, setSelectedHousehold, households } = useApp();
 
+	// Handle no household selected
+	if (!selectedHousehold) {
+		return (
+			<Button
+				variant="outline"
+				className="w-[200px] justify-between bg-transparent"
+				disabled
+			>
+				<span className="text-muted-foreground">No household selected</span>
+			</Button>
+		);
+	}
+
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
@@ -86,7 +99,7 @@ export function HouseholdSwitcher() {
 									<Check
 										className={cn(
 											"ml-auto h-4 w-4",
-											selectedHousehold.id === household.id
+											selectedHousehold?.id === household.id
 												? "opacity-100"
 												: "opacity-0",
 										)}

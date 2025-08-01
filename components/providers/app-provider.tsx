@@ -8,7 +8,9 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { getQueueSize } from "@/lib/offline/db";
+import { trpc } from "@/server/trpc/client";
 
 interface Animal {
 	id: string;
@@ -25,8 +27,8 @@ interface Household {
 }
 
 interface AppContextType {
-	selectedHousehold: Household;
-	setSelectedHousehold: (household: Household) => void;
+	selectedHousehold: Household | null;
+	setSelectedHousehold: (household: Household | null) => void;
 	selectedAnimal: Animal | null;
 	setSelectedAnimal: (animal: Animal | null) => void;
 	animals: Animal[];
@@ -46,15 +48,36 @@ export function useApp() {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-	const [selectedHousehold, setSelectedHousehold] = useState<Household>({
-		id: "1",
-		name: "Smith Family",
-		avatar: undefined,
-	});
-
+	const { households: userHouseholds, isAuthenticated } = useAuth();
+	const [selectedHousehold, setSelectedHousehold] = useState<Household | null>(
+		null,
+	);
 	const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
 	const [isOffline, setIsOffline] = useState(false);
 	const [pendingSyncCount, setPendingSyncCount] = useState(0);
+	const [households, setHouseholds] = useState<Household[]>([]);
+
+	// Fetch household details from API
+	const { data: householdData } = trpc.household.list.useQuery(undefined, {
+		enabled: isAuthenticated,
+	});
+
+	// Update households when data is fetched
+	useEffect(() => {
+		if (householdData && householdData.length > 0) {
+			const formattedHouseholds: Household[] = householdData.map((h) => ({
+				id: h.id,
+				name: h.name,
+				avatar: undefined, // TODO: Add avatar support
+			}));
+			setHouseholds(formattedHouseholds);
+
+			// Set the first household as selected if none is selected
+			if (!selectedHousehold && formattedHouseholds.length > 0) {
+				setSelectedHousehold(formattedHouseholds[0]);
+			}
+		}
+	}, [householdData, selectedHousehold]);
 
 	// Update pending sync count
 	const updatePendingSyncCount = useCallback(async () => {
@@ -84,49 +107,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 		};
 	}, []);
 
-	const households: Household[] = [
-		{
-			id: "1",
-			name: "Smith Family",
-			avatar: undefined,
-		},
-		{
-			id: "2",
-			name: "Johnson Ranch",
-			avatar: undefined,
-		},
-	];
+	// Fetch animals for selected household
+	const { data: animalData } = trpc.household.getAnimals.useQuery(
+		{ householdId: selectedHousehold?.id || "" },
+		{ enabled: !!selectedHousehold?.id },
+	);
 
-	const animals: Animal[] = [
-		{
-			id: "1",
-			name: "Buddy",
-			species: "Dog",
-			pendingMeds: 2,
-			avatar: undefined,
-		},
-		{
-			id: "2",
-			name: "Whiskers",
-			species: "Cat",
-			pendingMeds: 1,
-			avatar: undefined,
-		},
-		{
-			id: "3",
-			name: "Charlie",
-			species: "Dog",
-			pendingMeds: 0,
-			avatar: undefined,
-		},
-		{
-			id: "4",
-			name: "Luna",
-			species: "Cat",
-			pendingMeds: 3,
-			avatar: undefined,
-		},
-	];
+	// Format animals with placeholder data
+	const animals: Animal[] =
+		animalData?.map((animal) => ({
+			id: animal.id,
+			name: animal.name,
+			species: animal.species,
+			avatar: undefined, // TODO: Add avatar support
+			pendingMeds: 0, // TODO: Calculate from actual data
+		})) || [];
 
 	return (
 		<AppContext.Provider
