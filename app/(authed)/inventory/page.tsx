@@ -13,8 +13,10 @@ import {
 	InventoryCard,
 	type InventoryItem,
 } from "@/components/inventory/inventory-card";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useApp } from "@/components/providers/app-provider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,6 +26,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import {
+	SidebarInset,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { useDaysOfSupply } from "@/hooks/useDaysOfSupply";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { trpc } from "@/server/trpc/client";
@@ -37,6 +45,24 @@ const mockDaysOfSupply = [
 ];
 
 export default function InventoryPage() {
+	return (
+		<SidebarProvider>
+			<AppSidebar />
+			<SidebarInset>
+				<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+					<SidebarTrigger className="-ml-1" />
+					<Separator orientation="vertical" className="mr-2 h-4" />
+					<AnimalBreadcrumb />
+				</header>
+				<div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+					<InventoryContent />
+				</div>
+			</SidebarInset>
+		</SidebarProvider>
+	);
+}
+
+function InventoryContent() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [sortBy, setSortBy] = useState("priority");
 	const [assignModalItem, setAssignModalItem] = useState<InventoryItem | null>(

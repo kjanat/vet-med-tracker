@@ -4,9 +4,11 @@ import { ArrowLeft, Camera, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useApp } from "@/components/providers/app-provider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +24,11 @@ import { InventorySourceSelect } from "@/components/ui/inventory-source-select";
 import { Label } from "@/components/ui/label";
 import { MedConfirmButton } from "@/components/ui/med-confirm-button";
 import { Separator } from "@/components/ui/separator";
+import {
+	SidebarInset,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
@@ -835,10 +842,24 @@ function ConditionTagSelector({
 
 export default function RecordPage() {
 	return (
-		<Suspense
-			fallback={<div className="min-h-screen bg-background animate-pulse" />}
-		>
-			<RecordContent />
-		</Suspense>
+		<SidebarProvider>
+			<AppSidebar />
+			<SidebarInset>
+				<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+					<SidebarTrigger className="-ml-1" />
+					<Separator orientation="vertical" className="mr-2 h-4" />
+					<AnimalBreadcrumb />
+				</header>
+				<div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+					<Suspense
+						fallback={
+							<div className="min-h-screen bg-background animate-pulse" />
+						}
+					>
+						<RecordContent />
+					</Suspense>
+				</div>
+			</SidebarInset>
+		</SidebarProvider>
 	);
 }

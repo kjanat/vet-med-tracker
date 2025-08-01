@@ -8,7 +8,15 @@ import {
 	type AdministrationRecord,
 	HistoryList,
 } from "@/components/history/history-list";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useApp } from "@/components/providers/app-provider";
+import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+	SidebarInset,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { useHistoryFilters } from "@/hooks/useHistoryFilters";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { trpc } from "@/server/trpc/client";
@@ -236,7 +244,7 @@ function HistoryContent() {
 	// Loading state
 	if (isLoading) {
 		return (
-			<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+			<div className="bg-background max-w-full overflow-x-hidden">
 				<FilterBar />
 				<div className="p-4 md:p-6">
 					<div className="flex items-center justify-center py-12">
@@ -258,7 +266,7 @@ function HistoryContent() {
 	// Error state
 	if (error) {
 		return (
-			<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+			<div className="bg-background max-w-full overflow-x-hidden">
 				<FilterBar />
 				<div className="p-4 md:p-6">
 					<div className="flex items-center justify-center py-12">
@@ -286,7 +294,7 @@ function HistoryContent() {
 	// No household selected
 	if (!selectedHousehold) {
 		return (
-			<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+			<div className="bg-background max-w-full overflow-x-hidden">
 				<FilterBar />
 				<div className="p-4 md:p-6">
 					<div className="flex items-center justify-center py-12">
@@ -305,20 +313,17 @@ function HistoryContent() {
 	}
 
 	return (
-		<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
-			{/* Header */}
-			<div className="p-4 md:p-6 pb-0">
-				<div>
-					<h1 className="text-3xl font-bold">History</h1>
-					<p className="text-muted-foreground">
-						View past medication administrations and compliance
-					</p>
-				</div>
+		<div className="space-y-6">
+			<div>
+				<h1 className="text-3xl font-bold">History</h1>
+				<p className="text-muted-foreground">
+					View past medication administrations and compliance
+				</p>
 			</div>
 
 			<FilterBar />
 
-			<div className="p-4 md:p-6 pt-0">
+			<div>
 				{filters.view === "list" ? (
 					<HistoryList
 						groups={groupedRecords}
@@ -344,10 +349,20 @@ function HistoryContent() {
 
 export default function HistoryPage() {
 	return (
-		<Suspense
-			fallback={<div className="min-h-screen bg-background animate-pulse" />}
-		>
-			<HistoryContent />
-		</Suspense>
+		<SidebarProvider>
+			<AppSidebar />
+			<SidebarInset>
+				<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+					<SidebarTrigger className="-ml-1" />
+					<Separator orientation="vertical" className="mr-2 h-4" />
+					<AnimalBreadcrumb />
+				</header>
+				<div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+					<Suspense fallback={<div className="bg-background animate-pulse" />}>
+						<HistoryContent />
+					</Suspense>
+				</div>
+			</SidebarInset>
+		</SidebarProvider>
 	);
 }

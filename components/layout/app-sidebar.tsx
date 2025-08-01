@@ -29,10 +29,10 @@ import {
 	SidebarMenuItem,
 	SidebarRail,
 } from "@/components/ui/sidebar";
-import { UserMenuDesktop } from "../auth/user-menu-desktop";
 import { HouseholdSwitcher } from "../ui/household-switcher";
 import { NavDashboard } from "./nav-dashboard";
 import { NavMain } from "./nav-main";
+import { NavUser } from "./nav-user";
 
 // Navigation data for VetMed Tracker
 const data = {
@@ -211,7 +211,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</SidebarGroup>
 			</SidebarContent>
 			<SidebarFooter>
-				<UserMenuDesktop />
+				<NavUser />
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

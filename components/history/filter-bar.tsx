@@ -42,7 +42,7 @@ export function FilterBar() {
 
 	return (
 		<div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 border-b">
-			<div className="container max-w-full px-4 py-2 md:py-3">
+			<div className="container max-w-full py-2 md:py-3">
 				<div className="flex flex-col gap-2 md:gap-3">
 					{/* Mobile: View toggle and date on same row */}
 					<div className="flex gap-2 md:flex-wrap md:gap-3">

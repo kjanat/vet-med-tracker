@@ -2,14 +2,40 @@
 
 import { FileText, Plus, Search } from "lucide-react";
 import { useState } from "react";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useAnimalForm } from "@/components/providers/animal-form-provider";
 import { useApp } from "@/components/providers/app-provider";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import {
+	SidebarInset,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export default function AnimalsPage() {
+	return (
+		<SidebarProvider>
+			<AppSidebar />
+			<SidebarInset>
+				<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+					<SidebarTrigger className="-ml-1" />
+					<Separator orientation="vertical" className="mr-2 h-4" />
+					<AnimalBreadcrumb />
+				</header>
+				<div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+					<AnimalsContent />
+				</div>
+			</SidebarInset>
+		</SidebarProvider>
+	);
+}
+
+function AnimalsContent() {
 	const { animals, selectedHousehold } = useApp();
 	const { openForm } = useAnimalForm();
 	const [searchQuery, setSearchQuery] = useState("");
