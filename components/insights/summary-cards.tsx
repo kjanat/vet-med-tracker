@@ -86,7 +86,7 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
 	// Calculate household streak (consecutive days without missed doses)
 	const householdStreak = useMemo(() => {
-		if (!adminData) return 0;
+		if (!adminData || adminData.length === 0) return null; // Return null for no data
 
 		// TODO: Implement proper streak calculation based on missed doses by day
 		// For now, return a simple calculation
@@ -180,6 +180,10 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 		);
 	}
 
+	// Check if we have any data to show
+	const hasData = adminData && adminData.length > 0;
+	const hasAnimals = animals && animals.length > 0;
+
 	return (
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 			{/* Household Streak */}
@@ -194,10 +198,21 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 					<TrendingUp className="h-4 w-4 text-muted-foreground" />
 				</CardHeader>
 				<CardContent>
-					<div className="text-2xl font-bold">{householdStreak} days</div>
-					<p className="text-xs text-muted-foreground">
-						No missed scheduled doses
-					</p>
+					{hasData ? (
+						<>
+							<div className="text-2xl font-bold">{householdStreak} days</div>
+							<p className="text-xs text-muted-foreground">
+								No missed scheduled doses
+							</p>
+						</>
+					) : (
+						<>
+							<div className="text-2xl font-bold">—</div>
+							<p className="text-xs text-muted-foreground">
+								No doses recorded yet
+							</p>
+						</>
+					)}
 				</CardContent>
 			</Card>
 
@@ -213,10 +228,21 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 					<Target className="h-4 w-4 text-muted-foreground" />
 				</CardHeader>
 				<CardContent>
-					<div className="text-2xl font-bold">{householdAdherence}%</div>
-					<p className="text-xs text-muted-foreground">
-						{householdTotals.completed} of {householdTotals.scheduled} doses
-					</p>
+					{householdTotals.scheduled > 0 ? (
+						<>
+							<div className="text-2xl font-bold">{householdAdherence}%</div>
+							<p className="text-xs text-muted-foreground">
+								{householdTotals.completed} of {householdTotals.scheduled} doses
+							</p>
+						</>
+					) : (
+						<>
+							<div className="text-2xl font-bold">—</div>
+							<p className="text-xs text-muted-foreground">
+								No scheduled doses yet
+							</p>
+						</>
+					)}
 				</CardContent>
 			</Card>
 
@@ -224,7 +250,9 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 			<Card
 				className="cursor-pointer hover:shadow-md transition-shadow"
 				onClick={() =>
-					handleCardClick(`animalId=${sortedAnimals[0]?.animalId}`)
+					sortedAnimals[0]
+						? handleCardClick(`animalId=${sortedAnimals[0].animalId}`)
+						: undefined
 				}
 			>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -232,7 +260,7 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 					<Award className="h-4 w-4 text-muted-foreground" />
 				</CardHeader>
 				<CardContent>
-					{sortedAnimals[0] && (
+					{sortedAnimals.length > 0 && hasData ? (
 						<div className="flex items-center gap-2">
 							{(() => {
 								const topPerformer = sortedAnimals[0];
@@ -250,6 +278,20 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 								</div>
 							</div>
 						</div>
+					) : !hasAnimals ? (
+						<>
+							<div className="text-2xl font-bold">—</div>
+							<p className="text-xs text-muted-foreground">
+								Add animals to track
+							</p>
+						</>
+					) : (
+						<>
+							<div className="text-2xl font-bold">—</div>
+							<p className="text-xs text-muted-foreground">
+								No doses recorded yet
+							</p>
+						</>
 					)}
 				</CardContent>
 			</Card>
@@ -264,10 +306,21 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 					<AlertTriangle className="h-4 w-4 text-muted-foreground" />
 				</CardHeader>
 				<CardContent>
-					<div className="text-2xl font-bold">{householdTotals.missed}</div>
-					<p className="text-xs text-muted-foreground">
-						Missed doses this period
-					</p>
+					{hasData ? (
+						<>
+							<div className="text-2xl font-bold">{householdTotals.missed}</div>
+							<p className="text-xs text-muted-foreground">
+								Missed doses this period
+							</p>
+						</>
+					) : (
+						<>
+							<div className="text-2xl font-bold">—</div>
+							<p className="text-xs text-muted-foreground">
+								No doses to track yet
+							</p>
+						</>
+					)}
 				</CardContent>
 			</Card>
 
@@ -280,63 +333,81 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 					<CardDescription>Compliance by animal</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="space-y-3">
-						{sortedAnimals.map((animal, index) => {
-							const animalData = animals.find((a) => a.id === animal.animalId);
-							if (!animalData) return null;
+					{!hasAnimals ? (
+						<div className="text-center py-8">
+							<p className="text-muted-foreground">
+								Add animals to start tracking medication compliance
+							</p>
+						</div>
+					) : !hasData ? (
+						<div className="text-center py-8">
+							<p className="text-muted-foreground">
+								Record doses to see compliance rankings
+							</p>
+						</div>
+					) : (
+						<div className="space-y-3">
+							{sortedAnimals.map((animal, index) => {
+								const animalData = animals.find(
+									(a) => a.id === animal.animalId,
+								);
+								if (!animalData) return null;
 
-							return (
-								<button
-									type="button"
-									key={animal.animalId}
-									className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors gap-3 w-full text-left"
-									onClick={() => handleCardClick(`animalId=${animal.animalId}`)}
-								>
-									{/* Left side: Position, avatar, and animal info */}
-									<div className="flex items-center gap-3 min-w-0">
-										<div className="flex flex-col items-center gap-2 sm:flex-row">
-											<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
-												{index + 1}
+								return (
+									<button
+										type="button"
+										key={animal.animalId}
+										className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors gap-3 w-full text-left"
+										onClick={() =>
+											handleCardClick(`animalId=${animal.animalId}`)
+										}
+									>
+										{/* Left side: Position, avatar, and animal info */}
+										<div className="flex items-center gap-3 min-w-0">
+											<div className="flex flex-col items-center gap-2 sm:flex-row">
+												<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
+													{index + 1}
+												</div>
+												<AnimalAvatar animal={animalData} size="sm" />
 											</div>
-											<AnimalAvatar animal={animalData} size="sm" />
+											<div className="min-w-0">
+												<div className="font-medium truncate">
+													{animal.animalName}
+												</div>
+												<div className="text-sm text-muted-foreground truncate">
+													{animal.completed} of {animal.scheduled} doses
+												</div>
+											</div>
 										</div>
-										<div className="min-w-0">
-											<div className="font-medium truncate">
-												{animal.animalName}
-											</div>
-											<div className="text-sm text-muted-foreground truncate">
-												{animal.completed} of {animal.scheduled} doses
-											</div>
-										</div>
-									</div>
 
-									{/* Right side: Badges stacked vertically */}
-									<div className="flex flex-col gap-1 items-end shrink-0 sm:flex-row sm:items-center sm:gap-2">
-										<Badge
-											variant={
-												animal.adherencePct >= 90
-													? "default"
-													: animal.adherencePct >= 80
-														? "secondary"
-														: "destructive"
-											}
-											className="w-fit"
-										>
-											{animal.adherencePct}%
-										</Badge>
-										{animal.missed > 0 && (
+										{/* Right side: Badges stacked vertically */}
+										<div className="flex flex-col gap-1 items-end shrink-0 sm:flex-row sm:items-center sm:gap-2">
 											<Badge
-												variant="outline"
-												className="text-orange-600 whitespace-nowrap w-fit"
+												variant={
+													animal.adherencePct >= 90
+														? "default"
+														: animal.adherencePct >= 80
+															? "secondary"
+															: "destructive"
+												}
+												className="w-fit"
 											>
-												{animal.missed} missed
+												{animal.adherencePct}%
 											</Badge>
-										)}
-									</div>
-								</button>
-							);
-						})}
-					</div>
+											{animal.missed > 0 && (
+												<Badge
+													variant="outline"
+													className="text-orange-600 whitespace-nowrap w-fit"
+												>
+													{animal.missed} missed
+												</Badge>
+											)}
+										</div>
+									</button>
+								);
+							})}
+						</div>
+					)}
 				</CardContent>
 			</Card>
 		</div>
