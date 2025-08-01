@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ActionableSuggestions } from "@/components/insights/actionable-suggestions";
-import { ComplianceHeatmap } from "@/components/insights/compliance-heatmap";
-import { ExportPanel } from "@/components/insights/export-panel";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { SummaryCards } from "@/components/insights/summary-cards";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
@@ -13,6 +10,12 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { ChartSkeleton, ListSkeleton } from "@/components/ui/skeleton-variants";
+
+// Lazy load heavy components
+const ComplianceHeatmap = lazy(() => import("@/components/insights/compliance-heatmap").then(m => ({ default: m.ComplianceHeatmap })));
+const ActionableSuggestions = lazy(() => import("@/components/insights/actionable-suggestions").then(m => ({ default: m.ActionableSuggestions })));
+const ExportPanel = lazy(() => import("@/components/insights/export-panel").then(m => ({ default: m.ExportPanel })));
 
 export default function InsightsPage() {
 	return (
@@ -76,16 +79,22 @@ function InsightsContent() {
 			<div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
 				{/* Main content - Heatmap */}
 				<div className="space-y-6 lg:col-span-2">
-					<ComplianceHeatmap
-						range={selectedRange}
-						onRangeChange={setSelectedRange}
-					/>
-					<ExportPanel />
+					<Suspense fallback={<ChartSkeleton />}>
+						<ComplianceHeatmap
+							range={selectedRange}
+							onRangeChange={setSelectedRange}
+						/>
+					</Suspense>
+					<Suspense fallback={<div className="h-20" />}>
+						<ExportPanel />
+					</Suspense>
 				</div>
 
 				{/* Right rail - Actionable Suggestions */}
 				<div className="space-y-6">
-					<ActionableSuggestions />
+					<Suspense fallback={<ListSkeleton count={3} />}>
+						<ActionableSuggestions />
+					</Suspense>
 				</div>
 			</div>
 		</div>
