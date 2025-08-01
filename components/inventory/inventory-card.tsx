@@ -17,21 +17,25 @@ import { cn } from "@/lib/utils";
 
 export interface InventoryItem {
 	id: string;
+	medicationId?: string;
 	name: string;
 	brand?: string;
+	genericName?: string;
 	strength?: string;
 	concentration?: string;
 	route: string;
 	form: string;
 	expiresOn: Date;
 	unitsRemaining: number;
+	unitsTotal?: number;
 	lot?: string;
-	storage: "FRIDGE" | "ROOM";
+	storage: "FRIDGE" | "ROOM" | "FREEZER" | "CONTROLLED";
 	barcode?: string;
 	inUse: boolean;
 	inUseSince?: Date;
 	assignedAnimalId?: string;
 	catalogId: string;
+	notes?: string;
 }
 
 interface InventoryCardProps {
@@ -89,7 +93,7 @@ function StatusBadges({
 	isExpired: boolean;
 	isExpiring: boolean;
 	isLowStock: boolean;
-	storage: "FRIDGE" | "ROOM";
+	storage: "FRIDGE" | "ROOM" | "FREEZER" | "CONTROLLED";
 }) {
 	return (
 		<div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center">

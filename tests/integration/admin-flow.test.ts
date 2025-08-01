@@ -12,11 +12,11 @@ import {
 describe("Admin Flow Integration", () => {
 	const db = createTestDatabase();
 	let testData: {
-		user: any;
-		household: any;
-		animal: any;
-		medication: any;
-		regimen: any;
+		user: unknown;
+		household: unknown;
+		animal: unknown;
+		medication: unknown;
+		regimen: unknown;
 	};
 
 	beforeEach(async () => {

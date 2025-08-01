@@ -9,9 +9,14 @@ import {
 } from "@/components/inventory/add-item-modal";
 import { AssignModal } from "@/components/inventory/assign-modal";
 import {
+	type EditItemData,
+	EditItemModal,
+} from "@/components/inventory/edit-item-modal";
+import {
 	InventoryCard,
 	type InventoryItem,
 } from "@/components/inventory/inventory-card";
+import { useApp } from "@/components/providers/app-provider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,76 +29,14 @@ import {
 } from "@/components/ui/select";
 import { useDaysOfSupply } from "@/hooks/useDaysOfSupply";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { trpc } from "@/server/trpc/client";
 
-// Mock data - replace with tRPC queries
-const mockItems: InventoryItem[] = [
-	{
-		id: "1",
-		name: "Rimadyl",
-		brand: "Pfizer",
-		strength: "75mg",
-		route: "Oral",
-		form: "Tablet",
-		expiresOn: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-		unitsRemaining: 45,
-		lot: "ABC123",
-		storage: "ROOM",
-		inUse: true,
-		inUseSince: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-		assignedAnimalId: "1",
-		catalogId: "rimadyl-75mg",
-	},
-	{
-		id: "2",
-		name: "Insulin",
-		brand: "Vetsulin",
-		strength: "40 IU/ml",
-		route: "Subcutaneous",
-		form: "Injection",
-		expiresOn: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // Expired
-		unitsRemaining: 12,
-		lot: "INS456",
-		storage: "FRIDGE",
-		inUse: true,
-		inUseSince: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-		assignedAnimalId: "2",
-		catalogId: "insulin-40iu",
-	},
-	{
-		id: "3",
-		name: "Antibiotics",
-		brand: "Amoxicillin",
-		strength: "250mg",
-		route: "Oral",
-		form: "Capsule",
-		expiresOn: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-		unitsRemaining: 8,
-		lot: "AMX789",
-		storage: "ROOM",
-		inUse: false,
-		catalogId: "amoxicillin-250mg",
-	},
-	{
-		id: "4",
-		name: "Eye Drops",
-		strength: "0.5%",
-		route: "Ophthalmic",
-		form: "Drops",
-		expiresOn: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // Expiring soon
-		unitsRemaining: 15,
-		lot: "EYE001",
-		storage: "ROOM",
-		inUse: false,
-		assignedAnimalId: "3",
-		catalogId: "eye-drops-05",
-	},
-];
-
+// Mock days of supply until we implement usage tracking
 const mockDaysOfSupply = [
-	{ itemId: "1", daysLeft: 6 }, // Low stock
-	{ itemId: "2", daysLeft: 3 }, // Very low stock
+	{ itemId: "1", daysLeft: 6 },
+	{ itemId: "2", daysLeft: 3 },
 	{ itemId: "3", daysLeft: 15 },
-	{ itemId: "4", daysLeft: null }, // No usage history
+	{ itemId: "4", daysLeft: null },
 ];
 
 export default function InventoryPage() {
@@ -102,7 +45,12 @@ export default function InventoryPage() {
 	const [assignModalItem, setAssignModalItem] = useState<InventoryItem | null>(
 		null,
 	);
+	const [editModalItem, setEditModalItem] = useState<InventoryItem | null>(
+		null,
+	);
 	const { enqueue } = useOfflineQueue();
+	const { selectedHousehold } = useApp();
+	const utils = trpc.useUtils();
 
 	// Fire page view event
 	useState(() => {
@@ -111,16 +59,53 @@ export default function InventoryPage() {
 		}
 	});
 
-	const daysLeftMap = useDaysOfSupply(mockItems, mockDaysOfSupply);
+	// Fetch inventory items
+	const {
+		data: items = [],
+		isLoading,
+		error,
+	} = trpc.inventory.list.useQuery(
+		{
+			householdId: selectedHousehold?.id || "",
+		},
+		{
+			enabled: !!selectedHousehold?.id,
+		},
+	);
+
+	// Transform the data to match the InventoryItem interface
+	const inventoryItems: InventoryItem[] = useMemo(() => {
+		return items.map((item) => ({
+			id: item.id,
+			medicationId: item.medicationId,
+			name: item.name,
+			brand: item.name, // Using name as brand for now
+			genericName: item.genericName,
+			strength: item.strength || "",
+			route: item.route as InventoryItem["route"],
+			form: item.form as InventoryItem["form"],
+			expiresOn: item.expiresOn || new Date(),
+			unitsRemaining: item.unitsRemaining || 0,
+			unitsTotal: item.unitsTotal || 0,
+			lot: item.lot,
+			storage: item.storage as InventoryItem["storage"],
+			inUse: item.inUse,
+			assignedAnimalId: item.assignedAnimalId || undefined,
+			catalogId: item.medicationId,
+		}));
+	}, [items]);
+
+	// TODO: Replace with actual usage data from tRPC
+	const daysLeftMap = useDaysOfSupply(inventoryItems, mockDaysOfSupply);
 
 	// Generate alerts
 	const alerts = useMemo(() => {
-		return generateInventoryAlerts(mockItems, daysLeftMap);
-	}, [daysLeftMap]);
+		return generateInventoryAlerts(inventoryItems, daysLeftMap);
+	}, [inventoryItems, daysLeftMap]);
 
 	// Filter and sort items
 	const filteredAndSortedItems = useMemo(() => {
-		let filtered = mockItems;
+		let filtered = inventoryItems;
 
 		// Search filter
 		if (searchQuery) {
@@ -139,47 +124,154 @@ export default function InventoryPage() {
 		);
 
 		return sorted;
-	}, [searchQuery, sortBy, daysLeftMap]);
+	}, [searchQuery, sortBy, daysLeftMap, inventoryItems]);
+
+	// Create inventory item mutation
+	const createMutation = trpc.inventory.create.useMutation({
+		onSuccess: () => {
+			// Invalidate and refetch
+			utils.inventory.list.invalidate();
+		},
+	});
 
 	const handleAddItem = async (data: AddItemData) => {
-		const itemId = crypto.randomUUID();
+		if (!selectedHousehold?.id) return;
+
+		// For now, use a dummy medication ID until we implement medication catalog search
+		// TODO: Implement medication catalog search/create
+		const medicationId = crypto.randomUUID();
+
 		const payload = {
-			...data,
-			householdId: "household-1", // From context
-			catalogId: `${data.name.toLowerCase().replace(/\s+/g, "-")}-${data.strength || ""}`,
+			householdId: selectedHousehold.id,
+			medicationId,
+			brandOverride: data.brand,
+			lot: data.lot,
+			expiresOn: data.expiresOn ? new Date(data.expiresOn) : new Date(),
+			storage: data.storage as "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED",
+			unitsTotal: data.quantityUnits,
+			unitType: "units", // TODO: Add unit type to form
+			notes: undefined, // TODO: Add notes to form
 		};
 
-		// Optimistic update would go here
-		console.log("Adding item:", payload);
-
-		// Queue for offline
-		await enqueue(payload, `inventory:addItem:${itemId}`);
-
-		// Show success toast
-		console.log(`Added ${data.name} (expires ${data.expiresOn})`);
+		try {
+			await createMutation.mutateAsync(payload);
+			// Show success toast
+			console.log(`Added ${data.name} (expires ${data.expiresOn})`);
+		} catch (error) {
+			// Queue for offline
+			await enqueue(payload, `inventory:addItem:${crypto.randomUUID()}`);
+			console.error("Failed to add item, queued for offline sync:", error);
+		}
 	};
+
+	// Set in-use mutation
+	const setInUseMutation = trpc.inventory.setInUse.useMutation({
+		onSuccess: () => {
+			utils.inventory.list.invalidate();
+		},
+	});
 
 	const handleSetInUse = async (itemId: string, inUse: boolean) => {
-		// Optimistic update
-		console.log(`Setting item ${itemId} in use: ${inUse}`);
+		if (!selectedHousehold?.id) return;
 
-		// Queue for offline
-		const idempotencyKey = `inventory:setInUse:${itemId}:${Math.floor(Date.now() / 60000)}`;
-		await enqueue({ itemId, inUse }, idempotencyKey);
-
-		// Show toast
-		console.log(inUse ? "Now in use" : "No longer in use");
+		try {
+			await setInUseMutation.mutateAsync({
+				id: itemId,
+				householdId: selectedHousehold.id,
+				inUse,
+			});
+			console.log(inUse ? "Now in use" : "No longer in use");
+		} catch (error) {
+			// Queue for offline
+			const idempotencyKey = `inventory:setInUse:${itemId}:${Math.floor(Date.now() / 60000)}`;
+			await enqueue(
+				{ itemId, householdId: selectedHousehold.id, inUse },
+				idempotencyKey,
+			);
+			console.error(
+				"Failed to update in-use status, queued for offline sync:",
+				error,
+			);
+		}
 	};
 
-	const handleAssign = async (itemId: string, animalId: string | null) => {
-		// Optimistic update
-		console.log(`Assigning item ${itemId} to animal ${animalId}`);
+	// Assign to animal mutation
+	const assignMutation = trpc.inventory.assignToAnimal.useMutation({
+		onSuccess: () => {
+			utils.inventory.list.invalidate();
+		},
+	});
 
-		// Queue for offline
-		await enqueue(
-			{ itemId, assignedAnimalId: animalId },
-			`inventory:assign:${itemId}:${animalId || "null"}`,
-		);
+	// Update inventory item mutation
+	const updateMutation = trpc.inventory.update.useMutation({
+		onSuccess: () => {
+			utils.inventory.list.invalidate();
+		},
+	});
+
+	// Delete inventory item mutation
+	const deleteMutation = trpc.inventory.delete.useMutation({
+		onSuccess: () => {
+			utils.inventory.list.invalidate();
+		},
+	});
+
+	const handleAssign = async (itemId: string, animalId: string | null) => {
+		if (!selectedHousehold?.id) return;
+
+		try {
+			await assignMutation.mutateAsync({
+				id: itemId,
+				householdId: selectedHousehold.id,
+				animalId,
+			});
+			console.log(`Assigned item to ${animalId || "no animal"}`);
+		} catch (error) {
+			// Queue for offline
+			await enqueue(
+				{
+					itemId,
+					householdId: selectedHousehold.id,
+					assignedAnimalId: animalId,
+				},
+				`inventory:assign:${itemId}:${animalId || "null"}`,
+			);
+			console.error("Failed to assign item, queued for offline sync:", error);
+		}
+	};
+
+	const handleUpdate = async (id: string, data: EditItemData) => {
+		if (!selectedHousehold?.id) return;
+
+		try {
+			await updateMutation.mutateAsync({
+				id,
+				householdId: selectedHousehold.id,
+				brandOverride: data.brandOverride,
+				lot: data.lot,
+				expiresOn: new Date(data.expiresOn),
+				storage: data.storage,
+				unitsRemaining: data.unitsRemaining,
+				notes: data.notes,
+			});
+			console.log("Item updated successfully");
+		} catch (error) {
+			console.error("Failed to update item:", error);
+		}
+	};
+
+	const handleDelete = async (id: string) => {
+		if (!selectedHousehold?.id) return;
+
+		try {
+			await deleteMutation.mutateAsync({
+				id,
+				householdId: selectedHousehold.id,
+			});
+			console.log("Item deleted successfully");
+		} catch (error) {
+			console.error("Failed to delete item:", error);
+		}
 	};
 
 	const handleAlertClick = (alertId: string) => {
@@ -194,6 +286,54 @@ export default function InventoryPage() {
 			);
 		}
 	};
+
+	// Show loading state
+	if (isLoading && !inventoryItems.length) {
+		return (
+			<div className="flex items-center justify-center py-12">
+				<div className="text-center">
+					<Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50 animate-pulse" />
+					<p className="text-muted-foreground">Loading inventory...</p>
+				</div>
+			</div>
+		);
+	}
+
+	// Show error state
+	if (error) {
+		return (
+			<div className="flex items-center justify-center py-12">
+				<div className="text-center">
+					<AlertTriangle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+					<h3 className="text-lg font-medium mb-2">Failed to load inventory</h3>
+					<p className="text-muted-foreground mb-4">
+						{error.message || "An unexpected error occurred"}
+					</p>
+					<Button
+						onClick={() => utils.inventory.list.invalidate()}
+						variant="outline"
+					>
+						Try Again
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
+	// Show no household selected state
+	if (!selectedHousehold?.id) {
+		return (
+			<div className="flex items-center justify-center py-12">
+				<div className="text-center">
+					<Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+					<h3 className="text-lg font-medium mb-2">No household selected</h3>
+					<p className="text-muted-foreground">
+						Please select a household to view inventory
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-6">
@@ -338,7 +478,7 @@ export default function InventoryPage() {
 							daysLeft={daysLeftMap.get(item.id) || null}
 							onUseThis={() => handleSetInUse(item.id, !item.inUse)}
 							onAssign={() => setAssignModalItem(item)}
-							onDetails={() => console.log("Show details for", item.id)}
+							onDetails={() => setEditModalItem(item)}
 						/>
 					))}
 				</div>
@@ -350,6 +490,15 @@ export default function InventoryPage() {
 				open={!!assignModalItem}
 				onOpenChange={(open) => !open && setAssignModalItem(null)}
 				onAssign={handleAssign}
+			/>
+
+			{/* Edit Modal */}
+			<EditItemModal
+				item={editModalItem}
+				open={!!editModalItem}
+				onOpenChange={(open) => !open && setEditModalItem(null)}
+				onUpdate={handleUpdate}
+				onDelete={handleDelete}
 			/>
 		</div>
 	);
