@@ -3,6 +3,7 @@ import { adminRouter } from "./admin";
 import { animalRouter } from "./animals";
 import { householdRouter } from "./households";
 import { inventoryRouter } from "./inventory";
+import { medicationRouter } from "./medication";
 import { regimenRouter } from "./regimens";
 
 // Root router combining all sub-routers
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
 	regimen: regimenRouter,
 	admin: adminRouter,
 	inventory: inventoryRouter,
+	medication: medicationRouter,
 });
 
 // Export type for use in client

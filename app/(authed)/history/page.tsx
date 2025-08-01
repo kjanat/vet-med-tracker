@@ -4,10 +4,7 @@ import { endOfMonth, parseISO, startOfMonth } from "date-fns";
 import { Suspense, useMemo, useState } from "react";
 import { FilterBar } from "@/components/history/filter-bar";
 import { HistoryCalendar } from "@/components/history/history-calendar";
-import {
-	type AdministrationRecord,
-	HistoryList,
-} from "@/components/history/history-list";
+import { HistoryList } from "@/components/history/history-list";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useApp } from "@/components/providers/app-provider";
 import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
@@ -18,7 +15,8 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useHistoryFilters } from "@/hooks/useHistoryFilters";
-import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+// import { useOfflineQueue } from "@/hooks/useOfflineQueue"; // TODO: Uncomment when mutations are implemented
+import type { AdministrationRecord } from "@/lib/types";
 import { trpc } from "@/server/trpc/client";
 import { localDayISO } from "@/utils/tz";
 
@@ -28,7 +26,7 @@ function HistoryContent() {
 	const { filters } = useHistoryFilters();
 	const [currentMonth, setCurrentMonth] = useState(new Date());
 	const { selectedHousehold } = useApp();
-	const { enqueue } = useOfflineQueue();
+	// const { enqueue } = useOfflineQueue(); // TODO: Uncomment when mutations are implemented
 
 	// Fetch administration records from tRPC
 	const {
@@ -53,34 +51,26 @@ function HistoryContent() {
 		return adminRecords.map((record) => ({
 			id: record.id,
 			animalId: record.animalId,
-			animalName: record.animalName || "Unknown",
-			medicationName: record.medicationName || "Unknown",
-			strength: record.strength || "",
-			route: record.route || "Unknown",
-			form: record.form || "Unknown",
-			slot: record.slot || undefined,
+			animalName: "Unknown", // TODO: Join with animals table
+			medicationName: "Unknown", // TODO: Join with regimens/medications table
+			strength: "", // TODO: Join with medications table
+			route: "Unknown", // TODO: Join with medications table
+			form: "Unknown", // TODO: Join with medications table
+			slot: undefined, // TODO: Implement slot logic
 			scheduledFor: record.scheduledFor
 				? new Date(record.scheduledFor)
 				: undefined,
 			recordedAt: new Date(record.recordedAt),
-			caregiverName: record.caregiverName || "Unknown",
+			caregiverName: "Unknown", // TODO: Join with users table
 			status: record.status as AdministrationRecord["status"],
-			cosignPending: record.cosignPending || false,
-			sourceItem: record.sourceItem
-				? {
-						name: record.sourceItem.name,
-						lot: record.sourceItem.lot || undefined,
-						expiresOn: record.sourceItem.expiresOn
-							? new Date(record.sourceItem.expiresOn)
-							: undefined,
-					}
-				: undefined,
+			cosignPending: false, // TODO: Implement cosign logic
+			sourceItem: undefined, // TODO: Join with inventory items
 			site: record.site || undefined,
 			notes: record.notes || undefined,
-			isEdited: record.isEdited || false,
-			editedBy: record.editedBy || undefined,
-			editedAt: record.editedAt ? new Date(record.editedAt) : undefined,
-			isDeleted: record.isDeleted || false,
+			isEdited: false, // TODO: Implement edit tracking
+			editedBy: undefined,
+			editedAt: undefined,
+			isDeleted: false, // TODO: Implement soft delete
 		}));
 	}, [adminRecords]);
 
@@ -96,9 +86,9 @@ function HistoryContent() {
 		// Filter by type
 		if (filters.type !== "all") {
 			if (filters.type === "scheduled") {
-				filtered = filtered.filter((r) => r.status !== "prn");
+				filtered = filtered.filter((r) => r.status !== "PRN");
 			} else if (filters.type === "prn") {
-				filtered = filtered.filter((r) => r.status === "prn");
+				filtered = filtered.filter((r) => r.status === "PRN");
 			}
 		}
 
@@ -159,17 +149,17 @@ function HistoryContent() {
 			count.total++;
 
 			switch (record.status) {
-				case "on-time":
+				case "ON_TIME":
 					count.onTime++;
 					break;
-				case "late":
-				case "very-late":
+				case "LATE":
+				case "VERY_LATE":
 					count.late++;
 					break;
-				case "missed":
+				case "MISSED":
 					count.missed++;
 					break;
-				case "prn":
+				case "PRN":
 					count.prn++;
 					break;
 			}
@@ -182,51 +172,42 @@ function HistoryContent() {
 	}, [filteredRecords, currentMonth]);
 
 	const handleUndo = async (id: string) => {
-		try {
-			// TODO: Implement undo mutation when available
-			console.log("Undoing record:", id);
-			// await trpc.admin.undo.mutate({ recordId: id, householdId: selectedHousehold.id });
-		} catch (error) {
-			// Queue for offline sync
-			await enqueue(
-				"admin.undo",
-				{ recordId: id, householdId: selectedHousehold?.id },
-				`undo:${id}`,
-			);
-			console.error("Failed to undo record, queued for offline sync:", error);
-		}
+		// TODO: Implement undo mutation when available
+		console.log("Undoing record:", id);
+		// await trpc.admin.undo.mutate({ recordId: id, householdId: selectedHousehold.id });
+
+		// Queue for offline sync when mutation is implemented
+		// await enqueue(
+		//   "admin.undo",
+		//   { recordId: id, householdId: selectedHousehold?.id },
+		//   `undo:${id}`,
+		// );
 	};
 
 	const handleDelete = async (id: string) => {
-		try {
-			// TODO: Implement delete mutation when available
-			console.log("Deleting record:", id);
-			// await trpc.admin.delete.mutate({ recordId: id, householdId: selectedHousehold.id });
-		} catch (error) {
-			// Queue for offline sync
-			await enqueue(
-				"admin.delete",
-				{ recordId: id, householdId: selectedHousehold?.id },
-				`delete:${id}`,
-			);
-			console.error("Failed to delete record, queued for offline sync:", error);
-		}
+		// TODO: Implement delete mutation when available
+		console.log("Deleting record:", id);
+		// await trpc.admin.delete.mutate({ recordId: id, householdId: selectedHousehold.id });
+
+		// Queue for offline sync when mutation is implemented
+		// await enqueue(
+		//   "admin.delete",
+		//   { recordId: id, householdId: selectedHousehold?.id },
+		//   `delete:${id}`,
+		// );
 	};
 
 	const handleCosign = async (id: string) => {
-		try {
-			// TODO: Implement cosign mutation when available
-			console.log("Co-signing record:", id);
-			// await trpc.admin.cosign.mutate({ recordId: id, householdId: selectedHousehold.id });
-		} catch (error) {
-			// Queue for offline sync
-			await enqueue(
-				"admin.cosign",
-				{ recordId: id, householdId: selectedHousehold?.id },
-				`cosign:${id}`,
-			);
-			console.error("Failed to cosign record, queued for offline sync:", error);
-		}
+		// TODO: Implement cosign mutation when available
+		console.log("Co-signing record:", id);
+		// await trpc.admin.cosign.mutate({ recordId: id, householdId: selectedHousehold.id });
+
+		// Queue for offline sync when mutation is implemented
+		// await enqueue(
+		//   "admin.cosign",
+		//   { recordId: id, householdId: selectedHousehold?.id },
+		//   `cosign:${id}`,
+		// );
 	};
 
 	const handleLoadMore = () => {

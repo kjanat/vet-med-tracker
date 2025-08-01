@@ -17,12 +17,13 @@ import { Button } from "@/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
+	SheetDescription,
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
+import type { AdministrationRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import type { AdministrationRecord } from "./history-list";
 
 interface DayCount {
 	date: Date;
@@ -165,6 +166,9 @@ export function HistoryCalendar({
 								>
 									<SheetHeader>
 										<SheetTitle>{format(day, "EEEE, MMMM d, yyyy")}</SheetTitle>
+										<SheetDescription>
+											Medication administration history for this day
+										</SheetDescription>
 									</SheetHeader>
 
 									<div className="mt-6 space-y-4">
@@ -221,9 +225,9 @@ export function HistoryCalendar({
 													</div>
 													<Badge
 														variant={
-															record.status === "on-time"
+															record.status === "ON_TIME"
 																? "default"
-																: record.status === "missed"
+																: record.status === "MISSED"
 																	? "destructive"
 																	: "secondary"
 														}

@@ -14,6 +14,7 @@ import { trpc } from "@/server/trpc/client";
 import { AnimalFormProvider } from "./animal-form-provider";
 import { InventoryFormProvider } from "./inventory-form-provider";
 
+// Minimal Animal interface for app-provider context
 interface Animal {
 	id: string;
 	name: string;
@@ -51,9 +52,20 @@ export function useApp() {
 
 export function AppProvider({ children }: { children: ReactNode }) {
 	const { isAuthenticated } = useAuth();
-	const [selectedHousehold, setSelectedHousehold] = useState<Household | null>(
-		null,
-	);
+	const [selectedHousehold, setSelectedHouseholdState] =
+		useState<Household | null>(null);
+
+	// Wrapper to update both state and localStorage
+	const setSelectedHousehold = useCallback((household: Household | null) => {
+		setSelectedHouseholdState(household);
+		if (typeof window !== "undefined") {
+			if (household?.id) {
+				localStorage.setItem("selectedHouseholdId", household.id);
+			} else {
+				localStorage.removeItem("selectedHouseholdId");
+			}
+		}
+	}, []);
 	const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
 	const [isOffline, setIsOffline] = useState(false);
 	const [pendingSyncCount, setPendingSyncCount] = useState(0);
@@ -74,12 +86,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
 			}));
 			setHouseholds(formattedHouseholds);
 
-			// Set the first household as selected if none is selected
-			if (!selectedHousehold && formattedHouseholds.length > 0) {
+			// Try to restore selected household from localStorage first
+			if (!selectedHousehold && typeof window !== "undefined") {
+				const savedHouseholdId = localStorage.getItem("selectedHouseholdId");
+				const savedHousehold = formattedHouseholds.find(
+					(h) => h.id === savedHouseholdId,
+				);
+
+				if (savedHousehold) {
+					setSelectedHousehold(savedHousehold);
+				} else {
+					// Saved household not found in API data - clear invalid localStorage
+					if (savedHouseholdId) {
+						console.warn(
+							`Household ID ${savedHouseholdId} not found in user's households. Clearing localStorage.`,
+						);
+						localStorage.removeItem("selectedHouseholdId");
+					}
+
+					// Fallback to first household if any exist
+					if (formattedHouseholds.length > 0) {
+						setSelectedHousehold(formattedHouseholds[0] || null);
+					}
+				}
+			} else if (!selectedHousehold && formattedHouseholds.length > 0) {
+				// Set the first household as selected if none is selected (SSR case)
 				setSelectedHousehold(formattedHouseholds[0] || null);
 			}
 		}
-	}, [householdData, selectedHousehold]);
+	}, [householdData, selectedHousehold, setSelectedHousehold]);
 
 	// Update pending sync count
 	const updatePendingSyncCount = useCallback(async () => {

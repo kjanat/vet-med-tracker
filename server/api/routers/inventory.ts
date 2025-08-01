@@ -163,6 +163,7 @@ export const inventoryRouter = createTRPCRouter({
 					.enum(["ROOM", "FRIDGE", "FREEZER", "CONTROLLED"])
 					.default("ROOM"),
 				unitsTotal: z.number().int().positive(),
+				unitsRemaining: z.number().int().min(0).optional(), // Optional, defaults to unitsTotal
 				unitType: z.string(),
 				purchaseDate: z.date().optional(),
 				purchasePrice: z.string().optional(),
@@ -172,21 +173,66 @@ export const inventoryRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const { unitsTotal, expiresOn, purchaseDate, ...restInput } = input;
-			const newItem = await ctx.db
-				.insert(inventoryItems)
-				.values({
-					...restInput,
-					expiresOn: expiresOn.toISOString().split("T")[0]!,
-					purchaseDate: purchaseDate
-						? purchaseDate.toISOString().split("T")[0]!
-						: undefined,
-					quantityUnits: unitsTotal,
-					unitsRemaining: unitsTotal,
-				})
-				.returning();
+			const {
+				unitsTotal,
+				unitsRemaining,
+				expiresOn,
+				purchaseDate,
+				...restInput
+			} = input;
 
-			return newItem[0];
+			// Build the values object, excluding undefined optional fields
+			const values: any = {
+				householdId: restInput.householdId,
+				medicationId: restInput.medicationId,
+				expiresOn: expiresOn.toISOString().split("T")[0]!,
+				storage: restInput.storage,
+				quantityUnits: unitsTotal,
+				unitsRemaining: unitsRemaining ?? unitsTotal, // Use provided value or default to unitsTotal
+				unitType: restInput.unitType,
+			};
+
+			// Add optional fields only if they have values
+			if (restInput.brandOverride)
+				values.brandOverride = restInput.brandOverride;
+			if (restInput.lot) values.lot = restInput.lot;
+			if (restInput.notes) values.notes = restInput.notes;
+			if (restInput.assignedAnimalId)
+				values.assignedAnimalId = restInput.assignedAnimalId;
+			if (restInput.supplier) values.supplier = restInput.supplier;
+			if (restInput.purchasePrice)
+				values.purchasePrice = restInput.purchasePrice;
+			if (purchaseDate)
+				values.purchaseDate = purchaseDate.toISOString().split("T")[0]!;
+
+			// Clean undefined values to prevent database issues
+			const cleanValues = Object.fromEntries(
+				Object.entries(values).filter(([_, value]) => value !== undefined),
+			) as typeof inventoryItems.$inferInsert;
+
+			try {
+				console.log(
+					"Attempting to insert inventory item with cleanValues:",
+					JSON.stringify(cleanValues, null, 2),
+				);
+
+				const newItem = await ctx.db
+					.insert(inventoryItems)
+					.values(cleanValues)
+					.returning();
+
+				return newItem[0];
+			} catch (error: any) {
+				console.error("Inventory insert error details:", {
+					message: error?.message,
+					cause: error?.cause?.message,
+					code: error?.code,
+					detail: error?.detail,
+					values: JSON.stringify(values, null, 2),
+					stack: error?.stack,
+				});
+				throw error;
+			}
 		}),
 
 	// Update inventory item

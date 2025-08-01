@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type React from "react";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { DebugHouseholdState } from "@/components/debug/debug-household-state";
 import { GlobalLayout } from "@/components/layout/global-layout";
 import { AppProvider } from "@/components/providers/app-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -11,7 +12,6 @@ import { inter, jetbrainsMono } from "./fonts";
 export const metadata: Metadata = {
 	title: "VetMed Tracker",
 	description: "Veterinary medication management system",
-	generator: "v0.dev",
 };
 
 export default function RootLayout({
@@ -29,6 +29,7 @@ export default function RootLayout({
 					<AuthProvider>
 						<AppProvider>
 							<GlobalLayout>{children}</GlobalLayout>
+							{/* {process.env.NODE_ENV === "development" && <DebugHouseholdState />} */}
 						</AppProvider>
 					</AuthProvider>
 				</TRPCProvider>

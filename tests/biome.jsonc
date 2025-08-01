@@ -1,0 +1,12 @@
+{
+	"$schema": "../node_modules/@biomejs/biome/configuration_schema.json",
+	"extends": "//",
+	"linter": {
+		"domains": { "test": "recommended" },
+		"rules": {
+			"suspicious": {
+				"noExplicitAny": "off"
+			}
+		}
+	}
+}

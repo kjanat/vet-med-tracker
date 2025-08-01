@@ -7,28 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import type { Animal } from "@/lib/types";
 import { AnimalForm } from "./animal-form";
-
-export interface Animal {
-	id: string;
-	name: string;
-	species: string;
-	breed?: string;
-	sex?: "Male" | "Female";
-	neutered?: boolean;
-	dob?: Date;
-	weightKg?: number;
-	microchipId?: string;
-	color?: string;
-	photo?: string;
-	timezone: string;
-	vetName?: string;
-	vetPhone?: string;
-	allergies: string[];
-	conditions: string[];
-	avatar?: string;
-	pendingMeds: number;
-}
 
 // Mock data - replace with tRPC
 const mockAnimals: Animal[] = [

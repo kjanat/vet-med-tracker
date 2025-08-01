@@ -45,6 +45,27 @@ export function TRPCProvider(
 				httpBatchLink({
 					transformer: superjson,
 					url: getUrl(),
+					headers() {
+						const headers: Record<string, string> = {};
+
+						// Add household context if available from localStorage
+						if (typeof window !== "undefined") {
+							const selectedHouseholdId = localStorage.getItem(
+								"selectedHouseholdId",
+							);
+							if (selectedHouseholdId) {
+								headers["x-household-id"] = selectedHouseholdId;
+							}
+						}
+
+						return headers;
+					},
+					fetch(url, options) {
+						return fetch(url, {
+							...options,
+							credentials: "include", // Include authentication cookies
+						});
+					},
 				}),
 			],
 		}),

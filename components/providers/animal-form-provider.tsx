@@ -3,7 +3,7 @@
 import type React from "react";
 import { createContext, useContext, useState } from "react";
 import { AnimalForm } from "@/components/settings/animals/animal-form";
-import type { Animal } from "@/components/settings/animals/animal-list";
+import type { Animal } from "@/lib/types";
 
 interface AnimalFormContextValue {
 	openForm: (animal?: Animal | null) => void;

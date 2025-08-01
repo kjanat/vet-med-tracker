@@ -2,10 +2,8 @@
 
 import type React from "react";
 import { createContext, useContext, useState } from "react";
-import {
-	type AddItemData,
-	AddItemModal,
-} from "@/components/inventory/add-item-modal";
+import { AddItemModal } from "@/components/inventory/add-item-modal";
+import type { InventoryFormData } from "@/lib/schemas/inventory";
 import { trpc } from "@/server/trpc/client";
 import { useApp } from "./app-provider";
 
@@ -48,30 +46,60 @@ export function InventoryFormProvider({
 		},
 	});
 
+	// Set in use mutation
+	const setInUseMutation = trpc.inventory.setInUse.useMutation({
+		onSuccess: () => {
+			// Invalidate and refetch
+			utils.inventory.list.invalidate();
+		},
+	});
+
 	const openForm = () => setIsOpen(true);
 	const closeForm = () => setIsOpen(false);
 
-	const handleAddItem = async (data: AddItemData) => {
-		if (!selectedHousehold?.id) return;
+	const handleAddItem = async (data: InventoryFormData) => {
+		if (!selectedHousehold?.id) {
+			console.error("No household selected!");
+			return;
+		}
 
-		// For now, use a dummy medication ID until we implement medication catalog search
-		// TODO: Implement medication catalog search/create
-		const medicationId = crypto.randomUUID();
+		console.log("Adding item with household:", {
+			id: selectedHousehold.id,
+			name: selectedHousehold.name,
+			data: data,
+		});
+
+		if (!data.medicationId) {
+			console.error("No medication selected!");
+			throw new Error("Please select a medication");
+		}
 
 		const payload = {
 			householdId: selectedHousehold.id,
-			medicationId,
-			brandOverride: data.brand,
-			lot: data.lot,
+			medicationId: data.medicationId,
+			brandOverride: data.brand || undefined, // Convert empty string to undefined
+			lot: data.lot || undefined, // Convert empty string to undefined
 			expiresOn: data.expiresOn ? new Date(data.expiresOn) : new Date(),
 			storage: data.storage as "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED",
 			unitsTotal: data.quantityUnits,
+			unitsRemaining: data.unitsRemaining,
 			unitType: "units", // TODO: Add unit type to form
 			notes: undefined, // TODO: Add notes to form
+			assignedAnimalId: data.assignedAnimalId || undefined, // Convert empty string to undefined
 		};
 
 		try {
-			await createMutation.mutateAsync(payload);
+			const result = await createMutation.mutateAsync(payload);
+
+			// If setInUse is true and an animal is assigned, call the setInUse mutation
+			if (data.setInUse && data.assignedAnimalId && result?.id) {
+				await setInUseMutation.mutateAsync({
+					id: result.id,
+					householdId: selectedHousehold.id,
+					inUse: true,
+				});
+			}
+
 			// Show success toast
 			console.log(`Added ${data.name} (expires ${data.expiresOn})`);
 		} catch (error) {

@@ -55,17 +55,17 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 				(record) => record.animalId === animal.id,
 			);
 
-			const scheduled = animalRecords.filter((r) => r.status !== "prn").length;
+			const scheduled = animalRecords.filter((r) => r.status !== "PRN").length;
 			const completed = animalRecords.filter(
 				(r) =>
-					r.status === "on-time" ||
-					r.status === "late" ||
-					r.status === "very-late",
+					r.status === "ON_TIME" ||
+					r.status === "LATE" ||
+					r.status === "VERY_LATE",
 			).length;
-			const missed = animalRecords.filter((r) => r.status === "missed").length;
-			const late = animalRecords.filter((r) => r.status === "late").length;
+			const missed = animalRecords.filter((r) => r.status === "MISSED").length;
+			const late = animalRecords.filter((r) => r.status === "LATE").length;
 			const veryLate = animalRecords.filter(
-				(r) => r.status === "very-late",
+				(r) => r.status === "VERY_LATE",
 			).length;
 
 			const adherencePct =
@@ -90,7 +90,7 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
 		// TODO: Implement proper streak calculation based on missed doses by day
 		// For now, return a simple calculation
-		const missedCount = adminData.filter((r) => r.status === "missed").length;
+		const missedCount = adminData.filter((r) => r.status === "MISSED").length;
 		return missedCount === 0 ? 7 : Math.max(0, 7 - missedCount);
 	}, [adminData]);
 

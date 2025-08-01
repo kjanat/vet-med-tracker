@@ -30,6 +30,7 @@ import {
 import {
 	Sheet,
 	SheetContent,
+	SheetDescription,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
@@ -312,6 +313,9 @@ export function ComplianceHeatmap({
 							{selectedCell &&
 								`${dayNames[selectedCell.dow]} ${selectedCell.hour}:00`}
 						</SheetTitle>
+						<SheetDescription>
+							Medication administration details for this time slot
+						</SheetDescription>
 					</SheetHeader>
 
 					{selectedCell && (

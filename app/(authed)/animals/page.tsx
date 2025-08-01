@@ -46,7 +46,14 @@ function AnimalsContent() {
 	);
 
 	const handleEdit = (animal: (typeof animals)[0]) => {
-		openForm(animal);
+		// Convert minimal animal to full Animal type - in a real app, we'd fetch full animal data here
+		const fullAnimal = {
+			...animal,
+			timezone: "America/New_York", // Default timezone
+			allergies: [],
+			conditions: [],
+		};
+		openForm(fullAnimal);
 	};
 
 	const handleEmergencyCard = (animalId: string) => {

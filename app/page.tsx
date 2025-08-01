@@ -23,17 +23,9 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import type { Animal } from "@/lib/types";
 import { trpc } from "@/server/trpc/client";
 import { formatTimeLocal } from "@/utils/tz";
-
-export interface Animal {
-	id: string;
-	name: string;
-	species: string;
-	breed?: string;
-	pendingMeds: number;
-	avatar?: string;
-}
 
 export default function HomePage() {
 	return (
@@ -149,10 +141,15 @@ function HomePageContent() {
 				<div className="max-w-md">
 					<h1 className="text-3xl font-bold mb-4">Welcome to VetMed Tracker</h1>
 					<p className="text-lg text-muted-foreground mb-8">
-						Taking care of your pets' health starts here. Add your first pet to
-						begin tracking their medications and health regimens.
+						{
+							"Taking care of your pets' health starts here. Add your first pet to begin tracking their medications and health regimens."
+						}
 					</p>
-					<Button size="lg" className="w-full sm:w-auto" onClick={openForm}>
+					<Button
+						size="lg"
+						className="w-full sm:w-auto"
+						onClick={() => openForm()}
+					>
 						Add Your First Pet
 					</Button>
 				</div>
@@ -162,7 +159,14 @@ function HomePageContent() {
 
 	// Single animal view
 	if (selectedAnimal) {
-		return <SingleAnimalView animal={selectedAnimal} />;
+		// Convert minimal animal to full Animal type for SingleAnimalView
+		const fullAnimal = {
+			...selectedAnimal,
+			timezone: "America/New_York", // Default timezone
+			allergies: [],
+			conditions: [],
+		};
+		return <SingleAnimalView animal={fullAnimal} />;
 	}
 
 	// All animals dashboard
@@ -184,7 +188,7 @@ function HomePageContent() {
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">
-							Today's Progress
+							{"Today's Progress"}
 						</CardTitle>
 						<CheckCircle className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
@@ -239,7 +243,7 @@ function HomePageContent() {
 					{nextActions.length === 0 ? (
 						<div className="text-center py-8 text-muted-foreground">
 							<CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-							<p>No medications due right now!</p>
+							<p>{"No medications due right now!"}</p>
 							<p className="text-sm">
 								Check back later or record PRN medications
 							</p>

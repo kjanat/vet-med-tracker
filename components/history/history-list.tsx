@@ -27,37 +27,8 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import type { AdministrationRecord } from "@/lib/types";
 import { formatTimeLocal } from "@/utils/tz";
-
-export interface AdministrationRecord {
-	id: string;
-	animalId: string;
-	animalName: string;
-	medicationName: string;
-	strength: string;
-	route: string;
-	form: string;
-	slot?: string; // "Morning", "Evening", "PRN"
-	scheduledFor?: Date;
-	recordedAt: Date;
-	caregiverName: string;
-	status: "on-time" | "late" | "very-late" | "missed" | "prn";
-	cosignPending: boolean;
-	cosignUser?: string;
-	cosignedAt?: Date;
-	sourceItem?: {
-		name: string;
-		lot: string;
-		expiresOn: Date;
-	};
-	site?: string;
-	notes?: string;
-	media?: string[];
-	isEdited: boolean;
-	isDeleted: boolean;
-	editedBy?: string;
-	editedAt?: Date;
-}
 
 interface HistoryListProps {
 	groups: Array<{
@@ -166,31 +137,31 @@ function AdministrationRow({
 	const canDelete = canDeleteRecord(record);
 
 	const statusConfig = {
-		"on-time": {
+		ON_TIME: {
 			icon: CheckCircle,
 			color: "text-green-600",
 			bg: "bg-green-100",
 			label: "On-time",
 		},
-		late: {
+		LATE: {
 			icon: Clock,
 			color: "text-yellow-600",
 			bg: "bg-yellow-100",
 			label: "Late",
 		},
-		"very-late": {
+		VERY_LATE: {
 			icon: AlertTriangle,
 			color: "text-orange-600",
 			bg: "bg-orange-100",
 			label: "Very late",
 		},
-		missed: {
+		MISSED: {
 			icon: AlertTriangle,
 			color: "text-red-600",
 			bg: "bg-red-100",
 			label: "Missed",
 		},
-		prn: {
+		PRN: {
 			icon: CheckCircle,
 			color: "text-blue-600",
 			bg: "bg-blue-100",
@@ -344,7 +315,7 @@ function AdministrationRow({
 												</Button>
 											</TooltipTrigger>
 											<TooltipContent>
-												{record.status === "prn"
+												{record.status === "PRN"
 													? "Can undo PRN within 24 hours"
 													: "Can undo scheduled within 10 minutes"}
 											</TooltipContent>
@@ -403,7 +374,7 @@ function canUndoRecord(record: AdministrationRecord): boolean {
 	const recordTime = record.recordedAt;
 	const diffMinutes = (now.getTime() - recordTime.getTime()) / (1000 * 60);
 
-	if (record.status === "prn") {
+	if (record.status === "PRN") {
 		return diffMinutes <= 24 * 60; // 24 hours for PRN
 	} else {
 		return diffMinutes <= 10; // 10 minutes for scheduled

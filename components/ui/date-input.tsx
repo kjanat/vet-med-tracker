@@ -133,6 +133,8 @@ export function DateInput({
 							}}
 							fromDate={fromDate}
 							toDate={toDate}
+							fromYear={fromDate?.getFullYear() || new Date().getFullYear()}
+							toYear={toDate?.getFullYear() || new Date().getFullYear() + 10}
 							disabled={disabled}
 						/>
 					</PopoverContent>
