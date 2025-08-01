@@ -4,6 +4,7 @@ import { UserMenu } from "../auth/user-menu";
 import { AnimalSwitcher } from "../ui/animal-switcher";
 import { HouseholdSwitcher } from "../ui/household-switcher";
 import { NotificationDropdown } from "../ui/notification-dropdown";
+import { SyncStatus } from "../ui/sync-status";
 
 export function Header() {
 	return (
@@ -14,6 +15,7 @@ export function Header() {
 				</div>
 
 				<div className="flex items-center gap-4">
+					<SyncStatus />
 					<NotificationDropdown />
 					<UserMenu />
 				</div>

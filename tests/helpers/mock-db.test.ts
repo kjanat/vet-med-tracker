@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { mockDb, resetMockDb } from "./mock-db";
 
 describe("mockDb", () => {
@@ -18,13 +18,19 @@ describe("mockDb", () => {
 	it("should support mocking specific results", async () => {
 		const expectedData = [{ id: 1, name: "test" }];
 
-		mockDb.select.mockImplementationOnce(() => ({
-			from: vi.fn().mockReturnThis(),
-			where: vi.fn().mockReturnThis(),
-			orderBy: vi.fn().mockReturnThis(),
-			limit: vi.fn().mockReturnThis(),
-			execute: vi.fn().mockResolvedValue(expectedData),
-		}));
+		mockDb.select.mockImplementationOnce(
+			() =>
+				({
+					from: vi.fn().mockReturnThis(),
+					where: vi.fn().mockReturnThis(),
+					leftJoin: vi.fn().mockReturnThis(),
+					innerJoin: vi.fn().mockReturnThis(),
+					orderBy: vi.fn().mockReturnThis(),
+					limit: vi.fn().mockReturnThis(),
+					offset: vi.fn().mockReturnThis(),
+					execute: vi.fn().mockResolvedValue(expectedData),
+				}) as any,
+		);
 
 		const result = await mockDb
 			.select()

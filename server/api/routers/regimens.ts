@@ -85,12 +85,12 @@ function calculateDueStatus(
 	// Find next scheduled time
 	for (const timeStr of regimen.timesLocal) {
 		const [hours, minutes] = timeStr.split(":").map(Number);
-		const scheduledMinutes = hours * 60 + minutes;
+		const scheduledMinutes = (hours ?? 0) * 60 + (minutes ?? 0);
 
 		if (scheduledMinutes >= currentTimeMinutes - 60) {
 			// Within 1 hour past or any time future
 			const targetTime = new Date(nowLocal);
-			targetTime.setHours(hours, minutes, 0, 0);
+			targetTime.setHours(hours ?? 0, minutes ?? 0, 0, 0);
 
 			const minutesUntilDue = scheduledMinutes - currentTimeMinutes;
 			const isOverdue = minutesUntilDue < 0;
@@ -282,10 +282,10 @@ export const regimenRouter = createTRPCRouter({
 				eq(regimens.active, true),
 				isNull(regimens.deletedAt),
 				isNull(animals.deletedAt),
-				lte(regimens.startDate, now.toISOString().split("T")[0]),
+				lte(regimens.startDate, now.toISOString().split("T")[0] ?? ""),
 				or(
 					isNull(regimens.endDate),
-					gte(regimens.endDate, now.toISOString().split("T")[0]),
+					gte(regimens.endDate, now.toISOString().split("T")[0] ?? ""),
 				),
 			];
 

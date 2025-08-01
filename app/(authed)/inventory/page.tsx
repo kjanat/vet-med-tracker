@@ -158,8 +158,8 @@ export default function InventoryPage() {
 			// Show success toast
 			console.log(`Added ${data.name} (expires ${data.expiresOn})`);
 		} catch (error) {
-			// Queue for offline
-			await enqueue(payload, `inventory:addItem:${crypto.randomUUID()}`);
+			// TODO: Implement inventory.create mutation for offline queue
+			// await enqueue("inventory.create", payload, `inventory:addItem:${crypto.randomUUID()}`);
 			console.error("Failed to add item, queued for offline sync:", error);
 		}
 	};
@@ -185,7 +185,8 @@ export default function InventoryPage() {
 			// Queue for offline
 			const idempotencyKey = `inventory:setInUse:${itemId}:${Math.floor(Date.now() / 60000)}`;
 			await enqueue(
-				{ itemId, householdId: selectedHousehold.id, inUse },
+				"inventory.markAsInUse",
+				{ id: itemId, householdId: selectedHousehold.id, inUse },
 				idempotencyKey,
 			);
 			console.error(
@@ -229,8 +230,9 @@ export default function InventoryPage() {
 		} catch (error) {
 			// Queue for offline
 			await enqueue(
+				"inventory.update",
 				{
-					itemId,
+					id: itemId,
 					householdId: selectedHousehold.id,
 					assignedAnimalId: animalId,
 				},

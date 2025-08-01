@@ -62,7 +62,7 @@ function findClosestScheduledTime(
 
 	for (const timeStr of timesLocal) {
 		const [hours, minutes] = timeStr.split(":").map(Number);
-		const scheduledMinutes = hours * 60 + minutes;
+		const scheduledMinutes = (hours ?? 0) * 60 + (minutes ?? 0);
 		const diff = Math.abs(adminMinutes - scheduledMinutes);
 
 		if (diff < minDiff) {
@@ -121,7 +121,7 @@ function calculateScheduledTimeAndStatus(
 
 		const [hours, minutes] = closest.time.split(":").map(Number);
 		const scheduledFor = new Date(adminTimeLocal);
-		scheduledFor.setHours(hours, minutes, 0, 0);
+		scheduledFor.setHours(hours ?? 0, minutes ?? 0, 0, 0);
 
 		const status = calculateAdministrationStatus(
 			adminMinutes,
@@ -253,6 +253,9 @@ async function createAdministrationRecord(
 	},
 	regimen: {
 		dose: string | null;
+		scheduleType: string;
+		timesLocal: string[] | null;
+		cutoffMinutes: number;
 	},
 ) {
 	const administeredAt = input.administeredAt
@@ -260,7 +263,11 @@ async function createAdministrationRecord(
 		: new Date();
 
 	const { status, scheduledFor } = calculateScheduledTimeAndStatus(
-		regimen,
+		{
+			scheduleType: regimen.scheduleType,
+			timesLocal: regimen.timesLocal,
+			cutoffMinutes: regimen.cutoffMinutes,
+		},
 		animal,
 		administeredAt,
 		input.status,
@@ -271,7 +278,7 @@ async function createAdministrationRecord(
 		animalId: input.animalId,
 		householdId: input.householdId,
 		caregiverId: userId,
-		scheduledFor: scheduledFor?.toISOString() || null,
+		scheduledFor: scheduledFor || null,
 		recordedAt: administeredAt,
 		status,
 		sourceItemId: input.inventorySourceId || null,
@@ -283,6 +290,13 @@ async function createAdministrationRecord(
 	};
 
 	const result = await db.insert(administrations).values(newAdmin).returning();
+
+	if (!result[0]) {
+		throw new TRPCError({
+			code: "INTERNAL_SERVER_ERROR",
+			message: "Failed to create administration record",
+		});
+	}
 
 	return result[0];
 }

@@ -2,6 +2,30 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTRPCCaller } from "@/server/api/routers/_app";
 import { createTestContext } from "../helpers/test-context";
 
+// Helper function to mock update chain
+function mockUpdateChain(returnValue: any) {
+	const mockReturning = vi.fn().mockResolvedValue(returnValue);
+	const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
+	const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
+	return { set: mockSet } as any;
+}
+
+// Helper function to mock insert chain
+function mockInsertChain(returnValue: any) {
+	const mockReturning = vi.fn().mockResolvedValue(returnValue);
+	const mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
+	return { values: mockValues } as any;
+}
+
+// Helper function to mock select chain
+function mockSelectChain(returnValue: any) {
+	const mockOrderBy = vi.fn().mockResolvedValue(returnValue);
+	const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
+	const mockInnerJoin = vi.fn().mockReturnValue({ where: mockWhere });
+	const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin });
+	return { from: mockFrom } as any;
+}
+
 describe("Inventory CRUD Operations", () => {
 	let ctx: ReturnType<typeof createTestContext>;
 	let caller: ReturnType<typeof createTRPCCaller>;
@@ -41,13 +65,16 @@ describe("Inventory CRUD Operations", () => {
 				deletedAt: null,
 			};
 
-			// Setup mocks
-			ctx.db.select.mockResolvedValueOnce([
-				{
-					item: mockInventoryItem,
-					medication: mockMedication,
-				},
-			]);
+			// Setup mocks - the db.select is already mocked in test context
+			// We need to set up the chain properly
+			vi.mocked(ctx.db.select).mockReturnValue(
+				mockSelectChain([
+					{
+						item: mockInventoryItem,
+						medication: mockMedication,
+					},
+				]),
+			);
 
 			const result = await caller.inventory.list({
 				householdId,
@@ -68,7 +95,8 @@ describe("Inventory CRUD Operations", () => {
 		it("should filter expired items when includeExpired is false", async () => {
 			const householdId = "test-household-id";
 
-			ctx.db.select.mockResolvedValueOnce([]);
+			// Setup empty result mock
+			vi.mocked(ctx.db.select).mockReturnValue(mockSelectChain([]));
 
 			const result = await caller.inventory.list({
 				householdId,
@@ -105,11 +133,10 @@ describe("Inventory CRUD Operations", () => {
 				updatedAt: new Date(),
 			};
 
-			ctx.db.insert.mockReturnValueOnce({
-				values: vi.fn().mockReturnValueOnce({
-					returning: vi.fn().mockResolvedValueOnce([mockCreatedItem]),
-				}),
-			});
+			// Mock the insert chain
+			vi.mocked(ctx.db.insert).mockReturnValue(
+				mockInsertChain([mockCreatedItem]),
+			);
 
 			const result = await caller.inventory.create(newItem);
 
@@ -137,18 +164,14 @@ describe("Inventory CRUD Operations", () => {
 			};
 
 			const mockUpdatedItem = {
-				id: itemId,
 				...updateData,
+				id: itemId,
 				updatedAt: new Date(),
 			};
 
-			ctx.db.update.mockReturnValueOnce({
-				set: vi.fn().mockReturnValueOnce({
-					where: vi.fn().mockReturnValueOnce({
-						returning: vi.fn().mockResolvedValueOnce([mockUpdatedItem]),
-					}),
-				}),
-			});
+			vi.mocked(ctx.db.update).mockReturnValue(
+				mockUpdateChain([mockUpdatedItem]),
+			);
 
 			const result = await caller.inventory.update(updateData);
 
@@ -161,13 +184,7 @@ describe("Inventory CRUD Operations", () => {
 		});
 
 		it("should throw error if item not found", async () => {
-			ctx.db.update.mockReturnValueOnce({
-				set: vi.fn().mockReturnValueOnce({
-					where: vi.fn().mockReturnValueOnce({
-						returning: vi.fn().mockResolvedValueOnce([]),
-					}),
-				}),
-			});
+			vi.mocked(ctx.db.update).mockReturnValue(mockUpdateChain([]));
 
 			await expect(
 				caller.inventory.update({
@@ -190,13 +207,9 @@ describe("Inventory CRUD Operations", () => {
 				updatedAt: new Date(),
 			};
 
-			ctx.db.update.mockReturnValueOnce({
-				set: vi.fn().mockReturnValueOnce({
-					where: vi.fn().mockReturnValueOnce({
-						returning: vi.fn().mockResolvedValueOnce([mockUpdatedItem]),
-					}),
-				}),
-			});
+			vi.mocked(ctx.db.update).mockReturnValue(
+				mockUpdateChain([mockUpdatedItem]),
+			);
 
 			const result = await caller.inventory.setInUse({
 				id: itemId,
@@ -220,13 +233,9 @@ describe("Inventory CRUD Operations", () => {
 				updatedAt: new Date(),
 			};
 
-			ctx.db.update.mockReturnValueOnce({
-				set: vi.fn().mockReturnValueOnce({
-					where: vi.fn().mockReturnValueOnce({
-						returning: vi.fn().mockResolvedValueOnce([mockDeletedItem]),
-					}),
-				}),
-			});
+			vi.mocked(ctx.db.update).mockReturnValue(
+				mockUpdateChain([mockDeletedItem]),
+			);
 
 			const result = await caller.inventory.delete({
 				id: itemId,
@@ -249,13 +258,9 @@ describe("Inventory CRUD Operations", () => {
 				updatedAt: new Date(),
 			};
 
-			ctx.db.update.mockReturnValueOnce({
-				set: vi.fn().mockReturnValueOnce({
-					where: vi.fn().mockReturnValueOnce({
-						returning: vi.fn().mockResolvedValueOnce([mockUpdatedItem]),
-					}),
-				}),
-			});
+			vi.mocked(ctx.db.update).mockReturnValue(
+				mockUpdateChain([mockUpdatedItem]),
+			);
 
 			const result = await caller.inventory.assignToAnimal({
 				id: itemId,
@@ -276,13 +281,9 @@ describe("Inventory CRUD Operations", () => {
 				updatedAt: new Date(),
 			};
 
-			ctx.db.update.mockReturnValueOnce({
-				set: vi.fn().mockReturnValueOnce({
-					where: vi.fn().mockReturnValueOnce({
-						returning: vi.fn().mockResolvedValueOnce([mockUpdatedItem]),
-					}),
-				}),
-			});
+			vi.mocked(ctx.db.update).mockReturnValue(
+				mockUpdateChain([mockUpdatedItem]),
+			);
 
 			const result = await caller.inventory.assignToAnimal({
 				id: itemId,

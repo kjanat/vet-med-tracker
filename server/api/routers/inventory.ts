@@ -31,7 +31,10 @@ export const inventoryRouter = createTRPCRouter({
 
 			if (!input.includeExpired) {
 				conditions.push(
-					gte(inventoryItems.expiresOn, new Date().toISOString().split("T")[0]),
+					gte(
+						inventoryItems.expiresOn,
+						new Date().toISOString().split("T")[0] ?? "",
+					),
 				);
 			}
 
@@ -68,9 +71,10 @@ export const inventoryRouter = createTRPCRouter({
 				lot: row.item.lot || "",
 				expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
 				unitsRemaining: row.item.unitsRemaining,
-				unitsTotal: row.item.unitsTotal,
-				isExpired:
-					row.item.expiresOn && new Date(row.item.expiresOn) < new Date(),
+				unitsTotal: row.item.quantityUnits || 0,
+				isExpired: !!(
+					row.item.expiresOn && new Date(row.item.expiresOn) < new Date()
+				),
 				isWrongMed: false, // TODO: Implement logic to check if it matches the regimen
 				inUse: row.item.inUse,
 				assignedAnimalId: row.item.assignedAnimalId,
@@ -98,7 +102,10 @@ export const inventoryRouter = createTRPCRouter({
 
 			if (!input.includeExpired) {
 				conditions.push(
-					gte(inventoryItems.expiresOn, new Date().toISOString().split("T")[0]),
+					gte(
+						inventoryItems.expiresOn,
+						new Date().toISOString().split("T")[0] ?? "",
+					),
 				);
 			}
 
@@ -134,9 +141,10 @@ export const inventoryRouter = createTRPCRouter({
 					row.medication.genericName,
 				lot: row.item.lot || "",
 				expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
-				unitsRemaining: row.item.unitsRemaining,
-				isExpired:
-					row.item.expiresOn && new Date(row.item.expiresOn) < new Date(),
+				unitsRemaining: row.item.unitsRemaining || 0,
+				isExpired: !!(
+					row.item.expiresOn && new Date(row.item.expiresOn) < new Date()
+				),
 				isWrongMed: false,
 				inUse: row.item.inUse,
 			}));
@@ -164,13 +172,17 @@ export const inventoryRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
+			const { unitsTotal, expiresOn, purchaseDate, ...restInput } = input;
 			const newItem = await ctx.db
 				.insert(inventoryItems)
 				.values({
-					...input,
-					expiresOn: input.expiresOn.toISOString().split("T")[0],
-					purchaseDate: input.purchaseDate?.toISOString().split("T")[0],
-					unitsRemaining: input.unitsTotal,
+					...restInput,
+					expiresOn: expiresOn.toISOString().split("T")[0]!,
+					purchaseDate: purchaseDate
+						? purchaseDate.toISOString().split("T")[0]!
+						: undefined,
+					quantityUnits: unitsTotal,
+					unitsRemaining: unitsTotal,
 				})
 				.returning();
 
@@ -322,5 +334,145 @@ export const inventoryRouter = createTRPCRouter({
 			}
 
 			return updated[0];
+		}),
+
+	// Update quantity (used by offline queue)
+	updateQuantity: householdProcedure
+		.input(
+			z.object({
+				id: z.string().uuid(),
+				householdId: z.string().uuid(),
+				quantityChange: z.number().int(), // negative for decrement
+				reason: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// First get current quantity
+			const current = await ctx.db
+				.select({ unitsRemaining: inventoryItems.unitsRemaining })
+				.from(inventoryItems)
+				.where(
+					and(
+						eq(inventoryItems.id, input.id),
+						eq(inventoryItems.householdId, input.householdId),
+						isNull(inventoryItems.deletedAt),
+					),
+				)
+				.limit(1)
+				.execute();
+
+			if (!current[0]) {
+				throw new Error("Inventory item not found or already deleted");
+			}
+
+			const newQuantity =
+				(current[0].unitsRemaining || 0) + input.quantityChange;
+			if (newQuantity < 0) {
+				throw new Error("Insufficient quantity");
+			}
+
+			const updated = await ctx.db
+				.update(inventoryItems)
+				.set({
+					unitsRemaining: newQuantity,
+					updatedAt: new Date(),
+				})
+				.where(
+					and(
+						eq(inventoryItems.id, input.id),
+						eq(inventoryItems.householdId, input.householdId),
+						isNull(inventoryItems.deletedAt),
+					),
+				)
+				.returning();
+
+			return updated[0];
+		}),
+
+	// Mark as in use (convenience method for offline queue)
+	markAsInUse: householdProcedure
+		.input(
+			z.object({
+				id: z.string().uuid(),
+				householdId: z.string().uuid(),
+				animalId: z.string().uuid().optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const updates: Record<string, unknown> = {
+				inUse: true,
+				openedOn: new Date().toISOString().split("T")[0],
+				updatedAt: new Date(),
+			};
+
+			if (input.animalId) {
+				updates.assignedAnimalId = input.animalId;
+			}
+
+			const updated = await ctx.db
+				.update(inventoryItems)
+				.set(updates)
+				.where(
+					and(
+						eq(inventoryItems.id, input.id),
+						eq(inventoryItems.householdId, input.householdId),
+						isNull(inventoryItems.deletedAt),
+					),
+				)
+				.returning();
+
+			if (!updated[0]) {
+				throw new Error("Inventory item not found or already deleted");
+			}
+
+			return updated[0];
+		}),
+
+	// Get household inventory (used by offline queue)
+	getHouseholdInventory: householdProcedure
+		.input(
+			z.object({
+				householdId: z.string().uuid(),
+				medicationId: z.string().uuid().optional(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const conditions = [
+				eq(inventoryItems.householdId, input.householdId),
+				isNull(inventoryItems.deletedAt),
+				gte(
+					inventoryItems.expiresOn,
+					new Date().toISOString().split("T")[0] ?? "",
+				),
+			];
+
+			if (input.medicationId) {
+				conditions.push(eq(inventoryItems.medicationId, input.medicationId));
+			}
+
+			const result = await ctx.db
+				.select({
+					item: inventoryItems,
+					medication: medicationCatalog,
+				})
+				.from(inventoryItems)
+				.innerJoin(
+					medicationCatalog,
+					eq(inventoryItems.medicationId, medicationCatalog.id),
+				)
+				.where(and(...conditions))
+				.orderBy(inventoryItems.expiresOn, inventoryItems.lot)
+				.execute();
+
+			return result.map((row) => ({
+				id: row.item.id,
+				quantity: row.item.unitsRemaining,
+				medicationName:
+					row.item.brandOverride ||
+					row.medication.brandName ||
+					row.medication.genericName,
+				expiresOn: row.item.expiresOn,
+				inUse: row.item.inUse,
+			}));
 		}),
 });

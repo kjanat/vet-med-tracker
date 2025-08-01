@@ -78,9 +78,9 @@ export class RecordPage {
 	async holdToConfirm() {
 		const confirmButton = this.page.locator('[data-testid="confirm-button"]');
 		await confirmButton.hover();
-		await confirmButton.press("Space");
+		await this.page.keyboard.down("Space");
 		await this.page.waitForTimeout(3000); // Wait for hold duration
-		await confirmButton.release("Space");
+		await this.page.keyboard.up("Space");
 	}
 
 	async waitForSuccess() {

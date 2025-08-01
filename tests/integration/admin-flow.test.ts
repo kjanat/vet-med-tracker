@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { adminRouter } from "@/server/api/routers/admin";
-import type { Context } from "@/server/api/trpc/context";
+import type { Context } from "@/server/api/trpc/init";
 import * as schema from "@/server/db/schema";
 import {
 	cleanupTestData,
@@ -12,30 +12,33 @@ import {
 describe("Admin Flow Integration", () => {
 	const db = createTestDatabase();
 	let testData: {
-		user: unknown;
-		household: unknown;
-		animal: unknown;
-		medication: unknown;
-		regimen: unknown;
+		user: schema.User;
+		household: schema.Household;
+		animal: schema.Animal;
+		medication: schema.MedicationCatalog;
+		regimen: schema.Regimen;
 	};
 
 	beforeEach(async () => {
 		// Create test data directly in database
 		const userData = testFactories.user();
 		const householdData = testFactories.household();
-		const animalData = testFactories.animal({ householdId: householdData.id });
 		const medicationData = testFactories.medication();
-		const regimenData = testFactories.regimen({
-			animalId: animalData.id,
-			medicationId: medicationData.id,
-		});
 
 		// Insert test data
-		const [user] = await db.insert(schema.users).values(userData).returning();
-		const [household] = await db
+		const userResult = await db
+			.insert(schema.users)
+			.values(userData)
+			.returning();
+		const user = userResult[0];
+		if (!user) throw new Error("Failed to create test user");
+
+		const householdResult = await db
 			.insert(schema.households)
 			.values(householdData)
 			.returning();
+		const household = householdResult[0];
+		if (!household) throw new Error("Failed to create test household");
 
 		await db.insert(schema.memberships).values({
 			userId: user.id,
@@ -43,24 +46,37 @@ describe("Admin Flow Integration", () => {
 			role: "OWNER",
 		});
 
-		const [animal] = await db
+		const animalData = testFactories.animal({ householdId: household.id });
+		const animalResult = await db
 			.insert(schema.animals)
 			.values(animalData)
 			.returning();
-		const [medication] = await db
+		const animal = animalResult[0];
+		if (!animal) throw new Error("Failed to create test animal");
+
+		const medicationResult = await db
 			.insert(schema.medicationCatalog)
 			.values(medicationData)
 			.returning();
-		const [regimen] = await db
+		const medication = medicationResult[0];
+		if (!medication) throw new Error("Failed to create test medication");
+
+		const regimenData = testFactories.regimen({
+			animalId: animal.id,
+			medicationId: medication.id,
+		});
+		const regimenResult = await db
 			.insert(schema.regimens)
 			.values(regimenData)
 			.returning();
+		const regimen = regimenResult[0];
+		if (!regimen) throw new Error("Failed to create test regimen");
 
 		testData = { user, household, animal, medication, regimen };
 	});
 
 	afterEach(async () => {
-		if (testData?.household) {
+		if (testData && testData.household) {
 			await cleanupTestData(db, testData.household.id);
 		}
 	});
@@ -71,22 +87,28 @@ describe("Admin Flow Integration", () => {
 			db,
 			user: testData.user,
 			session: {
-				access_token: "test-token",
-				refresh_token: "test-refresh",
-				expires_at: Date.now() + 3600000,
+				userId: testData.user.id,
+				user: testData.user,
 				householdMemberships: [
 					{
+						id: "test-membership-id",
+						userId: testData.user.id,
 						householdId: testData.household.id,
-						role: "OWNER",
-						joinedAt: new Date(),
+						role: "OWNER" as const,
+						createdAt: new Date(),
+						updatedAt: new Date(),
 					},
 				],
+				expiresAt: new Date(Date.now() + 3600000),
 			},
 			currentHouseholdId: testData.household.id,
 			currentMembership: {
+				id: "test-membership-id",
+				userId: testData.user.id,
 				householdId: testData.household.id,
-				role: "OWNER",
-				joinedAt: new Date(),
+				role: "OWNER" as const,
+				createdAt: new Date(),
+				updatedAt: new Date(),
 			},
 			headers: new Headers(),
 			requestedHouseholdId: testData.household.id,
@@ -117,7 +139,7 @@ describe("Admin Flow Integration", () => {
 			.where(eq(schema.administrations.id, result.id));
 
 		expect(saved).toBeDefined();
-		expect(saved.idempotencyKey).toBe("test-key-123");
+		expect(saved?.idempotencyKey).toBe("test-key-123");
 	});
 
 	it("should respect idempotency in real database", async () => {
@@ -125,22 +147,28 @@ describe("Admin Flow Integration", () => {
 			db,
 			user: testData.user,
 			session: {
-				access_token: "test-token",
-				refresh_token: "test-refresh",
-				expires_at: Date.now() + 3600000,
+				userId: testData.user.id,
+				user: testData.user,
 				householdMemberships: [
 					{
+						id: "test-membership-id",
+						userId: testData.user.id,
 						householdId: testData.household.id,
-						role: "OWNER",
-						joinedAt: new Date(),
+						role: "OWNER" as const,
+						createdAt: new Date(),
+						updatedAt: new Date(),
 					},
 				],
+				expiresAt: new Date(Date.now() + 3600000),
 			},
 			currentHouseholdId: testData.household.id,
 			currentMembership: {
+				id: "test-membership-id",
+				userId: testData.user.id,
 				householdId: testData.household.id,
-				role: "OWNER",
-				joinedAt: new Date(),
+				role: "OWNER" as const,
+				createdAt: new Date(),
+				updatedAt: new Date(),
 			},
 			headers: new Headers(),
 			requestedHouseholdId: testData.household.id,

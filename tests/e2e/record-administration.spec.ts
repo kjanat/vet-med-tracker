@@ -91,7 +91,7 @@ test.describe("Record Administration E2E", () => {
 									unit: "tablets",
 									expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
 									isInUse: true,
-									assignedToAnimalId: testData.animal.id,
+									assignedToAnimalId: "animal-123",
 								},
 							],
 						},

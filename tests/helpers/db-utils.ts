@@ -32,26 +32,26 @@ export function setupTestDatabase() {
 // Clean database helper
 export async function cleanDatabase() {
 	// Get all table names
-	const tables = await sqlClient(`
-    SELECT tablename FROM pg_tables
-    WHERE schemaname = 'public'
-    AND tablename NOT LIKE '%drizzle%'
-  `);
+	const tablesResult = await testDb.execute<{ tablename: string }>(
+		`SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT LIKE '%drizzle%'`,
+	);
+
+	const tables = Array.isArray(tablesResult) ? tablesResult : tablesResult.rows;
 
 	// Disable foreign key checks and truncate tables
-	await sqlClient(`SET session_replication_role = 'replica'`);
+	await testDb.execute(`SET session_replication_role = 'replica'`);
 
 	for (const { tablename } of tables) {
-		await sqlClient(`TRUNCATE TABLE "${tablename}" CASCADE`);
+		await testDb.execute(`TRUNCATE TABLE "${tablename}" CASCADE`);
 	}
 
-	await sqlClient(`SET session_replication_role = 'origin'`);
+	await testDb.execute(`SET session_replication_role = 'origin'`);
 }
 
 // Seed helpers
 export async function seedTestData() {
 	// Create test user
-	const [user] = await testDb
+	const userResult = await testDb
 		.insert(users)
 		.values({
 			id: "test-user-1",
@@ -59,18 +59,21 @@ export async function seedTestData() {
 			name: "Test User",
 		})
 		.returning();
+	const user = userResult[0];
 
 	// Create test household
-	const [household] = await testDb
+	if (!user) throw new Error("User not created");
+	const householdResult = await testDb
 		.insert(households)
 		.values({
 			id: "test-household-1",
 			name: "Test Household",
-			createdById: user.id,
 		})
 		.returning();
+	const household = householdResult[0];
 
 	// Create membership
+	if (!household) throw new Error("Household not created");
 	await testDb.insert(memberships).values({
 		userId: user.id,
 		householdId: household.id,
@@ -78,17 +81,18 @@ export async function seedTestData() {
 	});
 
 	// Create test animal
-	const [animal] = await testDb
+	const animalResult = await testDb
 		.insert(animals)
 		.values({
 			id: "test-animal-1",
 			name: "Buddy",
 			species: "dog",
 			breed: "Golden Retriever",
-			dateOfBirth: new Date("2020-01-01"),
+			dob: "2020-01-01",
 			householdId: household.id,
 		})
 		.returning();
+	const animal = animalResult[0];
 
 	return { user, household, animal };
 }

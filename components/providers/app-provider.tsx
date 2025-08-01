@@ -3,10 +3,12 @@
 import {
 	createContext,
 	type ReactNode,
+	useCallback,
 	useContext,
 	useEffect,
 	useState,
 } from "react";
+import { getQueueSize } from "@/lib/offline/db";
 
 interface Animal {
 	id: string;
@@ -52,7 +54,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 	const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
 	const [isOffline, setIsOffline] = useState(false);
-	const [pendingSyncCount] = useState(0);
+	const [pendingSyncCount, setPendingSyncCount] = useState(0);
+
+	// Update pending sync count
+	const updatePendingSyncCount = useCallback(async () => {
+		const count = await getQueueSize(selectedHousehold?.id);
+		setPendingSyncCount(count);
+	}, [selectedHousehold?.id]);
+
+	useEffect(() => {
+		updatePendingSyncCount();
+		// Update count every 5 seconds
+		const interval = setInterval(updatePendingSyncCount, 5000);
+		return () => clearInterval(interval);
+	}, [updatePendingSyncCount]);
 
 	useEffect(() => {
 		const handleOnline = () => setIsOffline(false);

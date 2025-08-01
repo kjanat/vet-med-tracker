@@ -1,5 +1,6 @@
 import type { inferProcedureOutput } from "@trpc/server";
 import { vi } from "vitest";
+import type { trpc } from "@/lib/trpc/client";
 import type { AppRouter } from "@/server/api/root";
 
 export type RouterOutput = inferProcedureOutput<AppRouter>;

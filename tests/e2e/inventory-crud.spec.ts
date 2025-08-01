@@ -36,7 +36,7 @@ test.describe("Inventory CRUD Operations", () => {
 		// Set expiration date
 		const futureDate = new Date();
 		futureDate.setMonth(futureDate.getMonth() + 6);
-		const dateString = futureDate.toISOString().split("T")[0];
+		const dateString = futureDate.toISOString().split("T")[0] ?? "";
 		await page.fill('input[type="date"]', dateString);
 
 		// Select storage

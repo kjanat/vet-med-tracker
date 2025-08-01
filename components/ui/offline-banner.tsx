@@ -8,7 +8,7 @@ import { useBackgroundSync } from "@/hooks/useBackgroundSync";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 
 export function OfflineBanner() {
-	const { isOnline, queueSize, isProcessing, flush } = useOfflineQueue();
+	const { isOnline, queueSize, isProcessing, sync } = useOfflineQueue();
 	const { requestSync } = useBackgroundSync();
 	const [showBanner, setShowBanner] = useState(false);
 
@@ -19,7 +19,7 @@ export function OfflineBanner() {
 
 	const handleRetryNow = async () => {
 		if (isOnline) {
-			await flush();
+			await sync();
 		} else {
 			// Request background sync for when connection returns
 			await requestSync("admin");

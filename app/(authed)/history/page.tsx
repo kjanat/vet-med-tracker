@@ -9,7 +9,6 @@ import {
 	HistoryList,
 } from "@/components/history/history-list";
 import { useHistoryFilters } from "@/hooks/useHistoryFilters";
-import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { localDayISO } from "@/utils/tz";
 
 // Mock data - replace with tRPC queries
@@ -95,7 +94,6 @@ const mockRecords: AdministrationRecord[] = [
 
 function HistoryContent() {
 	const { filters } = useHistoryFilters();
-	const { enqueue } = useOfflineQueue();
 	const [currentMonth, setCurrentMonth] = useState(new Date());
 
 	// Filter records based on current filters
@@ -211,24 +209,24 @@ function HistoryContent() {
 		// Optimistic update
 		console.log("Undoing record:", id);
 
-		// Queue for offline
-		await enqueue({ action: "undo", recordId: id }, `undo:${id}`);
+		// TODO: Implement undo mutation
+		// await enqueue("admin.undo", { recordId: id }, `undo:${id}`);
 	};
 
 	const handleDelete = async (id: string) => {
 		// Optimistic update
 		console.log("Deleting record:", id);
 
-		// Queue for offline
-		await enqueue({ action: "delete", recordId: id }, `delete:${id}`);
+		// TODO: Implement delete mutation
+		// await enqueue("admin.delete", { recordId: id }, `delete:${id}`);
 	};
 
 	const handleCosign = async (id: string) => {
 		// Optimistic update
 		console.log("Co-signing record:", id);
 
-		// Queue for offline
-		await enqueue({ action: "cosign", recordId: id }, `cosign:${id}`);
+		// TODO: Implement cosign mutation
+		// await enqueue("admin.cosign", { recordId: id }, `cosign:${id}`);
 	};
 
 	const handleLoadMore = () => {

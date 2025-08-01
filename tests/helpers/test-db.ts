@@ -60,22 +60,25 @@ export const testFactories = {
 	medication: (overrides = {}) => ({
 		id: randomUUID(),
 		genericName: "Test Medication",
-		route: "Oral",
-		form: "Tablet",
+		route: "ORAL" as const,
+		form: "TABLET" as const,
 		...overrides,
 	}),
 
-	regimen: (overrides = {}) => ({
-		id: randomUUID(),
-		animalId: randomUUID(),
-		medicationId: randomUUID(),
-		active: true,
-		scheduleType: "FIXED" as const,
-		timesLocal: ["10:00", "22:00"],
-		dose: "1 tablet",
-		cutoffMinutes: 240,
-		...overrides,
-	}),
+	regimen: (overrides = {}) => {
+		const defaults = {
+			id: randomUUID(),
+			animalId: randomUUID(),
+			medicationId: randomUUID(),
+			active: true,
+			scheduleType: "FIXED" as const,
+			timesLocal: ["10:00", "22:00"],
+			dose: "1 tablet",
+			cutoffMinutes: 240,
+			startDate: new Date().toISOString().split("T")[0]!,
+		};
+		return { ...defaults, ...overrides };
+	},
 
 	administration: (overrides = {}) => ({
 		id: randomUUID(),

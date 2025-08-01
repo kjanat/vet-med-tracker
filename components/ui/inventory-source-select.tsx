@@ -20,18 +20,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-
-interface InventorySource {
-	id: string;
-	name: string;
-	brand?: string;
-	lot?: string;
-	expiresOn: Date;
-	unitsRemaining: number;
-	isExpired: boolean;
-	isWrongMed: boolean;
-	inUse: boolean;
-}
+import type { InventorySource } from "@/types/inventory";
 
 interface InventorySourceSelectProps {
 	sources: InventorySource[];
@@ -139,7 +128,7 @@ export function InventorySourceSelect({
 											</div>
 											<div className="text-xs text-muted-foreground">
 												{source.unitsRemaining} units • Expires{" "}
-												{source.expiresOn.toLocaleDateString()}
+												{source.expiresOn?.toLocaleDateString() ?? "N/A"}
 											</div>
 										</div>
 										{(source.isExpired || source.isWrongMed) && (

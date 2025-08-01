@@ -1,10 +1,21 @@
-import type { Session } from "@openauthjs/openauth/core";
 import type { inferAsyncReturnType } from "@trpc/server";
 import { expect, vi } from "vitest";
+import type { Session } from "@/server/auth/types";
 import { mockDb } from "./mock-db";
 
+// Define test session type to match OpenAuth expectations
+export interface TestSession {
+	subject: string;
+	access: {
+		householdId: string;
+		role: string;
+	};
+	type: string;
+	exp: number;
+}
+
 // Mock session
-export const mockSession: Session = {
+export const mockSession: TestSession = {
 	subject: "11111111-1111-4111-8111-111111111111",
 	access: {
 		householdId: "22222222-2222-4222-8222-222222222222",
@@ -22,12 +33,12 @@ export async function createMockContext(
 		headers: new Headers({
 			"content-type": "application/json",
 		}),
-		...overrides.req,
+		...(overrides.req || {}),
 	};
 
 	// Mock the auth context directly
 	return {
-		db: mockDb,
+		db: mockDb as any,
 		headers: mockReq.headers,
 		requestedHouseholdId: null,
 		session: null,
@@ -40,7 +51,7 @@ export async function createMockContext(
 
 // Create authenticated context
 export async function createAuthenticatedContext(
-	session: Session = mockSession,
+	session: TestSession = mockSession,
 	overrides: Record<string, unknown> = {},
 ) {
 	// Mock user data
@@ -48,23 +59,32 @@ export async function createAuthenticatedContext(
 		id: session.subject,
 		name: "Test User",
 		email: "test@example.com",
-		defaultHouseholdId: session.access.householdId,
+		image: null,
+		emailVerified: null,
+		createdAt: new Date(),
+		updatedAt: new Date(),
 	};
 
 	// Mock membership data
 	const mockMembership = {
+		id: `membership-${session.subject}`,
 		userId: session.subject,
 		householdId: session.access.householdId,
-		role: session.access.role,
-		joinedAt: new Date(),
+		role: session.access.role as "OWNER" | "CAREGIVER" | "VETREADONLY",
+		createdAt: new Date(),
+		updatedAt: new Date(),
+	};
+
+	const actualSession: Session = {
+		userId: session.subject,
+		user: mockUser,
+		householdMemberships: [mockMembership],
+		expiresAt: new Date(session.exp * 1000),
 	};
 
 	return createMockContext({
 		...overrides,
-		session: {
-			...session,
-			householdMemberships: [mockMembership],
-		},
+		session: actualSession,
 		user: mockUser,
 		currentHouseholdId: session.access.householdId,
 		currentMembership: mockMembership,

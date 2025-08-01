@@ -3,6 +3,7 @@
 import { ArrowLeft, Camera, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useApp } from "@/components/providers/app-provider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
@@ -25,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { trpc } from "@/server/trpc/client";
+import type { InventorySource } from "@/types/inventory";
 import { adminKey } from "@/utils/idempotency";
 import { formatTimeLocal, localDayISO } from "@/utils/tz";
 
@@ -57,17 +59,6 @@ interface DueRegimen {
 		recordedAt: Date;
 		status: string;
 	} | null;
-}
-
-interface InventorySource {
-	id: string;
-	name: string;
-	lot: string;
-	expiresOn: Date | null;
-	unitsRemaining: number;
-	isExpired: boolean;
-	isWrongMed: boolean;
-	inUse: boolean;
 }
 
 function useRecordState() {
@@ -113,7 +104,7 @@ function useRecordState() {
 // Custom hook to handle data fetching
 function useRecordData(
 	state: ReturnType<typeof useRecordState>,
-	currentHousehold: { id: string } | null,
+	selectedHousehold: { id: string } | null,
 ) {
 	const utils = trpc.useUtils();
 
@@ -124,12 +115,12 @@ function useRecordData(
 		error: regimensError,
 	} = trpc.regimen.listDue.useQuery(
 		{
-			householdId: currentHousehold?.id,
+			householdId: selectedHousehold?.id,
 			animalId: state.selectedAnimalId || undefined,
 			includeUpcoming: true,
 		},
 		{
-			enabled: !!currentHousehold?.id,
+			enabled: !!selectedHousehold?.id,
 			refetchInterval: 60000, // Refresh every minute
 		},
 	);
@@ -143,7 +134,19 @@ function useRecordData(
 		},
 		onError: (error) => {
 			console.error("Failed to record administration:", error);
-			// TODO: Show error toast
+			toast.error("Failed to record administration");
+		},
+	});
+
+	// Inventory update mutation
+	const updateInventoryMutation = trpc.inventory.updateQuantity.useMutation({
+		onSuccess: () => {
+			utils.inventory.getSources.invalidate();
+			utils.inventory.getHouseholdInventory.invalidate();
+		},
+		onError: (error) => {
+			console.error("Failed to update inventory:", error);
+			toast.error("Failed to update inventory");
 		},
 	});
 
@@ -151,12 +154,12 @@ function useRecordData(
 	const { data: inventorySources, isLoading: inventoryLoading } =
 		trpc.inventory.getSources.useQuery(
 			{
-				householdId: currentHousehold?.id || "",
+				householdId: selectedHousehold?.id || "",
 				medicationName: state.selectedRegimen?.medicationName || "",
 				includeExpired: state.allowOverride,
 			},
 			{
-				enabled: !!state.selectedRegimen && !!currentHousehold?.id,
+				enabled: !!state.selectedRegimen && !!selectedHousehold?.id,
 			},
 		);
 
@@ -165,6 +168,7 @@ function useRecordData(
 		regimensLoading,
 		regimensError,
 		createAdminMutation,
+		updateInventoryMutation,
 		inventorySources,
 		inventoryLoading,
 	};
@@ -176,7 +180,7 @@ function SelectionStep({
 	dueRegimens,
 	regimensLoading,
 	regimensError,
-	currentHousehold,
+	selectedHousehold,
 	animals,
 	isOnline,
 	searchParams,
@@ -187,7 +191,7 @@ function SelectionStep({
 	dueRegimens?: DueRegimen[];
 	regimensLoading: boolean;
 	regimensError: Error | null;
-	currentHousehold: { id: string } | null;
+	selectedHousehold: { id: string } | null;
 	animals: Array<{
 		id: string;
 		name: string;
@@ -255,7 +259,7 @@ function SelectionStep({
 						<Skeleton className="h-20 w-full" />
 					</CardContent>
 				</Card>
-			) : !currentHousehold ? (
+			) : !selectedHousehold ? (
 				<Alert>
 					<AlertDescription>
 						Please select a household to view medications.
@@ -369,7 +373,7 @@ function MedicationSections({
 function RecordContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const { animals, currentHousehold } = useApp();
+	const { animals, selectedHousehold } = useApp();
 	const { isOnline, enqueue } = useOfflineQueue();
 	const state = useRecordState();
 
@@ -378,9 +382,10 @@ function RecordContent() {
 		regimensLoading,
 		regimensError,
 		createAdminMutation,
+		updateInventoryMutation,
 		inventorySources,
 		inventoryLoading,
-	} = useRecordData(state, currentHousehold);
+	} = useRecordData(state, selectedHousehold);
 
 	// Handle URL params for pre-filling
 	useEffect(() => {
@@ -409,32 +414,53 @@ function RecordContent() {
 	};
 
 	const handleConfirm = async () => {
-		if (!state.selectedRegimen || !currentHousehold) return;
+		if (!state.selectedRegimen || !selectedHousehold) return;
 
 		state.setIsSubmitting(true);
 
 		try {
-			const payload = createAdminPayload(state, currentHousehold.id);
+			const payload = createAdminPayload(state, selectedHousehold.id);
 
 			if (!isOnline) {
-				// Queue for offline sync
-				await enqueue(
-					{
-						type: "admin.create",
-						payload,
-					},
-					payload.idempotencyKey,
-				);
+				// Queue administration for offline sync
+				await enqueue("admin.create", payload, payload.idempotencyKey);
+
+				// Queue inventory decrement if an inventory source was selected
+				if (state.inventorySourceId) {
+					const inventoryPayload = {
+						id: state.inventorySourceId,
+						householdId: selectedHousehold.id,
+						quantityChange: -1,
+						reason: `Administration for ${state.selectedRegimen.animalName}`,
+					};
+					await enqueue(
+						"inventory.update",
+						inventoryPayload,
+						`inventory-${state.inventorySourceId}-${Date.now()}`,
+					);
+				}
+
 				// Optimistically move to success
 				state.setStep("success");
 			} else {
 				// Online - use tRPC mutation
 				await createAdminMutation.mutateAsync(payload);
+
+				// Decrement inventory if source was selected
+				if (state.inventorySourceId) {
+					await updateInventoryMutation.mutateAsync({
+						id: state.inventorySourceId,
+						householdId: selectedHousehold.id,
+						quantityChange: -1,
+						reason: `Administration for ${state.selectedRegimen.animalName}`,
+					});
+				}
+
 				// Success handler will set step to "success"
 			}
 		} catch (error) {
 			console.error("Failed to record administration:", error);
-			// Error is handled by mutation onError
+			toast.error("Failed to record administration");
 		} finally {
 			state.setIsSubmitting(false);
 		}
@@ -452,7 +478,11 @@ function RecordContent() {
 				inventorySources={inventorySources || []}
 				inventoryLoading={inventoryLoading}
 				handleConfirm={handleConfirm}
-				isSubmitting={state.isSubmitting || createAdminMutation.isPending}
+				isSubmitting={
+					state.isSubmitting ||
+					createAdminMutation.isPending ||
+					updateInventoryMutation.isPending
+				}
 			/>
 		);
 	}
@@ -462,8 +492,8 @@ function RecordContent() {
 			state={state}
 			dueRegimens={dueRegimens}
 			regimensLoading={regimensLoading}
-			regimensError={regimensError}
-			currentHousehold={currentHousehold}
+			regimensError={regimensError ? new Error(regimensError.message) : null}
+			selectedHousehold={selectedHousehold}
 			animals={animals}
 			isOnline={isOnline}
 			searchParams={searchParams}
@@ -484,7 +514,7 @@ function RegimenCard({
 		id: regimen.animalId,
 		name: regimen.animalName,
 		species: regimen.animalSpecies || "Unknown",
-		avatar: regimen.animalPhotoUrl,
+		avatar: regimen.animalPhotoUrl ?? undefined,
 		pendingMeds: 0,
 	};
 

@@ -1,4 +1,4 @@
-import { createTRPCRouter } from "../trpc/init";
+import { createCallerFactory, createTRPCRouter } from "../trpc/init";
 import { adminRouter } from "./admin";
 import { animalRouter } from "./animals";
 import { householdRouter } from "./households";
@@ -16,3 +16,6 @@ export const appRouter = createTRPCRouter({
 
 // Export type for use in client
 export type AppRouter = typeof appRouter;
+
+// Export caller factory for testing
+export const createTRPCCaller = createCallerFactory(appRouter);

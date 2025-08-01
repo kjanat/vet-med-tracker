@@ -1,6 +1,17 @@
 import { vi } from "vitest";
+import type { Context } from "@/server/api/trpc/init";
 
-export function createTestContext() {
+export function createTestContext(): Context {
+	const mockUser = {
+		id: "test-user-id",
+		email: "test@example.com",
+		name: "Test User",
+		image: null,
+		emailVerified: null,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+	};
+
 	return {
 		db: {
 			select: vi.fn().mockReturnValue({
@@ -27,13 +38,33 @@ export function createTestContext() {
 			delete: vi.fn().mockReturnValue({
 				where: vi.fn().mockResolvedValue([]),
 			}),
-		},
-		user: {
-			id: "test-user-id",
-			email: "test@example.com",
-		},
+		} as any,
+		user: mockUser,
 		session: {
 			userId: "test-user-id",
+			user: mockUser,
+			householdMemberships: [
+				{
+					id: "test-membership-id",
+					userId: "test-user-id",
+					householdId: "test-household-id",
+					role: "OWNER" as const,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				},
+			],
+			expiresAt: new Date(Date.now() + 3600000),
+		},
+		headers: new Headers(),
+		requestedHouseholdId: "test-household-id",
+		currentHouseholdId: "test-household-id",
+		currentMembership: {
+			id: "test-membership-id",
+			userId: "test-user-id",
+			householdId: "test-household-id",
+			role: "OWNER" as const,
+			createdAt: new Date(),
+			updatedAt: new Date(),
 		},
 	};
 }
