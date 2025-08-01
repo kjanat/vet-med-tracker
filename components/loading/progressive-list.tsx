@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProgressiveListProps<T> {
@@ -11,6 +12,8 @@ interface ProgressiveListProps<T> {
 	loadingComponent?: React.ReactNode;
 	emptyComponent?: React.ReactNode;
 	className?: string;
+	keyExtractor?: (item: T, index: number) => React.Key;
+	rootMargin?: string;
 }
 
 /**
@@ -24,65 +27,99 @@ export function ProgressiveList<T>({
 	loadingComponent,
 	emptyComponent,
 	className = "",
+	keyExtractor,
+	rootMargin = "300px 0px",
 }: ProgressiveListProps<T>) {
 	const [displayCount, setDisplayCount] = useState(initialCount);
 	const [isLoading, setIsLoading] = useState(false);
 	const loaderRef = useRef<HTMLDivElement>(null);
+	const timeoutRef = useRef<number | null>(null);
 
-	// Reset display count when items change
+	// Reset display count when items or initialCount change
 	useEffect(() => {
 		setDisplayCount(initialCount);
-	}, [items, initialCount]);
+	}, [initialCount]);
 
 	// Intersection observer for infinite scroll
 	useEffect(() => {
 		if (!loaderRef.current) return;
 
 		const observer = new IntersectionObserver(
-			(entries) => {
-				const target = entries[0];
-				if (target?.isIntersecting && displayCount < items.length && !isLoading) {
+			([entry]) => {
+				if (
+					entry?.isIntersecting &&
+					displayCount < items.length &&
+					!isLoading
+				) {
 					setIsLoading(true);
-					// Simulate loading delay for smoother UX
-					setTimeout(() => {
+					timeoutRef.current = window.setTimeout(() => {
 						setDisplayCount((prev) => Math.min(prev + increment, items.length));
 						setIsLoading(false);
 					}, 300);
 				}
 			},
-			{ threshold: 0.1 },
+			{ threshold: 0.1, rootMargin },
 		);
 
-		observer.observe(loaderRef.current);
+		const el = loaderRef.current;
+		observer.observe(el);
 
-		return () => observer.disconnect();
-	}, [displayCount, items.length, increment, isLoading]);
+		return () => {
+			observer.unobserve(el);
+			observer.disconnect();
+			if (timeoutRef.current) {
+				clearTimeout(timeoutRef.current);
+				timeoutRef.current = null;
+			}
+		};
+	}, [displayCount, items.length, increment, isLoading, rootMargin]);
 
-	if (items.length === 0 && emptyComponent) {
-		return <>{emptyComponent}</>;
-	}
+	if (items.length === 0) return <>{emptyComponent ?? null}</>;
 
 	const visibleItems = items.slice(0, displayCount);
+
+	const handleLoadMore = () => {
+		if (!isLoading && displayCount < items.length) {
+			setIsLoading(true);
+			timeoutRef.current = window.setTimeout(() => {
+				setDisplayCount((prev) => Math.min(prev + increment, items.length));
+				setIsLoading(false);
+			}, 300);
+		}
+	};
 
 	return (
 		<div className={className}>
 			{visibleItems.map((item, index) => (
-				<div key={index}>{renderItem(item, index)}</div>
+				<React.Fragment key={keyExtractor?.(item, index) ?? index}>
+					{renderItem(item, index)}
+				</React.Fragment>
 			))}
 
 			{/* Load more trigger */}
 			{displayCount < items.length && (
 				<div ref={loaderRef} className="py-4 flex justify-center">
 					{isLoading ? (
-						loadingComponent || (
+						(loadingComponent ?? (
 							<div className="space-y-2 w-full">
 								<Skeleton className="h-16 w-full" />
 								<Skeleton className="h-16 w-full" />
 							</div>
-						)
+						))
 					) : (
-						<div className="text-sm text-muted-foreground">
-							Showing {displayCount} of {items.length}
+						<div className="text-center space-y-2">
+							<div className="text-sm text-muted-foreground">
+								Showing {displayCount} of {items.length}
+							</div>
+							{/* Hidden button for keyboard/screen reader users */}
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={handleLoadMore}
+								className="sr-only focus:not-sr-only"
+							>
+								Load more items
+							</Button>
 						</div>
 					)}
 				</div>
@@ -100,12 +137,14 @@ export function VirtualList<T>({
 	itemHeight,
 	containerHeight,
 	className = "",
+	keyExtractor,
 }: {
 	items: T[];
 	renderItem: (item: T, index: number) => React.ReactNode;
 	itemHeight: number;
 	containerHeight: number;
 	className?: string;
+	keyExtractor?: (item: T, index: number) => React.Key;
 }) {
 	const [scrollTop, setScrollTop] = useState(0);
 	const scrollElementRef = useRef<HTMLDivElement>(null);
@@ -141,14 +180,17 @@ export function VirtualList<T>({
 						right: 0,
 					}}
 				>
-					{visibleItems.map((item, index) => (
-						<div
-							key={startIndex + index}
-							style={{ height: itemHeight }}
-						>
-							{renderItem(item, startIndex + index)}
-						</div>
-					))}
+					{visibleItems.map((item, index) => {
+						const actualIndex = startIndex + index;
+						return (
+							<div
+								key={keyExtractor?.(item, actualIndex) ?? actualIndex}
+								style={{ height: itemHeight }}
+							>
+								{renderItem(item, actualIndex)}
+							</div>
+						);
+					})}
 				</div>
 			</div>
 		</div>
@@ -163,31 +205,38 @@ export function StaggeredList<T>({
 	renderItem,
 	className = "",
 	staggerDelay = 50,
+	keyExtractor,
 }: {
 	items: T[];
 	renderItem: (item: T, index: number) => React.ReactNode;
 	className?: string;
 	staggerDelay?: number;
+	keyExtractor?: (item: T, index: number) => React.Key;
 }) {
 	const [visibleIndexes, setVisibleIndexes] = useState<Set<number>>(new Set());
 
 	useEffect(() => {
-		const timeouts: NodeJS.Timeout[] = [];
+		const timeouts: number[] = [];
+		// Reset visible indexes when items change
+		setVisibleIndexes(new Set());
+
 		items.forEach((_, index) => {
-			const timeout = setTimeout(() => {
+			const timeout = window.setTimeout(() => {
 				setVisibleIndexes((prev) => new Set(prev).add(index));
 			}, index * staggerDelay);
 			timeouts.push(timeout);
 		});
 
-		return () => timeouts.forEach(clearTimeout);
+		return () => {
+			timeouts.forEach((id) => clearTimeout(id));
+		};
 	}, [items, staggerDelay]);
 
 	return (
 		<div className={className}>
 			{items.map((item, index) => (
 				<div
-					key={index}
+					key={keyExtractor?.(item, index) ?? index}
 					className={`transition-all duration-300 ${
 						visibleIndexes.has(index)
 							? "opacity-100 translate-y-0"

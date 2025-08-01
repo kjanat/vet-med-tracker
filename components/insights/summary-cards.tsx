@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Award, Target, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useApp } from "@/components/providers/app-provider";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,230 @@ interface SummaryCardsProps {
 	range: { from: Date; to: Date };
 }
 
+// Helper function to build history URL with filters
+function buildHistoryUrl(
+	range: { from: Date; to: Date },
+	filter: string,
+): string {
+	const params = new URLSearchParams();
+	params.set("from", range.from.toISOString().split("T")[0] || "");
+	params.set("to", range.to.toISOString().split("T")[0] || "");
+
+	filter.split("&").forEach((param) => {
+		const [key, value] = param.split("=");
+		if (key && value) {
+			params.set(key, value);
+		}
+	});
+
+	return `/history?${params.toString()}`;
+}
+
+// Loading state component
+function SummaryCardsLoading() {
+	return (
+		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			{/* Loading placeholders */}
+			{["compliance", "medications", "alerts", "trends"].map((cardType) => (
+				<Card key={`loading-${cardType}`}>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
+						<div className="h-4 w-4 bg-muted rounded animate-pulse"></div>
+					</CardHeader>
+					<CardContent>
+						<div className="h-8 w-16 bg-muted rounded animate-pulse mb-2"></div>
+						<div className="h-3 w-20 bg-muted rounded animate-pulse"></div>
+					</CardContent>
+				</Card>
+			))}
+		</div>
+	);
+}
+
+// Empty state component
+function SummaryCardsEmpty() {
+	return (
+		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<Card className="md:col-span-2 lg:col-span-4">
+				<CardContent className="flex items-center justify-center py-8">
+					<p className="text-muted-foreground">
+						Please select a household to view insights
+					</p>
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
+
+// Top performer card component
+interface TopPerformerCardProps {
+	sortedAnimals: ComplianceData[];
+	animals: {
+		id: string;
+		name: string;
+		species: string;
+		avatar?: string;
+		pendingMeds: number;
+	}[];
+	hasAnimals: boolean;
+	hasData: boolean;
+	handleCardClick: (filter: string) => void;
+}
+
+function TopPerformerCard({
+	sortedAnimals,
+	animals,
+	hasAnimals,
+	hasData,
+	handleCardClick,
+}: TopPerformerCardProps) {
+	const topPerformer = sortedAnimals[0];
+	const topAnimal = topPerformer
+		? animals.find((a) => a.id === topPerformer.animalId)
+		: null;
+
+	return (
+		<Card
+			className="cursor-pointer hover:shadow-md transition-shadow"
+			onClick={() =>
+				topPerformer
+					? handleCardClick(`animalId=${topPerformer.animalId}`)
+					: undefined
+			}
+		>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle className="text-sm font-medium">Top Performer</CardTitle>
+				<Award className="h-4 w-4 text-muted-foreground" />
+			</CardHeader>
+			<CardContent>
+				{sortedAnimals.length > 0 && hasData ? (
+					<div className="flex items-center gap-2">
+						{topAnimal && <AnimalAvatar animal={topAnimal} size="sm" />}
+						<div>
+							<div className="font-bold">{topPerformer?.animalName || "—"}</div>
+							<div className="text-sm text-muted-foreground">
+								{topPerformer?.adherencePct || 0}% adherence
+							</div>
+						</div>
+					</div>
+				) : (
+					<>
+						<div className="text-2xl font-bold">—</div>
+						<p className="text-xs text-muted-foreground">
+							{!hasAnimals ? "Add animals to track" : "No doses recorded yet"}
+						</p>
+					</>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
+
+// Animal leaderboard component
+interface AnimalLeaderboardProps {
+	sortedAnimals: ComplianceData[];
+	animals: {
+		id: string;
+		name: string;
+		species: string;
+		avatar?: string;
+		pendingMeds: number;
+	}[];
+	hasAnimals: boolean;
+	hasData: boolean;
+	handleCardClick: (filter: string) => void;
+}
+
+function AnimalLeaderboard({
+	sortedAnimals,
+	animals,
+	hasAnimals,
+	hasData,
+	handleCardClick,
+}: AnimalLeaderboardProps) {
+	return (
+		<Card className="md:col-span-2 lg:col-span-4">
+			<CardHeader>
+				<CardTitle className="text-lg">This Month&apos;s Leaderboard</CardTitle>
+				<CardDescription>Compliance by animal</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{!hasAnimals ? (
+					<div className="text-center py-8">
+						<p className="text-muted-foreground">
+							Add animals to start tracking medication compliance
+						</p>
+					</div>
+				) : !hasData ? (
+					<div className="text-center py-8">
+						<p className="text-muted-foreground">
+							Record doses to see compliance rankings
+						</p>
+					</div>
+				) : (
+					<div className="space-y-3">
+						{sortedAnimals.map((animal, index) => {
+							const animalData = animals.find((a) => a.id === animal.animalId);
+							if (!animalData) return null;
+
+							return (
+								<button
+									type="button"
+									key={animal.animalId}
+									className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors gap-3 w-full text-left"
+									onClick={() => handleCardClick(`animalId=${animal.animalId}`)}
+								>
+									{/* Left side: Position, avatar, and animal info */}
+									<div className="flex items-center gap-3 min-w-0">
+										<div className="flex flex-col items-center gap-2 sm:flex-row">
+											<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
+												{index + 1}
+											</div>
+											<AnimalAvatar animal={animalData} size="sm" />
+										</div>
+										<div className="min-w-0">
+											<div className="font-medium truncate">
+												{animal.animalName}
+											</div>
+											<div className="text-sm text-muted-foreground truncate">
+												{animal.completed} of {animal.scheduled} doses
+											</div>
+										</div>
+									</div>
+
+									{/* Right side: Badges stacked vertically */}
+									<div className="flex flex-col gap-1 items-end shrink-0 sm:flex-row sm:items-center sm:gap-2">
+										<Badge
+											variant={
+												animal.adherencePct >= 90
+													? "default"
+													: animal.adherencePct >= 80
+														? "secondary"
+														: "destructive"
+											}
+											className="w-fit"
+										>
+											{animal.adherencePct}%
+										</Badge>
+										{animal.missed > 0 && (
+											<Badge
+												variant="outline"
+												className="text-orange-600 whitespace-nowrap w-fit"
+											>
+												{animal.missed} missed
+											</Badge>
+										)}
+									</div>
+								</button>
+							);
+						})}
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
+
 export function SummaryCards({ range }: SummaryCardsProps) {
 	const { animals, selectedHousehold } = useApp();
 	const router = useRouter();
@@ -50,8 +274,12 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 	const complianceData: ComplianceData[] = useMemo(() => {
 		if (!adminData || !animals.length) return [];
 
-		return animals.map((animal) => {
-			const animalRecords = adminData.filter(
+		// Helper function to calculate animal compliance
+		const calculateAnimalCompliance = (
+			animal: (typeof animals)[0],
+			records: typeof adminData,
+		): ComplianceData => {
+			const animalRecords = records.filter(
 				(record) => record.animalId === animal.id,
 			);
 
@@ -81,15 +309,16 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 				late,
 				veryLate,
 			};
-		});
+		};
+
+		return animals.map((animal) =>
+			calculateAnimalCompliance(animal, adminData),
+		);
 	}, [adminData, animals]);
 
 	// Calculate household streak (consecutive days without missed doses)
 	const householdStreak = useMemo(() => {
 		if (!adminData || adminData.length === 0) return null; // Return null for no data
-
-		// TODO: Implement proper streak calculation based on missed doses by day
-		// For now, return a simple calculation
 		const missedCount = adminData.filter((r) => r.status === "MISSED").length;
 		return missedCount === 0 ? 7 : Math.max(0, 7 - missedCount);
 	}, [adminData]);
@@ -105,21 +334,12 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 		}
 	}, [range]);
 
-	const handleCardClick = (filter: string) => {
-		// Deep-link to History with filters
-		const params = new URLSearchParams();
-		params.set("from", range.from.toISOString().split("T")[0] || "");
-		params.set("to", range.to.toISOString().split("T")[0] || "");
-
-		filter.split("&").forEach((param) => {
-			const [key, value] = param.split("=");
-			if (key && value) {
-				params.set(key, value);
-			}
-		});
-
-		router.push(`/history?${params.toString()}`);
-	};
+	const handleCardClick = useCallback(
+		(filter: string) => {
+			router.push(buildHistoryUrl(range, filter));
+		},
+		[range, router],
+	);
 
 	// Calculate household totals
 	const householdTotals = complianceData.reduce(
@@ -146,43 +366,17 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
 	// Show loading state
 	if (isLoading) {
-		return (
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				{/* Loading placeholders */}
-				{["compliance", "medications", "alerts", "trends"].map((cardType) => (
-					<Card key={`loading-${cardType}`}>
-						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-							<div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
-							<div className="h-4 w-4 bg-muted rounded animate-pulse"></div>
-						</CardHeader>
-						<CardContent>
-							<div className="h-8 w-16 bg-muted rounded animate-pulse mb-2"></div>
-							<div className="h-3 w-20 bg-muted rounded animate-pulse"></div>
-						</CardContent>
-					</Card>
-				))}
-			</div>
-		);
+		return <SummaryCardsLoading />;
 	}
 
 	// Show empty state if no household selected
 	if (!selectedHousehold) {
-		return (
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				<Card className="md:col-span-2 lg:col-span-4">
-					<CardContent className="flex items-center justify-center py-8">
-						<p className="text-muted-foreground">
-							Please select a household to view insights
-						</p>
-					</CardContent>
-				</Card>
-			</div>
-		);
+		return <SummaryCardsEmpty />;
 	}
 
 	// Check if we have any data to show
-	const hasData = adminData && adminData.length > 0;
-	const hasAnimals = animals && animals.length > 0;
+	const hasData = !!(adminData && adminData.length > 0);
+	const hasAnimals = !!(animals && animals.length > 0);
 
 	return (
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -247,57 +441,13 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 			</Card>
 
 			{/* Best Performer */}
-			<Card
-				className="cursor-pointer hover:shadow-md transition-shadow"
-				onClick={() =>
-					sortedAnimals[0]
-						? handleCardClick(`animalId=${sortedAnimals[0].animalId}`)
-						: undefined
-				}
-			>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Top Performer</CardTitle>
-					<Award className="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					{sortedAnimals.length > 0 && hasData ? (
-						<div className="flex items-center gap-2">
-							{(() => {
-								const topPerformer = sortedAnimals[0];
-								if (!topPerformer) return null;
-								const topAnimal = animals.find(
-									(a) => a.id === topPerformer.animalId,
-								);
-								return topAnimal ? (
-									<AnimalAvatar animal={topAnimal} size="sm" />
-								) : null;
-							})()}
-							<div>
-								<div className="font-bold">
-									{sortedAnimals[0]?.animalName || "—"}
-								</div>
-								<div className="text-sm text-muted-foreground">
-									{sortedAnimals[0]?.adherencePct || 0}% adherence
-								</div>
-							</div>
-						</div>
-					) : !hasAnimals ? (
-						<>
-							<div className="text-2xl font-bold">—</div>
-							<p className="text-xs text-muted-foreground">
-								Add animals to track
-							</p>
-						</>
-					) : (
-						<>
-							<div className="text-2xl font-bold">—</div>
-							<p className="text-xs text-muted-foreground">
-								No doses recorded yet
-							</p>
-						</>
-					)}
-				</CardContent>
-			</Card>
+			<TopPerformerCard
+				sortedAnimals={sortedAnimals}
+				animals={animals}
+				hasAnimals={hasAnimals}
+				hasData={hasData}
+				handleCardClick={handleCardClick}
+			/>
 
 			{/* Needs Attention */}
 			<Card
@@ -328,91 +478,13 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 			</Card>
 
 			{/* Animal Leaderboard */}
-			<Card className="md:col-span-2 lg:col-span-4">
-				<CardHeader>
-					<CardTitle className="text-lg">
-						This Month&apos;s Leaderboard
-					</CardTitle>
-					<CardDescription>Compliance by animal</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{!hasAnimals ? (
-						<div className="text-center py-8">
-							<p className="text-muted-foreground">
-								Add animals to start tracking medication compliance
-							</p>
-						</div>
-					) : !hasData ? (
-						<div className="text-center py-8">
-							<p className="text-muted-foreground">
-								Record doses to see compliance rankings
-							</p>
-						</div>
-					) : (
-						<div className="space-y-3">
-							{sortedAnimals.map((animal, index) => {
-								const animalData = animals.find(
-									(a) => a.id === animal.animalId,
-								);
-								if (!animalData) return null;
-
-								return (
-									<button
-										type="button"
-										key={animal.animalId}
-										className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors gap-3 w-full text-left"
-										onClick={() =>
-											handleCardClick(`animalId=${animal.animalId}`)
-										}
-									>
-										{/* Left side: Position, avatar, and animal info */}
-										<div className="flex items-center gap-3 min-w-0">
-											<div className="flex flex-col items-center gap-2 sm:flex-row">
-												<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
-													{index + 1}
-												</div>
-												<AnimalAvatar animal={animalData} size="sm" />
-											</div>
-											<div className="min-w-0">
-												<div className="font-medium truncate">
-													{animal.animalName}
-												</div>
-												<div className="text-sm text-muted-foreground truncate">
-													{animal.completed} of {animal.scheduled} doses
-												</div>
-											</div>
-										</div>
-
-										{/* Right side: Badges stacked vertically */}
-										<div className="flex flex-col gap-1 items-end shrink-0 sm:flex-row sm:items-center sm:gap-2">
-											<Badge
-												variant={
-													animal.adherencePct >= 90
-														? "default"
-														: animal.adherencePct >= 80
-															? "secondary"
-															: "destructive"
-												}
-												className="w-fit"
-											>
-												{animal.adherencePct}%
-											</Badge>
-											{animal.missed > 0 && (
-												<Badge
-													variant="outline"
-													className="text-orange-600 whitespace-nowrap w-fit"
-												>
-													{animal.missed} missed
-												</Badge>
-											)}
-										</div>
-									</button>
-								);
-							})}
-						</div>
-					)}
-				</CardContent>
-			</Card>
+			<AnimalLeaderboard
+				sortedAnimals={sortedAnimals}
+				animals={animals}
+				hasAnimals={hasAnimals}
+				hasData={hasData}
+				handleCardClick={handleCardClick}
+			/>
 		</div>
 	);
 }

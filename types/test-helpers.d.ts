@@ -14,11 +14,11 @@ export interface MockWindow extends Window {
 
 	// React mock
 	React?: {
-		createElement: (...args: any[]) => any;
+		createElement: (...args: unknown[]) => unknown;
 	};
 
 	// Offline queue methods
-	getOfflineQueueData: () => any[] | undefined;
+	getOfflineQueueData: () => unknown[] | undefined;
 	clearOfflineQueue: () => void;
 
 	// API tracking
@@ -32,7 +32,7 @@ export interface MockWindow extends Window {
 }
 
 // Helper type for mocking tRPC mutations
-export type MockTRPCMutation<TOutput = any, TInput = any> = {
+export type MockTRPCMutation<TOutput = unknown, TInput = unknown> = {
 	mutateAsync: Mock<(input: TInput) => Promise<TOutput>>;
 	trpc: {
 		path: string;
@@ -40,7 +40,7 @@ export type MockTRPCMutation<TOutput = any, TInput = any> = {
 	// Add other required properties
 	mutate: Mock;
 	reset: () => void;
-	error: TRPCClientErrorLike<any> | null;
+	error: TRPCClientErrorLike<unknown> | null;
 	data: TOutput | undefined;
 	status: "idle" | "pending" | "error" | "success";
 	isIdle: boolean;
@@ -48,11 +48,11 @@ export type MockTRPCMutation<TOutput = any, TInput = any> = {
 	isError: boolean;
 	isSuccess: boolean;
 	failureCount: number;
-	failureReason: TRPCClientErrorLike<any> | null;
+	failureReason: TRPCClientErrorLike<unknown> | null;
 	isPaused: boolean;
 	variables: TInput | undefined;
 	submittedAt: number;
-	context: any; // Add context property required by tRPC
+	context: unknown; // Add context property required by tRPC
 };
 
 declare global {

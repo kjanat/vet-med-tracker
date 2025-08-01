@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	AnimalCardSkeleton,
 	ChartSkeleton,
@@ -9,7 +10,6 @@ import {
 	MedicationCardSkeleton,
 	SummaryCardSkeleton,
 } from "@/components/ui/skeleton-variants";
-import { Skeleton } from "@/components/ui/skeleton";
 
 // Home page loading state
 export function HomePageLoading() {
@@ -24,7 +24,8 @@ export function HomePageLoading() {
 			{/* Action cards */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 				{Array.from({ length: 4 }, (_, i) => (
-					<SummaryCardSkeleton key={`summary-${i}`} />
+					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+					<SummaryCardSkeleton key={i} />
 				))}
 			</div>
 
@@ -33,7 +34,8 @@ export function HomePageLoading() {
 				<Skeleton className="h-6 w-40" />
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{Array.from({ length: 3 }, (_, i) => (
-						<MedicationCardSkeleton key={`med-${i}`} />
+						// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+						<MedicationCardSkeleton key={i} />
 					))}
 				</div>
 			</div>
@@ -76,7 +78,8 @@ export function HistoryPageLoading() {
 			{/* History list */}
 			<div className="space-y-2">
 				{Array.from({ length: 5 }, (_, i) => (
-					<div key={`history-${i}`} className="border rounded-lg p-4">
+					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+					<div key={i} className="border rounded-lg p-4">
 						<ListSkeleton count={1} />
 					</div>
 				))}
@@ -100,14 +103,16 @@ export function InventoryPageLoading() {
 			{/* Stats */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				{Array.from({ length: 3 }, (_, i) => (
-					<SummaryCardSkeleton key={`stat-${i}`} />
+					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+					<SummaryCardSkeleton key={i} />
 				))}
 			</div>
 
 			{/* Inventory grid */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{Array.from({ length: 6 }, (_, i) => (
-					<InventoryItemSkeleton key={`inv-${i}`} />
+					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+					<InventoryItemSkeleton key={i} />
 				))}
 			</div>
 		</div>
@@ -126,7 +131,8 @@ export function InsightsPageLoading() {
 			{/* Summary cards */}
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 				{Array.from({ length: 4 }, (_, i) => (
-					<SummaryCardSkeleton key={`summary-${i}`} />
+					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+					<SummaryCardSkeleton key={i} />
 				))}
 			</div>
 
@@ -162,7 +168,8 @@ export function AnimalsPageLoading() {
 			{/* Animal grid */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{Array.from({ length: 6 }, (_, i) => (
-					<AnimalCardSkeleton key={`animal-${i}`} />
+					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+					<AnimalCardSkeleton key={i} />
 				))}
 			</div>
 		</div>
@@ -181,7 +188,11 @@ export function SettingsPageLoading() {
 			{/* Settings sections */}
 			<div className="space-y-8">
 				{Array.from({ length: 3 }, (_, i) => (
-					<div key={`settings-${i}`} className="border rounded-lg p-6 space-y-4">
+					<div
+						// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+						key={i}
+						className="border rounded-lg p-6 space-y-4"
+					>
 						<Skeleton className="h-6 w-32" />
 						<FormSkeleton fields={2} />
 					</div>

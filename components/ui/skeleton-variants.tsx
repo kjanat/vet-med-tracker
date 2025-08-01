@@ -100,7 +100,8 @@ export function ChartSkeleton({ className }: { className?: string }) {
 					<div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-1">
 						{Array.from({ length: 7 }, (_, i) => (
 							<Skeleton
-								key={`bar-${i}`}
+								// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+								key={i}
 								className="flex-1"
 								style={{
 									height: `${Math.random() * 60 + 40}%`,
@@ -125,7 +126,11 @@ export function ListSkeleton({
 	return (
 		<div className={cn("space-y-3", className)}>
 			{Array.from({ length: count }, (_, i) => (
-				<div key={`list-item-${i}`} className="flex items-center gap-3 py-2">
+				<div
+					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+					key={i}
+					className="flex items-center gap-3 py-2"
+				>
 					<Skeleton className="h-10 w-10 rounded-full" />
 					<div className="flex-1 space-y-2">
 						<Skeleton className="h-4 w-3/4" />
@@ -142,7 +147,8 @@ export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
 	return (
 		<tr>
 			{Array.from({ length: columns }, (_, i) => (
-				<td key={`col-${i}`} className="p-3">
+				// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+				<td key={i} className="p-3">
 					<Skeleton className="h-4 w-full" />
 				</td>
 			))}
@@ -155,7 +161,8 @@ export function FormSkeleton({ fields = 3 }: { fields?: number }) {
 	return (
 		<div className="space-y-4">
 			{Array.from({ length: fields }, (_, i) => (
-				<div key={`field-${i}`} className="space-y-2">
+				// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+				<div key={i} className="space-y-2">
 					<Skeleton className="h-4 w-24" />
 					<Skeleton className="h-10 w-full" />
 				</div>

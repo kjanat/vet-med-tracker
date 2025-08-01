@@ -76,45 +76,62 @@ export function AppProvider({ children }: { children: ReactNode }) {
 		enabled: isAuthenticated,
 	});
 
+	// Helper function to restore household from localStorage
+	const restoreHouseholdFromStorage = useCallback(
+		(formattedHouseholds: Household[]): Household | null => {
+			if (typeof window === "undefined") return null;
+
+			const savedHouseholdId = localStorage.getItem("selectedHouseholdId");
+			if (!savedHouseholdId) return null;
+
+			const savedHousehold = formattedHouseholds.find(
+				(h) => h.id === savedHouseholdId,
+			);
+
+			if (!savedHousehold) {
+				console.warn(
+					`Household ID ${savedHouseholdId} not found in user's households. Clearing localStorage.`,
+				);
+				localStorage.removeItem("selectedHouseholdId");
+			}
+
+			return savedHousehold || null;
+		},
+		[],
+	);
+
+	// Helper function to select initial household
+	const selectInitialHousehold = useCallback(
+		(formattedHouseholds: Household[]): void => {
+			if (selectedHousehold || formattedHouseholds.length === 0) return;
+
+			// Try to restore from localStorage first
+			const restoredHousehold =
+				restoreHouseholdFromStorage(formattedHouseholds);
+			if (restoredHousehold) {
+				setSelectedHousehold(restoredHousehold);
+				return;
+			}
+
+			// Fallback to first household
+			setSelectedHousehold(formattedHouseholds[0] || null);
+		},
+		[selectedHousehold, setSelectedHousehold, restoreHouseholdFromStorage],
+	);
+
 	// Update households when data is fetched
 	useEffect(() => {
-		if (householdData && householdData.length > 0) {
-			const formattedHouseholds: Household[] = householdData.map((h) => ({
-				id: h.id,
-				name: h.name,
-				avatar: undefined, // TODO: Add avatar support
-			}));
-			setHouseholds(formattedHouseholds);
+		if (!householdData || householdData.length === 0) return;
 
-			// Try to restore selected household from localStorage first
-			if (!selectedHousehold && typeof window !== "undefined") {
-				const savedHouseholdId = localStorage.getItem("selectedHouseholdId");
-				const savedHousehold = formattedHouseholds.find(
-					(h) => h.id === savedHouseholdId,
-				);
+		const formattedHouseholds: Household[] = householdData.map((h) => ({
+			id: h.id,
+			name: h.name,
+			avatar: undefined, // TODO: Add avatar support
+		}));
 
-				if (savedHousehold) {
-					setSelectedHousehold(savedHousehold);
-				} else {
-					// Saved household not found in API data - clear invalid localStorage
-					if (savedHouseholdId) {
-						console.warn(
-							`Household ID ${savedHouseholdId} not found in user's households. Clearing localStorage.`,
-						);
-						localStorage.removeItem("selectedHouseholdId");
-					}
-
-					// Fallback to first household if any exist
-					if (formattedHouseholds.length > 0) {
-						setSelectedHousehold(formattedHouseholds[0] || null);
-					}
-				}
-			} else if (!selectedHousehold && formattedHouseholds.length > 0) {
-				// Set the first household as selected if none is selected (SSR case)
-				setSelectedHousehold(formattedHouseholds[0] || null);
-			}
-		}
-	}, [householdData, selectedHousehold, setSelectedHousehold]);
+		setHouseholds(formattedHouseholds);
+		selectInitialHousehold(formattedHouseholds);
+	}, [householdData, selectInitialHousehold]);
 
 	// Update pending sync count
 	const updatePendingSyncCount = useCallback(async () => {

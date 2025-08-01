@@ -182,7 +182,7 @@ export const inventoryRouter = createTRPCRouter({
 			} = input;
 
 			// Build the values object, excluding undefined optional fields
-			const values: any = {
+			const values: Record<string, unknown> = {
 				householdId: restInput.householdId,
 				medicationId: restInput.medicationId,
 				expiresOn: expiresOn.toISOString().split("T")[0]!,
@@ -222,14 +222,19 @@ export const inventoryRouter = createTRPCRouter({
 					.returning();
 
 				return newItem[0];
-			} catch (error: any) {
+			} catch (error: unknown) {
+				const errorObj = error as Error & {
+					cause?: { message?: string };
+					code?: string;
+					detail?: string;
+				};
 				console.error("Inventory insert error details:", {
-					message: error?.message,
-					cause: error?.cause?.message,
-					code: error?.code,
-					detail: error?.detail,
+					message: errorObj?.message,
+					cause: errorObj?.cause?.message,
+					code: errorObj?.code,
+					detail: errorObj?.detail,
 					values: JSON.stringify(values, null, 2),
-					stack: error?.stack,
+					stack: errorObj?.stack,
 				});
 				throw error;
 			}

@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation"; // Uncomment when needed
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -155,7 +155,7 @@ export class ErrorBoundary extends Component<Props, State> {
  * Hook version for functional components that need error boundary behavior
  */
 export function useErrorHandler() {
-	const router = useRouter();
+	// const router = useRouter(); // Uncomment if navigation is needed
 
 	const handleError = (error: Error, context?: Record<string, unknown>) => {
 		// Report error

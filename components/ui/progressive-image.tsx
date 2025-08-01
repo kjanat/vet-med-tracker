@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "./skeleton";
 
@@ -52,10 +52,8 @@ export function ProgressiveImage({
 
 	return (
 		<div className={cn("relative overflow-hidden", className)}>
-			{isLoading && (
-				<Skeleton className="absolute inset-0 z-10" />
-			)}
-			
+			{isLoading && <Skeleton className="absolute inset-0 z-10" />}
+
 			<Image
 				src={src}
 				alt={alt}
@@ -150,7 +148,7 @@ export function LazyImage({
 	const [ref, setRef] = useState<HTMLDivElement | null>(null);
 
 	// Intersection observer to detect when image comes into view
-	useState(() => {
+	useEffect(() => {
 		if (!ref || isInView) return;
 
 		const observer = new IntersectionObserver(
@@ -166,15 +164,12 @@ export function LazyImage({
 		observer.observe(ref);
 
 		return () => observer.disconnect();
-	});
+	}, [ref, isInView, threshold]);
 
 	return (
 		<div ref={setRef} className={cn("relative", className)}>
 			{!isInView ? (
-				<Skeleton
-					className="w-full h-full"
-					style={{ width, height }}
-				/>
+				<Skeleton className="w-full h-full" style={{ width, height }} />
 			) : (
 				<ProgressiveImage
 					src={src}

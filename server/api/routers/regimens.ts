@@ -43,6 +43,71 @@ interface ProcessedRegimen {
 	} | null;
 }
 
+// Helper type for due status result
+type DueStatusResult = {
+	section: "due" | "later" | "prn";
+	targetTime?: Date;
+	isOverdue: boolean;
+	minutesUntilDue: number;
+};
+
+// Helper to create a PRN result
+function createPRNResult(): DueStatusResult {
+	return {
+		section: "prn",
+		isOverdue: false,
+		minutesUntilDue: 0,
+	};
+}
+
+// Helper to determine section based on minutes until due
+function determineSection(
+	minutesUntilDue: number,
+	includeUpcoming: boolean,
+): "due" | "later" | "prn" {
+	if (minutesUntilDue < 60 && minutesUntilDue > -180) {
+		return "due";
+	}
+	if (minutesUntilDue >= 60 && includeUpcoming) {
+		return "later";
+	}
+	return "prn";
+}
+
+// Helper to parse time string and convert to minutes
+function parseTimeToMinutes(timeStr: string): number {
+	const [hours, minutes] = timeStr.split(":").map(Number);
+	return (hours ?? 0) * 60 + (minutes ?? 0);
+}
+
+// Helper to calculate result for a scheduled time
+function calculateScheduledResult(
+	scheduledMinutes: number,
+	currentTimeMinutes: number,
+	nowLocal: Date,
+	timeStr: string,
+	includeUpcoming: boolean,
+): DueStatusResult | null {
+	if (scheduledMinutes < currentTimeMinutes - 60) {
+		return null; // More than 1 hour past
+	}
+
+	const [hours, minutes] = timeStr.split(":").map(Number);
+	const targetTime = new Date(nowLocal);
+	targetTime.setHours(hours ?? 0, minutes ?? 0, 0, 0);
+
+	const minutesUntilDue = scheduledMinutes - currentTimeMinutes;
+	const isOverdue = minutesUntilDue < 0;
+	const section = determineSection(minutesUntilDue, includeUpcoming);
+
+	return {
+		section,
+		targetTime,
+		isOverdue,
+		minutesUntilDue,
+	};
+}
+
 // Helper function to calculate next due time and section
 function calculateDueStatus(
 	regimen: {
@@ -54,26 +119,13 @@ function calculateDueStatus(
 	},
 	now: Date,
 	includeUpcoming: boolean,
-): {
-	section: "due" | "later" | "prn";
-	targetTime?: Date;
-	isOverdue: boolean;
-	minutesUntilDue: number;
-} {
-	if (regimen.scheduleType === "PRN") {
-		return {
-			section: "prn",
-			isOverdue: false,
-			minutesUntilDue: 0,
-		};
-	}
-
-	if (regimen.scheduleType !== "FIXED" || !regimen.timesLocal) {
-		return {
-			section: "prn",
-			isOverdue: false,
-			minutesUntilDue: 0,
-		};
+): DueStatusResult {
+	if (
+		regimen.scheduleType === "PRN" ||
+		regimen.scheduleType !== "FIXED" ||
+		!regimen.timesLocal
+	) {
+		return createPRNResult();
 	}
 
 	// Calculate next due time based on schedule
@@ -84,38 +136,21 @@ function calculateDueStatus(
 
 	// Find next scheduled time
 	for (const timeStr of regimen.timesLocal) {
-		const [hours, minutes] = timeStr.split(":").map(Number);
-		const scheduledMinutes = (hours ?? 0) * 60 + (minutes ?? 0);
+		const scheduledMinutes = parseTimeToMinutes(timeStr);
+		const result = calculateScheduledResult(
+			scheduledMinutes,
+			currentTimeMinutes,
+			nowLocal,
+			timeStr,
+			includeUpcoming,
+		);
 
-		if (scheduledMinutes >= currentTimeMinutes - 60) {
-			// Within 1 hour past or any time future
-			const targetTime = new Date(nowLocal);
-			targetTime.setHours(hours ?? 0, minutes ?? 0, 0, 0);
-
-			const minutesUntilDue = scheduledMinutes - currentTimeMinutes;
-			const isOverdue = minutesUntilDue < 0;
-
-			let section: "due" | "later" | "prn" = "prn";
-			if (minutesUntilDue < 60 && minutesUntilDue > -180) {
-				section = "due";
-			} else if (minutesUntilDue >= 60 && includeUpcoming) {
-				section = "later";
-			}
-
-			return {
-				section,
-				targetTime,
-				isOverdue,
-				minutesUntilDue,
-			};
+		if (result) {
+			return result;
 		}
 	}
 
-	return {
-		section: "prn",
-		isOverdue: false,
-		minutesUntilDue: 0,
-	};
+	return createPRNResult();
 }
 
 // Type for database row

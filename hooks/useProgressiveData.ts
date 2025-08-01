@@ -22,11 +22,7 @@ export function useProgressiveData<T>(
 	data: T[],
 	options: UseProgressiveDataOptions = {},
 ): UseProgressiveDataReturn<T> {
-	const {
-		initialLoadSize = 20,
-		incrementSize = 20,
-		loadDelay = 200,
-	} = options;
+	const { initialLoadSize = 20, incrementSize = 20, loadDelay = 200 } = options;
 
 	const [loadedCount, setLoadedCount] = useState(initialLoadSize);
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -37,7 +33,7 @@ export function useProgressiveData<T>(
 		setLoadedCount(initialLoadSize);
 		setIsLoadingMore(false);
 		loadingRef.current = false;
-	}, [data, initialLoadSize]);
+	}, [initialLoadSize]);
 
 	const visibleData = data.slice(0, loadedCount);
 	const hasMore = loadedCount < data.length;
@@ -51,9 +47,7 @@ export function useProgressiveData<T>(
 
 		// Simulate async loading for smoother UX
 		setTimeout(() => {
-			setLoadedCount((prev) => 
-				Math.min(prev + incrementSize, data.length)
-			);
+			setLoadedCount((prev) => Math.min(prev + incrementSize, data.length));
 			setIsLoadingMore(false);
 			loadingRef.current = false;
 		}, loadDelay);
@@ -78,10 +72,7 @@ export function useProgressiveData<T>(
 /**
  * Hook for loading data in batches with priority
  */
-export function useBatchedData<T>(
-	data: T[],
-	priorityFn?: (item: T) => number,
-) {
+export function useBatchedData<T>(data: T[], priorityFn?: (item: T) => number) {
 	const [processedData, setProcessedData] = useState<T[]>([]);
 	const [isProcessing, setIsProcessing] = useState(false);
 

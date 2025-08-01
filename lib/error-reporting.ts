@@ -134,7 +134,7 @@ export const errorReporter = ErrorReporter.getInstance();
  * Helper function to extract error context from React components
  */
 export function extractErrorContext(
-	error: Error,
+	_error: Error,
 	errorInfo?: React.ErrorInfo,
 ): ErrorContext {
 	const context: ErrorContext = {};

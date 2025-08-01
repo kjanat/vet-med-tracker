@@ -19,7 +19,8 @@ const GenericLoader = () => (
 );
 
 // Lazy load with custom loading component
-export function lazyLoad<T extends ComponentType<Record<string, unknown>>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function lazyLoad<T extends ComponentType<any>>(
 	importFunc: () => Promise<{ default: T }>,
 	loadingComponent?: ComponentType,
 ) {
@@ -33,53 +34,76 @@ export function lazyLoad<T extends ComponentType<Record<string, unknown>>>(
 
 // Pre-configured lazy loaders for common components
 export const LazyChart = lazyLoad(
-	() => import("@/components/insights/compliance-chart"),
+	() =>
+		import("@/components/insights/compliance-heatmap").then((mod) => ({
+			default: mod.ComplianceHeatmap,
+		})),
 	ChartSkeleton,
 );
 
 export const LazyMedicationSearch = lazyLoad(
-	() => import("@/components/medication/medication-search"),
+	() =>
+		import("@/components/medication/medication-search").then((mod) => ({
+			default: mod.MedicationSearch,
+		})),
 	() => <FormSkeleton fields={1} />,
 );
 
 export const LazyRegimenForm = lazyLoad(
-	() => import("@/components/regimens/regimen-form").then((mod) => ({
-		default: mod.RegimenForm,
-	})),
+	() =>
+		import("@/components/regimens/regimen-form").then((mod) => ({
+			default: mod.RegimenForm,
+		})),
 	() => <FormSkeleton fields={5} />,
 );
 
 export const LazyInventoryForm = lazyLoad(
-	() => import("@/components/inventory/add-item-modal").then((mod) => ({
-		default: mod.AddItemModal,
-	})),
+	() =>
+		import("@/components/inventory/add-item-modal").then((mod) => ({
+			default: mod.AddItemModal,
+		})),
 	() => <FormSkeleton fields={4} />,
 );
 
 export const LazyAnimalForm = lazyLoad(
-	() => import("@/components/animals/animal-form"),
+	() =>
+		import("@/components/settings/animals/animal-form").then((mod) => ({
+			default: mod.AnimalForm,
+		})),
 	() => <FormSkeleton fields={5} />,
 );
 
 // Heavy list components
 export const LazyHistoryList = lazyLoad(
-	() => import("@/components/history/history-list"),
+	() =>
+		import("@/components/history/history-list").then((mod) => ({
+			default: mod.HistoryList,
+		})),
 	() => <ListSkeleton count={5} />,
 );
 
+// Note: inventory-grid doesn't exist, using inventory-card instead
 export const LazyInventoryGrid = lazyLoad(
-	() => import("@/components/inventory/inventory-grid"),
+	() =>
+		import("@/components/inventory/inventory-card").then((mod) => ({
+			default: mod.InventoryCard,
+		})),
 	() => (
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 			{Array.from({ length: 6 }, (_, i) => (
-				<Skeleton key={`grid-${i}`} className="h-32" />
+				<Skeleton
+					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+					key={i}
+					className="h-32"
+				/>
 			))}
 		</div>
 	),
 );
 
 // Export utility for creating lazy loaded modals
-export function createLazyModal<P extends Record<string, unknown>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createLazyModal<P = any>(
 	importPath: () => Promise<{ default: ComponentType<P> }>,
 	loadingHeight = "400px",
 ) {

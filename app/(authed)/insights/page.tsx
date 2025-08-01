@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { SummaryCards } from "@/components/insights/summary-cards";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
@@ -13,9 +13,21 @@ import {
 import { ChartSkeleton, ListSkeleton } from "@/components/ui/skeleton-variants";
 
 // Lazy load heavy components
-const ComplianceHeatmap = lazy(() => import("@/components/insights/compliance-heatmap").then(m => ({ default: m.ComplianceHeatmap })));
-const ActionableSuggestions = lazy(() => import("@/components/insights/actionable-suggestions").then(m => ({ default: m.ActionableSuggestions })));
-const ExportPanel = lazy(() => import("@/components/insights/export-panel").then(m => ({ default: m.ExportPanel })));
+const ComplianceHeatmap = lazy(() =>
+	import("@/components/insights/compliance-heatmap").then((m) => ({
+		default: m.ComplianceHeatmap,
+	})),
+);
+const ActionableSuggestions = lazy(() =>
+	import("@/components/insights/actionable-suggestions").then((m) => ({
+		default: m.ActionableSuggestions,
+	})),
+);
+const ExportPanel = lazy(() =>
+	import("@/components/insights/export-panel").then((m) => ({
+		default: m.ExportPanel,
+	})),
+);
 
 export default function InsightsPage() {
 	return (

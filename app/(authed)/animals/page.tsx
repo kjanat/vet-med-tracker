@@ -52,7 +52,16 @@ function NoHouseholdState() {
 }
 
 // Animal list component
-function AnimalList({ animals }: { animals: any[] }) {
+function AnimalList({
+	animals,
+}: {
+	animals: Array<{
+		id: string;
+		name: string;
+		species: string;
+		pendingMeds: number;
+	}>;
+}) {
 	const { openForm } = useAnimalForm();
 	const [searchQuery, setSearchQuery] = useState("");
 

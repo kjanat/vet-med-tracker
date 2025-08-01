@@ -51,7 +51,7 @@ export function MedicationSearch({
 
 	// Get selected medication details
 	const { data: selectedMedication } = trpc.medication.getById.useQuery(
-		{ id: value! },
+		{ id: value || "" },
 		{
 			enabled: !!value,
 			staleTime: 10 * 60 * 1000, // Cache for 10 minutes
@@ -60,7 +60,7 @@ export function MedicationSearch({
 
 	// Get frequently used medications
 	const { data: frequentMeds } = trpc.medication.getFrequentlyUsed.useQuery(
-		{ householdId: householdId!, limit: 5 },
+		{ householdId: householdId || "", limit: 5 },
 		{
 			enabled: !!householdId && open && query.length === 0,
 			staleTime: 5 * 60 * 1000,
