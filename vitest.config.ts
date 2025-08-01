@@ -7,13 +7,25 @@ export default defineConfig({
 	test: {
 		environment: "jsdom",
 		globals: true,
-		setupFiles: "./tests/setup.ts",
+		setupFiles: "./tests/helpers/setup.ts",
 		include: ["**/*.test.{ts,tsx}"],
 		exclude: [
 			"**/node_modules/**",
 			"**/dist/**",
 			"**/tests/e2e/**", // E2E tests handled by Playwright
 		],
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "json", "html"],
+			exclude: [
+				"node_modules/",
+				"tests/",
+				"**/*.d.ts",
+				"**/*.config.*",
+				"**/mockData.ts",
+				"app/**/*.tsx", // Exclude Next.js pages/routes
+			],
+		},
 		env: {
 			DATABASE_URL_POOLED: "postgresql://test:test@localhost:5432/vetmed_test",
 			DATABASE_URL_UNPOOLED:

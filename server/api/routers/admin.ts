@@ -145,7 +145,8 @@ async function verifyAnimalOwnership(
 		.select()
 		.from(animals)
 		.where(and(eq(animals.id, animalId), eq(animals.householdId, householdId)))
-		.limit(1);
+		.limit(1)
+		.execute();
 
 	if (!result[0]) {
 		throw new TRPCError({
@@ -173,7 +174,8 @@ async function verifyActiveRegimen(
 				eq(regimens.active, true),
 			),
 		)
-		.limit(1);
+		.limit(1)
+		.execute();
 
 	if (!result[0]) {
 		throw new TRPCError({
@@ -201,7 +203,8 @@ async function verifyInventoryItem(
 				eq(inventoryItems.householdId, householdId),
 			),
 		)
-		.limit(1);
+		.limit(1)
+		.execute();
 
 	if (!result[0]) {
 		throw new TRPCError({
@@ -234,7 +237,8 @@ async function checkDuplicateAdministration(
 		.select()
 		.from(administrations)
 		.where(eq(administrations.idempotencyKey, idempotencyKey))
-		.limit(1);
+		.limit(1)
+		.execute();
 
 	return result[0] || null;
 }
@@ -379,7 +383,8 @@ export const adminRouter = createTRPCRouter({
 				.from(administrations)
 				.where(and(...conditions))
 				.orderBy(administrations.recordedAt)
-				.limit(input.limit);
+				.limit(input.limit)
+				.execute();
 
 			return result;
 		}),
