@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type React from "react";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import { DebugHouseholdState } from "@/components/debug/debug-household-state";
+// import { DebugHouseholdState } from "@/components/debug/debug-household-state";
 import { GlobalLayout } from "@/components/layout/global-layout";
 import { AppProvider } from "@/components/providers/app-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";

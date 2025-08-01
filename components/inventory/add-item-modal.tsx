@@ -275,14 +275,11 @@ export function AddItemModal({
 															}
 															form.setValue("form", medication.form);
 															form.setValue("route", medication.route);
-															if (medication.defaultStrength) {
-																form.setValue(
-																	"strength",
-																	medication.defaultStrength,
-																);
+															if (medication.strength) {
+																form.setValue("strength", medication.strength);
 															}
 															// If it's a controlled substance, set storage appropriately
-															if (medication.isControlled) {
+															if (medication.controlledSubstance) {
 																form.setValue("storage", "CONTROLLED");
 															}
 														}}

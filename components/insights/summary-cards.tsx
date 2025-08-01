@@ -264,6 +264,7 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 						<div className="flex items-center gap-2">
 							{(() => {
 								const topPerformer = sortedAnimals[0];
+								if (!topPerformer) return null;
 								const topAnimal = animals.find(
 									(a) => a.id === topPerformer.animalId,
 								);
@@ -272,9 +273,11 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 								) : null;
 							})()}
 							<div>
-								<div className="font-bold">{sortedAnimals[0].animalName}</div>
+								<div className="font-bold">
+									{sortedAnimals[0]?.animalName || "—"}
+								</div>
 								<div className="text-sm text-muted-foreground">
-									{sortedAnimals[0].adherencePct}% adherence
+									{sortedAnimals[0]?.adherencePct || 0}% adherence
 								</div>
 							</div>
 						</div>

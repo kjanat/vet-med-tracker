@@ -1,6 +1,5 @@
 "use client";
 
-import type { MedicationCatalog } from "@prisma/client";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import type { MedicationCatalog } from "@/server/db/schema/medications";
 import { trpc } from "@/server/trpc/client";
 
 interface MedicationSearchProps {
@@ -143,18 +143,11 @@ export function MedicationSearch({
 									<span className="text-sm text-muted-foreground">
 										{medication.brandName && <>{medication.brandName} • </>}
 										{medication.form} • {medication.route}
-										{medication.defaultStrength && (
-											<> • {medication.defaultStrength}</>
-										)}
+										{medication.strength && <> • {medication.strength}</>}
 									</span>
-									{medication.isControlled && (
+									{medication.controlledSubstance && (
 										<span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
 											Controlled Substance
-										</span>
-									)}
-									{medication.requiresCosign && (
-										<span className="text-xs text-red-600 dark:text-red-400 font-medium">
-											Requires Co-sign
 										</span>
 									)}
 								</div>

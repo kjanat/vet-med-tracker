@@ -1,6 +1,12 @@
 import { TRPCError } from "@trpc/server";
+import { and, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc/init";
+import { inventoryItems, medicationCatalog } from "../../db/schema";
+import {
+	createTRPCRouter,
+	householdProcedure,
+	protectedProcedure,
+} from "../trpc/init";
 
 export const medicationRouter = createTRPCRouter({
 	search: protectedProcedure
@@ -13,26 +19,17 @@ export const medicationRouter = createTRPCRouter({
 		.query(async ({ ctx, input }) => {
 			const { query, limit } = input;
 
-			const medications = await ctx.db.medicationCatalog.findMany({
-				where: {
-					OR: [
-						{
-							genericName: {
-								contains: query,
-								mode: "insensitive",
-							},
-						},
-						{
-							brandName: {
-								contains: query,
-								mode: "insensitive",
-							},
-						},
-					],
-				},
-				take: limit,
-				orderBy: [{ genericName: "asc" }, { brandName: "asc" }],
-			});
+			const medications = await ctx.db
+				.select()
+				.from(medicationCatalog)
+				.where(
+					or(
+						ilike(medicationCatalog.genericName, `%${query}%`),
+						ilike(medicationCatalog.brandName, `%${query}%`),
+					),
+				)
+				.orderBy(medicationCatalog.genericName, medicationCatalog.brandName)
+				.limit(limit);
 
 			return medications;
 		}),
@@ -44,22 +41,24 @@ export const medicationRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const medication = await ctx.db.medicationCatalog.findUnique({
-				where: { id: input.id },
-			});
+			const medications = await ctx.db
+				.select()
+				.from(medicationCatalog)
+				.where(eq(medicationCatalog.id, input.id))
+				.limit(1);
 
-			if (!medication) {
+			if (medications.length === 0) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
 					message: "Medication not found",
 				});
 			}
 
-			return medication;
+			return medications[0];
 		}),
 
 	// Get frequently used medications for a household
-	getFrequentlyUsed: protectedProcedure
+	getFrequentlyUsed: householdProcedure
 		.input(
 			z.object({
 				householdId: z.string().uuid(),
@@ -69,44 +68,46 @@ export const medicationRouter = createTRPCRouter({
 		.query(async ({ ctx, input }) => {
 			const { householdId, limit } = input;
 
-			// Verify household access
-			await ctx.verifyHouseholdMembership(householdId);
-
 			// Get medications used in inventory items for this household
-			const frequentMeds = await ctx.db.inventoryItem.groupBy({
-				by: ["medicationId"],
-				where: {
-					householdId,
-					deletedAt: null,
-				},
-				_count: {
-					medicationId: true,
-				},
-				orderBy: {
-					_count: {
-						medicationId: "desc",
-					},
-				},
-				take: limit,
-			});
+			const frequentMeds = await ctx.db
+				.select({
+					medicationId: inventoryItems.medicationId,
+					count: sql<number>`count(*)::int`,
+				})
+				.from(inventoryItems)
+				.where(
+					and(
+						eq(inventoryItems.householdId, householdId),
+						isNull(inventoryItems.deletedAt),
+					),
+				)
+				.groupBy(inventoryItems.medicationId)
+				.orderBy(desc(sql`count(*)`))
+				.limit(limit);
 
 			if (frequentMeds.length === 0) {
 				return [];
 			}
 
 			// Get medication details
-			const medications = await ctx.db.medicationCatalog.findMany({
-				where: {
-					id: {
-						in: frequentMeds.map((med) => med.medicationId),
-					},
-				},
-			});
+			const medicationIds = frequentMeds
+				.map((fm) => fm.medicationId)
+				.filter((id): id is string => id !== null);
+			if (medicationIds.length === 0) {
+				return [];
+			}
+
+			const medications = await ctx.db
+				.select()
+				.from(medicationCatalog)
+				.where(sql`${medicationCatalog.id} = ANY(${medicationIds})`);
 
 			// Sort by usage count
 			const medicationMap = new Map(medications.map((med) => [med.id, med]));
 			return frequentMeds
-				.map((freq) => medicationMap.get(freq.medicationId))
-				.filter(Boolean);
+				.map((freq) =>
+					freq.medicationId ? medicationMap.get(freq.medicationId) : undefined,
+				)
+				.filter((med): med is (typeof medications)[0] => med !== undefined);
 		}),
 });

@@ -64,7 +64,7 @@ export function TRPCProvider(
 						return fetch(url, {
 							...options,
 							credentials: "include", // Include authentication cookies
-						});
+						} as RequestInit);
 					},
 				}),
 			],
