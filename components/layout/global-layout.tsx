@@ -35,9 +35,7 @@ export function GlobalLayout({ children }: { children: ReactNode }) {
 				<AppSidebar />
 				<SidebarInset>
 					{/* Desktop Header with Sidebar Trigger */}
-					<div className="hidden md:flex">
-						<Header />
-					</div>
+					<Header />
 
 					{/* Main Content */}
 					<main className="flex-1 p-6 hidden md:block">{children}</main>

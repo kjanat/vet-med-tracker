@@ -15,7 +15,7 @@ interface Animal {
 
 interface AnimalAvatarProps {
 	animal: Animal;
-	size?: "sm" | "md" | "lg";
+	size?: "xs" | "sm" | "md" | "lg";
 	showBadge?: boolean;
 }
 
@@ -25,12 +25,14 @@ export function AnimalAvatar({
 	showBadge = false,
 }: AnimalAvatarProps) {
 	const sizeClasses = {
+		xs: "h-5 w-5",
 		sm: "h-6 w-6",
 		md: "h-8 w-8",
 		lg: "h-12 w-12",
 	};
 
 	const textSizeClasses = {
+		xs: "text-[10px]",
 		sm: "text-xs",
 		md: "text-sm",
 		lg: "text-base",

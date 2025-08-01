@@ -2,7 +2,7 @@
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { UserMenu } from "../auth/user-menu";
-import { AnimalSwitcher } from "../ui/animal-switcher";
+import { AnimalBreadcrumb } from "../ui/animal-breadcrumb";
 import { HouseholdSwitcher } from "../ui/household-switcher";
 import { NotificationDropdown } from "../ui/notification-dropdown";
 import { SidebarTrigger } from "../ui/sidebar";
@@ -12,8 +12,8 @@ export function Header() {
 	const isMobile = useMediaQuery("(max-width: 768px)");
 
 	return (
-		<header className="border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
-			<div className="flex h-16 items-center justify-between px-4">
+		<header className="w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
+			<div className="flex h-14 items-center justify-between px-4">
 				<div className="flex items-center gap-4">
 					{/* Desktop: Show sidebar trigger */}
 					{!isMobile && <SidebarTrigger />}
@@ -25,6 +25,9 @@ export function Header() {
 					{!isMobile && (
 						<h1 className="text-lg font-semibold">VetMed Tracker</h1>
 					)}
+
+					{/* Animal breadcrumb - integrated into main header row */}
+					<AnimalBreadcrumb />
 				</div>
 
 				<div className="flex items-center gap-4">
@@ -34,11 +37,6 @@ export function Header() {
 					{/* Mobile: Show user menu in header, desktop shows in sidebar */}
 					{isMobile && <UserMenu />}
 				</div>
-			</div>
-
-			{/* Animal switcher for both mobile and desktop */}
-			<div className="px-4 pb-3">
-				<AnimalSwitcher />
 			</div>
 		</header>
 	);

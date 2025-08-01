@@ -306,9 +306,19 @@ function HistoryContent() {
 
 	return (
 		<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+			{/* Header */}
+			<div className="p-4 md:p-6 pb-0">
+				<div>
+					<h1 className="text-3xl font-bold">History</h1>
+					<p className="text-muted-foreground">
+						View past medication administrations and compliance
+					</p>
+				</div>
+			</div>
+
 			<FilterBar />
 
-			<div className="p-4 md:p-6">
+			<div className="p-4 md:p-6 pt-0">
 				{filters.view === "list" ? (
 					<HistoryList
 						groups={groupedRecords}

@@ -69,21 +69,19 @@ export function NavMain({
 						>
 							<SidebarMenuItem>
 								{item.items?.length ? (
-									<>
-										<CollapsibleTrigger asChild>
-											<SidebarMenuButton
-												tooltip={item.title}
-												isActive={item.isActive}
-												className="cursor-pointer"
-											>
-												<item.icon />
-												<span>{item.title}</span>
-												<ChevronRight
-													className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
-												/>
-											</SidebarMenuButton>
-										</CollapsibleTrigger>
-									</>
+									<CollapsibleTrigger asChild>
+										<SidebarMenuButton
+											tooltip={item.title}
+											isActive={item.isActive}
+											className="cursor-pointer"
+										>
+											<item.icon />
+											<span>{item.title}</span>
+											<ChevronRight
+												className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+											/>
+										</SidebarMenuButton>
+									</CollapsibleTrigger>
 								) : (
 									<SidebarMenuButton
 										asChild
