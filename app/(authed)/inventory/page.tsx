@@ -3,10 +3,7 @@
 import { differenceInDays } from "date-fns";
 import { AlertTriangle, Package, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import {
-	type AddItemData,
-	AddItemModal,
-} from "@/components/inventory/add-item-modal";
+import { AddItemButton } from "@/components/inventory/add-item-button";
 import { AssignModal } from "@/components/inventory/assign-modal";
 import {
 	type EditItemData,
@@ -125,44 +122,6 @@ export default function InventoryPage() {
 
 		return sorted;
 	}, [searchQuery, sortBy, daysLeftMap, inventoryItems]);
-
-	// Create inventory item mutation
-	const createMutation = trpc.inventory.create.useMutation({
-		onSuccess: () => {
-			// Invalidate and refetch
-			utils.inventory.list.invalidate();
-		},
-	});
-
-	const handleAddItem = async (data: AddItemData) => {
-		if (!selectedHousehold?.id) return;
-
-		// For now, use a dummy medication ID until we implement medication catalog search
-		// TODO: Implement medication catalog search/create
-		const medicationId = crypto.randomUUID();
-
-		const payload = {
-			householdId: selectedHousehold.id,
-			medicationId,
-			brandOverride: data.brand,
-			lot: data.lot,
-			expiresOn: data.expiresOn ? new Date(data.expiresOn) : new Date(),
-			storage: data.storage as "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED",
-			unitsTotal: data.quantityUnits,
-			unitType: "units", // TODO: Add unit type to form
-			notes: undefined, // TODO: Add notes to form
-		};
-
-		try {
-			await createMutation.mutateAsync(payload);
-			// Show success toast
-			console.log(`Added ${data.name} (expires ${data.expiresOn})`);
-		} catch (error) {
-			// TODO: Implement inventory.create mutation for offline queue
-			// await enqueue("inventory.create", payload, `inventory:addItem:${crypto.randomUUID()}`);
-			console.error("Failed to add item, queued for offline sync:", error);
-		}
-	};
 
 	// Set in-use mutation
 	const setInUseMutation = trpc.inventory.setInUse.useMutation({
@@ -347,7 +306,7 @@ export default function InventoryPage() {
 						Manage medications and supplies
 					</p>
 				</div>
-				<AddItemModal onAdd={handleAddItem} />
+				<AddItemButton />
 			</div>
 
 			{/* Alert Banners */}

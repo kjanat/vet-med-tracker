@@ -1,12 +1,11 @@
 "use client";
 
 import { Suspense } from "react";
+import { MemberList } from "@/components/household/member-list";
+import { EscalationPanel } from "@/components/notifications/escalation-panel";
+import { PushPanel } from "@/components/notifications/push-panel";
 import { DataPanel } from "@/components/settings/data/data-panel";
-import { MemberList } from "@/components/settings/household/member-list";
-import { EscalationPanel } from "@/components/settings/notifications/escalation-panel";
-import { PushPanel } from "@/components/settings/notifications/push-panel";
 import { PrefsPanel } from "@/components/settings/preferences/prefs-panel";
-import { RegimenList } from "@/components/settings/regimens/regimen-list";
 import {
 	Select,
 	SelectContent,
@@ -23,11 +22,10 @@ function SettingsContent() {
 	const isMobile = useMediaQuery("(max-width: 640px)");
 
 	const tabs = [
-		{ value: "regimens", label: "Regimens" },
-		{ value: "household", label: "Household" },
-		{ value: "notifications", label: "Notifications" },
 		{ value: "data", label: "Data & Privacy" },
 		{ value: "preferences", label: "Preferences" },
+		{ value: "notifications", label: "Notifications" },
+		{ value: "household", label: "Household" },
 	];
 
 	return (
@@ -36,7 +34,8 @@ function SettingsContent() {
 				<div>
 					<h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
 					<p className="text-sm md:text-base text-muted-foreground">
-						Manage your household, animals, and preferences
+						Manage household, data privacy, notifications, and application
+						preferences
 					</p>
 				</div>
 
@@ -62,7 +61,7 @@ function SettingsContent() {
 				>
 					{/* Desktop: Tab list */}
 					{!isMobile && (
-						<TabsList className="w-full h-auto p-1 grid grid-cols-3 lg:grid-cols-5 gap-1">
+						<TabsList className="w-full h-auto p-1 grid grid-cols-4 gap-1">
 							{tabs.map((tab) => (
 								<TabsTrigger
 									key={tab.value}
@@ -75,15 +74,15 @@ function SettingsContent() {
 						</TabsList>
 					)}
 
-					<TabsContent value="regimens" className="mt-6 w-full overflow-x-auto">
-						<RegimenList />
+					<TabsContent value="data" className="mt-6 w-full overflow-x-auto">
+						<DataPanel />
 					</TabsContent>
 
 					<TabsContent
-						value="household"
+						value="preferences"
 						className="mt-6 w-full overflow-x-auto"
 					>
-						<MemberList />
+						<PrefsPanel />
 					</TabsContent>
 
 					<TabsContent
@@ -96,15 +95,11 @@ function SettingsContent() {
 						</div>
 					</TabsContent>
 
-					<TabsContent value="data" className="mt-6 w-full overflow-x-auto">
-						<DataPanel />
-					</TabsContent>
-
 					<TabsContent
-						value="preferences"
+						value="household"
 						className="mt-6 w-full overflow-x-auto"
 					>
-						<PrefsPanel />
+						<MemberList />
 					</TabsContent>
 				</Tabs>
 			</div>

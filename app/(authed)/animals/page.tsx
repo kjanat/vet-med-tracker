@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useAnimalForm } from "@/components/providers/animal-form-provider";
 import { useApp } from "@/components/providers/app-provider";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,7 @@ export default function AnimalsPage() {
 		animal.name.toLowerCase().includes(searchQuery.toLowerCase()),
 	);
 
-	const handleEdit = (animal: any) => {
+	const handleEdit = (animal: (typeof animals)[0]) => {
 		openForm(animal);
 	};
 

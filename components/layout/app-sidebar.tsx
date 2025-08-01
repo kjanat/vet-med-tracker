@@ -11,21 +11,28 @@ import {
 	Settings,
 	Stethoscope,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type * as React from "react";
+import { NotificationsSidebarItem } from "@/components/notifications/notifications-sidebar-item";
 import { useAnimalForm } from "@/components/providers/animal-form-provider";
+import { useInventoryForm } from "@/components/providers/inventory-form-provider";
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
 	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
 	SidebarRail,
 } from "@/components/ui/sidebar";
 import { UserMenuDesktop } from "../auth/user-menu-desktop";
 import { HouseholdSwitcher } from "../ui/household-switcher";
 import { NavDashboard } from "./nav-dashboard";
 import { NavMain } from "./nav-main";
-import { NavSecondary } from "./nav-secondary";
 
 // Navigation data for VetMed Tracker
 const data = {
@@ -66,7 +73,7 @@ const data = {
 				},
 				{
 					title: "Regimens",
-					url: "/settings?tab=regimens",
+					url: "/regimens",
 				},
 			],
 		},
@@ -96,20 +103,20 @@ const data = {
 			icon: Settings,
 			items: [
 				{
-					title: "Animals",
-					url: "/settings?tab=animals",
+					title: "Data & Privacy",
+					url: "/settings?tab=data",
 				},
 				{
-					title: "Household",
-					url: "/settings?tab=household",
+					title: "Preferences",
+					url: "/settings?tab=preferences",
 				},
 				{
 					title: "Notifications",
 					url: "/settings?tab=notifications",
 				},
 				{
-					title: "Preferences",
-					url: "/settings?tab=preferences",
+					title: "Household",
+					url: "/settings?tab=household",
 				},
 			],
 		},
@@ -119,11 +126,6 @@ const data = {
 			title: "Support",
 			url: "/help",
 			icon: HelpCircle,
-		},
-		{
-			title: "Notifications",
-			url: "/notifications",
-			icon: Bell,
 		},
 	],
 	dashboard: [
@@ -148,6 +150,7 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const pathname = usePathname();
 	const { openForm } = useAnimalForm();
+	const { openForm: openInventoryForm } = useInventoryForm();
 
 	// Update active state and add click handlers based on current path
 	const navMainWithActive = data.navMain.map((item) => ({
@@ -159,6 +162,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				return {
 					...subItem,
 					onClick: () => openForm(),
+					url: undefined, // Remove the URL to prevent navigation
+				};
+			}
+			// Convert "Add Item" links to use the dialog
+			if (subItem.title === "Add Item") {
+				return {
+					...subItem,
+					onClick: () => openInventoryForm(),
 					url: undefined, // Remove the URL to prevent navigation
 				};
 			}
@@ -174,7 +185,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			<SidebarContent>
 				<NavDashboard items={data.dashboard} />
 				<NavMain items={navMainWithActive} />
-				<NavSecondary items={data.navSecondary} className="mt-auto" />
+
+				{/* Custom secondary navigation with notifications popover */}
+				<SidebarGroup className="mt-auto">
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{/* Notifications with popover */}
+							<SidebarMenuItem>
+								<NotificationsSidebarItem />
+							</SidebarMenuItem>
+
+							{/* Regular nav items */}
+							{data.navSecondary.map((item) => (
+								<SidebarMenuItem key={item.title}>
+									<SidebarMenuButton asChild size="sm">
+										<Link href={item.url}>
+											<item.icon />
+											<span>{item.title}</span>
+										</Link>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
 			</SidebarContent>
 			<SidebarFooter>
 				<UserMenuDesktop />

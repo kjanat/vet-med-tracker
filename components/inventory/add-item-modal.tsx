@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Camera, Plus, Scan } from "lucide-react";
+import { AlertCircle, Camera, Scan } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { useApp } from "@/components/providers/app-provider";
@@ -23,7 +23,6 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,10 +57,15 @@ export interface AddItemData {
 
 interface AddItemModalProps {
 	onAdd: (data: AddItemData) => Promise<void>;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }
 
-export function AddItemModal({ onAdd }: AddItemModalProps) {
-	const [open, setOpen] = useState(false);
+export function AddItemModal({
+	onAdd,
+	open = false,
+	onOpenChange,
+}: AddItemModalProps) {
 	const [activeTab, setActiveTab] = useState("scan");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [scannedBarcode, setScannedBarcode] = useState("");
@@ -126,7 +130,7 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 				}),
 			);
 
-			// Reset form and close
+			// Reset form
 			setFormData({
 				name: "",
 				brand: "",
@@ -144,7 +148,6 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 				setInUse: false,
 			});
 			setScannedBarcode("");
-			setOpen(false);
 		} catch (error) {
 			console.error("Failed to add item:", error);
 		} finally {
@@ -153,7 +156,7 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 	};
 
 	const handleOpenChange = (newOpen: boolean) => {
-		setOpen(newOpen);
+		onOpenChange?.(newOpen);
 		if (!newOpen) {
 			stopScanning();
 			setScannedBarcode("");
@@ -163,13 +166,6 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 	return (
 		<>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
-				<DialogTrigger asChild>
-					<Button className="gap-2">
-						<Plus className="h-4 w-4" />
-						Add Item
-					</Button>
-				</DialogTrigger>
-
 				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
 					<DialogHeader>
 						<DialogTitle>Add Inventory Item</DialogTitle>
@@ -537,7 +533,7 @@ export function AddItemModal({ onAdd }: AddItemModalProps) {
 									<Button
 										type="button"
 										variant="outline"
-										onClick={() => setOpen(false)}
+										onClick={() => onOpenChange?.(false)}
 									>
 										Cancel
 									</Button>
