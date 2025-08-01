@@ -22,6 +22,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
 			<head>
+				{/* <script src="http://localhost:8097"></script> */}
 				<meta name="apple-mobile-web-app-title" content="KJANAT" />
 			</head>
 			<body className={inter.className}>
