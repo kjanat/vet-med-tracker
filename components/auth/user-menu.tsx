@@ -13,17 +13,18 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { LoginButton } from "./login-button";
+import { UserMenuDesktop } from "./user-menu-desktop";
 
-export function UserMenu() {
+// Mobile UserMenu component
+function MobileUserMenu() {
 	const { user, logout, isLoading } = useAuth();
 
-	// Show login button if not authenticated
 	if (!user) {
 		return <LoginButton variant="outline" size="sm" />;
 	}
 
-	// Get user initials for avatar fallback
 	const initials = user.name
 		? user.name
 				.split(" ")
@@ -82,4 +83,10 @@ export function UserMenu() {
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+}
+
+export function UserMenu() {
+	const isMobile = useMediaQuery("(max-width: 768px)");
+
+	return isMobile ? <MobileUserMenu /> : <UserMenuDesktop />;
 }

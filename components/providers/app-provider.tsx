@@ -48,7 +48,7 @@ export function useApp() {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-	const { households: userHouseholds, isAuthenticated } = useAuth();
+	const { isAuthenticated } = useAuth();
 	const [selectedHousehold, setSelectedHousehold] = useState<Household | null>(
 		null,
 	);
@@ -74,7 +74,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 			// Set the first household as selected if none is selected
 			if (!selectedHousehold && formattedHouseholds.length > 0) {
-				setSelectedHousehold(formattedHouseholds[0]);
+				setSelectedHousehold(formattedHouseholds[0] || null);
 			}
 		}
 	}, [householdData, selectedHousehold]);
