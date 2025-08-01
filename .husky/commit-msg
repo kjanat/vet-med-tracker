@@ -1,0 +1,79 @@
+#!/usr/bin/env sh
+# Ultra-safe commit message validator
+
+# Disable any inherited shell options that might cause issues
+set +e  # Don't exit on command failures
+set +u  # Don't exit on undefined variables
+
+msg_file="$1"
+
+# Basic validation
+test -n "$msg_file" || { echo "Error: No message file provided" >&2; exit 1; }
+test -f "$msg_file" || { echo "Error: Message file not found" >&2; exit 1; }
+
+# Read first line
+header=""
+if command -v head >/dev/null 2>&1; then
+    header=$(head -n1 "$msg_file" 2>/dev/null) || header=""
+else
+    # Fallback without head
+    exec 3< "$msg_file"
+    read -r header <&3
+    exec 3<&-
+fi
+
+test -n "$header" || { echo "Error: Empty commit message" >&2; exit 1; }
+
+# Get length
+len=0
+temp="$header"
+while [ -n "$temp" ]; do
+    len=$((len + 1))
+    temp="${temp#?}"
+done
+
+# Simple checks
+errors=""
+
+# Type check
+type_ok=0
+for type in feat fix docs style refactor perf test build ci chore revert; do
+    case "$header" in
+        "$type: "*|"$type("*"): "*)
+            type_ok=1
+            break
+            ;;
+    esac
+done
+test "$type_ok" = "1" || errors="$errors • invalid type or format\n"
+
+# Length check  
+test "$len" -le 72 || errors="$errors • too long ($len > 72)\n"
+
+# Subject check
+case "$header" in
+    *": ") errors="$errors • empty subject\n" ;;
+esac
+
+# Capitalization check
+case "$header" in
+    *": "[A-Z]*) errors="$errors • subject should start lowercase\n" ;;
+esac
+
+# Check for Claude Code attributions
+if grep -qi "claude code\|claude\.ai/code\|Co-Authored-By: Claude\|Generated with.*Claude" "$msg_file"; then
+    errors="$errors • commit message contains Claude Code attribution\n"
+fi
+
+# Output result
+if [ -n "$errors" ]; then
+    printf "❌ Commit message rejected\n\n"
+    printf "Got: \"%s\" (%d chars)\n" "$header" "$len"
+    printf "%b" "$errors"
+    printf "\n📝 Format: <type>(<scope>): <subject>\n"
+    printf "📚 Types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert\n"
+    exit 1
+else
+    printf "✔ Commit message passes all checks\n"
+    exit 0
+fi

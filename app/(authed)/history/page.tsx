@@ -273,7 +273,9 @@ function HistoryContent() {
 
 export default function HistoryPage() {
 	return (
-		<Suspense fallback={<div className="min-h-screen bg-background animate-pulse" />}>
+		<Suspense
+			fallback={<div className="min-h-screen bg-background animate-pulse" />}
+		>
 			<HistoryContent />
 		</Suspense>
 	);

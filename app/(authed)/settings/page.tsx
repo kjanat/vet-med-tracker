@@ -120,7 +120,9 @@ function SettingsContent() {
 
 export default function SettingsPage() {
 	return (
-		<Suspense fallback={<div className="min-h-screen bg-background animate-pulse" />}>
+		<Suspense
+			fallback={<div className="min-h-screen bg-background animate-pulse" />}
+		>
 			<SettingsContent />
 		</Suspense>
 	);

@@ -300,3 +300,6 @@ sample-components/
 
 # Sample env files
 !.env.local.example
+
+# Windows / WSL
+*:Zone.Identifier

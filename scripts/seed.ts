@@ -106,14 +106,21 @@ async function createMemberships(
 	if (usersData.length < 5 || householdsData.length < 3) {
 		throw new Error("Not enough users or households created");
 	}
-	const user1 = usersData[0]!;
-	const user2 = usersData[1]!;
-	const user3 = usersData[2]!;
-	const user4 = usersData[3]!;
-	const user5 = usersData[4]!;
-	const household1 = householdsData[0]!;
-	const household2 = householdsData[1]!;
-	const household3 = householdsData[2]!;
+	const user1 = usersData[0];
+	const user2 = usersData[1];
+	const user3 = usersData[2];
+	const user4 = usersData[3];
+	const user5 = usersData[4];
+	const household1 = householdsData[0];
+	const household2 = householdsData[1];
+	const household3 = householdsData[2];
+
+	if (!user1 || !user2 || !user3 || !user4 || !user5) {
+		throw new Error("Failed to create required users");
+	}
+	if (!household1 || !household2 || !household3) {
+		throw new Error("Failed to create required households");
+	}
 
 	const membershipData: (typeof memberships.$inferInsert)[] = [
 		// Johnson Family
@@ -163,9 +170,13 @@ async function createAnimals(householdsData: Household[]): Promise<Animal[]> {
 	if (householdsData.length < 3) {
 		throw new Error("Not enough households created");
 	}
-	const household1 = householdsData[0]!;
-	const household2 = householdsData[1]!;
-	const household3 = householdsData[2]!;
+	const household1 = householdsData[0];
+	const household2 = householdsData[1];
+	const household3 = householdsData[2];
+
+	if (!household1 || !household2 || !household3) {
+		throw new Error("Failed to access required households");
+	}
 
 	const animalData: (typeof animals.$inferInsert)[] = [
 		// Johnson Family pets
@@ -436,8 +447,16 @@ async function createRegimens(
 	const regimenData: (typeof regimens.$inferInsert)[] = [
 		// Bailey - Arthritis
 		{
-			animalId: animalsData[0]!.id,
-			medicationId: medications[0]!.id, // Rimadyl
+			animalId:
+				animalsData[0]?.id ??
+				(() => {
+					throw new Error("Bailey animal not found");
+				})(),
+			medicationId:
+				medications[0]?.id ??
+				(() => {
+					throw new Error("Rimadyl medication not found");
+				})(), // Rimadyl
 			name: "Arthritis Management - Bailey",
 			instructions:
 				"Give with food to prevent stomach upset. Monitor for decreased appetite or vomiting.",
@@ -451,8 +470,16 @@ async function createRegimens(
 		},
 		// Mittens - Diabetes
 		{
-			animalId: animalsData[1]!.id,
-			medicationId: medications[4]!.id, // Lantus
+			animalId:
+				animalsData[1]?.id ??
+				(() => {
+					throw new Error("Mittens animal not found");
+				})(),
+			medicationId:
+				medications[4]?.id ??
+				(() => {
+					throw new Error("Lantus medication not found");
+				})(), // Lantus
 			name: "Diabetes Control - Mittens",
 			instructions:
 				"Give 30 minutes after meals. Check blood glucose before if acting unusual. Target BG: 80-150.",
@@ -467,8 +494,16 @@ async function createRegimens(
 		},
 		// Luna - Epilepsy
 		{
-			animalId: animalsData[2]!.id,
-			medicationId: medications[6]!.id, // Keppra
+			animalId:
+				animalsData[2]?.id ??
+				(() => {
+					throw new Error("Luna animal not found");
+				})(),
+			medicationId:
+				medications[6]?.id ??
+				(() => {
+					throw new Error("Keppra medication not found");
+				})(), // Keppra
 			name: "Seizure Control - Luna",
 			instructions:
 				"DO NOT MISS DOSES. Give exactly every 8 hours. If seizure occurs, give extra dose and call vet.",
@@ -483,8 +518,16 @@ async function createRegimens(
 		},
 		// Shadow - Asthma
 		{
-			animalId: animalsData[3]!.id,
-			medicationId: medications[9]!.id, // Flovent
+			animalId:
+				animalsData[3]?.id ??
+				(() => {
+					throw new Error("Shadow animal not found");
+				})(),
+			medicationId:
+				medications[9]?.id ??
+				(() => {
+					throw new Error("Flovent medication not found");
+				})(), // Flovent
 			name: "Asthma Control - Shadow",
 			instructions:
 				"Use with AeroKat chamber. Hold mask on face for 7-10 breaths. Wait 30 seconds between puffs.",
@@ -498,8 +541,16 @@ async function createRegimens(
 		},
 		// Rex - Post-surgery pain
 		{
-			animalId: animalsData[4]!.id,
-			medicationId: medications[2]!.id, // Gabapentin
+			animalId:
+				animalsData[4]?.id ??
+				(() => {
+					throw new Error("Rex animal not found");
+				})(),
+			medicationId:
+				medications[2]?.id ??
+				(() => {
+					throw new Error("Gabapentin medication not found");
+				})(), // Gabapentin
 			name: "Post-Op Pain Management - Rex",
 			instructions:
 				"For surgical pain. May cause mild sedation. Can give with or without food.",
@@ -514,8 +565,16 @@ async function createRegimens(
 		},
 		// Rex - Anxiety PRN
 		{
-			animalId: animalsData[4]!.id,
-			medicationId: medications[10]!.id, // Trazodone
+			animalId:
+				animalsData[4]?.id ??
+				(() => {
+					throw new Error("Rex animal not found for anxiety regimen");
+				})(),
+			medicationId:
+				medications[10]?.id ??
+				(() => {
+					throw new Error("Trazodone medication not found");
+				})(), // Trazodone
 			name: "Anxiety Management - Rex",
 			instructions:
 				"Give 60-90 minutes before stressful events. Can cause drowsiness. Do not exceed 3 doses in 24 hours.",
@@ -532,29 +591,44 @@ async function createRegimens(
 	return await db.insert(regimens).values(regimenData).returning();
 }
 
-async function createInventory(
-	householdsData: Household[],
+// Helper function to get medication ID safely
+function getMedicationId(
+	medications: Medication[],
+	index: number,
+	name: string,
+): string {
+	const medication = medications[index];
+	if (!medication) {
+		throw new Error(`${name} medication not found for inventory`);
+	}
+	return medication.id;
+}
+
+// Helper function to get animal ID safely
+function getAnimalId(
+	animalsData: Animal[],
+	index: number,
+	name: string,
+): string {
+	const animal = animalsData[index];
+	if (!animal) {
+		throw new Error(`${name} animal not found for inventory`);
+	}
+	return animal.id;
+}
+
+// Helper function to create household inventory items
+function createHousehold1Inventory(
+	householdId: string,
 	animalsData: Animal[],
 	medications: Medication[],
-): Promise<InventoryItem[]> {
-	console.log("Creating inventory items...");
-	if (
-		householdsData.length < 3 ||
-		animalsData.length < 5 ||
-		medications.length < 11
-	) {
-		throw new Error("Not enough households, animals, or medications created");
-	}
-	const household1 = householdsData[0]!;
-	const household2 = householdsData[1]!;
-	const household3 = householdsData[2]!;
-
-	const inventoryItemData: (typeof inventoryItems.$inferInsert)[] = [
+): (typeof inventoryItems.$inferInsert)[] {
+	return [
 		// Active medications
 		{
-			householdId: household1.id,
-			medicationId: medications[0]!.id, // Rimadyl
-			assignedAnimalId: animalsData[0]!.id,
+			householdId,
+			medicationId: getMedicationId(medications, 0, "Rimadyl"), // Rimadyl
+			assignedAnimalId: getAnimalId(animalsData, 0, "Bailey"),
 			brandOverride: "Rimadyl",
 			concentration: "75mg",
 			lot: "RIM2024B127",
@@ -571,9 +645,9 @@ async function createInventory(
 			notes: "Chewable tablets - Bailey loves these",
 		},
 		{
-			householdId: household1.id,
-			medicationId: medications[4]!.id, // Lantus
-			assignedAnimalId: animalsData[1]!.id,
+			householdId,
+			medicationId: getMedicationId(medications, 4, "Lantus"), // Lantus
+			assignedAnimalId: getAnimalId(animalsData, 1, "Mittens"),
 			brandOverride: "Lantus SoloStar",
 			concentration: "100 units/mL",
 			lot: "LAN523K9",
@@ -591,9 +665,9 @@ async function createInventory(
 		},
 		// Backup insulin
 		{
-			householdId: household1.id,
-			medicationId: medications[4]!.id, // Lantus
-			assignedAnimalId: animalsData[1]!.id,
+			householdId,
+			medicationId: getMedicationId(medications, 4, "Lantus backup"), // Lantus
+			assignedAnimalId: getAnimalId(animalsData, 1, "Mittens backup"),
 			brandOverride: "Lantus",
 			concentration: "100 units/mL",
 			lot: "LAN524A2",
@@ -608,10 +682,19 @@ async function createInventory(
 			supplier: "Costco Pharmacy",
 			notes: "Backup vial - DO NOT OPEN until current pen is empty",
 		},
+	];
+}
+
+function createHousehold2Inventory(
+	householdId: string,
+	animalsData: Animal[],
+	medications: Medication[],
+): (typeof inventoryItems.$inferInsert)[] {
+	return [
 		{
-			householdId: household2.id,
-			medicationId: medications[6]!.id, // Keppra
-			assignedAnimalId: animalsData[2]!.id,
+			householdId,
+			medicationId: getMedicationId(medications, 6, "Keppra"), // Keppra
+			assignedAnimalId: getAnimalId(animalsData, 2, "Luna"),
 			concentration: "500mg",
 			lot: "LEV2025X44",
 			expiresOn: "2027-01-31",
@@ -627,9 +710,9 @@ async function createInventory(
 			notes: "Generic levetiracetam - works just as well as brand",
 		},
 		{
-			householdId: household2.id,
-			medicationId: medications[9]!.id, // Flovent
-			assignedAnimalId: animalsData[3]!.id,
+			householdId,
+			medicationId: getMedicationId(medications, 9, "Flovent"), // Flovent
+			assignedAnimalId: getAnimalId(animalsData, 3, "Shadow"),
 			brandOverride: "Flovent HFA",
 			concentration: "110mcg",
 			lot: "FLV9876",
@@ -645,10 +728,19 @@ async function createInventory(
 			supplier: "Canada Pharmacy",
 			notes: "Keep at room temp. Prime if not used for 7 days",
 		},
+	];
+}
+
+function createHousehold3Inventory(
+	householdId: string,
+	animalsData: Animal[],
+	medications: Medication[],
+): (typeof inventoryItems.$inferInsert)[] {
+	return [
 		{
-			householdId: household3.id,
-			medicationId: medications[2]!.id, // Gabapentin
-			assignedAnimalId: animalsData[4]!.id,
+			householdId,
+			medicationId: getMedicationId(medications, 2, "Gabapentin"), // Gabapentin
+			assignedAnimalId: getAnimalId(animalsData, 4, "Rex gabapentin"),
 			concentration: "100mg",
 			lot: "GAB2025M88",
 			expiresOn: "2027-05-31",
@@ -663,8 +755,8 @@ async function createInventory(
 			supplier: "Riverside Veterinary Clinic",
 		},
 		{
-			householdId: household3.id,
-			medicationId: medications[10]!.id, // Trazodone
+			householdId,
+			medicationId: getMedicationId(medications, 10, "Trazodone"), // Trazodone
 			concentration: "100mg",
 			lot: "TRZ445B",
 			expiresOn: "2026-11-30",
@@ -682,8 +774,8 @@ async function createInventory(
 		},
 		// Extra item for general use
 		{
-			householdId: household3.id,
-			medicationId: medications[7]!.id, // Clavamox
+			householdId,
+			medicationId: getMedicationId(medications, 7, "Clavamox"), // Clavamox
 			concentration: "250mg",
 			lot: "CLV2025Z1",
 			expiresOn: "2026-02-28",
@@ -697,6 +789,34 @@ async function createInventory(
 			supplier: "PetMeds",
 			notes: "For emergencies - check with vet before using",
 		},
+	];
+}
+
+async function createInventory(
+	householdsData: Household[],
+	animalsData: Animal[],
+	medications: Medication[],
+): Promise<InventoryItem[]> {
+	console.log("Creating inventory items...");
+	if (
+		householdsData.length < 3 ||
+		animalsData.length < 5 ||
+		medications.length < 11
+	) {
+		throw new Error("Not enough households, animals, or medications created");
+	}
+	const household1 = householdsData[0];
+	const household2 = householdsData[1];
+	const household3 = householdsData[2];
+
+	if (!household1 || !household2 || !household3) {
+		throw new Error("Failed to access required households for inventory");
+	}
+
+	const inventoryItemData: (typeof inventoryItems.$inferInsert)[] = [
+		...createHousehold1Inventory(household1.id, animalsData, medications),
+		...createHousehold2Inventory(household2.id, animalsData, medications),
+		...createHousehold3Inventory(household3.id, animalsData, medications),
 	];
 	return await db.insert(inventoryItems).values(inventoryItemData).returning();
 }
@@ -853,13 +973,50 @@ async function createMittensAdministrations(
 						scheduled,
 						hour,
 						mittensInventory,
-						sites[days % 4] ?? "left shoulder",
+						sites[days % 4] || "left shoulder",
 					),
 				);
 			}
 		}
 	}
 	return adminRecords;
+}
+
+// Helper function to create a single administration record for Luna
+function createLunaAdministrationRecord(
+	hour: number,
+	days: number,
+	now: Date,
+	lunaKeppra: Regimen,
+	luna: Animal,
+	household2: Household,
+	user2: User,
+	user4: User,
+	lunaInventory: InventoryItem,
+): typeof administrations.$inferInsert | null {
+	const scheduled = new Date(now);
+	scheduled.setDate(scheduled.getDate() - days);
+	scheduled.setHours(hour, 0, 0, 0);
+
+	if (scheduled > now) {
+		return null;
+	}
+
+	const recorded = new Date(scheduled);
+	recorded.setMinutes(Math.floor(Math.random() * 15));
+
+	return createAdministration(
+		lunaKeppra.id,
+		luna.id,
+		household2.id,
+		hour === 6 ? user4.id : user2.id,
+		scheduled,
+		recorded,
+		"ON_TIME",
+		lunaInventory.id,
+		"500mg (1 tablet)",
+		hour === 22 ? "Bedtime dose" : undefined,
+	);
 }
 
 async function createLunaAdministrations(
@@ -880,33 +1037,28 @@ async function createLunaAdministrations(
 		return adminRecords;
 	}
 
+	const hours = [6, 14, 22];
+
 	for (let days = 5; days >= 0; days--) {
-		for (const hour of [6, 14, 22]) {
-			const scheduled = new Date(now);
-			scheduled.setDate(scheduled.getDate() - days);
-			scheduled.setHours(hour, 0, 0, 0);
+		for (const hour of hours) {
+			const record = createLunaAdministrationRecord(
+				hour,
+				days,
+				now,
+				lunaKeppra,
+				luna,
+				household2,
+				user2,
+				user4,
+				lunaInventory,
+			);
 
-			if (scheduled <= now) {
-				const recorded = new Date(scheduled);
-				recorded.setMinutes(Math.floor(Math.random() * 15));
-
-				adminRecords.push(
-					createAdministration(
-						lunaKeppra.id,
-						luna.id,
-						household2.id,
-						hour === 6 ? user4.id : user2.id,
-						scheduled,
-						recorded,
-						"ON_TIME",
-						lunaInventory.id,
-						"500mg (1 tablet)",
-						hour === 22 ? "Bedtime dose" : undefined,
-					),
-				);
+			if (record) {
+				adminRecords.push(record);
 			}
 		}
 	}
+
 	return adminRecords;
 }
 
@@ -1005,20 +1157,36 @@ async function createAdministrations(
 		throw new Error("Not enough regimens created");
 	}
 
-	const user1 = usersData[0]!;
-	const user2 = usersData[1]!;
-	const _user3 = usersData[2]!;
-	const user4 = usersData[3]!;
-	const user5 = usersData[4]!;
-	const household1 = householdsData[0]!;
-	const household2 = householdsData[1]!;
-	const household3 = householdsData[2]!;
-	const baileyRimadyl = regimensData[0]!;
-	const mittensInsulin = regimensData[1]!;
-	const lunaKeppra = regimensData[2]!;
-	const _shadowFlovent = regimensData[3]!;
-	const rexGabapentin = regimensData[4]!;
-	const rexTrazodone = regimensData[5]!;
+	const user1 = usersData[0];
+	const user2 = usersData[1];
+	const _user3 = usersData[2];
+	const user4 = usersData[3];
+	const user5 = usersData[4];
+	const household1 = householdsData[0];
+	const household2 = householdsData[1];
+	const household3 = householdsData[2];
+	const baileyRimadyl = regimensData[0];
+	const mittensInsulin = regimensData[1];
+	const lunaKeppra = regimensData[2];
+	const _shadowFlovent = regimensData[3];
+	const rexGabapentin = regimensData[4];
+	const rexTrazodone = regimensData[5];
+
+	if (!user1 || !user2 || !user4 || !user5) {
+		throw new Error("Failed to access required users for administrations");
+	}
+	if (!household1 || !household2 || !household3) {
+		throw new Error("Failed to access required households for administrations");
+	}
+	if (
+		!baileyRimadyl ||
+		!mittensInsulin ||
+		!lunaKeppra ||
+		!rexGabapentin ||
+		!rexTrazodone
+	) {
+		throw new Error("Failed to access required regimens for administrations");
+	}
 
 	// Create administrations for each animal
 	const baileyAdmins = await createBaileyAdministrations(

@@ -2,8 +2,9 @@
 
 import { ArrowLeft, Camera, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useApp } from "@/components/providers/app-provider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,10 @@ import { InventorySourceSelect } from "@/components/ui/inventory-source-select";
 import { Label } from "@/components/ui/label";
 import { MedConfirmButton } from "@/components/ui/med-confirm-button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { trpc } from "@/server/trpc/client";
 import { adminKey } from "@/utils/idempotency";
 import { formatTimeLocal, localDayISO } from "@/utils/tz";
 
@@ -31,22 +34,36 @@ interface DueRegimen {
 	id: string;
 	animalId: string;
 	animalName: string;
+	animalSpecies?: string;
+	animalPhotoUrl?: string | null;
 	medicationName: string;
+	brandName?: string | null;
 	route: string;
 	form: string;
 	strength: string;
+	dose?: string;
 	targetTime?: Date;
 	isPRN: boolean;
 	isHighRisk: boolean;
+	requiresCoSign: boolean;
 	compliance: number;
 	section: "due" | "later" | "prn";
+	isOverdue?: boolean;
+	minutesUntilDue?: number;
+	instructions?: string | null;
+	prnReason?: string | null;
+	lastAdministration?: {
+		id: string;
+		recordedAt: Date;
+		status: string;
+	} | null;
 }
 
 interface InventorySource {
 	id: string;
 	name: string;
 	lot: string;
-	expiresOn: Date;
+	expiresOn: Date | null;
 	unitsRemaining: number;
 	isExpired: boolean;
 	isWrongMed: boolean;
@@ -93,153 +110,100 @@ function useRecordState() {
 	};
 }
 
-function RecordContent() {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const { animals } = useApp();
-	const { isOnline, enqueue } = useOfflineQueue();
-	const state = useRecordState();
+// Custom hook to handle data fetching
+function useRecordData(
+	state: ReturnType<typeof useRecordState>,
+	currentHousehold: { id: string } | null,
+) {
+	const utils = trpc.useUtils();
 
-	// Mock data - replace with tRPC queries
-	const dueRegimens = useMemo<DueRegimen[]>(
-		() => [
-			{
-				id: "1",
-				animalId: "1",
-				animalName: "Buddy",
-				medicationName: "Rimadyl",
-				route: "Oral",
-				form: "Tablet",
-				strength: "75mg",
-				targetTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
-				isPRN: false,
-				isHighRisk: false,
-				compliance: 85,
-				section: "due",
-			},
-			{
-				id: "2",
-				animalId: "2",
-				animalName: "Whiskers",
-				medicationName: "Insulin",
-				route: "Subcutaneous",
-				form: "Injection",
-				strength: "2 units",
-				targetTime: new Date(Date.now() - 30 * 60 * 1000), // 30 min ago (overdue)
-				isPRN: false,
-				isHighRisk: true,
-				compliance: 92,
-				section: "due",
-			},
-			{
-				id: "3",
-				animalId: "3",
-				animalName: "Charlie",
-				medicationName: "Pain Relief",
-				route: "Oral",
-				form: "Liquid",
-				strength: "5ml",
-				isPRN: true,
-				isHighRisk: false,
-				compliance: 78,
-				section: "prn",
-			},
-		],
-		[],
+	// Fetch due regimens from API
+	const {
+		data: dueRegimens,
+		isLoading: regimensLoading,
+		error: regimensError,
+	} = trpc.regimen.listDue.useQuery(
+		{
+			householdId: currentHousehold?.id,
+			animalId: state.selectedAnimalId || undefined,
+			includeUpcoming: true,
+		},
+		{
+			enabled: !!currentHousehold?.id,
+			refetchInterval: 60000, // Refresh every minute
+		},
 	);
 
-	const inventorySources: InventorySource[] = [
-		{
-			id: "1",
-			name: "Rimadyl 75mg",
-			lot: "ABC123",
-			expiresOn: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-			unitsRemaining: 45,
-			isExpired: false,
-			isWrongMed: false,
-			inUse: true,
-		},
-		{
-			id: "2",
-			name: "Insulin Pen",
-			lot: "INS456",
-			expiresOn: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // Expired
-			unitsRemaining: 12,
-			isExpired: true,
-			isWrongMed: false,
-			inUse: true,
-		},
-	];
-
-	// Handle URL params for pre-filling
-	useEffect(() => {
-		const animalId = searchParams.get("animalId");
-		const regimenId = searchParams.get("regimenId");
-
-		if (animalId) {
-			state.setSelectedAnimalId(animalId);
-		}
-
-		if (regimenId) {
-			const regimen = dueRegimens.find((r) => r.id === regimenId);
-			if (regimen) {
-				state.setSelectedRegimen(regimen);
-				state.setSelectedAnimalId(regimen.animalId);
-				state.setStep("confirm");
-			}
-		}
-	}, [searchParams, dueRegimens, state]);
-
-	const handleRegimenSelect = (regimen: DueRegimen) => {
-		state.setSelectedRegimen(regimen);
-		state.setSelectedAnimalId(regimen.animalId);
-		state.setRequiresCoSign(regimen.isHighRisk);
-		state.setStep("confirm");
-	};
-
-	const handleConfirm = async () => {
-		if (!state.selectedRegimen) return;
-
-		state.setIsSubmitting(true);
-
-		try {
-			const payload = createAdminPayload(state);
-
-			if (!isOnline) {
-				await enqueue(payload, payload.idempotencyKey);
-			} else {
-				// In real app: await createAdmin.mutateAsync(payload)
-				console.log("Recording administration:", payload);
-				await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-			}
-
+	// Create record administration mutation
+	const createAdminMutation = trpc.admin.create.useMutation({
+		onSuccess: () => {
+			// Invalidate due regimens to refresh the list
+			utils.regimen.listDue.invalidate();
 			state.setStep("success");
-		} catch (error) {
+		},
+		onError: (error) => {
 			console.error("Failed to record administration:", error);
-		} finally {
-			state.setIsSubmitting(false);
-		}
-	};
+			// TODO: Show error toast
+		},
+	});
 
-	const groupedRegimens = getGroupedRegimens(
+	// Fetch inventory sources when a regimen is selected
+	const { data: inventorySources, isLoading: inventoryLoading } =
+		trpc.inventory.getSources.useQuery(
+			{
+				householdId: currentHousehold?.id || "",
+				medicationName: state.selectedRegimen?.medicationName || "",
+				includeExpired: state.allowOverride,
+			},
+			{
+				enabled: !!state.selectedRegimen && !!currentHousehold?.id,
+			},
+		);
+
+	return {
 		dueRegimens,
+		regimensLoading,
+		regimensError,
+		createAdminMutation,
+		inventorySources,
+		inventoryLoading,
+	};
+}
+
+// Component for the selection step
+function SelectionStep({
+	state,
+	dueRegimens,
+	regimensLoading,
+	regimensError,
+	currentHousehold,
+	animals,
+	isOnline,
+	searchParams,
+	router,
+	handleRegimenSelect,
+}: {
+	state: ReturnType<typeof useRecordState>;
+	dueRegimens?: DueRegimen[];
+	regimensLoading: boolean;
+	regimensError: Error | null;
+	currentHousehold: { id: string } | null;
+	animals: Array<{
+		id: string;
+		name: string;
+		species: string;
+		pendingMeds: number;
+		avatar?: string;
+	}>;
+	isOnline: boolean;
+	searchParams: ReturnType<typeof useSearchParams>;
+	router: ReturnType<typeof useRouter>;
+	handleRegimenSelect: (regimen: DueRegimen) => void;
+}) {
+	const groupedRegimens = getGroupedRegimens(
+		dueRegimens || [],
 		state.selectedAnimalId,
 	);
-
-	if (state.step === "success") {
-		return <SuccessStep isOnline={isOnline} router={router} />;
-	}
-
-	if (state.step === "confirm" && state.selectedRegimen) {
-		return (
-			<ConfirmStep
-				state={state}
-				animals={animals}
-				inventorySources={inventorySources}
-				handleConfirm={handleConfirm}
-			/>
-		);
-	}
 
 	return (
 		<div className="max-w-4xl mx-auto space-y-6">
@@ -271,81 +235,241 @@ function RecordContent() {
 				</Card>
 			)}
 
-			<div className="space-y-6">
-				{groupedRegimens.due.length > 0 && (
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								Due Now
-								<Badge variant="destructive">
-									{groupedRegimens.due.length}
-								</Badge>
-							</CardTitle>
-							<CardDescription>
-								Medications that are due or overdue
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							{groupedRegimens.due.map((regimen) => (
-								<RegimenCard
-									key={regimen.id}
-									regimen={regimen}
-									onSelect={handleRegimenSelect}
-								/>
-							))}
-						</CardContent>
-					</Card>
-				)}
+			{regimensError && (
+				<Alert variant="destructive">
+					<AlertDescription>
+						Failed to load medications: {regimensError.message}
+					</AlertDescription>
+				</Alert>
+			)}
 
-				{groupedRegimens.later.length > 0 && (
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								Later Today
-								<Badge variant="secondary">
-									{groupedRegimens.later.length}
-								</Badge>
-							</CardTitle>
-							<CardDescription>
-								Upcoming medications scheduled for today
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							{groupedRegimens.later.map((regimen) => (
-								<RegimenCard
-									key={regimen.id}
-									regimen={regimen}
-									onSelect={handleRegimenSelect}
-								/>
-							))}
-						</CardContent>
-					</Card>
-				)}
-
-				{groupedRegimens.prn.length > 0 && (
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								PRN (As Needed)
-								<Badge variant="outline">{groupedRegimens.prn.length}</Badge>
-							</CardTitle>
-							<CardDescription>
-								Medications that can be given as needed
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							{groupedRegimens.prn.map((regimen) => (
-								<RegimenCard
-									key={regimen.id}
-									regimen={regimen}
-									onSelect={handleRegimenSelect}
-								/>
-							))}
-						</CardContent>
-					</Card>
-				)}
-			</div>
+			{regimensLoading ? (
+				<Card>
+					<CardHeader>
+						<Skeleton className="h-8 w-48" />
+						<Skeleton className="h-4 w-64" />
+					</CardHeader>
+					<CardContent className="space-y-3">
+						<Skeleton className="h-20 w-full" />
+						<Skeleton className="h-20 w-full" />
+						<Skeleton className="h-20 w-full" />
+					</CardContent>
+				</Card>
+			) : !currentHousehold ? (
+				<Alert>
+					<AlertDescription>
+						Please select a household to view medications.
+					</AlertDescription>
+				</Alert>
+			) : (
+				<MedicationSections
+					groupedRegimens={groupedRegimens}
+					dueRegimens={dueRegimens}
+					handleRegimenSelect={handleRegimenSelect}
+				/>
+			)}
 		</div>
+	);
+}
+
+// Component for medication sections
+function MedicationSections({
+	groupedRegimens,
+	dueRegimens,
+	handleRegimenSelect,
+}: {
+	groupedRegimens: ReturnType<typeof getGroupedRegimens>;
+	dueRegimens?: DueRegimen[];
+	handleRegimenSelect: (regimen: DueRegimen) => void;
+}) {
+	return (
+		<div className="space-y-6">
+			{groupedRegimens.due.length > 0 && (
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							Due Now
+							<Badge variant="destructive">{groupedRegimens.due.length}</Badge>
+						</CardTitle>
+						<CardDescription>
+							Medications that are due or overdue
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-3">
+						{groupedRegimens.due.map((regimen) => (
+							<RegimenCard
+								key={regimen.id}
+								regimen={regimen}
+								onSelect={handleRegimenSelect}
+							/>
+						))}
+					</CardContent>
+				</Card>
+			)}
+
+			{groupedRegimens.later.length > 0 && (
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							Later Today
+							<Badge variant="secondary">{groupedRegimens.later.length}</Badge>
+						</CardTitle>
+						<CardDescription>
+							Upcoming medications scheduled for today
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-3">
+						{groupedRegimens.later.map((regimen) => (
+							<RegimenCard
+								key={regimen.id}
+								regimen={regimen}
+								onSelect={handleRegimenSelect}
+							/>
+						))}
+					</CardContent>
+				</Card>
+			)}
+
+			{groupedRegimens.prn.length > 0 && (
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							PRN (As Needed)
+							<Badge variant="outline">{groupedRegimens.prn.length}</Badge>
+						</CardTitle>
+						<CardDescription>
+							Medications that can be given as needed
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-3">
+						{groupedRegimens.prn.map((regimen) => (
+							<RegimenCard
+								key={regimen.id}
+								regimen={regimen}
+								onSelect={handleRegimenSelect}
+							/>
+						))}
+					</CardContent>
+				</Card>
+			)}
+
+			{dueRegimens && dueRegimens.length === 0 && (
+				<Card>
+					<CardContent className="pt-6">
+						<p className="text-center text-muted-foreground">
+							No medications are due at this time.
+						</p>
+					</CardContent>
+				</Card>
+			)}
+		</div>
+	);
+}
+
+function RecordContent() {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const { animals, currentHousehold } = useApp();
+	const { isOnline, enqueue } = useOfflineQueue();
+	const state = useRecordState();
+
+	const {
+		dueRegimens,
+		regimensLoading,
+		regimensError,
+		createAdminMutation,
+		inventorySources,
+		inventoryLoading,
+	} = useRecordData(state, currentHousehold);
+
+	// Handle URL params for pre-filling
+	useEffect(() => {
+		const animalId = searchParams.get("animalId");
+		const regimenId = searchParams.get("regimenId");
+
+		if (animalId) {
+			state.setSelectedAnimalId(animalId);
+		}
+
+		if (regimenId && dueRegimens) {
+			const regimen = dueRegimens.find((r) => r.id === regimenId);
+			if (regimen) {
+				state.setSelectedRegimen(regimen);
+				state.setSelectedAnimalId(regimen.animalId);
+				state.setStep("confirm");
+			}
+		}
+	}, [searchParams, dueRegimens, state]);
+
+	const handleRegimenSelect = (regimen: DueRegimen) => {
+		state.setSelectedRegimen(regimen);
+		state.setSelectedAnimalId(regimen.animalId);
+		state.setRequiresCoSign(regimen.isHighRisk);
+		state.setStep("confirm");
+	};
+
+	const handleConfirm = async () => {
+		if (!state.selectedRegimen || !currentHousehold) return;
+
+		state.setIsSubmitting(true);
+
+		try {
+			const payload = createAdminPayload(state, currentHousehold.id);
+
+			if (!isOnline) {
+				// Queue for offline sync
+				await enqueue(
+					{
+						type: "admin.create",
+						payload,
+					},
+					payload.idempotencyKey,
+				);
+				// Optimistically move to success
+				state.setStep("success");
+			} else {
+				// Online - use tRPC mutation
+				await createAdminMutation.mutateAsync(payload);
+				// Success handler will set step to "success"
+			}
+		} catch (error) {
+			console.error("Failed to record administration:", error);
+			// Error is handled by mutation onError
+		} finally {
+			state.setIsSubmitting(false);
+		}
+	};
+
+	if (state.step === "success") {
+		return <SuccessStep isOnline={isOnline} router={router} />;
+	}
+
+	if (state.step === "confirm" && state.selectedRegimen) {
+		return (
+			<ConfirmStep
+				state={state}
+				animals={animals}
+				inventorySources={inventorySources || []}
+				inventoryLoading={inventoryLoading}
+				handleConfirm={handleConfirm}
+				isSubmitting={state.isSubmitting || createAdminMutation.isPending}
+			/>
+		);
+	}
+
+	return (
+		<SelectionStep
+			state={state}
+			dueRegimens={dueRegimens}
+			regimensLoading={regimensLoading}
+			regimensError={regimensError}
+			currentHousehold={currentHousehold}
+			animals={animals}
+			isOnline={isOnline}
+			searchParams={searchParams}
+			router={router}
+			handleRegimenSelect={handleRegimenSelect}
+		/>
 	);
 }
 
@@ -356,10 +480,14 @@ function RegimenCard({
 	regimen: DueRegimen;
 	onSelect: (regimen: DueRegimen) => void;
 }) {
-	const { animals } = useApp();
-	const animal = animals.find((a) => a.id === regimen.animalId);
+	const animal = {
+		id: regimen.animalId,
+		name: regimen.animalName,
+		species: regimen.animalSpecies || "Unknown",
+		avatar: regimen.animalPhotoUrl,
+		pendingMeds: 0,
+	};
 
-	const isOverdue = regimen.targetTime && regimen.targetTime < new Date();
 	const timeDisplay = regimen.targetTime
 		? formatTimeLocal(regimen.targetTime, "America/New_York")
 		: "As needed";
@@ -371,13 +499,14 @@ function RegimenCard({
 			onClick={() => onSelect(regimen)}
 		>
 			<div className="flex items-center gap-3">
-				{animal && <AnimalAvatar animal={animal} size="md" />}
+				<AnimalAvatar animal={animal} size="md" />
 				<div>
 					<div className="font-medium">
 						{regimen.animalName} - {regimen.medicationName} {regimen.strength}
 					</div>
 					<div className="text-sm text-muted-foreground">
 						{regimen.route} • {regimen.form} • {timeDisplay}
+						{regimen.dose && ` • ${regimen.dose}`}
 					</div>
 					<div className="text-xs text-muted-foreground">
 						{regimen.compliance}% compliance
@@ -387,7 +516,7 @@ function RegimenCard({
 			</div>
 
 			<div className="flex items-center gap-2">
-				{isOverdue && <Badge variant="destructive">Overdue</Badge>}
+				{regimen.isOverdue && <Badge variant="destructive">Overdue</Badge>}
 				{regimen.isPRN && <Badge variant="outline">PRN</Badge>}
 				{regimen.isHighRisk && <Badge variant="secondary">High-risk</Badge>}
 			</div>
@@ -396,11 +525,14 @@ function RegimenCard({
 }
 
 // Helper functions to reduce complexity
-function createAdminPayload(state: ReturnType<typeof useRecordState>) {
+function createAdminPayload(
+	state: ReturnType<typeof useRecordState>,
+	householdId: string,
+) {
 	if (!state.selectedRegimen) throw new Error("No regimen selected");
 
 	const now = new Date();
-	const localDay = localDayISO(now, "America/New_York"); // Use animal's timezone
+	const localDay = localDayISO(now, "America/New_York"); // TODO: Use animal's timezone
 	const idempotencyKey = adminKey(
 		state.selectedRegimen.animalId,
 		state.selectedRegimen.id,
@@ -410,16 +542,20 @@ function createAdminPayload(state: ReturnType<typeof useRecordState>) {
 
 	return {
 		idempotencyKey,
+		householdId,
 		animalId: state.selectedRegimen.animalId,
 		regimenId: state.selectedRegimen.id,
-		medicationName: state.selectedRegimen.medicationName,
 		administeredAt: now.toISOString(),
-		inventorySourceId: state.inventorySourceId,
-		notes: state.notes,
-		site: state.site,
-		conditionTags: state.conditionTags,
+		inventorySourceId: state.inventorySourceId || undefined,
+		notes: state.notes || undefined,
+		site: state.site || undefined,
+		conditionTags:
+			state.conditionTags.length > 0 ? state.conditionTags : undefined,
 		requiresCoSign: state.requiresCoSign,
 		allowOverride: state.allowOverride,
+		// Optional fields for proper status calculation
+		dose: state.selectedRegimen.dose,
+		status: state.selectedRegimen.isPRN ? ("PRN" as const) : undefined,
 	};
 }
 
@@ -491,7 +627,9 @@ function ConfirmStep({
 	state,
 	animals,
 	inventorySources,
+	inventoryLoading,
 	handleConfirm,
+	isSubmitting,
 }: {
 	state: ReturnType<typeof useRecordState>;
 	animals: Array<{
@@ -502,7 +640,9 @@ function ConfirmStep({
 		avatar?: string;
 	}>;
 	inventorySources: InventorySource[];
+	inventoryLoading?: boolean;
 	handleConfirm: () => Promise<void>;
+	isSubmitting?: boolean;
 }) {
 	const animal = animals.find((a) => a.id === state.selectedAnimalId);
 	const relevantSources = inventorySources.filter((s) =>
@@ -512,7 +652,7 @@ function ConfirmStep({
 	);
 
 	const isDisabled =
-		state.isSubmitting ||
+		isSubmitting ||
 		(relevantSources.some(
 			(s) => s.id === state.inventorySourceId && (s.isExpired || s.isWrongMed),
 		) &&
@@ -549,13 +689,17 @@ function ConfirmStep({
 				<CardContent className="space-y-6">
 					<div>
 						<Label>Inventory Source</Label>
-						<InventorySourceSelect
-							sources={relevantSources}
-							selectedId={state.inventorySourceId ?? undefined}
-							onSelect={state.setInventorySourceId}
-							allowOverride={true}
-							onOverrideChange={state.setAllowOverride}
-						/>
+						{inventoryLoading ? (
+							<Skeleton className="h-10 w-full" />
+						) : (
+							<InventorySourceSelect
+								sources={relevantSources}
+								selectedId={state.inventorySourceId ?? undefined}
+								onSelect={state.setInventorySourceId}
+								allowOverride={true}
+								onOverrideChange={state.setAllowOverride}
+							/>
+						)}
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
@@ -615,7 +759,7 @@ function ConfirmStep({
 						requiresCoSign={state.requiresCoSign}
 						className="w-full"
 					>
-						{state.isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
+						{isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
 					</MedConfirmButton>
 				</CardContent>
 			</Card>
@@ -661,7 +805,9 @@ function ConditionTagSelector({
 
 export default function RecordPage() {
 	return (
-		<Suspense fallback={<div className="min-h-screen bg-background animate-pulse" />}>
+		<Suspense
+			fallback={<div className="min-h-screen bg-background animate-pulse" />}
+		>
 			<RecordContent />
 		</Suspense>
 	);

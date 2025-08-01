@@ -138,3 +138,29 @@ export type NewNotificationQueue = typeof notificationQueue.$inferInsert;
 
 // Import for integer type
 import { integer } from "drizzle-orm/pg-core";
+
+// Helper function for creating audit logs
+export async function createAuditLog(
+	db: typeof import("../index").db,
+	data: {
+		userId: string;
+		householdId: string;
+		action: string;
+		tableName: string;
+		recordId: string;
+		oldValues?: Record<string, unknown>;
+		newValues?: Record<string, unknown>;
+		details?: Record<string, unknown>;
+	},
+) {
+	return db.insert(auditLog).values({
+		userId: data.userId,
+		householdId: data.householdId,
+		action: data.action,
+		resourceType: data.tableName,
+		resourceId: data.recordId,
+		oldValues: data.oldValues || null,
+		newValues: data.newValues || null,
+		details: data.details || null,
+	});
+}

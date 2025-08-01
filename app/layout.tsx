@@ -21,6 +21,9 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+			<head>
+				<meta name="apple-mobile-web-app-title" content="KJANAT" />
+			</head>
 			<body className={inter.className}>
 				<TRPCProvider>
 					<AuthProvider>
