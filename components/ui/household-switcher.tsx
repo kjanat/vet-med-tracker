@@ -50,7 +50,7 @@ export function HouseholdSwitcher() {
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton
 							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
 						>
 							<Avatar className="h-8 w-8 rounded-lg">
 								{selectedHousehold.avatar && (
@@ -80,14 +80,14 @@ export function HouseholdSwitcher() {
 						side={isMobile ? "bottom" : "right"}
 						sideOffset={4}
 					>
-						<DropdownMenuLabel className="text-muted-foreground text-xs">
+						<DropdownMenuLabel className="text-muted-foreground text-xs cursor-default">
 							Households
 						</DropdownMenuLabel>
 						{households.map((household) => (
 							<DropdownMenuItem
 								key={household.id}
 								onClick={() => setSelectedHousehold(household)}
-								className="gap-2 p-2"
+								className="gap-2 p-2 cursor-pointer"
 							>
 								<Avatar className="h-6 w-6 rounded-md">
 									{household.avatar && <AvatarImage src={household.avatar} />}
@@ -112,7 +112,7 @@ export function HouseholdSwitcher() {
 							</DropdownMenuItem>
 						))}
 						<DropdownMenuSeparator />
-						<DropdownMenuItem className="gap-2 p-2">
+						<DropdownMenuItem className="gap-2 p-2 cursor-pointer">
 							<div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
 								<Home className="size-4" />
 							</div>

@@ -87,7 +87,7 @@ export function NotificationsSidebarItem() {
 	return (
 		<Popover open={isOpen} onOpenChange={setIsOpen}>
 			<PopoverTrigger asChild>
-				<SidebarMenuButton size="sm" className="relative">
+				<SidebarMenuButton size="sm" className="relative cursor-pointer">
 					<Bell />
 					<span>Notifications</span>
 					{unreadCount > 0 && (
@@ -154,7 +154,7 @@ export function NotificationsSidebarItem() {
 					<Button
 						variant="ghost"
 						size="sm"
-						className="w-full text-xs"
+						className="w-full text-xs cursor-pointer"
 						onClick={() => {
 							setIsOpen(false);
 							// In real app, navigate to /admin/record or similar

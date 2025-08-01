@@ -23,13 +23,15 @@ export function NavDashboard({
 }) {
 	return (
 		<SidebarGroup className="group-data-[collapsible=icon]:hidden">
-			<SidebarGroupLabel>Quick Access</SidebarGroupLabel>
+			<SidebarGroupLabel className="cursor-default">
+				Quick Access
+			</SidebarGroupLabel>
 			<SidebarGroupContent>
 				<SidebarMenu>
 					{items.map((item) => (
 						<SidebarMenuItem key={item.name}>
 							<SidebarMenuButton asChild size="sm">
-								<Link href={item.url}>
+								<Link href={item.url} className="cursor-pointer">
 									<item.icon />
 									<span>{item.name}</span>
 								</Link>

@@ -199,7 +199,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							{data.navSecondary.map((item) => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton asChild size="sm">
-										<Link href={item.url}>
+										<Link href={item.url} className="cursor-pointer">
 											<item.icon />
 											<span>{item.title}</span>
 										</Link>
