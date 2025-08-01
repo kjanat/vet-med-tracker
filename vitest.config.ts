@@ -9,8 +9,15 @@ export default defineConfig({
 		globals: true,
 		setupFiles: "./tests/setup.ts",
 		include: ["**/*.test.{ts,tsx}"],
+		exclude: [
+			"**/node_modules/**",
+			"**/dist/**",
+			"**/tests/e2e/**", // E2E tests handled by Playwright
+		],
 		env: {
 			DATABASE_URL_POOLED: "postgresql://test:test@localhost:5432/vetmed_test",
+			DATABASE_URL_UNPOOLED:
+				"postgresql://test:test@localhost:5432/vetmed_test",
 			DATABASE_URL: "postgresql://test:test@localhost:5432/vetmed_test",
 			AUTH_SECRET: "test-secret-key-for-testing",
 			AUTH_REDIRECT_PROXY_URL: "http://localhost:3000/api/auth",
