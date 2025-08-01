@@ -1,0 +1,168 @@
+"use client";
+
+import { FileText, Plus, Search } from "lucide-react";
+import { useState } from "react";
+import { useAnimalForm } from "@/components/providers/animal-form-provider";
+import { useApp } from "@/components/providers/app-provider";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+
+export default function AnimalsPage() {
+	const { animals, selectedHousehold } = useApp();
+	const { openForm } = useAnimalForm();
+	const [searchQuery, setSearchQuery] = useState("");
+
+	// Filter animals based on search query
+	const filteredAnimals = animals.filter((animal) =>
+		animal.name.toLowerCase().includes(searchQuery.toLowerCase()),
+	);
+
+	const handleEdit = (animal: any) => {
+		openForm(animal);
+	};
+
+	const handleEmergencyCard = (animalId: string) => {
+		window.open(`/animals/${animalId}/emergency`, "_blank");
+	};
+
+	if (!selectedHousehold) {
+		return (
+			<div className="space-y-6">
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<h1 className="text-3xl font-bold">Animals</h1>
+						<p className="text-muted-foreground">
+							Please select a household to view animals
+						</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-6">
+			{/* Header */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-3xl font-bold">Animals</h1>
+					<p className="text-muted-foreground">
+						Manage animal profiles and medical information
+					</p>
+				</div>
+				<Button onClick={() => openForm()} className="gap-2">
+					<Plus className="h-4 w-4" />
+					Add Animal
+				</Button>
+			</div>
+
+			{/* Search */}
+			{animals.length > 0 && (
+				<div className="relative max-w-sm">
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<Input
+						placeholder="Search animals..."
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						className="pl-10"
+					/>
+				</div>
+			)}
+
+			{/* Animals Grid */}
+			{animals.length === 0 ? (
+				<div className="text-center py-12">
+					<div className="max-w-md mx-auto">
+						<h3 className="text-lg font-medium mb-2">No animals yet</h3>
+						<p className="text-muted-foreground mb-6">
+							Add your first animal to start tracking their medications and
+							health.
+						</p>
+						<Button onClick={() => openForm()}>
+							<Plus className="h-4 w-4 mr-2" />
+							Add Your First Animal
+						</Button>
+					</div>
+				</div>
+			) : (
+				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					{filteredAnimals.map((animal) => (
+						<Card key={animal.id} className="hover:shadow-md transition-shadow">
+							<CardHeader className="pb-3">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-3">
+										<AnimalAvatar animal={animal} size="lg" showBadge />
+										<div>
+											<CardTitle className="text-lg">{animal.name}</CardTitle>
+											<p className="text-sm text-muted-foreground">
+												{animal.species}
+											</p>
+										</div>
+									</div>
+								</div>
+							</CardHeader>
+
+							<CardContent className="space-y-3 flex flex-col flex-1">
+								{/* Placeholder content - will be enhanced with real data */}
+								<div className="grid grid-cols-2 gap-2 text-sm">
+									<div>
+										<span className="font-medium">Status:</span>{" "}
+										{animal.pendingMeds > 0 ? (
+											<span className="text-orange-600">
+												{animal.pendingMeds} pending
+											</span>
+										) : (
+											<span className="text-green-600">Up to date</span>
+										)}
+									</div>
+								</div>
+
+								{/* Actions */}
+								<div className="flex gap-2 pt-2 mt-auto">
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => handleEdit(animal)}
+										className="flex-1"
+									>
+										Edit
+									</Button>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => handleEmergencyCard(animal.id)}
+										className="gap-1"
+									>
+										<FileText className="h-3 w-3" />
+										Emergency Card
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+					))}
+				</div>
+			)}
+
+			{/* No search results */}
+			{animals.length > 0 && filteredAnimals.length === 0 && (
+				<div className="text-center py-12">
+					<h3 className="text-lg font-medium mb-2">No animals found</h3>
+					<p className="text-muted-foreground">
+						Try adjusting your search terms or{" "}
+						<button
+							type="button"
+							onClick={() => setSearchQuery("")}
+							className="text-primary hover:underline"
+						>
+							clear the search
+						</button>
+						.
+					</p>
+				</div>
+			)}
+		</div>
+	);
+}

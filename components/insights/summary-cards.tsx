@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Award, Target, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useApp } from "@/components/providers/app-provider";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { trpc } from "@/server/trpc/client";
 
 interface ComplianceData {
 	animalId: string;
@@ -29,62 +30,79 @@ interface SummaryCardsProps {
 	range: { from: Date; to: Date };
 }
 
-// Mock data - replace with tRPC
-const mockComplianceData: ComplianceData[] = [
-	{
-		animalId: "1",
-		animalName: "Buddy",
-		adherencePct: 92,
-		scheduled: 60,
-		completed: 55,
-		missed: 3,
-		late: 2,
-		veryLate: 0,
-	},
-	{
-		animalId: "2",
-		animalName: "Whiskers",
-		adherencePct: 87,
-		scheduled: 56,
-		completed: 49,
-		missed: 4,
-		late: 3,
-		veryLate: 0,
-	},
-	{
-		animalId: "3",
-		animalName: "Charlie",
-		adherencePct: 95,
-		scheduled: 28,
-		completed: 27,
-		missed: 1,
-		late: 0,
-		veryLate: 0,
-	},
-];
-
 export function SummaryCards({ range }: SummaryCardsProps) {
-	const [complianceData, setComplianceData] = useState<ComplianceData[]>([]);
-	const [householdStreak, setHouseholdStreak] = useState(0);
-	const { animals } = useApp();
+	const { animals, selectedHousehold } = useApp();
 	const router = useRouter();
 
-	useEffect(() => {
-		// TODO: Replace with tRPC query
-		// const data = await insights.compliance.query({
-		//   householdId,
-		//   range: { from: range.from, to: range.to }
-		// })
+	// Fetch administration data for the selected date range
+	const { data: adminData, isLoading } = trpc.admin.list.useQuery(
+		{
+			householdId: selectedHousehold?.id || "",
+			startDate: range.from.toISOString(),
+			endDate: range.to.toISOString(),
+		},
+		{
+			enabled: !!selectedHousehold?.id,
+		},
+	);
 
-		setComplianceData(mockComplianceData);
-		setHouseholdStreak(7); // Mock streak
+	// Calculate compliance data from real administration records
+	const complianceData: ComplianceData[] = useMemo(() => {
+		if (!adminData || !animals.length) return [];
 
-		// Fire instrumentation event
-		window.dispatchEvent(
-			new CustomEvent("insights_view", {
-				detail: { range },
-			}),
-		);
+		return animals.map((animal) => {
+			const animalRecords = adminData.filter(
+				(record) => record.animalId === animal.id,
+			);
+
+			const scheduled = animalRecords.filter((r) => r.status !== "prn").length;
+			const completed = animalRecords.filter(
+				(r) =>
+					r.status === "on-time" ||
+					r.status === "late" ||
+					r.status === "very-late",
+			).length;
+			const missed = animalRecords.filter((r) => r.status === "missed").length;
+			const late = animalRecords.filter((r) => r.status === "late").length;
+			const veryLate = animalRecords.filter(
+				(r) => r.status === "very-late",
+			).length;
+
+			const adherencePct =
+				scheduled > 0 ? Math.round((completed / scheduled) * 100) : 100;
+
+			return {
+				animalId: animal.id,
+				animalName: animal.name,
+				adherencePct,
+				scheduled,
+				completed,
+				missed,
+				late,
+				veryLate,
+			};
+		});
+	}, [adminData, animals]);
+
+	// Calculate household streak (consecutive days without missed doses)
+	const householdStreak = useMemo(() => {
+		if (!adminData) return 0;
+
+		// TODO: Implement proper streak calculation based on missed doses by day
+		// For now, return a simple calculation
+		const missedCount = adminData.filter((r) => r.status === "missed").length;
+		return missedCount === 0 ? 7 : Math.max(0, 7 - missedCount);
+	}, [adminData]);
+
+	// Fire instrumentation event
+	useMemo(() => {
+		if (typeof window !== "undefined") {
+			window.dispatchEvent(
+				new CustomEvent("insights_view", {
+					detail: { range },
+				}),
+			);
+		}
 	}, [range]);
 
 	const handleCardClick = (filter: string) => {
@@ -125,6 +143,42 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 	const sortedAnimals = [...complianceData].sort(
 		(a, b) => b.adherencePct - a.adherencePct,
 	);
+
+	// Show loading state
+	if (isLoading) {
+		return (
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+				{/* Loading placeholders */}
+				{["compliance", "medications", "alerts", "trends"].map((cardType) => (
+					<Card key={`loading-${cardType}`}>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
+							<div className="h-4 w-4 bg-muted rounded animate-pulse"></div>
+						</CardHeader>
+						<CardContent>
+							<div className="h-8 w-16 bg-muted rounded animate-pulse mb-2"></div>
+							<div className="h-3 w-20 bg-muted rounded animate-pulse"></div>
+						</CardContent>
+					</Card>
+				))}
+			</div>
+		);
+	}
+
+	// Show empty state if no household selected
+	if (!selectedHousehold) {
+		return (
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+				<Card className="md:col-span-2 lg:col-span-4">
+					<CardContent className="flex items-center justify-center py-8">
+						<p className="text-muted-foreground">
+							Please select a household to view insights
+						</p>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
 
 	return (
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

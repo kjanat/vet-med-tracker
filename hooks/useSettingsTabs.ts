@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
 export type SettingsTab =
-	| "animals"
 	| "regimens"
 	| "household"
 	| "notifications"
@@ -15,7 +14,7 @@ export function useSettingsTabs() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
-	const activeTab = (searchParams.get("tab") as SettingsTab) || "animals";
+	const activeTab = (searchParams.get("tab") as SettingsTab) || "regimens";
 
 	const setActiveTab = useCallback(
 		(tab: SettingsTab) => {

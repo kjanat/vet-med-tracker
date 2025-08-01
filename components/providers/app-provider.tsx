@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { getQueueSize } from "@/lib/offline/db";
 import { trpc } from "@/server/trpc/client";
+import { AnimalFormProvider } from "./animal-form-provider";
 
 interface Animal {
 	id: string;
@@ -136,7 +137,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 				pendingSyncCount,
 			}}
 		>
-			{children}
+			<AnimalFormProvider>{children}</AnimalFormProvider>
 		</AppContext.Provider>
 	);
 }

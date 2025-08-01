@@ -8,97 +8,77 @@ import {
 	type AdministrationRecord,
 	HistoryList,
 } from "@/components/history/history-list";
+import { useApp } from "@/components/providers/app-provider";
 import { useHistoryFilters } from "@/hooks/useHistoryFilters";
+import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { trpc } from "@/server/trpc/client";
 import { localDayISO } from "@/utils/tz";
 
-// Mock data - replace with tRPC queries
-const mockRecords: AdministrationRecord[] = [
-	{
-		id: "1",
-		animalId: "1",
-		animalName: "Buddy",
-		medicationName: "Rimadyl",
-		strength: "75mg",
-		route: "Oral",
-		form: "Tablet",
-		slot: "Morning",
-		scheduledFor: new Date(Date.now() - 2 * 60 * 60 * 1000),
-		recordedAt: new Date(Date.now() - 2 * 60 * 60 * 1000 + 5 * 60 * 1000),
-		caregiverName: "Alex",
-		status: "late",
-		cosignPending: false,
-		sourceItem: {
-			name: "Rimadyl 75mg",
-			lot: "ABC123",
-			expiresOn: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-		},
-		notes: "Took with food as recommended",
-		isEdited: false,
-		isDeleted: false,
-	},
-	{
-		id: "2",
-		animalId: "2",
-		animalName: "Whiskers",
-		medicationName: "Insulin",
-		strength: "2 units",
-		route: "Subcutaneous",
-		form: "Injection",
-		slot: "Morning",
-		scheduledFor: new Date(Date.now() - 24 * 60 * 60 * 1000),
-		recordedAt: new Date(Date.now() - 24 * 60 * 60 * 1000 - 30 * 60 * 1000),
-		caregiverName: "Sam",
-		status: "on-time",
-		cosignPending: true,
-		site: "Left shoulder",
-		isEdited: false,
-		isDeleted: false,
-	},
-	{
-		id: "3",
-		animalId: "1",
-		animalName: "Buddy",
-		medicationName: "Pain Relief",
-		strength: "5ml",
-		route: "Oral",
-		form: "Liquid",
-		recordedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-		caregiverName: "Alex",
-		status: "prn",
-		cosignPending: false,
-		notes: "Given after limping noticed",
-		isEdited: true,
-		editedBy: "Alex",
-		editedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 10 * 60 * 1000),
-		isDeleted: false,
-	},
-	// Auto-missed entry
-	{
-		id: "missed-1",
-		animalId: "3",
-		animalName: "Charlie",
-		medicationName: "Antibiotics",
-		strength: "250mg",
-		route: "Oral",
-		form: "Tablet",
-		slot: "Evening",
-		scheduledFor: new Date(Date.now() - 25 * 60 * 60 * 1000),
-		recordedAt: new Date(Date.now() - 23 * 60 * 60 * 1000), // Auto-generated at cutoff
-		caregiverName: "System",
-		status: "missed",
-		cosignPending: false,
-		isEdited: false,
-		isDeleted: false,
-	},
-];
+// We'll fetch real data using tRPC instead of mock data
 
 function HistoryContent() {
 	const { filters } = useHistoryFilters();
 	const [currentMonth, setCurrentMonth] = useState(new Date());
+	const { selectedHousehold } = useApp();
+	const { enqueue } = useOfflineQueue();
+
+	// Fetch administration records from tRPC
+	const {
+		data: adminRecords,
+		isLoading,
+		error,
+	} = trpc.admin.list.useQuery(
+		{
+			householdId: selectedHousehold?.id || "",
+			startDate: `${filters.from}T00:00:00.000Z`,
+			endDate: `${filters.to}T23:59:59.999Z`,
+		},
+		{
+			enabled: !!selectedHousehold?.id,
+		},
+	);
+
+	// Transform API data to AdministrationRecord format
+	const transformedRecords: AdministrationRecord[] = useMemo(() => {
+		if (!adminRecords) return [];
+
+		return adminRecords.map((record) => ({
+			id: record.id,
+			animalId: record.animalId,
+			animalName: record.animalName || "Unknown",
+			medicationName: record.medicationName || "Unknown",
+			strength: record.strength || "",
+			route: record.route || "Unknown",
+			form: record.form || "Unknown",
+			slot: record.slot || undefined,
+			scheduledFor: record.scheduledFor
+				? new Date(record.scheduledFor)
+				: undefined,
+			recordedAt: new Date(record.recordedAt),
+			caregiverName: record.caregiverName || "Unknown",
+			status: record.status as AdministrationRecord["status"],
+			cosignPending: record.cosignPending || false,
+			sourceItem: record.sourceItem
+				? {
+						name: record.sourceItem.name,
+						lot: record.sourceItem.lot || undefined,
+						expiresOn: record.sourceItem.expiresOn
+							? new Date(record.sourceItem.expiresOn)
+							: undefined,
+					}
+				: undefined,
+			site: record.site || undefined,
+			notes: record.notes || undefined,
+			isEdited: record.isEdited || false,
+			editedBy: record.editedBy || undefined,
+			editedAt: record.editedAt ? new Date(record.editedAt) : undefined,
+			isDeleted: record.isDeleted || false,
+		}));
+	}, [adminRecords]);
 
 	// Filter records based on current filters
 	const filteredRecords = useMemo(() => {
-		let filtered = mockRecords;
+		let filtered = transformedRecords;
 
 		// Filter by animal
 		if (filters.animalId) {
@@ -114,22 +94,10 @@ function HistoryContent() {
 			}
 		}
 
-		// Filter by date range
-		const fromDate = parseISO(filters.from);
-		const toDate = parseISO(filters.to);
-		filtered = filtered.filter((r) => {
-			const recordDate = new Date(
-				r.recordedAt.getFullYear(),
-				r.recordedAt.getMonth(),
-				r.recordedAt.getDate(),
-			);
-			return recordDate >= fromDate && recordDate <= toDate;
-		});
-
 		return filtered.sort(
 			(a, b) => b.recordedAt.getTime() - a.recordedAt.getTime(),
 		);
-	}, [filters]);
+	}, [transformedRecords, filters]);
 
 	// Group records by local day for list view
 	const groupedRecords = useMemo(() => {
@@ -206,27 +174,51 @@ function HistoryContent() {
 	}, [filteredRecords, currentMonth]);
 
 	const handleUndo = async (id: string) => {
-		// Optimistic update
-		console.log("Undoing record:", id);
-
-		// TODO: Implement undo mutation
-		// await enqueue("admin.undo", { recordId: id }, `undo:${id}`);
+		try {
+			// TODO: Implement undo mutation when available
+			console.log("Undoing record:", id);
+			// await trpc.admin.undo.mutate({ recordId: id, householdId: selectedHousehold.id });
+		} catch (error) {
+			// Queue for offline sync
+			await enqueue(
+				"admin.undo",
+				{ recordId: id, householdId: selectedHousehold?.id },
+				`undo:${id}`,
+			);
+			console.error("Failed to undo record, queued for offline sync:", error);
+		}
 	};
 
 	const handleDelete = async (id: string) => {
-		// Optimistic update
-		console.log("Deleting record:", id);
-
-		// TODO: Implement delete mutation
-		// await enqueue("admin.delete", { recordId: id }, `delete:${id}`);
+		try {
+			// TODO: Implement delete mutation when available
+			console.log("Deleting record:", id);
+			// await trpc.admin.delete.mutate({ recordId: id, householdId: selectedHousehold.id });
+		} catch (error) {
+			// Queue for offline sync
+			await enqueue(
+				"admin.delete",
+				{ recordId: id, householdId: selectedHousehold?.id },
+				`delete:${id}`,
+			);
+			console.error("Failed to delete record, queued for offline sync:", error);
+		}
 	};
 
 	const handleCosign = async (id: string) => {
-		// Optimistic update
-		console.log("Co-signing record:", id);
-
-		// TODO: Implement cosign mutation
-		// await enqueue("admin.cosign", { recordId: id }, `cosign:${id}`);
+		try {
+			// TODO: Implement cosign mutation when available
+			console.log("Co-signing record:", id);
+			// await trpc.admin.cosign.mutate({ recordId: id, householdId: selectedHousehold.id });
+		} catch (error) {
+			// Queue for offline sync
+			await enqueue(
+				"admin.cosign",
+				{ recordId: id, householdId: selectedHousehold?.id },
+				`cosign:${id}`,
+			);
+			console.error("Failed to cosign record, queued for offline sync:", error);
+		}
 	};
 
 	const handleLoadMore = () => {
@@ -240,6 +232,77 @@ function HistoryContent() {
 		// setFilters({ ...filters, from: dayStr, to: dayStr, view: "list" })
 		console.log("Selected day:", day);
 	};
+
+	// Loading state
+	if (isLoading) {
+		return (
+			<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+				<FilterBar />
+				<div className="p-4 md:p-6">
+					<div className="flex items-center justify-center py-12">
+						<div className="text-center">
+							<div className="animate-pulse">
+								<div className="h-8 w-32 bg-muted rounded mb-2 mx-auto"></div>
+								<div className="h-4 w-48 bg-muted rounded mx-auto"></div>
+							</div>
+							<p className="text-muted-foreground mt-4">
+								Loading administration history...
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Error state
+	if (error) {
+		return (
+			<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+				<FilterBar />
+				<div className="p-4 md:p-6">
+					<div className="flex items-center justify-center py-12">
+						<div className="text-center">
+							<h3 className="text-lg font-medium mb-2 text-destructive">
+								Failed to load history
+							</h3>
+							<p className="text-muted-foreground mb-4">
+								{error.message || "An unexpected error occurred"}
+							</p>
+							<button
+								type="button"
+								onClick={() => window.location.reload()}
+								className="text-primary hover:underline"
+							>
+								Try again
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// No household selected
+	if (!selectedHousehold) {
+		return (
+			<div className="min-h-screen bg-background max-w-full overflow-x-hidden">
+				<FilterBar />
+				<div className="p-4 md:p-6">
+					<div className="flex items-center justify-center py-12">
+						<div className="text-center">
+							<h3 className="text-lg font-medium mb-2">
+								No household selected
+							</h3>
+							<p className="text-muted-foreground">
+								Please select a household to view administration history
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen bg-background max-w-full overflow-x-hidden">

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type * as React from "react";
+import { useAnimalForm } from "@/components/providers/animal-form-provider";
 import {
 	Sidebar,
 	SidebarContent,
@@ -146,11 +147,23 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const pathname = usePathname();
+	const { openForm } = useAnimalForm();
 
-	// Update active state based on current path
+	// Update active state and add click handlers based on current path
 	const navMainWithActive = data.navMain.map((item) => ({
 		...item,
 		isActive: pathname === item.url || pathname.startsWith(`${item.url}/`),
+		items: item.items?.map((subItem) => {
+			// Convert "Add Animal" links to use the dialog
+			if (subItem.title === "Add Animal") {
+				return {
+					...subItem,
+					onClick: () => openForm(),
+					url: undefined, // Remove the URL to prevent navigation
+				};
+			}
+			return subItem;
+		}),
 	}));
 
 	return (

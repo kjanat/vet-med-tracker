@@ -29,7 +29,8 @@ export function Header() {
 
 				<div className="flex items-center gap-4">
 					<SyncStatus />
-					<NotificationDropdown />
+					{/* Mobile: Show notification dropdown, desktop has it in sidebar */}
+					{isMobile && <NotificationDropdown />}
 					{/* Mobile: Show user menu in header, desktop shows in sidebar */}
 					{isMobile && <UserMenu />}
 				</div>

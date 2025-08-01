@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense } from "react";
-import { AnimalList } from "@/components/settings/animals/animal-list";
 import { DataPanel } from "@/components/settings/data/data-panel";
 import { MemberList } from "@/components/settings/household/member-list";
 import { EscalationPanel } from "@/components/settings/notifications/escalation-panel";
@@ -24,7 +23,6 @@ function SettingsContent() {
 	const isMobile = useMediaQuery("(max-width: 640px)");
 
 	const tabs = [
-		{ value: "animals", label: "Animals" },
 		{ value: "regimens", label: "Regimens" },
 		{ value: "household", label: "Household" },
 		{ value: "notifications", label: "Notifications" },
@@ -64,7 +62,7 @@ function SettingsContent() {
 				>
 					{/* Desktop: Tab list */}
 					{!isMobile && (
-						<TabsList className="w-full h-auto p-1 grid grid-cols-3 lg:grid-cols-6 gap-1">
+						<TabsList className="w-full h-auto p-1 grid grid-cols-3 lg:grid-cols-5 gap-1">
 							{tabs.map((tab) => (
 								<TabsTrigger
 									key={tab.value}
@@ -76,10 +74,6 @@ function SettingsContent() {
 							))}
 						</TabsList>
 					)}
-
-					<TabsContent value="animals" className="mt-6 w-full overflow-x-auto">
-						<AnimalList />
-					</TabsContent>
 
 					<TabsContent value="regimens" className="mt-6 w-full overflow-x-auto">
 						<RegimenList />
