@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { adminRouter } from "@/server/api/routers/admin";
-import type { Context } from "@/server/api/trpc/init";
+import type { ClerkContext } from "@/server/api/trpc/clerk-init";
 import * as schema from "@/server/db/schema";
 import {
 	cleanupTestData,
@@ -83,24 +83,20 @@ describe("Admin Flow Integration", () => {
 
 	it("should create administration record in real database", async () => {
 		// Create context with real database
-		const ctx: Context = {
+		const ctx: ClerkContext = {
 			db,
-			user: testData.user,
-			session: {
-				userId: testData.user.id,
-				user: testData.user,
-				householdMemberships: [
-					{
-						id: "test-membership-id",
-						userId: testData.user.id,
-						householdId: testData.household.id,
-						role: "OWNER" as const,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					},
-				],
-				expiresAt: new Date(Date.now() + 3600000),
-			},
+			auth: vi.fn().mockResolvedValue({ userId: testData.user.id }) as any,
+			clerkUser: {
+				id: testData.user.id,
+				emailAddresses: [{ emailAddress: testData.user.email }],
+				firstName: testData.user.name?.split(" ")[0] || "",
+				lastName: testData.user.name?.split(" ")[1] || "",
+				username: testData.user.email.split("@")[0],
+				imageUrl: testData.user.image,
+				publicMetadata: {},
+				unsafeMetadata: {},
+			} as any,
+			dbUser: testData.user as any,
 			currentHouseholdId: testData.household.id,
 			currentMembership: {
 				id: "test-membership-id",
@@ -110,6 +106,23 @@ describe("Admin Flow Integration", () => {
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			},
+			availableHouseholds: [
+				{
+					id: testData.household.id,
+					name: testData.household.name,
+					timezone: testData.household.timezone,
+					createdAt: testData.household.createdAt,
+					updatedAt: testData.household.updatedAt,
+					membership: {
+						id: "test-membership-id",
+						userId: testData.user.id,
+						householdId: testData.household.id,
+						role: "OWNER" as const,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					},
+				},
+			],
 			headers: new Headers(),
 			requestedHouseholdId: testData.household.id,
 		};
@@ -143,24 +156,20 @@ describe("Admin Flow Integration", () => {
 	});
 
 	it("should respect idempotency in real database", async () => {
-		const ctx: Context = {
+		const ctx: ClerkContext = {
 			db,
-			user: testData.user,
-			session: {
-				userId: testData.user.id,
-				user: testData.user,
-				householdMemberships: [
-					{
-						id: "test-membership-id",
-						userId: testData.user.id,
-						householdId: testData.household.id,
-						role: "OWNER" as const,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					},
-				],
-				expiresAt: new Date(Date.now() + 3600000),
-			},
+			auth: vi.fn().mockResolvedValue({ userId: testData.user.id }) as any,
+			clerkUser: {
+				id: testData.user.id,
+				emailAddresses: [{ emailAddress: testData.user.email }],
+				firstName: testData.user.name?.split(" ")[0] || "",
+				lastName: testData.user.name?.split(" ")[1] || "",
+				username: testData.user.email.split("@")[0],
+				imageUrl: testData.user.image,
+				publicMetadata: {},
+				unsafeMetadata: {},
+			} as any,
+			dbUser: testData.user as any,
 			currentHouseholdId: testData.household.id,
 			currentMembership: {
 				id: "test-membership-id",
@@ -170,6 +179,23 @@ describe("Admin Flow Integration", () => {
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			},
+			availableHouseholds: [
+				{
+					id: testData.household.id,
+					name: testData.household.name,
+					timezone: testData.household.timezone,
+					createdAt: testData.household.createdAt,
+					updatedAt: testData.household.updatedAt,
+					membership: {
+						id: "test-membership-id",
+						userId: testData.user.id,
+						householdId: testData.household.id,
+						role: "OWNER" as const,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					},
+				},
+			],
 			headers: new Headers(),
 			requestedHouseholdId: testData.household.id,
 		};

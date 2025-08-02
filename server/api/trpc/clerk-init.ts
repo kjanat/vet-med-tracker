@@ -1,12 +1,14 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import { eq } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { db } from "../../db";
-import { households, memberships, type users } from "../../db/schema";
-import { type ClerkUserData, syncUserToDatabase } from "../clerk-sync";
+import type { households, memberships, users } from "../../db/schema";
+import {
+	determineCurrentHousehold,
+	setupAuthenticatedUser,
+} from "./clerk-context-helpers";
 
 // Context type definition
 export interface ClerkContext {
@@ -36,134 +38,70 @@ export const createClerkTRPCContext = async (
 	const authResult = await auth();
 	const clerkUser = await currentUser();
 
-	let dbUser: typeof users.$inferSelect | null = null;
-	let currentHouseholdId: string | null = null;
-	let currentMembership: typeof memberships.$inferSelect | null = null;
-	let availableHouseholds: Array<
-		typeof households.$inferSelect & {
-			membership: typeof memberships.$inferSelect;
-		}
-	> = [];
-
-	// If user is authenticated, sync to database and get household info
-	if (authResult?.userId && clerkUser) {
-		try {
-			// Sync user to database
-			const clerkUserData: ClerkUserData = {
-				userId: authResult.userId,
-				email: clerkUser.emailAddresses[0]?.emailAddress || "",
-				name:
-					clerkUser.firstName && clerkUser.lastName
-						? `${clerkUser.firstName} ${clerkUser.lastName}`
-						: clerkUser.firstName || clerkUser.username || undefined,
-				image: clerkUser.imageUrl,
-				vetMedPreferences: clerkUser.unsafeMetadata?.vetMedPreferences as any,
-				householdSettings: clerkUser.unsafeMetadata?.householdSettings as any,
-				onboardingComplete: clerkUser.publicMetadata
-					?.onboardingComplete as boolean,
-			};
-
-			dbUser = await syncUserToDatabase(clerkUserData);
-
-			// Get user's household memberships
-			const userMemberships = await db
-				.select({
-					id: memberships.id,
-					userId: memberships.userId,
-					householdId: memberships.householdId,
-					role: memberships.role,
-					createdAt: memberships.createdAt,
-					updatedAt: memberships.updatedAt,
-					household: {
-						id: households.id,
-						name: households.name,
-						timezone: households.timezone,
-						createdAt: households.createdAt,
-						updatedAt: households.updatedAt,
-					},
-				})
-				.from(memberships)
-				.innerJoin(households, eq(memberships.householdId, households.id))
-				.where(eq(memberships.userId, dbUser.id));
-
-			availableHouseholds = userMemberships.map(
-				({ household, ...membership }) => ({
-					...household,
-					membership,
-				}),
-			);
-
-			// Determine current household
-			if (requestedHouseholdId) {
-				// User requested specific household
-				const requestedMembership = userMemberships.find(
-					(m) => m.householdId === requestedHouseholdId,
-				);
-				if (requestedMembership) {
-					currentHouseholdId = requestedHouseholdId;
-					currentMembership = requestedMembership;
-				}
-			}
-
-			// Fall back to first household if none specified or requested household not found
-			if (!currentHouseholdId && userMemberships.length > 0) {
-				const firstMembership = userMemberships[0];
-				currentHouseholdId = firstMembership.householdId;
-				currentMembership = firstMembership;
-			}
-
-			// If user has no households, create a default one
-			if (availableHouseholds.length === 0) {
-				const defaultHouseholdName =
-					(clerkUser.unsafeMetadata?.householdSettings
-						?.primaryHouseholdName as string) ||
-					`${clerkUser.firstName || "My"} Household`;
-
-				const newHousehold = await db
-					.insert(households)
-					.values({
-						name: defaultHouseholdName,
-						timezone:
-							(clerkUser.unsafeMetadata?.vetMedPreferences
-								?.defaultTimezone as string) || "America/New_York",
-					})
-					.returning();
-
-				const newMembership = await db
-					.insert(memberships)
-					.values({
-						userId: dbUser.id,
-						householdId: newHousehold[0].id,
-						role: "OWNER",
-					})
-					.returning();
-
-				currentHouseholdId = newHousehold[0].id;
-				currentMembership = newMembership[0];
-				availableHouseholds = [
-					{
-						...newHousehold[0],
-						membership: newMembership[0],
-					},
-				];
-			}
-		} catch (error) {
-			console.error("Error setting up user context:", error);
-			// Continue with null user context if sync fails
-		}
-	}
-
-	return {
+	// Initialize empty context
+	const baseContext = {
 		db,
 		headers: opts.req.headers,
 		requestedHouseholdId,
 		auth: authResult,
 		clerkUser,
-		dbUser,
-		currentHouseholdId,
-		currentMembership,
-		availableHouseholds,
+		dbUser: null as typeof users.$inferSelect | null,
+		currentHouseholdId: null as string | null,
+		currentMembership: null as typeof memberships.$inferSelect | null,
+		availableHouseholds: [] as ClerkContext["availableHouseholds"],
 	};
+
+	// If user is not authenticated, return base context
+	if (!authResult?.userId || !clerkUser) {
+		return baseContext;
+	}
+
+	// Setup authenticated user context
+	try {
+		const userContext = await setupAuthenticatedUser(
+			authResult.userId,
+			clerkUser,
+		);
+
+		// Determine current household if not already set
+		if (
+			!userContext.currentHouseholdId &&
+			userContext.availableHouseholds.length > 0
+		) {
+			const { currentHouseholdId, currentMembership } =
+				determineCurrentHousehold(
+					userContext.availableHouseholds,
+					requestedHouseholdId,
+				);
+			userContext.currentHouseholdId = currentHouseholdId;
+			userContext.currentMembership = currentMembership;
+		}
+
+		return {
+			...baseContext,
+			...userContext,
+		};
+	} catch (error) {
+		console.error("Error setting up user context:", error);
+		console.error("Failed for Clerk user:", {
+			userId: authResult.userId,
+			email: clerkUser?.emailAddresses[0]?.emailAddress,
+			name: clerkUser?.firstName,
+		});
+
+		// In production, we should throw an error to prevent silent failures
+		if (process.env.NODE_ENV === "production") {
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message:
+					"Failed to initialize user context. Please try refreshing the page or contact support.",
+				cause: error,
+			});
+		}
+
+		// Continue with base context if sync fails in development
+		return baseContext;
+	}
 };
 
 // Initialize tRPC with Clerk context
@@ -197,12 +135,19 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 		});
 	}
 
+	if (!ctx.clerkUser) {
+		throw new TRPCError({
+			code: "INTERNAL_SERVER_ERROR",
+			message: "Clerk user data is missing",
+		});
+	}
+
 	return next({
 		ctx: {
 			...ctx,
 			// TypeScript now knows these are non-null
 			auth: ctx.auth,
-			clerkUser: ctx.clerkUser!,
+			clerkUser: ctx.clerkUser,
 			dbUser: ctx.dbUser,
 		},
 	});

@@ -58,7 +58,7 @@ export function UserPreferencesProvider({
 			const hasPreferences =
 				user.unsafeMetadata.vetMedPreferences ||
 				user.unsafeMetadata.householdSettings;
-			const hasCompletedOnboarding = user.publicMetadata.onboardingComplete;
+			const hasCompletedOnboarding = user.unsafeMetadata?.onboardingComplete;
 
 			setIsFirstTimeUser(!hasPreferences && !hasCompletedOnboarding);
 		}
@@ -69,8 +69,8 @@ export function UserPreferencesProvider({
 
 		try {
 			await user.update({
-				publicMetadata: {
-					...user.publicMetadata,
+				unsafeMetadata: {
+					...user.unsafeMetadata,
 					onboardingComplete: true,
 					onboardingCompletedAt: new Date().toISOString(),
 				},

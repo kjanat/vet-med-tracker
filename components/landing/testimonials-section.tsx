@@ -48,7 +48,7 @@ export function TestimonialsSection() {
 
 				{/* Testimonials grid */}
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-					{testimonials.map((testimonial, _index) => (
+					{testimonials.map((testimonial) => (
 						<Card
 							key={`testimonial-${testimonial.name.replace(/\s+/g, "-").toLowerCase()}`}
 							className="hover:shadow-lg transition-shadow"

@@ -78,7 +78,6 @@ export default function VetMedPreferencesPage() {
 	const { user, isLoaded } = useUser();
 	const [preferences, setPreferences] =
 		useState<VetMedPreferences>(defaultPreferences);
-	const [_isLoading, _setIsLoading] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 
 	useEffect(() => {

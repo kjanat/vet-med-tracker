@@ -16,7 +16,7 @@ import { trpc } from "@/server/trpc/client";
 
 export default function HouseholdsPage() {
 	const { user, selectedHousehold, setSelectedHousehold } = useApp();
-	const [_creatingHousehold, setCreatingHousehold] = useState(false);
+	const [, setCreatingHousehold] = useState(false);
 
 	// Get user's households
 	const { data: memberships, isLoading } = trpc.user.getMemberships.useQuery(
@@ -75,7 +75,7 @@ export default function HouseholdsPage() {
 												{membership.household.name}
 											</CardTitle>
 											<CardDescription>
-												{membership.household.type} • Created{" "}
+												Created{" "}
 												{new Date(
 													membership.household.createdAt,
 												).toLocaleDateString()}

@@ -176,7 +176,12 @@ function useRecordData(
 	return {
 		dueRegimens,
 		regimensLoading,
-		regimensError,
+		regimensError:
+			regimensError instanceof Error
+				? regimensError
+				: regimensError
+					? new Error(regimensError.message)
+					: null,
 		createAdminMutation,
 		updateInventoryMutation,
 		inventorySources,
@@ -596,7 +601,7 @@ function RecordContent() {
 			state={state}
 			dueRegimens={dueRegimens}
 			regimensLoading={regimensLoading}
-			regimensError={regimensError ? new Error(regimensError.message) : null}
+			regimensError={regimensError}
 			selectedHousehold={selectedHousehold}
 			animals={animals}
 			isOnline={isOnline}
@@ -979,7 +984,7 @@ function RenderMobileLayout({
 			selectedRegimen={state.selectedRegimen}
 			dueRegimens={dueRegimens}
 			regimensLoading={regimensLoading}
-			regimensError={regimensError ? new Error(regimensError.message) : null}
+			regimensError={regimensError}
 			isOnline={isOnline}
 			onRegimenSelect={handleRegimenSelect}
 			onBack={() => {
@@ -1067,7 +1072,7 @@ function RenderTabletLayout({
 			selectedRegimen={state.selectedRegimen}
 			dueRegimens={dueRegimens}
 			regimensLoading={regimensLoading}
-			regimensError={regimensError ? new Error(regimensError.message) : null}
+			regimensError={regimensError}
 			isOnline={isOnline}
 			onRegimenSelect={handleRegimenSelect}
 			onBack={() => {

@@ -19,7 +19,8 @@ const GenericLoader = () => (
 );
 
 // Lazy load with custom loading component
-export function lazyLoad<T extends ComponentType<Record<string, unknown>>>(
+// biome-ignore lint/suspicious/noExplicitAny: Next.js dynamic requires any for proper typing
+export function lazyLoad<T extends ComponentType<any>>(
 	importFunc: () => Promise<{ default: T }>,
 	loadingComponent?: ComponentType,
 ) {
@@ -28,7 +29,7 @@ export function lazyLoad<T extends ComponentType<Record<string, unknown>>>(
 			const Loader = loadingComponent || GenericLoader;
 			return <Loader />;
 		},
-	});
+	}) as T;
 }
 
 // Pre-configured lazy loaders for common components

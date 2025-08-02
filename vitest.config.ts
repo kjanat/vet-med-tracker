@@ -27,10 +27,9 @@ export default defineConfig({
 			],
 		},
 		env: {
-			DATABASE_URL_POOLED: "postgresql://test:test@localhost:5432/vetmed_test",
+			DATABASE_URL: "postgresql://test:test@localhost:5432/vetmed_test",
 			DATABASE_URL_UNPOOLED:
 				"postgresql://test:test@localhost:5432/vetmed_test",
-			DATABASE_URL: "postgresql://test:test@localhost:5432/vetmed_test",
 			AUTH_SECRET: "test-secret-key-for-testing",
 			AUTH_REDIRECT_PROXY_URL: "http://localhost:3000/api/auth",
 			OPENAUTH_CLIENT_ID: "test-client-id",

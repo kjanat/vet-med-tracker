@@ -56,8 +56,8 @@ export function UserMenuDesktop() {
 						>
 							<Avatar className="h-8 w-8 rounded-lg">
 								<AvatarImage
-									src={user.image || undefined}
-									alt={user.name || user.email}
+									src={user.image ?? undefined}
+									alt={user.name || user.email || "User"}
 								/>
 								<AvatarFallback className="rounded-lg">
 									{initials}
@@ -82,8 +82,8 @@ export function UserMenuDesktop() {
 							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 								<Avatar className="h-8 w-8 rounded-lg">
 									<AvatarImage
-										src={user.image || undefined}
-										alt={user.name || user.email}
+										src={user.image ?? undefined}
+										alt={user.name || user.email || "User"}
 									/>
 									<AvatarFallback className="rounded-lg">
 										{initials}

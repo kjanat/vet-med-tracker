@@ -36,7 +36,7 @@ export function CtaSection() {
 
 						{/* Benefits */}
 						<div className="flex flex-wrap justify-center gap-4 mb-8">
-							{benefits.map((benefit, _index) => (
+							{benefits.map((benefit) => (
 								<div
 									key={`benefit-${benefit.substring(0, 20).replace(/\s+/g, "-").toLowerCase()}`}
 									className="flex items-center gap-2"

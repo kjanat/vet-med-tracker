@@ -6,14 +6,14 @@ import { defineConfig } from "drizzle-kit";
 const projectDir = process.cwd();
 loadEnvConfig(projectDir);
 
-// Use unpooled connection for migrations
+// Use unpooled connection for migrations if available, otherwise use regular DATABASE_URL
 const databaseUrl =
 	process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
 
 if (!databaseUrl) {
 	const env = process.env.NODE_ENV || "production";
 	throw new Error(
-		`DATABASE_URL_UNPOOLED is not set. Check your .env.${env} file.\n` +
+		`DATABASE_URL is not set. Check your .env.${env} file.\n` +
 			`Current NODE_ENV: ${env}\n` +
 			`To use development database, run: NODE_ENV=development pnpm db:push`,
 	);
