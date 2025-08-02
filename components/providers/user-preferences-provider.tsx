@@ -58,7 +58,7 @@ export function UserPreferencesProvider({
 			const hasPreferences =
 				user.unsafeMetadata.vetMedPreferences ||
 				user.unsafeMetadata.householdSettings;
-			const hasCompletedOnboarding = user.unsafeMetadata?.onboardingComplete;
+			const hasCompletedOnboarding = user.publicMetadata?.onboardingComplete;
 
 			setIsFirstTimeUser(!hasPreferences && !hasCompletedOnboarding);
 		}

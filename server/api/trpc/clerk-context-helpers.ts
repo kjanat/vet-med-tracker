@@ -32,7 +32,7 @@ export function buildClerkUserData(
 		householdSettings: clerkUser.unsafeMetadata?.householdSettings as
 			| import("@/hooks/use-user-preferences").HouseholdSettings
 			| undefined,
-		onboardingComplete: clerkUser.publicMetadata?.onboardingComplete as boolean,
+		onboardingComplete: clerkUser.unsafeMetadata?.onboardingComplete as boolean,
 	};
 }
 

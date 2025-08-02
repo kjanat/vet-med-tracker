@@ -171,7 +171,7 @@ export const userRouter = createTRPCRouter({
 			ctx.clerkUser?.unsafeMetadata?.vetMedPreferences ||
 			ctx.clerkUser?.unsafeMetadata?.householdSettings;
 		const hasCompletedOnboarding =
-			ctx.clerkUser?.publicMetadata?.onboardingComplete;
+			ctx.clerkUser?.unsafeMetadata?.onboardingComplete;
 
 		return !hasPreferences && !hasCompletedOnboarding;
 	}),

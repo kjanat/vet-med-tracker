@@ -21,7 +21,7 @@ export function OnboardingChecker({ children }: OnboardingCheckerProps) {
 		const hasPreferences =
 			user.unsafeMetadata?.vetMedPreferences ||
 			user.unsafeMetadata?.householdSettings;
-		const hasCompletedOnboarding = user.publicMetadata?.onboardingComplete;
+		const hasCompletedOnboarding = user.unsafeMetadata?.onboardingComplete;
 		const needsOnboarding = !hasPreferences && !hasCompletedOnboarding;
 
 		// Don't show onboarding on profile pages or if already completed
