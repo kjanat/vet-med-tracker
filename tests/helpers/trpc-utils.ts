@@ -3,6 +3,7 @@ import { expect, vi } from "vitest";
 import { appRouter } from "@/server/api/routers/_app";
 import type { createClerkTRPCContext } from "@/server/api/trpc/clerk-init";
 import { mockDb } from "./mock-db";
+import { ClerkMockHelpers, TEST_USERS } from "./clerk-test-utils";
 
 // Define test session type to match Clerk expectations
 export interface TestSession {
@@ -15,16 +16,8 @@ export interface TestSession {
 	exp: number;
 }
 
-// Mock session
-export const mockSession: TestSession = {
-	subject: "11111111-1111-4111-8111-111111111111",
-	access: {
-		householdId: "22222222-2222-4222-8222-222222222222",
-		role: "OWNER",
-	},
-	type: "access_token",
-	exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-};
+// Mock session using Clerk test mode patterns
+export const mockSession: TestSession = ClerkMockHelpers.createTestSession();
 
 // Create mock context for testing
 export async function createMockContext(
