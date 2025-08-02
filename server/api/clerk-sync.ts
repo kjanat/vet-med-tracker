@@ -31,12 +31,29 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 		onboardingComplete,
 	} = clerkUserData;
 
+	console.log("Syncing user to database:", { clerkUserId, email, name });
+
+	// Validate required fields
+	if (!clerkUserId) {
+		throw new Error("Clerk user ID is required for sync");
+	}
+	if (!email) {
+		throw new Error("Email is required for sync");
+	}
+
 	try {
-		// Check if user exists
-		const existingUser = await db
+		// Check if user exists by clerkUserId
+		const existingUserByClerkId = await db
 			.select()
 			.from(users)
 			.where(eq(users.clerkUserId, clerkUserId))
+			.limit(1);
+
+		// Also check if user exists by email (for migration from old auth system)
+		const existingUserByEmail = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, email))
 			.limit(1);
 
 		const userData = {
@@ -74,16 +91,57 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 			updatedAt: new Date(),
 		};
 
-		if (existingUser.length > 0) {
-			// Update existing user
+		// Handle different scenarios
+		if (existingUserByClerkId.length > 0) {
+			// User already exists with this Clerk ID - just update
+			console.log("Updating existing user by Clerk ID:", clerkUserId);
 			await db
 				.update(users)
 				.set(userData)
 				.where(eq(users.clerkUserId, clerkUserId));
 
-			return { ...existingUser[0], ...userData };
+			// Fetch the updated user
+			const [updatedUser] = await db
+				.select()
+				.from(users)
+				.where(eq(users.clerkUserId, clerkUserId))
+				.limit(1);
+			if (!updatedUser) {
+				throw new Error("Failed to fetch updated user");
+			}
+			return updatedUser;
+		} else if (existingUserByEmail.length > 0) {
+			// User exists with same email but different/no Clerk ID (migration scenario)
+			console.log("Migrating user from old auth system:", email);
+			console.log("Old user ID:", existingUserByEmail[0]?.id);
+			console.log("Updating with new Clerk ID:", clerkUserId);
+
+			// Update the existing user with the new Clerk ID
+			await db
+				.update(users)
+				.set({
+					...userData,
+					// Preserve the existing user's ID and creation date
+					id: existingUserByEmail[0]?.id,
+					createdAt: existingUserByEmail[0]?.createdAt,
+				})
+				.where(eq(users.email, email));
+
+			// Return the updated user
+			const updatedUser = await db
+				.select()
+				.from(users)
+				.where(eq(users.clerkUserId, clerkUserId))
+				.limit(1);
+
+			console.log("User migrated successfully");
+			if (!updatedUser[0]) {
+				throw new Error("Failed to retrieve updated user after migration");
+			}
+			return updatedUser[0];
 		} else {
 			// Create new user
+			console.log("Creating new user:", clerkUserId);
 			const newUser = await db
 				.insert(users)
 				.values({
@@ -92,6 +150,10 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 				})
 				.returning();
 
+			if (!newUser[0]) {
+				throw new Error("Failed to create new user");
+			}
+			console.log("New user created successfully:", newUser[0].id);
 			return newUser[0];
 		}
 	} catch (error) {
@@ -120,6 +182,107 @@ export async function getOrCreateUser() {
 	};
 }
 
+// Helper function to map VetMed preferences to database columns
+function mapVetMedPreferencesToDbColumns(
+	prefs: Partial<VetMedPreferences>,
+	updateData: Record<string, unknown>,
+) {
+	if (prefs.defaultTimezone) {
+		updateData.preferredTimezone = prefs.defaultTimezone;
+	}
+	if (prefs.preferredPhoneNumber !== undefined) {
+		updateData.preferredPhoneNumber = prefs.preferredPhoneNumber;
+	}
+	if (prefs.emergencyContactName !== undefined) {
+		updateData.emergencyContactName = prefs.emergencyContactName;
+	}
+	if (prefs.emergencyContactPhone !== undefined) {
+		updateData.emergencyContactPhone = prefs.emergencyContactPhone;
+	}
+
+	mapDisplayPreferences(prefs.displayPreferences, updateData);
+	mapNotificationPreferences(prefs.notificationPreferences, updateData);
+}
+
+// Helper function to map display preferences
+function mapDisplayPreferences(
+	displayPrefs: Partial<VetMedPreferences["displayPreferences"]> | undefined,
+	updateData: Record<string, unknown>,
+) {
+	if (!displayPrefs) return;
+
+	if (displayPrefs.use24HourTime !== undefined) {
+		updateData.use24HourTime = displayPrefs.use24HourTime;
+	}
+	if (displayPrefs.temperatureUnit) {
+		updateData.temperatureUnit = displayPrefs.temperatureUnit;
+	}
+	if (displayPrefs.weightUnit) {
+		updateData.weightUnit = displayPrefs.weightUnit;
+	}
+}
+
+// Helper function to map notification preferences
+function mapNotificationPreferences(
+	notificationPrefs:
+		| Partial<VetMedPreferences["notificationPreferences"]>
+		| undefined,
+	updateData: Record<string, unknown>,
+) {
+	if (!notificationPrefs) return;
+
+	if (notificationPrefs.emailReminders !== undefined) {
+		updateData.emailReminders = notificationPrefs.emailReminders;
+	}
+	if (notificationPrefs.smsReminders !== undefined) {
+		updateData.smsReminders = notificationPrefs.smsReminders;
+	}
+	if (notificationPrefs.pushNotifications !== undefined) {
+		updateData.pushNotifications = notificationPrefs.pushNotifications;
+	}
+	if (notificationPrefs.reminderLeadTime !== undefined) {
+		updateData.reminderLeadTimeMinutes =
+			notificationPrefs.reminderLeadTime.toString();
+	}
+}
+
+// Helper function to update preferences backup
+async function updatePreferencesBackup(
+	clerkUserId: string,
+	preferences: {
+		vetMedPreferences?: Partial<VetMedPreferences>;
+		householdSettings?: Partial<HouseholdSettings>;
+	},
+) {
+	const currentUser = await db
+		.select({ preferencesBackup: users.preferencesBackup })
+		.from(users)
+		.where(eq(users.clerkUserId, clerkUserId))
+		.limit(1);
+
+	const currentBackup =
+		(currentUser[0]?.preferencesBackup as {
+			vetMedPreferences?: VetMedPreferences;
+			householdSettings?: HouseholdSettings;
+		}) || {};
+
+	return {
+		...currentBackup,
+		...(preferences.vetMedPreferences && {
+			vetMedPreferences: {
+				...currentBackup.vetMedPreferences,
+				...preferences.vetMedPreferences,
+			},
+		}),
+		...(preferences.householdSettings && {
+			householdSettings: {
+				...currentBackup.householdSettings,
+				...preferences.householdSettings,
+			},
+		}),
+	};
+}
+
 /**
  * Update user preferences in database
  */
@@ -131,80 +294,24 @@ export async function updateUserPreferences(
 	},
 ) {
 	try {
-		const updateData: Record<string, any> = {
+		const updateData: Record<string, unknown> = {
 			updatedAt: new Date(),
 		};
 
 		// Map VetMed preferences to database columns
 		if (preferences.vetMedPreferences) {
-			const prefs = preferences.vetMedPreferences;
-
-			if (prefs.defaultTimezone)
-				updateData.preferredTimezone = prefs.defaultTimezone;
-			if (prefs.preferredPhoneNumber !== undefined)
-				updateData.preferredPhoneNumber = prefs.preferredPhoneNumber;
-			if (prefs.emergencyContactName !== undefined)
-				updateData.emergencyContactName = prefs.emergencyContactName;
-			if (prefs.emergencyContactPhone !== undefined)
-				updateData.emergencyContactPhone = prefs.emergencyContactPhone;
-
-			if (prefs.displayPreferences) {
-				if (prefs.displayPreferences.use24HourTime !== undefined) {
-					updateData.use24HourTime = prefs.displayPreferences.use24HourTime;
-				}
-				if (prefs.displayPreferences.temperatureUnit) {
-					updateData.temperatureUnit = prefs.displayPreferences.temperatureUnit;
-				}
-				if (prefs.displayPreferences.weightUnit) {
-					updateData.weightUnit = prefs.displayPreferences.weightUnit;
-				}
-			}
-
-			if (prefs.notificationPreferences) {
-				if (prefs.notificationPreferences.emailReminders !== undefined) {
-					updateData.emailReminders =
-						prefs.notificationPreferences.emailReminders;
-				}
-				if (prefs.notificationPreferences.smsReminders !== undefined) {
-					updateData.smsReminders = prefs.notificationPreferences.smsReminders;
-				}
-				if (prefs.notificationPreferences.pushNotifications !== undefined) {
-					updateData.pushNotifications =
-						prefs.notificationPreferences.pushNotifications;
-				}
-				if (prefs.notificationPreferences.reminderLeadTime !== undefined) {
-					updateData.reminderLeadTimeMinutes =
-						prefs.notificationPreferences.reminderLeadTime.toString();
-				}
-			}
+			mapVetMedPreferencesToDbColumns(
+				preferences.vetMedPreferences,
+				updateData,
+			);
 		}
 
 		// Update the preferences backup with the new data
 		if (preferences.vetMedPreferences || preferences.householdSettings) {
-			// Get current preferences backup
-			const currentUser = await db
-				.select({ preferencesBackup: users.preferencesBackup })
-				.from(users)
-				.where(eq(users.clerkUserId, clerkUserId))
-				.limit(1);
-
-			const currentBackup = (currentUser[0]?.preferencesBackup as any) || {};
-
-			updateData.preferencesBackup = {
-				...currentBackup,
-				...(preferences.vetMedPreferences && {
-					vetMedPreferences: {
-						...currentBackup.vetMedPreferences,
-						...preferences.vetMedPreferences,
-					},
-				}),
-				...(preferences.householdSettings && {
-					householdSettings: {
-						...currentBackup.householdSettings,
-						...preferences.householdSettings,
-					},
-				}),
-			};
+			updateData.preferencesBackup = await updatePreferencesBackup(
+				clerkUserId,
+				preferences,
+			);
 		}
 
 		await db

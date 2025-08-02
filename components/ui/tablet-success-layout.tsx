@@ -83,7 +83,7 @@ export function TabletSuccessLayout({
 			<div className="w-80 shrink-0 border-l bg-muted/30">
 				<div className="p-6 h-full flex flex-col">
 					<div className="mb-6">
-						<h3 className="font-semibold text-lg mb-2">What's Next?</h3>
+						<h3 className="font-semibold text-lg mb-2">What&apos;s Next?</h3>
 						<p className="text-sm text-muted-foreground">
 							Choose your next action or return to the home screen to see
 							updated medication schedules.

@@ -3,10 +3,10 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"build": "next build",
+		"build": "pnpm type-check && next build",
 		"dev": "next dev --turbopack",
 		"dev:noturbo": "next dev",
-		"lint": "next lint && biome lint && pnpm type-check",
+		"lint": "pnpm type-check && biome lint && next lint",
 		"start": "next start",
 		"start:full": "pnpm build && pnpm start",
 		"format": "biome format --write",

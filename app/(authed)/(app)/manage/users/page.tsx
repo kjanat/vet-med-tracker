@@ -21,7 +21,7 @@ import { trpc } from "@/server/trpc/client";
 export default function UsersPage() {
 	const { selectedHousehold } = useApp();
 	const [searchQuery, setSearchQuery] = useState("");
-	const [_invitingUser, setInvitingUser] = useState(false);
+	const [, setInvitingUser] = useState(false);
 
 	// Get household members
 	const { data: members, isLoading } = trpc.household.getMembers.useQuery(
@@ -102,7 +102,7 @@ export default function UsersPage() {
 					const initials =
 						member.user.name
 							?.split(" ")
-							.map((n) => n[0])
+							.map((n: string) => n[0])
 							.join("")
 							.toUpperCase() ||
 						member.user.email?.[0]?.toUpperCase() ||

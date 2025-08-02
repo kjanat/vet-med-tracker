@@ -41,14 +41,14 @@ export function TestimonialsSection() {
 						Loved by Pet Parents Everywhere
 					</h2>
 					<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-						Join thousands of pet parents who've transformed how they manage
-						their pets' health.
+						Join thousands of pet parents who&apos;ve transformed how they
+						manage their pets&apos; health.
 					</p>
 				</div>
 
 				{/* Testimonials grid */}
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-					{testimonials.map((testimonial, _index) => (
+					{testimonials.map((testimonial) => (
 						<Card
 							key={`testimonial-${testimonial.name.replace(/\s+/g, "-").toLowerCase()}`}
 							className="hover:shadow-lg transition-shadow"
@@ -66,7 +66,7 @@ export function TestimonialsSection() {
 
 								{/* Quote */}
 								<blockquote className="text-muted-foreground mb-6">
-									"{testimonial.content}"
+									&quot;{testimonial.content}&quot;
 								</blockquote>
 
 								{/* Author */}

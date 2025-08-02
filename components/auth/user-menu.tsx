@@ -44,8 +44,8 @@ function MobileUserMenu() {
 				>
 					<Avatar className="h-9 w-9">
 						<AvatarImage
-							src={user.image || undefined}
-							alt={user.name || user.email}
+							src={user.image ?? undefined}
+							alt={user.name || user.email || "User"}
 						/>
 						<AvatarFallback>{initials}</AvatarFallback>
 					</Avatar>

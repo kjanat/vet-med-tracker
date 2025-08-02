@@ -158,7 +158,7 @@ export function TabletRecordLayout({
 					{!isOnline && (
 						<Alert className="mb-4">
 							<AlertDescription className="text-sm">
-								You're offline. Recordings will be saved and synced when
+								You&apos;re offline. Recordings will be saved and synced when
 								connection is restored.
 							</AlertDescription>
 						</Alert>

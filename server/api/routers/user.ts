@@ -1,5 +1,6 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
+import type { VetMedPreferences } from "@/hooks/use-user-preferences";
 import { animals, households, memberships } from "../../db/schema";
 import { updateUserPreferences } from "../clerk-sync";
 import { createTRPCRouter, protectedProcedure } from "../trpc/clerk-init";
@@ -151,8 +152,13 @@ export const userRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			// Update preferences in database
-			await updateUserPreferences(ctx.auth.userId!, {
-				vetMedPreferences: input.vetMedPreferences,
+			if (!ctx.dbUser.clerkUserId) {
+				throw new Error("User must have a Clerk ID to update preferences");
+			}
+			await updateUserPreferences(ctx.dbUser.clerkUserId, {
+				vetMedPreferences: input.vetMedPreferences as
+					| Partial<VetMedPreferences>
+					| undefined,
 				householdSettings: input.householdSettings,
 			});
 

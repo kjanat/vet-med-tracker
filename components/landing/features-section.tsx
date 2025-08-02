@@ -55,7 +55,7 @@ export function FeaturesSection() {
 
 				{/* Features grid */}
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-					{features.map((feature, _index) => (
+					{features.map((feature) => (
 						<Card
 							key={`feature-${feature.title.replace(/\s+/g, "-").toLowerCase()}`}
 							className="p-6 hover:shadow-lg transition-shadow"

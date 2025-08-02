@@ -154,7 +154,7 @@ export function WelcomeFlow() {
 							</div>
 							<CardTitle>Welcome to VetMed Tracker!</CardTitle>
 							<CardDescription>
-								Let's set up your profile to provide the best medication
+								Let&apos;s set up your profile to provide the best medication
 								tracking experience for your pets.
 							</CardDescription>
 						</CardHeader>
@@ -173,7 +173,7 @@ export function WelcomeFlow() {
 								/>
 								<p className="text-sm text-gray-500">
 									This helps us personalize your experience and organize your
-									pets' information.
+									pets&apos; information.
 								</p>
 							</div>
 						</CardContent>
@@ -224,7 +224,8 @@ export function WelcomeFlow() {
 									}
 								/>
 								<p className="text-sm text-gray-500">
-									We'll use this for SMS reminders if you enable them later.
+									We&apos;ll use this for SMS reminders if you enable them
+									later.
 								</p>
 							</div>
 						</CardContent>
@@ -286,7 +287,7 @@ export function WelcomeFlow() {
 							<div className="flex justify-center mb-4">
 								<CheckCircle className="w-12 h-12 text-green-600" />
 							</div>
-							<CardTitle>You're All Set!</CardTitle>
+							<CardTitle>You&apos;re All Set!</CardTitle>
 							<CardDescription>
 								Your VetMed Tracker profile is ready. You can always update
 								these settings later.

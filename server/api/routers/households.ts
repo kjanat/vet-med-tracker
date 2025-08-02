@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { animals, households, memberships } from "../../db/schema";
+import { animals, households, memberships, users } from "../../db/schema";
 import {
 	createTRPCRouter,
 	householdProcedure,
@@ -125,8 +125,22 @@ export const householdRouter = createTRPCRouter({
 		)
 		.query(async ({ ctx, input }) => {
 			const members = await ctx.db
-				.select()
+				.select({
+					id: memberships.id,
+					userId: memberships.userId,
+					householdId: memberships.householdId,
+					role: memberships.role,
+					createdAt: memberships.createdAt,
+					updatedAt: memberships.updatedAt,
+					user: {
+						id: users.id,
+						name: users.name,
+						email: users.email,
+						image: users.image,
+					},
+				})
 				.from(memberships)
+				.innerJoin(users, eq(memberships.userId, users.id))
 				.where(eq(memberships.householdId, input.householdId));
 
 			return members;

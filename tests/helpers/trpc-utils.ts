@@ -27,7 +27,7 @@ export const mockSession: TestSession = {
 // Create mock context for testing
 export async function createMockContext(
 	overrides: Record<string, unknown> = {},
-): Promise<inferAsyncReturnType<typeof createTRPCContext>> {
+): Promise<inferAsyncReturnType<typeof createClerkTRPCContext>> {
 	const mockReq = {
 		headers: new Headers({
 			"content-type": "application/json",
@@ -40,10 +40,12 @@ export async function createMockContext(
 		db: mockDb as any,
 		headers: mockReq.headers,
 		requestedHouseholdId: null,
-		session: null,
-		user: null,
+		auth: vi.fn().mockResolvedValue(null) as any,
+		clerkUser: null,
+		dbUser: null,
 		currentHouseholdId: null,
 		currentMembership: null,
+		availableHouseholds: [],
 		...overrides,
 	};
 }
@@ -88,17 +90,19 @@ export async function createAuthenticatedContext(
 		clerkUser: mockClerkUser,
 		dbUser: mockUser,
 		currentHouseholdId: session.access.householdId,
-		availableHouseholds: [{
-			id: session.access.householdId,
-			name: "Test Household",
-			role: session.access.role,
-		}],
+		availableHouseholds: [
+			{
+				id: session.access.householdId,
+				name: "Test Household",
+				role: session.access.role,
+			},
+		],
 	});
 }
 
 // Mock tRPC caller for testing
 export function createMockCaller(
-	ctx: inferAsyncReturnType<typeof createTRPCContext>,
+	ctx: inferAsyncReturnType<typeof createClerkTRPCContext>,
 ) {
 	return appRouter.createCaller(ctx);
 }
@@ -106,7 +110,7 @@ export function createMockCaller(
 // Helper to test protected procedures
 export async function testProtectedProcedure(
 	procedure: (params: {
-		ctx: inferAsyncReturnType<typeof createTRPCContext>;
+		ctx: inferAsyncReturnType<typeof createClerkTRPCContext>;
 		input: unknown;
 	}) => Promise<unknown>,
 	input: unknown,
@@ -120,7 +124,7 @@ export async function testProtectedProcedure(
 // Helper to test successful procedure
 export async function testSuccessfulProcedure<T>(
 	procedure: (params: {
-		ctx: inferAsyncReturnType<typeof createTRPCContext>;
+		ctx: inferAsyncReturnType<typeof createClerkTRPCContext>;
 		input: unknown;
 	}) => Promise<T>,
 	input: unknown,
@@ -147,6 +151,3 @@ export function mockDbQuery(_tableName: string, data: unknown[]) {
 import { appRouter } from "@/server/api/routers/_app";
 // Import your actual context and router (update paths as needed)
 import type { createClerkTRPCContext } from "@/server/api/trpc/clerk-init";
-
-// Type alias for backwards compatibility
-type createTRPCContext = typeof createClerkTRPCContext;
