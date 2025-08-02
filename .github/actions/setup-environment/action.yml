@@ -21,7 +21,7 @@ runs:
       shell: bash
       run: |
         # Create mock environment variables
-        echo "DATABASE_URL_POOLED=postgresql://mock:mock@localhost:5432/vetmed" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://mock:mock@localhost:5432/vetmed" >> $GITHUB_ENV
         echo "DATABASE_URL_UNPOOLED=postgresql://mock:mock@localhost:5432/vetmed?pool=false" >> $GITHUB_ENV
         echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
         echo "NEXTAUTH_SECRET=mock-secret-for-testing" >> $GITHUB_ENV

@@ -60,9 +60,10 @@ pnpm db:studio
 ### 3. Environment Variables
 Make sure your `.env.development` has:
 ```env
-DATABASE_URL_POOLED=postgresql://...@...-pooler.eu-central-1.aws.neon.tech/...
+DATABASE_URL=postgresql://...@...-pooler.eu-central-1.aws.neon.tech/...
 DATABASE_URL_UNPOOLED=postgresql://...@....eu-central-1.aws.neon.tech/...
 ```
+Note: The system will use `DATABASE_URL` by default. If not provided, it will fall back to `DATABASE_URL_POOLED` for backward compatibility.
 
 ## 🔧 Architecture Decisions
 

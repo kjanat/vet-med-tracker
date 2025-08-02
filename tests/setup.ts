@@ -2,11 +2,11 @@ import "@testing-library/jest-dom";
 import { vi } from "vitest";
 
 // Mock environment variables for database
+vi.stubEnv("DATABASE_URL", "postgresql://test:test@localhost:5432/vetmed_test");
 vi.stubEnv(
-	"DATABASE_URL_POOLED",
+	"DATABASE_URL_UNPOOLED",
 	"postgresql://test:test@localhost:5432/vetmed_test",
 );
-vi.stubEnv("DATABASE_URL", "postgresql://test:test@localhost:5432/vetmed_test");
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({

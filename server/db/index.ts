@@ -5,23 +5,22 @@ import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
 import * as schema from "./schema";
 
 // Validate required environment variables
-const requiredEnvVars = ["DATABASE_URL_POOLED", "DATABASE_URL_UNPOOLED"];
-for (const envVar of requiredEnvVars) {
-	if (!process.env[envVar]) {
-		throw new Error(`${envVar} is not set. Check your .env file.`);
-	}
+// Use DATABASE_URL by default, fall back to DATABASE_URL_POOLED for backward compatibility
+const DATABASE_URL =
+	process.env.DATABASE_URL || process.env.DATABASE_URL_POOLED;
+if (!DATABASE_URL) {
+	throw new Error(`DATABASE_URL is not set. Check your .env file.`);
 }
 
 // Neon is configured for serverless environments by default
 
-// After validation we know these are defined
-const DATABASE_URL_POOLED = process.env.DATABASE_URL_POOLED as string;
-const DATABASE_URL_UNPOOLED = process.env.DATABASE_URL_UNPOOLED as string;
+// Use DATABASE_URL_UNPOOLED if provided, otherwise fall back to DATABASE_URL
+const DATABASE_URL_UNPOOLED = process.env.DATABASE_URL_UNPOOLED || DATABASE_URL;
 
-// Pooled connection for API routes (short-lived queries)
-// This is more efficient for Neon free tier
-const sqlPooled = neon(DATABASE_URL_POOLED);
-export const db = drizzleHttp(sqlPooled, {
+// Primary connection for API routes (short-lived queries)
+// This is more efficient for Neon
+const sql = neon(DATABASE_URL);
+export const db = drizzleHttp(sql, {
 	schema,
 	logger: process.env.NODE_ENV === "development",
 });
@@ -47,7 +46,7 @@ let _pool: Pool | null = null;
 if (typeof process.versions?.node !== "undefined") {
 	const { Pool } = require("@neondatabase/serverless");
 	_pool = new Pool({
-		connectionString: process.env.DATABASE_URL_POOLED,
+		connectionString: DATABASE_URL,
 		// Optimize for Neon free tier
 		max: 5, // Max connections
 		idleTimeoutMillis: 30000, // 30 seconds
