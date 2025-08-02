@@ -1,7 +1,9 @@
 import { drizzle } from "drizzle-orm/neon-http";
 
-if (!process.env.DATABASE_URL) {
+const DATABASE_URL =
+	process.env.DATABASE_URL || process.env.DATABASE_URL_POOLED;
+if (!DATABASE_URL) {
 	throw new Error("DATABASE_URL environment variable is not set");
 }
 
-export const db = drizzle(process.env.DATABASE_URL);
+export const db = drizzle(DATABASE_URL);
