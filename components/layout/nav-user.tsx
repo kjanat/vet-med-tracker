@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronsUpDown, LogOut, Settings } from "lucide-react";
+import { Bell, ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -84,6 +84,10 @@ export function NavUser() {
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
+							<DropdownMenuItem onClick={() => router.push("/profile")}>
+								<User />
+								Profile
+							</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => router.push("/settings")}>
 								<Settings />
 								Settings

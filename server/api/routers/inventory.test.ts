@@ -146,7 +146,7 @@ describe("inventoryRouter", () => {
 			});
 
 			expect(result).toEqual(updatedItem);
-			expect(result!.unitsRemaining).toBe(25);
+			expect(result?.unitsRemaining).toBe(25);
 		});
 
 		it("should not allow negative quantities", async () => {

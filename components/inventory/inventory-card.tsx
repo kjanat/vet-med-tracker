@@ -13,6 +13,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CARD_ANIMATIONS } from "@/lib/animation-config";
 import { cn } from "@/lib/utils";
 
 export interface InventoryItem {
@@ -171,7 +172,7 @@ export function InventoryCard({
 	return (
 		<Card
 			className={cn(
-				"transition-all duration-200 hover:shadow-md",
+				CARD_ANIMATIONS.hover,
 				item.inUse && "ring-2 ring-primary ring-offset-2",
 				isExpired &&
 					"border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950",

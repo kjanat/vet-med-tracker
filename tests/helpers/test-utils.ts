@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import type { MockReactProps, MockWindow } from "./types";
+import type { MockReactProps } from "./types";
 
 /**
  * Login helper for authenticated routes

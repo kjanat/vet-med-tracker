@@ -4,6 +4,8 @@ import type React from "react";
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useScreenReaderAnnouncements } from "@/components/ui/screen-reader-announcer";
+import { TRANSITIONS } from "@/lib/animation-config";
 import { cn } from "@/lib/utils";
 
 interface MedConfirmButtonProps {
@@ -27,6 +29,7 @@ export function MedConfirmButton({
 	const timeoutRef = useRef<number | undefined>(undefined);
 	const intervalRef = useRef<number | undefined>(undefined);
 	const startTimeRef = useRef<number | undefined>(undefined);
+	const { announce } = useScreenReaderAnnouncements();
 
 	const HOLD_DURATION = 3000; // 3 seconds
 
@@ -36,6 +39,12 @@ export function MedConfirmButton({
 		setIsHolding(true);
 		setProgress(0);
 		startTimeRef.current = Date.now();
+
+		// Announce hold start
+		announce(
+			`Hold started. ${requiresCoSign ? "Co-sign required after confirmation." : "Continue holding for 3 seconds to confirm."}`,
+			"polite",
+		);
 
 		// Progress animation
 		intervalRef.current = window.setInterval(() => {
@@ -49,6 +58,13 @@ export function MedConfirmButton({
 			setIsComplete(true);
 			setIsHolding(false);
 			setProgress(100);
+
+			// Announce confirmation success
+			announce(
+				`Medication confirmation completed${requiresCoSign ? ". Awaiting co-sign." : "."}`,
+				"assertive",
+			);
+
 			onConfirm();
 
 			// Reset after brief delay
@@ -60,6 +76,11 @@ export function MedConfirmButton({
 	};
 
 	const cancelHold = () => {
+		if (isHolding) {
+			// Announce cancellation only if we were actually holding
+			announce("Hold cancelled. Medication confirmation cancelled.", "polite");
+		}
+
 		setIsHolding(false);
 		setProgress(0);
 
@@ -83,7 +104,8 @@ export function MedConfirmButton({
 			<Button
 				type="button"
 				className={cn(
-					"relative overflow-hidden transition-all duration-200",
+					"relative overflow-hidden",
+					TRANSITIONS.all,
 					isHolding && "scale-95",
 					isComplete && "bg-green-600 hover:bg-green-600",
 					requiresCoSign && "bg-orange-600 hover:bg-orange-700",
@@ -95,8 +117,16 @@ export function MedConfirmButton({
 				onPointerLeave={cancelHold}
 				onTouchStart={startHold}
 				onTouchEnd={cancelHold}
-				aria-label={`Hold to confirm${requiresCoSign ? " (requires co-sign)" : ""}`}
+				aria-label={`Hold for 3 seconds to confirm medication${requiresCoSign ? " (requires co-sign)" : ""}`}
 				aria-pressed={isHolding}
+				aria-describedby="hold-instruction"
+				aria-live={isHolding ? "polite" : undefined}
+				aria-valuemin={0}
+				aria-valuemax={100}
+				aria-valuenow={progress}
+				aria-valuetext={
+					isHolding ? `Hold progress: ${Math.round(progress)}%` : undefined
+				}
 			>
 				{/* Progress bar background */}
 				<div
@@ -121,7 +151,14 @@ export function MedConfirmButton({
 
 			{/* Progress indicator */}
 			{isHolding && (
-				<div className="absolute -bottom-1 left-0 right-0 h-1 bg-background rounded-full overflow-hidden">
+				<div
+					className="absolute -bottom-1 left-0 right-0 h-1 bg-background rounded-full overflow-hidden"
+					role="progressbar"
+					aria-valuenow={progress}
+					aria-valuemin={0}
+					aria-valuemax={100}
+					aria-label="Hold progress"
+				>
 					<div
 						className="h-full bg-primary transition-transform duration-75 ease-out origin-left"
 						style={{
@@ -130,6 +167,14 @@ export function MedConfirmButton({
 					/>
 				</div>
 			)}
+
+			{/* Screen reader instructions */}
+			<div id="hold-instruction" className="sr-only">
+				Hold and keep pressed for 3 seconds to confirm medication
+				administration.
+				{requiresCoSign &&
+					" This medication requires co-signature within 10 minutes."}
+			</div>
 		</div>
 	);
 }

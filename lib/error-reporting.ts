@@ -49,32 +49,40 @@ class ErrorReporter {
 	 * Report an error to the error tracking service
 	 */
 	report(error: Error, context: ErrorContext = {}): void {
-		const report: ErrorReport = {
-			message: error.message,
-			stack: error.stack,
-			context,
-			timestamp: new Date().toISOString(),
-			userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
-			url: typeof window !== "undefined" ? window.location.href : "",
-		};
-
-		// In development, log to console
-		if (process.env.NODE_ENV === "development") {
-			console.error("Error Report:", {
-				error,
+		try {
+			const report: ErrorReport = {
+				message: error.message || "Unknown error",
+				stack: error.stack,
 				context,
-				report,
-			});
-		}
+				timestamp: new Date().toISOString(),
+				userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+				url: typeof window !== "undefined" ? window.location.href : "",
+			};
 
-		// In production, send to error tracking service
-		if (process.env.NODE_ENV === "production") {
-			if (this.isOnline) {
-				this.sendReport(report);
-			} else {
-				// Queue for later if offline
-				this.queue.push(report);
+			// In development, log to console with safe serialization
+			if (process.env.NODE_ENV === "development") {
+				console.error("Error Report:", {
+					message: error.message,
+					name: error.name,
+					stack: error.stack,
+					context: this.sanitizeContext(context),
+					timestamp: report.timestamp,
+					url: report.url,
+				});
 			}
+
+			// In production, send to error tracking service
+			if (process.env.NODE_ENV === "production") {
+				if (this.isOnline) {
+					this.sendReport(report);
+				} else {
+					// Queue for later if offline
+					this.queue.push(report);
+				}
+			}
+		} catch (reportingError) {
+			// Don't let error reporting itself break the app
+			console.error("Error in error reporting:", reportingError);
 		}
 	}
 
@@ -82,13 +90,17 @@ class ErrorReporter {
 	 * Log a warning (non-fatal error)
 	 */
 	warn(message: string, context: ErrorContext = {}): void {
-		if (process.env.NODE_ENV === "development") {
-			console.warn("Warning:", message, context);
-		}
+		try {
+			if (process.env.NODE_ENV === "development") {
+				console.warn("Warning:", message, this.sanitizeContext(context));
+			}
 
-		// In production, could send to logging service
-		if (process.env.NODE_ENV === "production") {
-			// TODO: Implement warning logging
+			// In production, could send to logging service
+			if (process.env.NODE_ENV === "production") {
+				// TODO: Implement warning logging service integration
+			}
+		} catch (warningError) {
+			console.error("Error in warning logging:", warningError);
 		}
 	}
 
@@ -123,6 +135,39 @@ class ErrorReporter {
 
 		for (const report of reports) {
 			await this.sendReport(report);
+		}
+	}
+
+	/**
+	 * Safely sanitize context object for logging
+	 */
+	private sanitizeContext(context: ErrorContext): Record<string, unknown> {
+		try {
+			// Remove any circular references or non-serializable objects
+			const sanitized: Record<string, unknown> = {};
+
+			if (context.userId) sanitized.userId = context.userId;
+			if (context.householdId) sanitized.householdId = context.householdId;
+			if (context.animalId) sanitized.animalId = context.animalId;
+			if (context.errorBoundary)
+				sanitized.errorBoundary = context.errorBoundary;
+
+			// Safely handle component stack
+			if (context.componentStack) {
+				sanitized.componentStack =
+					typeof context.componentStack === "string"
+						? context.componentStack.substring(0, 500) // Truncate if too long
+						: "[Component Stack Present]";
+			}
+
+			// Don't include the full errorInfo object as it may have circular references
+			if (context.errorInfo) {
+				sanitized.hasErrorInfo = true;
+			}
+
+			return sanitized;
+		} catch {
+			return { error: "Failed to sanitize context" };
 		}
 	}
 }

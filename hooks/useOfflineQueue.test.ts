@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { QueuedMutation } from "@/lib/offline/db";
 import * as db from "@/lib/offline/db";
 import { trpc } from "@/lib/trpc/client";
-import type { MockTRPCMutation } from "@/types/test-helpers";
 import { useOfflineQueue } from "./useOfflineQueue";
 
 // Mock dependencies

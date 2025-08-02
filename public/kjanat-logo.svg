@@ -1,0 +1,29 @@
+<svg viewBox="0 0 2000 2000" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" class="themed-logo" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>KJANAT</title>
+    <style>
+        .themed-logo {
+            color: black;
+        }
+
+        .themed-logo circle {
+            fill: white;
+            stroke: currentColor;
+        }
+
+        .themed-logo path {
+            fill: currentColor;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .themed-logo {
+                color: white;
+            }
+
+            .themed-logo circle {
+                fill: black;
+            }
+        }
+    </style>
+    <circle cx="1000" cy="1000" r="950.398" stroke-width="99.205" />
+    <path d="M438 1269.95v-275l378 419v275zm0-360v-150l378 418v150zm0-230v-470h378v280l269-280h477l-538 560 418 454v566.1z" />
+</svg>

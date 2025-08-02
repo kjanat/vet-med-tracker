@@ -128,19 +128,19 @@
 		--secondary: 0 0% 96.1%;
 		--secondary-foreground: 0 0% 9%;
 		--muted: 0 0% 96.1%;
-		--muted-foreground: 0 0% 45.1%;
+		--muted-foreground: 0 0% 35%; /* Enhanced from 45.1% for better contrast */
 		--accent: 0 0% 96.1%;
 		--accent-foreground: 0 0% 9%;
-		--destructive: 0 84.2% 60.2%;
+		--destructive: 0 84.2% 45%; /* Enhanced from 60.2% for better contrast */
 		--destructive-foreground: 0 0% 98%;
 		--border: 0 0% 89.8%;
 		--input: 0 0% 89.8%;
 		--ring: 0 0% 3.9%;
-		--chart-1: 12 76% 61%;
-		--chart-2: 173 58% 39%;
-		--chart-3: 197 37% 24%;
-		--chart-4: 43 74% 66%;
-		--chart-5: 27 87% 67%;
+		--chart-1: 12 76% 45%; /* Enhanced contrast for accessibility */
+		--chart-2: 173 58% 30%; /* Enhanced contrast for accessibility */
+		--chart-3: 197 37% 20%; /* Enhanced contrast for accessibility */
+		--chart-4: 43 74% 40%; /* Enhanced contrast for accessibility */
+		--chart-5: 27 87% 45%; /* Enhanced contrast for accessibility */
 		--radius: 0.5rem;
 		--sidebar-background: 0 0% 98%;
 		--sidebar-foreground: 240 5.3% 26.1%;
@@ -163,19 +163,19 @@
 		--secondary: 0 0% 14.9%;
 		--secondary-foreground: 0 0% 98%;
 		--muted: 0 0% 14.9%;
-		--muted-foreground: 0 0% 63.9%;
+		--muted-foreground: 0 0% 75%; /* Enhanced from 63.9% for better contrast */
 		--accent: 0 0% 14.9%;
 		--accent-foreground: 0 0% 98%;
-		--destructive: 0 62.8% 30.6%;
+		--destructive: 0 62.8% 45%; /* Enhanced from 30.6% for better contrast */
 		--destructive-foreground: 0 0% 98%;
 		--border: 0 0% 14.9%;
 		--input: 0 0% 14.9%;
 		--ring: 0 0% 83.1%;
-		--chart-1: 220 70% 50%;
-		--chart-2: 160 60% 45%;
-		--chart-3: 30 80% 55%;
-		--chart-4: 280 65% 60%;
-		--chart-5: 340 75% 55%;
+		--chart-1: 220 70% 65%; /* Enhanced contrast for dark mode */
+		--chart-2: 160 60% 60%; /* Enhanced contrast for dark mode */
+		--chart-3: 30 80% 70%; /* Enhanced contrast for dark mode */
+		--chart-4: 280 65% 75%; /* Enhanced contrast for dark mode */
+		--chart-5: 340 75% 70%; /* Enhanced contrast for dark mode */
 		--sidebar-background: 240 5.9% 10%;
 		--sidebar-foreground: 240 4.8% 95.9%;
 		--sidebar-primary: 224.3 76.3% 48%;
@@ -193,5 +193,280 @@
 	}
 	body {
 		@apply bg-background text-foreground;
+	}
+}
+
+/* Accessibility & Focus Styles */
+@layer base {
+	/* Enhanced focus styles for better accessibility */
+	*:focus {
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+	}
+
+	/* Remove default focus for mouse users, preserve for keyboard users */
+	*:focus:not(:focus-visible) {
+		outline: none;
+	}
+
+	/* High-contrast focus ring for keyboard navigation */
+	*:focus-visible {
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+		border-radius: 4px;
+	}
+
+	/* Interactive elements get enhanced focus styles */
+	button:focus-visible,
+	a:focus-visible,
+	input:focus-visible,
+	select:focus-visible,
+	textarea:focus-visible,
+	[role="button"]:focus-visible,
+	[role="link"]:focus-visible,
+	[tabindex="0"]:focus-visible {
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+		box-shadow: 0 0 0 4px hsl(var(--ring) / 0.2);
+		transition: box-shadow 0.15s ease-in-out;
+	}
+
+	/* Skip navigation links */
+	.skip-nav {
+		position: absolute;
+		top: -40px;
+		left: 8px;
+		z-index: 1000;
+		background: hsl(var(--primary));
+		color: hsl(var(--primary-foreground));
+		padding: 8px 16px;
+		border-radius: 4px;
+		text-decoration: none;
+		font-weight: 500;
+		transition: top 0.2s ease-in-out;
+	}
+
+	.skip-nav:focus {
+		top: 8px;
+	}
+
+	/* Focus trap for modals and dialogs */
+	.focus-trap {
+		position: relative;
+	}
+
+	.focus-trap::before,
+	.focus-trap::after {
+		content: "";
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* Screen reader only content */
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* Show sr-only content when focused */
+	.sr-only:focus {
+		position: static;
+		width: auto;
+		height: auto;
+		padding: inherit;
+		margin: inherit;
+		overflow: visible;
+		clip: auto;
+		white-space: normal;
+	}
+
+	/* Focus within for skip navigation */
+	.focus-within\:not-sr-only:focus-within {
+		position: static;
+		width: auto;
+		height: auto;
+		padding: inherit;
+		margin: inherit;
+		overflow: visible;
+		clip: auto;
+		white-space: normal;
+	}
+
+	/* Keyboard navigation indicators */
+	.keyboard-nav-active *:focus-visible {
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+		box-shadow: 0 0 0 4px hsl(var(--ring) / 0.3);
+	}
+
+	/* High contrast mode support */
+	@media (prefers-contrast: high) {
+		*:focus-visible {
+			outline: 3px solid;
+			outline-offset: 3px;
+		}
+	}
+
+	/* Reduced motion support */
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+		}
+	}
+
+	/* Focus indicators for specific interactive patterns */
+	[role="listbox"] [role="option"]:focus-visible,
+	[role="menu"] [role="menuitem"]:focus-visible,
+	[role="radiogroup"] [role="radio"]:focus-visible,
+	[role="tablist"] [role="tab"]:focus-visible {
+		background-color: hsl(var(--accent));
+		color: hsl(var(--accent-foreground));
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: -2px;
+	}
+
+	/* Card and collapsible focus styles */
+	[role="button"][aria-expanded]:focus-visible {
+		background-color: hsl(var(--accent) / 0.8);
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+	}
+
+	/* Form control enhanced focus */
+	input[type="text"]:focus-visible,
+	input[type="email"]:focus-visible,
+	input[type="password"]:focus-visible,
+	input[type="tel"]:focus-visible,
+	input[type="url"]:focus-visible,
+	input[type="search"]:focus-visible,
+	textarea:focus-visible,
+	select:focus-visible {
+		border-color: hsl(var(--ring));
+		box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2);
+	}
+
+	/* Custom checkbox and radio focus */
+	input[type="checkbox"]:focus-visible + label,
+	input[type="radio"]:focus-visible + label {
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+		border-radius: 4px;
+	}
+}
+
+/* High Contrast & WCAG AAA Color Enhancements */
+@layer utilities {
+	/* Status colors with enhanced contrast */
+	.status-on-time {
+		@apply bg-green-600 text-white;
+	}
+
+	.status-late {
+		@apply bg-amber-600 text-white;
+	}
+
+	.status-very-late {
+		@apply bg-orange-600 text-white;
+	}
+
+	.status-missed {
+		@apply bg-red-600 text-white;
+	}
+
+	.status-prn {
+		@apply bg-blue-600 text-white;
+	}
+
+	/* Enhanced text contrast utilities */
+	.text-high-contrast {
+		color: hsl(var(--foreground));
+		font-weight: 500;
+	}
+
+	.text-muted-accessible {
+		color: hsl(var(--muted-foreground));
+		font-weight: 500; /* Slightly heavier weight for better readability */
+	}
+
+	/* High contrast mode specific overrides */
+	@media (prefers-contrast: high) {
+		:root {
+			--muted-foreground: 0 0% 25%; /* Even higher contrast for high contrast mode */
+			--destructive: 0 84.2% 35%; /* Even higher contrast for high contrast mode */
+		}
+
+		.dark {
+			--muted-foreground: 0 0% 85%; /* Even higher contrast for dark mode high contrast */
+			--destructive: 0 62.8% 55%; /* Even higher contrast for dark mode high contrast */
+		}
+
+		/* Force high contrast on all text */
+		* {
+			text-shadow: none !important;
+		}
+
+		/* Enhanced button contrast */
+		button,
+		[role="button"] {
+			border: 2px solid currentColor !important;
+		}
+
+		/* Enhanced form control contrast */
+		input,
+		textarea,
+		select {
+			border: 2px solid hsl(var(--foreground)) !important;
+		}
+	}
+
+	/* Color blind friendly status indicators */
+	.status-indicator {
+		position: relative;
+	}
+
+	.status-indicator::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+	}
+
+	.status-indicator.on-time::before {
+		background: #059669; /* Green-600 equivalent */
+	}
+
+	.status-indicator.late::before {
+		background: #d97706; /* Amber-600 equivalent */
+	}
+
+	.status-indicator.very-late::before {
+		background: #ea580c; /* Orange-600 equivalent */
+	}
+
+	.status-indicator.missed::before {
+		background: #dc2626; /* Red-600 equivalent */
+	}
+
+	.status-indicator.prn::before {
+		background: #2563eb; /* Blue-600 equivalent */
 	}
 }

@@ -210,7 +210,7 @@ function DateRangePicker({
 				<Button
 					variant="outline"
 					size="sm"
-					className="gap-2 bg-transparent w-full md:w-auto justify-start text-left font-normal"
+					className="gap-2 bg-transparent w-full md:w-auto justify-start text-left font-normal h-11"
 				>
 					<Calendar className="h-4 w-4 shrink-0" />
 					<span className="truncate text-xs md:text-sm">
@@ -221,8 +221,22 @@ function DateRangePicker({
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
-				<div className="flex flex-col md:flex-row">
-					<div className="p-3 border-b md:border-b-0 md:border-r">
+				{/* Mobile: Single range calendar */}
+				<div className="md:hidden p-3">
+					<CalendarComponent
+						mode="range"
+						selected={{ from, to }}
+						onSelect={(range) => {
+							onSelect(range?.from, range?.to);
+						}}
+						numberOfMonths={1}
+						initialFocus
+					/>
+				</div>
+
+				{/* Desktop: Two separate calendars */}
+				<div className="hidden md:flex flex-row">
+					<div className="p-3 border-r">
 						<div className="space-y-2">
 							<p className="text-sm font-medium">From</p>
 							<CalendarComponent

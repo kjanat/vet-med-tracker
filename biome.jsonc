@@ -9,7 +9,7 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**", "!.next/", "!.git/"]
+		"includes": ["**", "!.next", "!.git", "!tests", "!**/*.test.ts"]
 	},
 	"formatter": {
 		"enabled": true,

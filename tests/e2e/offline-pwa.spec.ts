@@ -16,7 +16,6 @@ import {
 	waitForReact,
 	waitForToast,
 } from "../helpers/test-utils";
-import type { MockWindow } from "../helpers/types";
 
 test.describe("PWA Offline Functionality", () => {
 	test.beforeEach(async ({ page, context }) => {

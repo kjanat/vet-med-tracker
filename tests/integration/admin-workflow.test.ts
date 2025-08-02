@@ -373,7 +373,7 @@ describe("Administration Workflow Integration", () => {
 					.returning()
 			)[0]!;
 
-			const otherAnimal = (
+			const _otherAnimal = (
 				await testDb
 					.insert(animals)
 					.values({
@@ -448,10 +448,10 @@ describe("Administration Workflow Integration", () => {
 
 			const caller1 = appRouter.createCaller(ctx1);
 			const animals1 = await caller1.animal.list({
-				householdId: testData.household!.id,
+				householdId: testData.household?.id,
 			});
 			expect(animals1).toHaveLength(1);
-			expect(animals1[0]!.id).toBe(testData.animal!.id);
+			expect(animals1[0]?.id).toBe(testData.animal?.id);
 
 			// Switch to second household context
 			const ctx2 = await createAuthenticatedContext({
@@ -468,7 +468,7 @@ describe("Administration Workflow Integration", () => {
 				householdId: secondHousehold.id,
 			});
 			expect(animals2).toHaveLength(1);
-			expect(animals2[0]!.id).toBe(secondAnimal.id);
+			expect(animals2[0]?.id).toBe(secondAnimal.id);
 		});
 	});
 });

@@ -4,6 +4,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { UserMenu } from "../auth/user-menu";
 import { AnimalBreadcrumb } from "../ui/animal-breadcrumb";
 import { HouseholdSwitcher } from "../ui/household-switcher";
+import { Logo } from "../ui/logo";
 import { NotificationDropdown } from "../ui/notification-dropdown";
 import { SidebarTrigger } from "../ui/sidebar";
 import { SyncStatus } from "../ui/sync-status";
@@ -36,6 +37,8 @@ export function Header() {
 					{isMobile && <NotificationDropdown />}
 					{/* Mobile: Show user menu in header, desktop shows in sidebar */}
 					{isMobile && <UserMenu />}
+					{/* Logo - always shown on the right */}
+					<Logo size={isMobile ? "sm" : "md"} />
 				</div>
 			</div>
 		</header>

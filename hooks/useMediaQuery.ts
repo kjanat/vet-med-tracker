@@ -6,6 +6,9 @@ export function useMediaQuery(query: string): boolean {
 	const [matches, setMatches] = useState(false);
 
 	useEffect(() => {
+		// Check if we're in the browser environment
+		if (typeof window === "undefined") return;
+
 		const media = window.matchMedia(query);
 
 		// Set initial value

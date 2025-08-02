@@ -7,7 +7,6 @@ import {
 	HelpCircle,
 	History,
 	Home,
-	Package,
 	Settings,
 	Stethoscope,
 } from "lucide-react";
@@ -39,28 +38,42 @@ const data = {
 	navMain: [
 		{
 			title: "Dashboard",
-			url: "/",
+			url: "/dashboard",
 			icon: Home,
 			isActive: true,
+			items: [
+				{
+					title: "Overview",
+					url: "/dashboard",
+				},
+				{
+					title: "History",
+					url: "/dashboard/history",
+				},
+			],
 		},
 		{
-			title: "Animals",
-			url: "/animals",
+			title: "Manage",
+			url: "/manage",
 			icon: Stethoscope,
 			items: [
 				{
-					title: "All Animals",
-					url: "/animals",
+					title: "Animals",
+					url: "/manage/animals",
 				},
 				{
-					title: "Add Animal",
-					url: "/animals/new",
+					title: "Households",
+					url: "/manage/households",
+				},
+				{
+					title: "Users",
+					url: "/manage/users",
 				},
 			],
 		},
 		{
 			title: "Medications",
-			url: "/admin/record",
+			url: "/medications",
 			icon: Activity,
 			items: [
 				{
@@ -68,27 +81,12 @@ const data = {
 					url: "/admin/record",
 				},
 				{
-					title: "History",
-					url: "/history",
+					title: "Inventory",
+					url: "/medications/inventory",
 				},
 				{
 					title: "Regimens",
-					url: "/regimens",
-				},
-			],
-		},
-		{
-			title: "Inventory",
-			url: "/inventory",
-			icon: Package,
-			items: [
-				{
-					title: "Current Stock",
-					url: "/inventory",
-				},
-				{
-					title: "Add Item",
-					url: "/inventory?add=true",
+					url: "/medications/regimens",
 				},
 			],
 		},
@@ -98,10 +96,25 @@ const data = {
 			icon: BarChart3,
 		},
 		{
+			title: "Reports",
+			url: "/reports",
+			icon: BarChart3,
+			items: [
+				{
+					title: "Animal Reports",
+					url: "/reports/animal",
+				},
+			],
+		},
+		{
 			title: "Settings",
 			url: "/settings",
 			icon: Settings,
 			items: [
+				{
+					title: "General",
+					url: "/settings",
+				},
 				{
 					title: "Data & Privacy",
 					url: "/settings?tab=data",
@@ -115,8 +128,8 @@ const data = {
 					url: "/settings?tab=notifications",
 				},
 				{
-					title: "Household",
-					url: "/settings?tab=household",
+					title: "Audit Log",
+					url: "/audit",
 				},
 			],
 		},
@@ -131,17 +144,17 @@ const data = {
 	dashboard: [
 		{
 			name: "Today's Doses",
-			url: "/",
+			url: "/dashboard",
 			icon: Activity,
 		},
 		{
 			name: "Overdue",
-			url: "/?filter=overdue",
+			url: "/dashboard?filter=overdue",
 			icon: Bell,
 		},
 		{
 			name: "Recent History",
-			url: "/history",
+			url: "/dashboard/history",
 			icon: History,
 		},
 	],
@@ -178,7 +191,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	}));
 
 	return (
-		<Sidebar variant="inset" {...props}>
+		<Sidebar id="main-navigation" variant="inset" {...props}>
 			<SidebarHeader>
 				<HouseholdSwitcher />
 			</SidebarHeader>

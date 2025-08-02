@@ -76,7 +76,7 @@ describe("Admin Flow Integration", () => {
 	});
 
 	afterEach(async () => {
-		if (testData && testData.household) {
+		if (testData?.household) {
 			await cleanupTestData(db, testData.household.id);
 		}
 	});

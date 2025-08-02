@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getQueueSize } from "@/lib/offline/db";
+import type { User } from "@/server/db/schema/users";
 import { trpc } from "@/server/trpc/client";
 import { AnimalFormProvider } from "./animal-form-provider";
 import { InventoryFormProvider } from "./inventory-form-provider";
@@ -30,6 +31,7 @@ interface Household {
 }
 
 interface AppContextType {
+	user: User | null;
 	selectedHousehold: Household | null;
 	setSelectedHousehold: (household: Household | null) => void;
 	selectedAnimal: Animal | null;
@@ -51,7 +53,7 @@ export function useApp() {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated, user } = useAuth();
 	const [selectedHousehold, setSelectedHouseholdState] =
 		useState<Household | null>(null);
 
@@ -180,6 +182,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 	return (
 		<AppContext.Provider
 			value={{
+				user,
 				selectedHousehold,
 				setSelectedHousehold,
 				selectedAnimal,

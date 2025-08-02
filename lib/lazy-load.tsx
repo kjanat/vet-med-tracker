@@ -19,7 +19,6 @@ const GenericLoader = () => (
 );
 
 // Lazy load with custom loading component
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function lazyLoad<T extends ComponentType<any>>(
 	importFunc: () => Promise<{ default: T }>,
 	loadingComponent?: ComponentType,
@@ -102,8 +101,7 @@ export const LazyInventoryGrid = lazyLoad(
 );
 
 // Export utility for creating lazy loaded modals
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function createLazyModal<P = any>(
+export function createLazyModal<P = Record<string, unknown>>(
 	importPath: () => Promise<{ default: ComponentType<P> }>,
 	loadingHeight = "400px",
 ) {

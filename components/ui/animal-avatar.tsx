@@ -10,19 +10,21 @@ interface Animal {
 	name: string;
 	species: string;
 	avatar?: string;
-	pendingMeds: number;
+	pendingMeds?: number;
 }
 
 interface AnimalAvatarProps {
 	animal: Animal;
 	size?: "xs" | "sm" | "md" | "lg";
 	showBadge?: boolean;
+	className?: string;
 }
 
 export function AnimalAvatar({
 	animal,
 	size = "md",
 	showBadge = false,
+	className,
 }: AnimalAvatarProps) {
 	const sizeClasses = {
 		xs: "h-5 w-5",
@@ -41,7 +43,7 @@ export function AnimalAvatar({
 	const avatarColor = getAvatarColor(animal.name);
 
 	return (
-		<div className="relative">
+		<div className={cn("relative", className)}>
 			<Avatar className={cn(sizeClasses[size])}>
 				{animal.avatar && <AvatarImage src={animal.avatar} alt={animal.name} />}
 				<AvatarFallback
@@ -56,12 +58,12 @@ export function AnimalAvatar({
 				</AvatarFallback>
 			</Avatar>
 
-			{showBadge && animal.pendingMeds > 0 && (
+			{showBadge && (animal.pendingMeds ?? 0) > 0 && (
 				<Badge
 					variant="destructive"
 					className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
 				>
-					{animal.pendingMeds}
+					{animal.pendingMeds ?? 0}
 				</Badge>
 			)}
 		</div>

@@ -7,6 +7,11 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { GlobalLayout } from "@/components/layout/global-layout";
 import { AppProvider } from "@/components/providers/app-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts-provider";
+import {
+	GlobalScreenReaderProvider,
+	SkipNavigation,
+} from "@/components/ui/screen-reader-announcer";
 import { TRPCProvider } from "@/server/trpc/client";
 import { inter, jetbrainsMono } from "./fonts";
 
@@ -27,11 +32,22 @@ export default function RootLayout({
 				<meta name="apple-mobile-web-app-title" content="KJANAT" />
 			</head>
 			<body className={inter.className}>
+				<SkipNavigation
+					links={[
+						{ href: "#main-content", label: "Skip to main content" },
+						{ href: "#main-navigation", label: "Skip to navigation" },
+						{ href: "#search", label: "Skip to search" },
+					]}
+				/>
 				<ErrorBoundary errorBoundaryId="root">
 					<TRPCProvider>
 						<AuthProvider>
 							<AppProvider>
-								<GlobalLayout>{children}</GlobalLayout>
+								<GlobalScreenReaderProvider>
+									<KeyboardShortcutsProvider>
+										<GlobalLayout>{children}</GlobalLayout>
+									</KeyboardShortcutsProvider>
+								</GlobalScreenReaderProvider>
 								{/* {process.env.NODE_ENV === "development" && <DebugHouseholdState />} */}
 							</AppProvider>
 						</AuthProvider>

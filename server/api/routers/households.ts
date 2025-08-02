@@ -93,6 +93,24 @@ export const householdRouter = createTRPCRouter({
 			return household;
 		}),
 
+	// Get members of a household
+	getMembers: householdProcedure
+		.input(
+			z.object({
+				householdId: z.string(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const members = await ctx.db.query.memberships.findMany({
+				where: eq(memberships.householdId, input.householdId),
+				with: {
+					user: true,
+				},
+			});
+
+			return members;
+		}),
+
 	// Get animals for a household
 	getAnimals: householdProcedure
 		.input(

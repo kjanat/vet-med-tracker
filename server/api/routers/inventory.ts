@@ -182,10 +182,15 @@ export const inventoryRouter = createTRPCRouter({
 			} = input;
 
 			// Build the values object, excluding undefined optional fields
+			const expiryDateStr = expiresOn.toISOString().split("T")[0];
+			if (!expiryDateStr) {
+				throw new Error("Invalid expiry date");
+			}
+
 			const values: Record<string, unknown> = {
 				householdId: restInput.householdId,
 				medicationId: restInput.medicationId,
-				expiresOn: expiresOn.toISOString().split("T")[0]!,
+				expiresOn: expiryDateStr,
 				storage: restInput.storage,
 				quantityUnits: unitsTotal,
 				unitsRemaining: unitsRemaining ?? unitsTotal, // Use provided value or default to unitsTotal
@@ -202,8 +207,12 @@ export const inventoryRouter = createTRPCRouter({
 			if (restInput.supplier) values.supplier = restInput.supplier;
 			if (restInput.purchasePrice)
 				values.purchasePrice = restInput.purchasePrice;
-			if (purchaseDate)
-				values.purchaseDate = purchaseDate.toISOString().split("T")[0]!;
+			if (purchaseDate) {
+				const purchaseDateStr = purchaseDate.toISOString().split("T")[0];
+				if (purchaseDateStr) {
+					values.purchaseDate = purchaseDateStr;
+				}
+			}
 
 			// Clean undefined values to prevent database issues
 			const cleanValues = Object.fromEntries(
