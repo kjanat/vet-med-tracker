@@ -124,7 +124,10 @@ export async function createDefaultHousehold(
 		.insert(households)
 		.values({
 			name: defaultHouseholdName,
-			timezone: vetMedPreferences?.defaultTimezone || "America/New_York",
+			timezone:
+				vetMedPreferences?.defaultTimezone ||
+				process.env.DEFAULT_TIMEZONE ||
+				"America/New_York",
 		})
 		.returning();
 

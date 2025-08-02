@@ -1,5 +1,7 @@
 import type { inferAsyncReturnType } from "@trpc/server";
 import { expect, vi } from "vitest";
+import { appRouter } from "@/server/api/routers/_app";
+import type { createClerkTRPCContext } from "@/server/api/trpc/clerk-init";
 import { mockDb } from "./mock-db";
 
 // Define test session type to match Clerk expectations
@@ -40,7 +42,7 @@ export async function createMockContext(
 		db: mockDb as any,
 		headers: mockReq.headers,
 		requestedHouseholdId: null,
-		auth: vi.fn().mockResolvedValue(null) as any,
+		auth: vi.fn().mockResolvedValue({ userId: null, sessionId: null }) as any,
 		clerkUser: null,
 		dbUser: null,
 		currentHouseholdId: null,
@@ -147,7 +149,3 @@ export function mockDbQuery(_tableName: string, data: unknown[]) {
 			}) as ReturnType<typeof mockDb.select>,
 	);
 }
-
-import { appRouter } from "@/server/api/routers/_app";
-// Import your actual context and router (update paths as needed)
-import type { createClerkTRPCContext } from "@/server/api/trpc/clerk-init";

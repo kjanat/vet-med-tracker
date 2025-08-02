@@ -17,9 +17,9 @@ export default defineConfig([
 		extends: compat.extends("next/core-web-vitals", "next/typescript"),
 	},
 	{
-		files: ["lib/lazy-load.tsx"],
 		rules: {
 			"@typescript-eslint/no-explicit-any": "warn",
+			"react/no-unescaped-entities": "warn",
 		},
 	},
 ]);

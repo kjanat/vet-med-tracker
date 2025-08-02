@@ -41,8 +41,8 @@ export function TestimonialsSection() {
 						Loved by Pet Parents Everywhere
 					</h2>
 					<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-						Join thousands of pet parents who&apos;ve transformed how they
-						manage their pets&apos; health.
+						Join thousands of pet parents who've transformed how they manage
+						their pets' health.
 					</p>
 				</div>
 
@@ -66,7 +66,7 @@ export function TestimonialsSection() {
 
 								{/* Quote */}
 								<blockquote className="text-muted-foreground mb-6">
-									&quot;{testimonial.content}&quot;
+									"{testimonial.content}"
 								</blockquote>
 
 								{/* Author */}

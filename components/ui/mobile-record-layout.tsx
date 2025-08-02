@@ -440,8 +440,8 @@ function StatusAlerts({
 			{!isOnline && (
 				<Alert className="mx-4 mt-4 border-amber-200 bg-amber-50">
 					<AlertDescription className="text-amber-800 text-sm">
-						You&apos;re offline. Recordings will be saved and synced when
-						connection is restored.
+						You're offline. Recordings will be saved and synced when connection
+						is restored.
 					</AlertDescription>
 				</Alert>
 			)}
