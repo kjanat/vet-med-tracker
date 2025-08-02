@@ -2,8 +2,8 @@ import type { inferAsyncReturnType } from "@trpc/server";
 import { expect, vi } from "vitest";
 import { appRouter } from "@/server/api/routers/_app";
 import type { createClerkTRPCContext } from "@/server/api/trpc/clerk-init";
+import { ClerkMockHelpers } from "./clerk-test-utils";
 import { mockDb } from "./mock-db";
-import { ClerkMockHelpers, TEST_USERS } from "./clerk-test-utils";
 
 // Define test session type to match Clerk expectations
 export interface TestSession {
