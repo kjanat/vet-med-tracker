@@ -391,7 +391,7 @@ export async function updateUserPreferences(
 				householdId: auditContext.householdId,
 				action: "UPDATE",
 				tableName: "users",
-				recordId: auditContext.userId,
+				recordId: clerkUserId,
 				oldValues,
 				newValues: {
 					...updateData,
