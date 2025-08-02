@@ -1,9 +1,8 @@
 import type { inferAsyncReturnType } from "@trpc/server";
 import { expect, vi } from "vitest";
-import type { Session } from "@/server/auth/types";
 import { mockDb } from "./mock-db";
 
-// Define test session type to match OpenAuth expectations
+// Define test session type to match Clerk expectations
 export interface TestSession {
 	subject: string;
 	access: {
@@ -75,19 +74,25 @@ export async function createAuthenticatedContext(
 		updatedAt: new Date(),
 	};
 
-	const actualSession: Session = {
-		userId: session.subject,
-		user: mockUser,
-		householdMemberships: [mockMembership],
-		expiresAt: new Date(session.exp * 1000),
+	// Mock Clerk user context
+	const mockClerkUser = {
+		id: session.subject,
+		firstName: "Test",
+		lastName: "User",
+		emailAddresses: [{ emailAddress: "test@example.com" }],
+		imageUrl: null,
 	};
 
 	return createMockContext({
 		...overrides,
-		session: actualSession,
-		user: mockUser,
+		clerkUser: mockClerkUser,
+		dbUser: mockUser,
 		currentHouseholdId: session.access.householdId,
-		currentMembership: mockMembership,
+		availableHouseholds: [{
+			id: session.access.householdId,
+			name: "Test Household",
+			role: session.access.role,
+		}],
 	});
 }
 
@@ -141,4 +146,7 @@ export function mockDbQuery(_tableName: string, data: unknown[]) {
 
 import { appRouter } from "@/server/api/routers/_app";
 // Import your actual context and router (update paths as needed)
-import type { createTRPCContext } from "@/server/api/trpc/init";
+import type { createClerkTRPCContext } from "@/server/api/trpc/clerk-init";
+
+// Type alias for backwards compatibility
+type createTRPCContext = typeof createClerkTRPCContext;

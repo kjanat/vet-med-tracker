@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import {
 	createContext,
 	type ReactNode,
@@ -8,7 +9,6 @@ import {
 	useEffect,
 	useState,
 } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { getQueueSize } from "@/lib/offline/db";
 import type { User } from "@/server/db/schema/users";
 import { trpc } from "@/server/trpc/client";
@@ -53,7 +53,7 @@ export function useApp() {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-	const { isAuthenticated, user } = useAuth();
+	const { user: clerkUser, isLoaded } = useUser();
 	const [selectedHousehold, setSelectedHouseholdState] =
 		useState<Household | null>(null);
 
@@ -73,9 +73,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 	const [pendingSyncCount, setPendingSyncCount] = useState(0);
 	const [households, setHouseholds] = useState<Household[]>([]);
 
+	// Convert Clerk user to app user format
+	const user: User | null = clerkUser
+		? {
+				id: clerkUser.id,
+				name:
+					clerkUser.firstName ||
+					clerkUser.emailAddresses[0]?.emailAddress ||
+					"Unknown",
+				email: clerkUser.emailAddresses[0]?.emailAddress || "",
+				image: clerkUser.imageUrl || null,
+				emailVerified: null, // Clerk handles verification
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			}
+		: null;
+
 	// Fetch household details from API
 	const { data: householdData } = trpc.household.list.useQuery(undefined, {
-		enabled: isAuthenticated,
+		enabled: isLoaded && !!clerkUser,
 	});
 
 	// Helper function to restore household from localStorage

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type React from "react";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 // import { DebugHouseholdState } from "@/components/debug/debug-household-state";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -26,35 +27,37 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-			<head>
-				{/* <script src="http://localhost:8097"></script> */}
-				<meta name="apple-mobile-web-app-title" content="KJANAT" />
-			</head>
-			<body className={inter.className}>
-				<SkipNavigation
-					links={[
-						{ href: "#main-content", label: "Skip to main content" },
-						{ href: "#main-navigation", label: "Skip to navigation" },
-						{ href: "#search", label: "Skip to search" },
-					]}
-				/>
-				<ErrorBoundary errorBoundaryId="root">
-					<TRPCProvider>
-						<AuthProvider>
-							<AppProvider>
-								<GlobalScreenReaderProvider>
-									<KeyboardShortcutsProvider>
-										<GlobalLayout>{children}</GlobalLayout>
-									</KeyboardShortcutsProvider>
-								</GlobalScreenReaderProvider>
-								{/* {process.env.NODE_ENV === "development" && <DebugHouseholdState />} */}
-							</AppProvider>
-						</AuthProvider>
-					</TRPCProvider>
-				</ErrorBoundary>
-				<Analytics />
-			</body>
-		</html>
+		<ClerkProvider>
+			<html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+				<head>
+					{/* <script src="http://localhost:8097"></script> */}
+					<meta name="apple-mobile-web-app-title" content="KJANAT" />
+				</head>
+				<body className={inter.className}>
+					<SkipNavigation
+						links={[
+							{ href: "#main-content", label: "Skip to main content" },
+							{ href: "#main-navigation", label: "Skip to navigation" },
+							{ href: "#search", label: "Skip to search" },
+						]}
+					/>
+					<ErrorBoundary errorBoundaryId="root">
+						<TRPCProvider>
+							<AuthProvider>
+								<AppProvider>
+									<GlobalScreenReaderProvider>
+										<KeyboardShortcutsProvider>
+											<GlobalLayout>{children}</GlobalLayout>
+										</KeyboardShortcutsProvider>
+									</GlobalScreenReaderProvider>
+									{/* {process.env.NODE_ENV === "development" && <DebugHouseholdState />} */}
+								</AppProvider>
+							</AuthProvider>
+						</TRPCProvider>
+					</ErrorBoundary>
+					<Analytics />
+				</body>
+			</html>
+		</ClerkProvider>
 	);
 }

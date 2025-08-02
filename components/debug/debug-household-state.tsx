@@ -1,20 +1,32 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/providers/app-provider";
-import { useAuth } from "@/hooks/useAuth";
 import { trpc } from "@/server/trpc/client";
 
 export function DebugHouseholdState() {
 	const { selectedHousehold, households } = useApp();
-	const { isAuthenticated, user } = useAuth();
+	const { user: clerkUser, isLoaded } = useUser();
 	const {
 		data: householdData,
 		isLoading,
 		error,
 	} = trpc.household.list.useQuery(undefined, {
-		enabled: isAuthenticated,
+		enabled: isLoaded && !!clerkUser,
 	});
+
+	const isAuthenticated = isLoaded && !!clerkUser;
+	const user = clerkUser
+		? {
+				id: clerkUser.id,
+				email: clerkUser.emailAddresses[0]?.emailAddress || "",
+				name:
+					clerkUser.firstName ||
+					clerkUser.emailAddresses[0]?.emailAddress ||
+					"Unknown",
+			}
+		: null;
 	const [localStorageValue, setLocalStorageValue] = useState<string>("SSR");
 
 	// Only access localStorage after mounting to avoid hydration issues

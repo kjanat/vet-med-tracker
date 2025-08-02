@@ -11,7 +11,7 @@ import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
-} from "../trpc/init";
+} from "../trpc/clerk-init";
 
 // Types for regimen processing
 interface ProcessedRegimen {

@@ -1,9 +1,9 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "@/components/providers/app-provider";
-import { useAuth } from "@/hooks/useAuth";
 import {
 	addToQueue,
 	clearQueue,
@@ -31,7 +31,7 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 	const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
 	const processingRef = useRef(false);
 	const processQueueRef = useRef<(() => Promise<void>) | null>(null);
-	const { user } = useAuth();
+	const { user: clerkUser } = useUser();
 	const { selectedHousehold } = useApp();
 	const utils = trpc.useUtils();
 
@@ -80,7 +80,7 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 			payload: unknown,
 			idempotencyKey: string,
 		) => {
-			if (!user?.id || !selectedHousehold?.id) {
+			if (!clerkUser?.id || !selectedHousehold?.id) {
 				throw new Error("No user or household context");
 			}
 
@@ -92,7 +92,7 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 				retries: 0,
 				maxRetries,
 				householdId: selectedHousehold.id,
-				userId: user.id,
+				userId: clerkUser.id,
 			};
 
 			await addToQueue(mutation);
@@ -105,7 +105,13 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 
 			return mutation.id;
 		},
-		[isOnline, maxRetries, selectedHousehold?.id, user?.id, updateQueueSize],
+		[
+			isOnline,
+			maxRetries,
+			selectedHousehold?.id,
+			clerkUser?.id,
+			updateQueueSize,
+		],
 	);
 
 	// Process a single mutation

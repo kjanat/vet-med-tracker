@@ -200,7 +200,7 @@ function SelectionStep({
 	state: ReturnType<typeof useRecordState>;
 	dueRegimens?: DueRegimen[];
 	regimensLoading: boolean;
-	regimensError: any;
+	regimensError: Error | null;
 	selectedHousehold: { id: string } | null;
 	animals: Array<{
 		id: string;
@@ -963,7 +963,7 @@ function RenderMobileLayout({
 	}>;
 	dueRegimens?: DueRegimen[];
 	regimensLoading: boolean;
-	regimensError: any;
+	regimensError: Error | null;
 	isOnline: boolean;
 	inventorySources: InventorySource[];
 	inventoryLoading: boolean;
@@ -1051,7 +1051,7 @@ function RenderTabletLayout({
 	}>;
 	dueRegimens?: DueRegimen[];
 	regimensLoading: boolean;
-	regimensError: any;
+	regimensError: Error | null;
 	isOnline: boolean;
 	inventorySources: InventorySource[];
 	inventoryLoading: boolean;

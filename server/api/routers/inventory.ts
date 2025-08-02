@@ -1,7 +1,7 @@
 import { and, eq, gte, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { inventoryItems, medicationCatalog } from "../../db/schema";
-import { createTRPCRouter, householdProcedure } from "../trpc/init";
+import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 
 export const inventoryRouter = createTRPCRouter({
 	// List inventory items for a household

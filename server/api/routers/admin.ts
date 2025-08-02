@@ -10,7 +10,7 @@ import {
 	regimens,
 } from "../../db/schema";
 import { createAuditLog } from "../../db/schema/audit";
-import { createTRPCRouter, householdProcedure } from "../trpc/init";
+import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 
 // Input validation schema for recording administration
 const recordAdministrationSchema = z.object({
@@ -341,7 +341,7 @@ export const adminRouter = createTRPCRouter({
 			// Create the administration record
 			const result = await createAdministrationRecord(
 				ctx.db,
-				ctx.user.id,
+				ctx.dbUser.id,
 				input,
 				animal,
 				regimen,
@@ -349,7 +349,7 @@ export const adminRouter = createTRPCRouter({
 
 			// Create audit log
 			await createAuditLog(ctx.db, {
-				userId: ctx.user.id,
+				userId: ctx.dbUser.id,
 				householdId: input.householdId,
 				action: "CREATE",
 				tableName: "administrations",

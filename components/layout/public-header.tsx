@@ -1,5 +1,6 @@
 "use client";
 
+import { useClerk, useUser } from "@clerk/nextjs";
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -22,6 +23,8 @@ const navigation = [
 
 export function PublicHeader() {
 	const [isOpen, setIsOpen] = useState(false);
+	const { openSignIn } = useClerk();
+	const { user, isLoaded } = useUser();
 
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -47,12 +50,19 @@ export function PublicHeader() {
 
 				{/* Desktop CTA */}
 				<div className="hidden md:flex items-center gap-4">
-					<Button variant="ghost" asChild>
-						<Link href="/api/auth/login">Sign In</Link>
-					</Button>
-					<Button asChild>
-						<Link href="/api/auth/login">Get Started</Link>
-					</Button>
+					{isLoaded && !user && (
+						<>
+							<Button variant="ghost" onClick={() => openSignIn()}>
+								Sign In
+							</Button>
+							<Button onClick={() => openSignIn()}>Get Started</Button>
+						</>
+					)}
+					{isLoaded && user && (
+						<Link href="/dashboard">
+							<Button>Dashboard</Button>
+						</Link>
+					)}
 				</div>
 
 				{/* Mobile Menu */}
@@ -78,12 +88,34 @@ export function PublicHeader() {
 								</Link>
 							))}
 							<div className="pt-4 border-t space-y-3">
-								<Button variant="outline" className="w-full" asChild>
-									<Link href="/api/auth/login">Sign In</Link>
-								</Button>
-								<Button className="w-full" asChild>
-									<Link href="/api/auth/login">Get Started</Link>
-								</Button>
+								{isLoaded && !user && (
+									<>
+										<Button
+											variant="outline"
+											className="w-full"
+											onClick={() => {
+												openSignIn();
+												setIsOpen(false);
+											}}
+										>
+											Sign In
+										</Button>
+										<Button
+											className="w-full"
+											onClick={() => {
+												openSignIn();
+												setIsOpen(false);
+											}}
+										>
+											Get Started
+										</Button>
+									</>
+								)}
+								{isLoaded && user && (
+									<Link href="/dashboard" onClick={() => setIsOpen(false)}>
+										<Button className="w-full">Dashboard</Button>
+									</Link>
+								)}
 							</div>
 						</nav>
 					</SheetContent>

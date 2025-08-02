@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { animals, households, memberships } from "../../db/schema";
 import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
-} from "../trpc/init";
+} from "../trpc/clerk-init";
 
 export const householdRouter = createTRPCRouter({
 	// List all households for the current user
@@ -19,7 +19,7 @@ export const householdRouter = createTRPCRouter({
 			})
 			.from(memberships)
 			.innerJoin(households, eq(households.id, memberships.householdId))
-			.where(eq(memberships.userId, ctx.user.id));
+			.where(eq(memberships.userId, ctx.dbUser.id));
 
 		return userMemberships.map(({ household, membership }) => ({
 			...household,
@@ -36,26 +36,49 @@ export const householdRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const household = await ctx.db.query.households.findFirst({
-				where: eq(households.id, input.householdId),
-				with: {
-					animals: true,
-					memberships: {
-						with: {
-							user: true,
-						},
-					},
-				},
-			});
+			// Get basic household info
+			const household = await ctx.db
+				.select()
+				.from(households)
+				.where(eq(households.id, input.householdId))
+				.limit(1);
 
-			if (!household) {
+			if (!household[0]) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
 					message: "Household not found",
 				});
 			}
 
-			return household;
+			// Get animals (non-deleted)
+			const householdAnimals = await ctx.db
+				.select()
+				.from(animals)
+				.where(
+					and(
+						eq(animals.householdId, input.householdId),
+						isNull(animals.deletedAt),
+					),
+				);
+
+			// Get memberships with users
+			const householdMemberships = await ctx.db
+				.select({
+					id: memberships.id,
+					userId: memberships.userId,
+					householdId: memberships.householdId,
+					role: memberships.role,
+					createdAt: memberships.createdAt,
+					updatedAt: memberships.updatedAt,
+				})
+				.from(memberships)
+				.where(eq(memberships.householdId, input.householdId));
+
+			return {
+				...household[0],
+				animals: householdAnimals,
+				memberships: householdMemberships,
+			};
 		}),
 
 	// Create a new household
@@ -85,7 +108,7 @@ export const householdRouter = createTRPCRouter({
 
 			// Add creator as owner
 			await ctx.db.insert(memberships).values({
-				userId: ctx.user.id,
+				userId: ctx.dbUser.id,
 				householdId: household.id,
 				role: "OWNER",
 			});
@@ -101,12 +124,10 @@ export const householdRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const members = await ctx.db.query.memberships.findMany({
-				where: eq(memberships.householdId, input.householdId),
-				with: {
-					user: true,
-				},
-			});
+			const members = await ctx.db
+				.select()
+				.from(memberships)
+				.where(eq(memberships.householdId, input.householdId));
 
 			return members;
 		}),
@@ -119,9 +140,15 @@ export const householdRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const householdAnimals = await ctx.db.query.animals.findMany({
-				where: eq(animals.householdId, input.householdId),
-			});
+			const householdAnimals = await ctx.db
+				.select()
+				.from(animals)
+				.where(
+					and(
+						eq(animals.householdId, input.householdId),
+						isNull(animals.deletedAt),
+					),
+				);
 
 			return householdAnimals;
 		}),

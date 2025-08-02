@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
-import { protectedProcedure } from "../../api/trpc/init";
+import { protectedProcedure } from "../../api/trpc/clerk-init";
 import { memberships } from "../../db/schema";
 
 export type Role = "OWNER" | "CAREGIVER" | "VETREADONLY";
@@ -9,7 +9,7 @@ export const requireMembership = (
 	allowedRoles: Role[] = ["OWNER", "CAREGIVER"],
 ) =>
 	protectedProcedure.use(async ({ ctx, next, input }) => {
-		if (!ctx.user) {
+		if (!ctx.dbUser) {
 			throw new TRPCError({
 				code: "UNAUTHORIZED",
 				message: "Authentication required",
@@ -35,7 +35,7 @@ export const requireMembership = (
 			.where(
 				and(
 					eq(memberships.householdId, householdId),
-					eq(memberships.userId, ctx.user.id),
+					eq(memberships.userId, ctx.dbUser.id),
 				),
 			)
 			.limit(1);

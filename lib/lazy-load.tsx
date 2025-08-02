@@ -19,7 +19,7 @@ const GenericLoader = () => (
 );
 
 // Lazy load with custom loading component
-export function lazyLoad<T extends ComponentType<any>>(
+export function lazyLoad<T extends ComponentType<Record<string, unknown>>>(
 	importFunc: () => Promise<{ default: T }>,
 	loadingComponent?: ComponentType,
 ) {

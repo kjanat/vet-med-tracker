@@ -1,5 +1,6 @@
 "use client";
 
+import { useClerk, useUser } from "@clerk/nextjs";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,9 @@ const benefits = [
 ];
 
 export function CtaSection() {
+	const { openSignIn } = useClerk();
+	const { user, isLoaded } = useUser();
+
 	return (
 		<section className="py-20">
 			<div className="container max-w-4xl mx-auto px-4">
@@ -45,12 +49,24 @@ export function CtaSection() {
 
 						{/* CTA buttons */}
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Button size="lg" className="text-lg px-8" asChild>
-								<Link href="/api/auth/login">
+							{isLoaded && !user && (
+								<Button
+									size="lg"
+									className="text-lg px-8"
+									onClick={() => openSignIn()}
+								>
 									Get Started Free
 									<ArrowRight className="ml-2 h-5 w-5" />
-								</Link>
-							</Button>
+								</Button>
+							)}
+							{isLoaded && user && (
+								<Button size="lg" className="text-lg px-8" asChild>
+									<Link href="/dashboard">
+										Go to Dashboard
+										<ArrowRight className="ml-2 h-5 w-5" />
+									</Link>
+								</Button>
+							)}
 							<Button
 								size="lg"
 								variant="outline"

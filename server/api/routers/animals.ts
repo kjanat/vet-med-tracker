@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { animals, type NewAnimal } from "../../db/schema";
-import { createTRPCRouter, householdProcedure } from "../trpc/init";
+import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 
 // Input validation schemas
 const createAnimalSchema = z.object({
