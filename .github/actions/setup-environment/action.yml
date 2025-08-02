@@ -12,25 +12,24 @@ inputs:
 outputs:
   database-url:
     description: 'Mock database URL'
-    value: ${{ steps.setup-mock.outputs.database-url }}
+    value: ${{ steps.setup-mock.outputs['database-url'] }}
   database-url-unpooled:
     description: 'Mock database URL without pooling'
-    value: ${{ steps.setup-mock.outputs.database-url-unpooled }}
+    value: ${{ steps.setup-mock.outputs['database-url-unpooled'] }}
   nextauth-url:
     description: 'NextAuth URL for testing'
-    value: ${{ steps.setup-mock.outputs.nextauth-url }}
+    value: ${{ steps.setup-mock.outputs['nextauth-url'] }}
   nextauth-secret:
     description: 'NextAuth secret for testing'
-    value: ${{ steps.setup-mock.outputs.nextauth-secret }}
+    value: ${{ steps.setup-mock.outputs['nextauth-secret'] }}
 
 runs:
   using: 'composite'
   steps:
-    - name: Enable corepack
-      shell: bash
-      run: corepack enable
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
 
-    - name: Setup Node.js
+    - name: Use Node.js ${{ inputs.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
