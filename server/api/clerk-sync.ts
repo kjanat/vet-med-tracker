@@ -6,6 +6,7 @@ import type {
 } from "@/hooks/use-user-preferences";
 import { db } from "../db";
 import { users } from "../db/schema/users";
+import { createAuditLog } from "../db/schema/audit";
 
 export interface ClerkUserData {
 	userId: string;
@@ -321,8 +322,39 @@ export async function updateUserPreferences(
 		vetMedPreferences?: Partial<VetMedPreferences>;
 		householdSettings?: Partial<HouseholdSettings>;
 	},
+	auditContext?: {
+		userId: string;
+		householdId: string;
+	},
 ) {
 	try {
+		// Capture old values for audit logging if audit context is provided
+		let oldValues: Record<string, unknown> | undefined;
+		if (auditContext) {
+			const currentUser = await db
+				.select()
+				.from(users)
+				.where(eq(users.clerkUserId, clerkUserId))
+				.limit(1);
+
+			if (currentUser[0]) {
+				oldValues = {
+					preferredTimezone: currentUser[0].preferredTimezone,
+					preferredPhoneNumber: currentUser[0].preferredPhoneNumber,
+					use24HourTime: currentUser[0].use24HourTime,
+					temperatureUnit: currentUser[0].temperatureUnit,
+					weightUnit: currentUser[0].weightUnit,
+					emailReminders: currentUser[0].emailReminders,
+					smsReminders: currentUser[0].smsReminders,
+					pushNotifications: currentUser[0].pushNotifications,
+					reminderLeadTimeMinutes: currentUser[0].reminderLeadTimeMinutes,
+					emergencyContactName: currentUser[0].emergencyContactName,
+					emergencyContactPhone: currentUser[0].emergencyContactPhone,
+					preferencesBackup: currentUser[0].preferencesBackup,
+				};
+			}
+		}
+
 		const updateData: Record<string, unknown> = {
 			updatedAt: new Date(),
 		};
@@ -347,6 +379,30 @@ export async function updateUserPreferences(
 			.update(users)
 			.set(updateData)
 			.where(eq(users.clerkUserId, clerkUserId));
+
+		// Create audit log if context is provided
+		if (auditContext) {
+			await createAuditLog(db, {
+				userId: auditContext.userId,
+				householdId: auditContext.householdId,
+				action: "UPDATE",
+				tableName: "users",
+				recordId: auditContext.userId,
+				oldValues,
+				newValues: {
+					...updateData,
+					vetMedPreferences: preferences.vetMedPreferences,
+					householdSettings: preferences.householdSettings,
+				},
+				details: {
+					clerkUserId,
+					preferencesUpdated: {
+						vetMed: !!preferences.vetMedPreferences,
+						household: !!preferences.householdSettings,
+					},
+				},
+			});
+		}
 
 		return { success: true };
 	} catch (error) {

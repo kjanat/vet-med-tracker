@@ -155,12 +155,19 @@ export const userRouter = createTRPCRouter({
 			if (!ctx.dbUser.clerkUserId) {
 				throw new Error("User must have a Clerk ID to update preferences");
 			}
-			await updateUserPreferences(ctx.dbUser.clerkUserId, {
-				vetMedPreferences: input.vetMedPreferences as
-					| Partial<VetMedPreferences>
-					| undefined,
-				householdSettings: input.householdSettings,
-			});
+			await updateUserPreferences(
+				ctx.dbUser.clerkUserId,
+				{
+					vetMedPreferences: input.vetMedPreferences as
+						| Partial<VetMedPreferences>
+						| undefined,
+					householdSettings: input.householdSettings,
+				},
+				{
+					userId: ctx.dbUser.id,
+					householdId: ctx.currentHouseholdId || ctx.availableHouseholds[0]?.id || "",
+				},
+			);
 
 			return { success: true };
 		}),
