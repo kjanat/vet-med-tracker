@@ -43,20 +43,6 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 	}
 
 	try {
-		// Check if user exists by clerkUserId
-		const existingUserByClerkId = await db
-			.select()
-			.from(users)
-			.where(eq(users.clerkUserId, clerkUserId))
-			.limit(1);
-
-		// Also check if user exists by email (for migration from old auth system)
-		const existingUserByEmail = await db
-			.select()
-			.from(users)
-			.where(eq(users.email, email))
-			.limit(1);
-
 		const userData = {
 			clerkUserId,
 			email,
@@ -92,70 +78,60 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 			updatedAt: new Date(),
 		};
 
-		// Handle different scenarios
-		if (existingUserByClerkId.length > 0) {
-			// User already exists with this Clerk ID - just update
-			console.log("Updating existing user by Clerk ID:", clerkUserId);
-			await db
-				.update(users)
-				.set(userData)
-				.where(eq(users.clerkUserId, clerkUserId));
-
-			// Fetch the updated user
-			const [updatedUser] = await db
+		// Use a transaction to ensure atomicity
+		const result = await db.transaction(async (tx) => {
+			// First, try to handle the migration case where user exists with email but no clerkUserId
+			const existingUserByEmail = await tx
 				.select()
 				.from(users)
-				.where(eq(users.clerkUserId, clerkUserId))
-				.limit(1);
-			if (!updatedUser) {
-				throw new Error("Failed to fetch updated user");
-			}
-			return updatedUser;
-		} else if (existingUserByEmail.length > 0) {
-			// User exists with same email but different/no Clerk ID (migration scenario)
-			console.log("Migrating user from old auth system:", email);
-			console.log("Old user ID:", existingUserByEmail[0]?.id);
-			console.log("Updating with new Clerk ID:", clerkUserId);
-
-			// Update the existing user with the new Clerk ID
-			await db
-				.update(users)
-				.set({
-					...userData,
-					// Preserve the existing user's creation date
-					createdAt: existingUserByEmail[0]?.createdAt,
-				})
-				.where(eq(users.email, email));
-
-			// Return the updated user
-			const updatedUser = await db
-				.select()
-				.from(users)
-				.where(eq(users.clerkUserId, clerkUserId))
+				.where(eq(users.email, email))
 				.limit(1);
 
-			console.log("User migrated successfully");
-			if (!updatedUser[0]) {
-				throw new Error("Failed to retrieve updated user after migration");
+			if (
+				existingUserByEmail.length > 0 &&
+				!existingUserByEmail[0].clerkUserId
+			) {
+				// Migration case: update the existing user with the Clerk ID
+				console.log("Migrating user from old auth system:", email);
+				const updated = await tx
+					.update(users)
+					.set({
+						...userData,
+						// Preserve the existing user's creation date
+						createdAt: existingUserByEmail[0].createdAt,
+					})
+					.where(eq(users.email, email))
+					.returning();
+
+				if (!updated[0]) {
+					throw new Error("Failed to migrate user");
+				}
+				return updated[0];
 			}
-			return updatedUser[0];
-		} else {
-			// Create new user
-			console.log("Creating new user:", clerkUserId);
-			const newUser = await db
+
+			// Otherwise, perform atomic upsert using onConflictDoUpdate
+			// This handles both new users and existing users with clerkUserId
+			const upserted = await tx
 				.insert(users)
 				.values({
 					...userData,
 					createdAt: new Date(),
 				})
+				.onConflictDoUpdate({
+					target: users.clerkUserId,
+					set: userData,
+				})
 				.returning();
 
-			if (!newUser[0]) {
-				throw new Error("Failed to create new user");
+			if (!upserted[0]) {
+				throw new Error("Failed to sync user to database");
 			}
-			console.log("New user created successfully:", newUser[0].id);
-			return newUser[0];
-		}
+
+			return upserted[0];
+		});
+
+		console.log("User synced successfully:", result.id);
+		return result;
 	} catch (error) {
 		console.error("Error syncing user to database:", error);
 		throw error;
