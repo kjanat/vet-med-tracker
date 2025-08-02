@@ -6,7 +6,7 @@ inputs:
     required: false
     default: 'false'
   node-version:
-    description: 'The version of node to install (supports same inputs as actions/setup-node'
+    description: 'The version of node to install (supports same inputs as actions/setup-node)'
     required: false
     default: '24'
 outputs:
@@ -45,7 +45,9 @@ runs:
       run: |
         # Set outputs for mock environment variables
         if [[ "${{ inputs.setup-db }}" == "true" ]]; then
+          # noqa: CKV_SECRET_4 – mock credentials only
           echo "database-url=postgresql://mock:mock@localhost:5432/vetmed" >> $GITHUB_OUTPUT
+          # noqa: CKV_SECRET_4 – mock credentials only
           echo "database-url-unpooled=postgresql://mock:mock@localhost:5432/vetmed?pool=false" >> $GITHUB_OUTPUT
           echo "nextauth-url=http://localhost:3000" >> $GITHUB_OUTPUT
           echo "nextauth-secret=mock-secret-for-testing" >> $GITHUB_OUTPUT
