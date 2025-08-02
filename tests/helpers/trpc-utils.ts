@@ -31,6 +31,8 @@ export async function createMockContext(
 	};
 
 	// Mock the auth context directly
+	// Note: auth is intentionally null here for testing unauthenticated scenarios
+	// Use createAuthenticatedContext() for authenticated test scenarios
 	return {
 		db: mockDb as any,
 		headers: mockReq.headers,
@@ -85,6 +87,19 @@ export async function createAuthenticatedContext(
 		auth: {
 			userId: session.subject,
 			sessionId: `session-${session.subject}`,
+			actor: null,
+			sessionClaims: {
+				sub: session.subject,
+				exp: session.exp,
+				iat: Math.floor(Date.now() / 1000),
+				nbf: Math.floor(Date.now() / 1000),
+				iss: "https://clerk.test",
+				azp: "test-app",
+			},
+			orgId: null,
+			orgRole: null,
+			orgSlug: null,
+			orgPermissions: null,
 		},
 		clerkUser: mockClerkUser,
 		dbUser: mockUser,

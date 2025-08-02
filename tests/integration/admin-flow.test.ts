@@ -19,6 +19,52 @@ describe("Admin Flow Integration", () => {
 		regimen: schema.Regimen;
 	};
 
+	function createTestClerkContext(testData: typeof testData): ClerkContext {
+		return {
+			db,
+			auth: vi.fn().mockResolvedValue({ userId: testData.user.id }) as any,
+			clerkUser: {
+				id: testData.user.id,
+				emailAddresses: [{ emailAddress: testData.user.email }],
+				firstName: testData.user.name?.split(" ")[0] || "",
+				lastName: testData.user.name?.split(" ")[1] || "",
+				username: testData.user.email.split("@")[0],
+				imageUrl: testData.user.image,
+				publicMetadata: {},
+				unsafeMetadata: {},
+			} as any,
+			dbUser: testData.user as any,
+			currentHouseholdId: testData.household.id,
+			currentMembership: {
+				id: "test-membership-id",
+				userId: testData.user.id,
+				householdId: testData.household.id,
+				role: "OWNER" as const,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+			availableHouseholds: [
+				{
+					id: testData.household.id,
+					name: testData.household.name,
+					timezone: testData.household.timezone,
+					createdAt: testData.household.createdAt,
+					updatedAt: testData.household.updatedAt,
+					membership: {
+						id: "test-membership-id",
+						userId: testData.user.id,
+						householdId: testData.household.id,
+						role: "OWNER" as const,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					},
+				},
+			],
+			headers: new Headers(),
+			requestedHouseholdId: testData.household.id,
+		};
+	}
+
 	beforeEach(async () => {
 		// Create test data directly in database
 		const userData = testFactories.user();
@@ -83,49 +129,7 @@ describe("Admin Flow Integration", () => {
 
 	it("should create administration record in real database", async () => {
 		// Create context with real database
-		const ctx: ClerkContext = {
-			db,
-			auth: vi.fn().mockResolvedValue({ userId: testData.user.id }) as any,
-			clerkUser: {
-				id: testData.user.id,
-				emailAddresses: [{ emailAddress: testData.user.email }],
-				firstName: testData.user.name?.split(" ")[0] || "",
-				lastName: testData.user.name?.split(" ")[1] || "",
-				username: testData.user.email.split("@")[0],
-				imageUrl: testData.user.image,
-				publicMetadata: {},
-				unsafeMetadata: {},
-			} as any,
-			dbUser: testData.user as any,
-			currentHouseholdId: testData.household.id,
-			currentMembership: {
-				id: "test-membership-id",
-				userId: testData.user.id,
-				householdId: testData.household.id,
-				role: "OWNER" as const,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			},
-			availableHouseholds: [
-				{
-					id: testData.household.id,
-					name: testData.household.name,
-					timezone: testData.household.timezone,
-					createdAt: testData.household.createdAt,
-					updatedAt: testData.household.updatedAt,
-					membership: {
-						id: "test-membership-id",
-						userId: testData.user.id,
-						householdId: testData.household.id,
-						role: "OWNER" as const,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					},
-				},
-			],
-			headers: new Headers(),
-			requestedHouseholdId: testData.household.id,
-		};
+		const ctx = createTestClerkContext(testData);
 
 		const caller = adminRouter.createCaller(ctx);
 
@@ -156,49 +160,7 @@ describe("Admin Flow Integration", () => {
 	});
 
 	it("should respect idempotency in real database", async () => {
-		const ctx: ClerkContext = {
-			db,
-			auth: vi.fn().mockResolvedValue({ userId: testData.user.id }) as any,
-			clerkUser: {
-				id: testData.user.id,
-				emailAddresses: [{ emailAddress: testData.user.email }],
-				firstName: testData.user.name?.split(" ")[0] || "",
-				lastName: testData.user.name?.split(" ")[1] || "",
-				username: testData.user.email.split("@")[0],
-				imageUrl: testData.user.image,
-				publicMetadata: {},
-				unsafeMetadata: {},
-			} as any,
-			dbUser: testData.user as any,
-			currentHouseholdId: testData.household.id,
-			currentMembership: {
-				id: "test-membership-id",
-				userId: testData.user.id,
-				householdId: testData.household.id,
-				role: "OWNER" as const,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			},
-			availableHouseholds: [
-				{
-					id: testData.household.id,
-					name: testData.household.name,
-					timezone: testData.household.timezone,
-					createdAt: testData.household.createdAt,
-					updatedAt: testData.household.updatedAt,
-					membership: {
-						id: "test-membership-id",
-						userId: testData.user.id,
-						householdId: testData.household.id,
-						role: "OWNER" as const,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					},
-				},
-			],
-			headers: new Headers(),
-			requestedHouseholdId: testData.household.id,
-		};
+		const ctx = createTestClerkContext(testData);
 
 		const caller = adminRouter.createCaller(ctx);
 		const idempotencyKey = "duplicate-test-key";
