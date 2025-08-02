@@ -5,8 +5,8 @@ import type {
 	VetMedPreferences,
 } from "@/hooks/use-user-preferences";
 import { db } from "../db";
-import { users } from "../db/schema/users";
 import { createAuditLog } from "../db/schema/audit";
+import { users } from "../db/schema/users";
 
 export interface ClerkUserData {
 	userId: string;
@@ -248,9 +248,7 @@ function mapNotificationPreferences(
 }
 
 // Type guard to validate preferences backup structure
-function isValidPreferencesBackup(
-	backup: unknown,
-): backup is {
+function isValidPreferencesBackup(backup: unknown): backup is {
 	vetMedPreferences?: VetMedPreferences;
 	householdSettings?: HouseholdSettings;
 } {
@@ -262,14 +260,20 @@ function isValidPreferencesBackup(
 
 	// Check vetMedPreferences if present
 	if (obj.vetMedPreferences !== undefined) {
-		if (typeof obj.vetMedPreferences !== "object" || obj.vetMedPreferences === null) {
+		if (
+			typeof obj.vetMedPreferences !== "object" ||
+			obj.vetMedPreferences === null
+		) {
 			return false;
 		}
 	}
 
 	// Check householdSettings if present
 	if (obj.householdSettings !== undefined) {
-		if (typeof obj.householdSettings !== "object" || obj.householdSettings === null) {
+		if (
+			typeof obj.householdSettings !== "object" ||
+			obj.householdSettings === null
+		) {
 			return false;
 		}
 	}

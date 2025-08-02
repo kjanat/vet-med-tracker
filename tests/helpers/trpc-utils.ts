@@ -89,7 +89,10 @@ export async function createAuthenticatedContext(
 			{
 				id: session.access.householdId,
 				name: "Test Household",
-				role: session.access.role,
+				timezone: "America/New_York",
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				membership: mockMembership,
 			},
 		],
 	});

@@ -165,7 +165,8 @@ export const userRouter = createTRPCRouter({
 				},
 				{
 					userId: ctx.dbUser.id,
-					householdId: ctx.currentHouseholdId || ctx.availableHouseholds[0]?.id || "",
+					householdId:
+						ctx.currentHouseholdId || ctx.availableHouseholds[0]?.id || "",
 				},
 			);
 
