@@ -63,7 +63,7 @@ Make sure your `.env.development` has:
 DATABASE_URL=postgresql://...@...-pooler.eu-central-1.aws.neon.tech/...
 DATABASE_URL_UNPOOLED=postgresql://...@....eu-central-1.aws.neon.tech/...
 ```
-Note: The system will use `DATABASE_URL` by default. If not provided, it will fall back to `DATABASE_URL_POOLED` for backward compatibility.
+Note: The system uses `DATABASE_URL` for the default pooled connection. Use `DATABASE_URL_UNPOOLED` when you specifically need a direct connection (e.g., for migrations or long-running operations).
 
 ## 🔧 Architecture Decisions
 

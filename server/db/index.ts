@@ -5,9 +5,7 @@ import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
 import * as schema from "./schema";
 
 // Validate required environment variables
-// Use DATABASE_URL by default, fall back to DATABASE_URL_POOLED for backward compatibility
-const DATABASE_URL =
-	process.env.DATABASE_URL || process.env.DATABASE_URL_POOLED;
+const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
 	throw new Error(`DATABASE_URL is not set. Check your .env file.`);
 }
