@@ -246,6 +246,36 @@ function mapNotificationPreferences(
 	}
 }
 
+// Type guard to validate preferences backup structure
+function isValidPreferencesBackup(
+	backup: unknown,
+): backup is {
+	vetMedPreferences?: VetMedPreferences;
+	householdSettings?: HouseholdSettings;
+} {
+	if (!backup || typeof backup !== "object") {
+		return false;
+	}
+
+	const obj = backup as Record<string, unknown>;
+
+	// Check vetMedPreferences if present
+	if (obj.vetMedPreferences !== undefined) {
+		if (typeof obj.vetMedPreferences !== "object" || obj.vetMedPreferences === null) {
+			return false;
+		}
+	}
+
+	// Check householdSettings if present
+	if (obj.householdSettings !== undefined) {
+		if (typeof obj.householdSettings !== "object" || obj.householdSettings === null) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 // Helper function to update preferences backup
 async function updatePreferencesBackup(
 	clerkUserId: string,
@@ -260,11 +290,10 @@ async function updatePreferencesBackup(
 		.where(eq(users.clerkUserId, clerkUserId))
 		.limit(1);
 
-	const currentBackup =
-		(currentUser[0]?.preferencesBackup as {
-			vetMedPreferences?: VetMedPreferences;
-			householdSettings?: HouseholdSettings;
-		}) || {};
+	const rawBackup = currentUser[0]?.preferencesBackup;
+	const currentBackup = isValidPreferencesBackup(rawBackup)
+		? rawBackup
+		: { vetMedPreferences: undefined, householdSettings: undefined };
 
 	return {
 		...currentBackup,
