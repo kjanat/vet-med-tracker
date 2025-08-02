@@ -42,15 +42,16 @@ runs:
     - name: Setup mock environment
       id: setup-mock
       shell: bash
+      # checkov:skip=CKV_SECRET_4:mock credentials only
+      # checkov:skip=CKV_SECRET_6:mock credentials only
       run: |
+        # checkov:skip=CKV_SECRET_4:mock credentials only
         # Set outputs for mock environment variables
         if [[ "${{ inputs.setup-db }}" == "true" ]]; then
-          # noqa: CKV_SECRET_4 – mock credentials only
           echo "database-url=postgresql://mock:mock@localhost:5432/vetmed" >> $GITHUB_OUTPUT
-          # noqa: CKV_SECRET_4 – mock credentials only
           echo "database-url-unpooled=postgresql://mock:mock@localhost:5432/vetmed?pool=false" >> $GITHUB_OUTPUT
           echo "nextauth-url=http://localhost:3000" >> $GITHUB_OUTPUT
-          echo "nextauth-secret=mock-secret-for-testing" >> $GITHUB_OUTPUT
+          echo "nextauth-secret=mock-secret-for-testing" >> $GITHUB_OUTPUT # checkov:skip=CKV_SECRET_6:mock credentials only
         else
           # Set empty outputs when not setting up mock DB
           echo "database-url=" >> $GITHUB_OUTPUT

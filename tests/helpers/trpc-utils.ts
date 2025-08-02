@@ -35,7 +35,7 @@ export async function createMockContext(
 		db: mockDb as any,
 		headers: mockReq.headers,
 		requestedHouseholdId: null,
-		auth: vi.fn().mockResolvedValue({ userId: null, sessionId: null }) as any,
+		auth: null,
 		clerkUser: null,
 		dbUser: null,
 		currentHouseholdId: null,
@@ -82,9 +82,14 @@ export async function createAuthenticatedContext(
 
 	return createMockContext({
 		...overrides,
+		auth: {
+			userId: session.subject,
+			sessionId: `session-${session.subject}`,
+		},
 		clerkUser: mockClerkUser,
 		dbUser: mockUser,
 		currentHouseholdId: session.access.householdId,
+		currentMembership: mockMembership,
 		availableHouseholds: [
 			{
 				id: session.access.householdId,

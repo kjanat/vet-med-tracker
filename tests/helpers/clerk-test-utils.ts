@@ -167,9 +167,9 @@ export const ClerkMockHelpers = {
 		user: (typeof TEST_USERS)[keyof typeof TEST_USERS] = TEST_USERS.OWNER,
 	) {
 		return {
-			subject: `user_${Date.now()}`,
+			subject: "11111111-1111-4111-8111-111111111111",
 			access: {
-				householdId: `household_${Date.now()}`,
+				householdId: "22222222-2222-4222-8222-222222222222",
 				role: user.role,
 			},
 			type: "access_token",
