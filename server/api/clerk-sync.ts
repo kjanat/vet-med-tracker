@@ -122,8 +122,7 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 				.update(users)
 				.set({
 					...userData,
-					// Preserve the existing user's ID and creation date
-					id: existingUserByEmail[0]?.id,
+					// Preserve the existing user's creation date
 					createdAt: existingUserByEmail[0]?.createdAt,
 				})
 				.where(eq(users.email, email));
