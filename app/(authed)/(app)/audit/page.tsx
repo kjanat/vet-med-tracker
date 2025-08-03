@@ -130,8 +130,8 @@ function AuditLogContent() {
 					<ArrowLeft className="h-4 w-4" />
 				</Button>
 				<div className="flex-1">
-					<h1 className="text-2xl md:text-3xl font-bold">Audit Log</h1>
-					<p className="text-sm md:text-base text-muted-foreground">
+					<h1 className="font-bold text-2xl md:text-3xl">Audit Log</h1>
+					<p className="text-muted-foreground text-sm md:text-base">
 						View all activity in your household
 					</p>
 				</div>
@@ -163,7 +163,7 @@ function AuditLogContent() {
 				<CardContent className="space-y-4">
 					{/* Filters */}
 					<div className="flex flex-col gap-4 sm:flex-row">
-						<div className="flex items-center gap-2 flex-1">
+						<div className="flex flex-1 items-center gap-2">
 							<Filter className="h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Filter by user..."
@@ -191,19 +191,19 @@ function AuditLogContent() {
 						{filteredEntries.map((entry) => (
 							<div
 								key={entry.id}
-								className="flex flex-col gap-2 p-4 border rounded-lg sm:flex-row sm:items-center sm:justify-between"
+								className="flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
 							>
 								<div className="flex-1 space-y-1">
-									<div className="flex items-center gap-2 flex-wrap">
+									<div className="flex flex-wrap items-center gap-2">
 										<span className="font-medium">{entry.userName}</span>
 										<Badge variant="outline" className="text-xs">
 											{entry.action}
 										</Badge>
 									</div>
-									<div className="text-sm text-muted-foreground">
+									<div className="text-muted-foreground text-sm">
 										{entry.details}
 									</div>
-									<div className="text-xs text-muted-foreground">
+									<div className="text-muted-foreground text-xs">
 										{isClient ? entry.timestamp.toLocaleString() : "..."}
 										{entry.ipAddress && ` • ${entry.ipAddress}`}
 									</div>
@@ -212,8 +212,8 @@ function AuditLogContent() {
 						))}
 
 						{filteredEntries.length === 0 && (
-							<div className="text-center py-8 text-muted-foreground">
-								<Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
+							<div className="py-8 text-center text-muted-foreground">
+								<Database className="mx-auto mb-2 h-8 w-8 opacity-50" />
 								<p>No audit entries found</p>
 							</div>
 						)}

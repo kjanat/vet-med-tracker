@@ -19,7 +19,7 @@ export function LeftRail() {
 	return (
 		<div className="w-64 border-r bg-muted/10">
 			<div className="p-6">
-				<h1 className="text-xl font-bold">VetMed Tracker</h1>
+				<h1 className="font-bold text-xl">VetMed Tracker</h1>
 			</div>
 
 			<nav className="px-3">
@@ -30,7 +30,7 @@ export function LeftRail() {
 							key={item.name}
 							href={item.href}
 							className={cn(
-								"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+								"flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
 								isActive
 									? "bg-primary text-primary-foreground"
 									: "text-muted-foreground hover:bg-accent hover:text-accent-foreground",

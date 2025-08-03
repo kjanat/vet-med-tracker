@@ -37,7 +37,7 @@ errors=""
 
 # Type check
 type_ok=0
-for type in feat fix docs style refactor perf test build ci chore revert; do
+for type in feat fix docs style refactor perf test typo build ci chore revert; do
     case "$header" in
         "$type: "*|"$type("*"): "*)
             type_ok=1
@@ -71,7 +71,7 @@ if [ -n "$errors" ]; then
     printf "Got: \"%s\" (%d chars)\n" "$header" "$len"
     printf "%b" "$errors"
     printf "\n📝 Format: <type>(<scope>): <subject>\n"
-    printf "📚 Types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert\n"
+    printf "📚 Types: feat|fix|docs|style|refactor|perf|test|typo|build|ci|chore|revert\n"
     exit 1
 else
     printf "✔ Commit message passes all checks\n"

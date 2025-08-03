@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { inventoryItems, medicationCatalog } from "../../db/schema";
+import { inventoryItems, medicationCatalog } from "@/db/schema";
 import {
 	createTRPCRouter,
 	householdProcedure,

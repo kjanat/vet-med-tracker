@@ -1,27 +1,61 @@
 name: 'Setup VetMed Tracker Environment'
-description: 'Sets up Node.js, pnpm, dependencies, and mock database'
+description: 'Sets up Node.js, pnpm, dependencies, and optionally mock database'
+inputs:
+  setup-db:
+    description: 'Setup mock database environment variables'
+    required: false
+    default: 'false'
+  node-version:
+    description: 'The version of node to install (supports same inputs as actions/setup-node)'
+    required: false
+    default: '24'
+outputs:
+  database-url:
+    description: 'Mock database URL'
+    value: ${{ steps.setup-mock.outputs['database-url'] }}
+  database-url-unpooled:
+    description: 'Mock database URL without pooling'
+    value: ${{ steps.setup-mock.outputs['database-url-unpooled'] }}
+  nextauth-url:
+    description: 'NextAuth URL for testing'
+    value: ${{ steps.setup-mock.outputs['nextauth-url'] }}
+  nextauth-secret:
+    description: 'NextAuth secret for testing'
+    value: ${{ steps.setup-mock.outputs['nextauth-secret'] }}
+
 runs:
   using: 'composite'
   steps:
-    - name: Enable corepack
-      shell: bash
-      run: corepack enable
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
 
-    - name: Setup Node.js
+    - name: Use Node.js ${{ inputs.node-version }}
       uses: actions/setup-node@v4
       with:
-        node-version: '24'
+        node-version: ${{ inputs.node-version }}
         cache: 'pnpm'
 
     - name: Install dependencies
       shell: bash
-      run: pnpm install --frozen-lockfile
+      run: pnpm install
 
     - name: Setup mock environment
+      id: setup-mock
       shell: bash
+      # checkov:skip=CKV_SECRET_4:mock credentials only
+      # checkov:skip=CKV_SECRET_6:mock credentials only
       run: |
-        # Create mock environment variables
-        echo "DATABASE_URL_POOLED=postgresql://mock:mock@localhost:5432/vetmed" >> $GITHUB_ENV
-        echo "DATABASE_URL_UNPOOLED=postgresql://mock:mock@localhost:5432/vetmed?pool=false" >> $GITHUB_ENV
-        echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
-        echo "NEXTAUTH_SECRET=mock-secret-for-testing" >> $GITHUB_ENV
+        # checkov:skip=CKV_SECRET_4:mock credentials only
+        # Set outputs for mock environment variables
+        if [[ "${{ inputs.setup-db }}" == "true" ]]; then
+          echo "database-url=postgresql://mock:mock@localhost:5432/vetmed" >> $GITHUB_OUTPUT
+          echo "database-url-unpooled=postgresql://mock:mock@localhost:5432/vetmed?pool=false" >> $GITHUB_OUTPUT
+          echo "nextauth-url=http://localhost:3000" >> $GITHUB_OUTPUT
+          echo "nextauth-secret=mock-secret-for-testing" >> $GITHUB_OUTPUT # checkov:skip=CKV_SECRET_6:mock credentials only
+        else
+          # Set empty outputs when not setting up mock DB
+          echo "database-url=" >> $GITHUB_OUTPUT
+          echo "database-url-unpooled=" >> $GITHUB_OUTPUT
+          echo "nextauth-url=" >> $GITHUB_OUTPUT
+          echo "nextauth-secret=" >> $GITHUB_OUTPUT
+        fi

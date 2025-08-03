@@ -45,8 +45,8 @@ function InsightsContent() {
 		return (
 			<div className="space-y-6">
 				<div>
-					<h1 className="text-2xl md:text-3xl font-bold">Insights</h1>
-					<p className="text-sm md:text-base text-muted-foreground">
+					<h1 className="font-bold text-2xl md:text-3xl">Insights</h1>
+					<p className="text-muted-foreground text-sm md:text-base">
 						Loading compliance analytics...
 					</p>
 				</div>
@@ -57,8 +57,8 @@ function InsightsContent() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-2xl md:text-3xl font-bold">Insights</h1>
-				<p className="text-sm md:text-base text-muted-foreground">
+				<h1 className="font-bold text-2xl md:text-3xl">Insights</h1>
+				<p className="text-muted-foreground text-sm md:text-base">
 					Compliance analytics and actionable recommendations
 				</p>
 			</div>
@@ -66,7 +66,7 @@ function InsightsContent() {
 			{/* Above the fold - Summary Cards */}
 			<SummaryCards range={selectedRange} />
 
-			<div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* Main content - Heatmap */}
 				<div className="space-y-6 lg:col-span-2">
 					<Suspense fallback={<ChartSkeleton />}>

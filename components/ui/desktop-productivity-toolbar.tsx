@@ -78,24 +78,24 @@ export function DesktopProductivityToolbar({
 	const activeFiltersCount = Object.values(filters).filter(Boolean).length;
 
 	return (
-		<div className="flex items-center justify-between p-4 bg-background border-b">
+		<div className="flex items-center justify-between border-b bg-background p-4">
 			{/* Left side - Search and filters */}
 			<div className="flex items-center gap-3">
 				{/* Search */}
 				<div className="relative">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
 					<Input
 						placeholder="Search medications, animals..."
 						value={searchQuery}
 						onChange={(e) => onSearchChange(e.target.value)}
-						className="pl-10 w-64"
+						className="w-64 pl-10"
 						data-shortcut="Ctrl+/"
 					/>
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-									<Badge variant="outline" className="text-xs px-1.5 py-0.5">
+								<div className="-translate-y-1/2 absolute top-1/2 right-2 transform">
+									<Badge variant="outline" className="px-1.5 py-0.5 text-xs">
 										Ctrl+/
 									</Badge>
 								</div>
@@ -239,7 +239,7 @@ export function DesktopProductivityToolbar({
 			{/* Center - Selection info */}
 			{selectedCount > 0 && (
 				<div className="flex items-center gap-3">
-					<div className="text-sm text-muted-foreground">
+					<div className="text-muted-foreground text-sm">
 						{selectedCount} of {totalCount} selected
 					</div>
 
@@ -358,33 +358,33 @@ export function KeyboardShortcutsOverlay({
 	];
 
 	return (
-		<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-			<div className="bg-background rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-				<div className="flex items-center justify-between mb-4">
-					<h3 className="text-lg font-semibold">Keyboard Shortcuts</h3>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+			<div className="mx-4 w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
+				<div className="mb-4 flex items-center justify-between">
+					<h3 className="font-semibold text-lg">Keyboard Shortcuts</h3>
 					<Button variant="ghost" size="sm" onClick={onClose}>
 						×
 					</Button>
 				</div>
 
-				<div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+				<div className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto">
 					{shortcuts.map((shortcut) => (
 						<div
 							key={shortcut.key}
 							className="flex items-center justify-between py-1"
 						>
-							<span className="text-sm text-muted-foreground">
+							<span className="text-muted-foreground text-sm">
 								{shortcut.description}
 							</span>
-							<Badge variant="outline" className="text-xs font-mono">
+							<Badge variant="outline" className="font-mono text-xs">
 								{shortcut.key}
 							</Badge>
 						</div>
 					))}
 				</div>
 
-				<div className="mt-4 pt-4 border-t">
-					<p className="text-xs text-muted-foreground text-center">
+				<div className="mt-4 border-t pt-4">
+					<p className="text-center text-muted-foreground text-xs">
 						Press{" "}
 						<Badge variant="outline" className="text-xs">
 							Ctrl+?

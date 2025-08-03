@@ -40,34 +40,34 @@ const features = [
 
 export function FeaturesSection() {
 	return (
-		<section id="features" className="py-20 bg-muted/50">
-			<div className="container max-w-6xl mx-auto px-4">
+		<section id="features" className="bg-muted/50 py-20">
+			<div className="container mx-auto max-w-6xl px-4">
 				{/* Section header */}
-				<div className="text-center mb-16">
-					<h2 className="text-3xl md:text-4xl font-bold mb-4">
+				<div className="mb-16 text-center">
+					<h2 className="mb-4 font-bold text-3xl md:text-4xl">
 						Everything You Need for Peace of Mind
 					</h2>
-					<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+					<p className="mx-auto max-w-2xl text-muted-foreground text-xl">
 						Built by pet parents, for pet parents. Every feature designed to
 						make medication management effortless.
 					</p>
 				</div>
 
 				{/* Features grid */}
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-					{features.map((feature, _index) => (
+				<div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+					{features.map((feature) => (
 						<Card
 							key={`feature-${feature.title.replace(/\s+/g, "-").toLowerCase()}`}
-							className="p-6 hover:shadow-lg transition-shadow"
+							className="p-6 transition-shadow hover:shadow-lg"
 						>
 							<div className="flex items-start gap-4">
 								<div
-									className={`w-12 h-12 rounded-lg ${feature.bgColor} flex items-center justify-center flex-shrink-0`}
+									className={`h-12 w-12 rounded-lg ${feature.bgColor} flex flex-shrink-0 items-center justify-center`}
 								>
-									<feature.icon className={`w-6 h-6 ${feature.color}`} />
+									<feature.icon className={`h-6 w-6 ${feature.color}`} />
 								</div>
 								<div>
-									<h3 className="text-xl font-semibold mb-2">
+									<h3 className="mb-2 font-semibold text-xl">
 										{feature.title}
 									</h3>
 									<p className="text-muted-foreground">{feature.description}</p>
@@ -78,13 +78,13 @@ export function FeaturesSection() {
 				</div>
 
 				{/* Visual showcase */}
-				<div className="mt-20 relative">
+				<div className="relative mt-20">
 					<div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 blur-3xl" />
-					<div className="relative bg-background rounded-2xl shadow-2xl p-8">
-						<div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+					<div className="relative rounded-2xl bg-background p-8 shadow-2xl">
+						<div className="flex aspect-video items-center justify-center rounded-lg bg-muted">
 							{/* Placeholder for app screenshot or demo video */}
 							<div className="text-center">
-								<Package className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+								<Package className="mx-auto mb-4 h-16 w-16 text-muted-foreground/50" />
 								<p className="text-muted-foreground">
 									App Screenshot/Demo Video
 								</p>

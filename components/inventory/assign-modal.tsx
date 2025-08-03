@@ -81,7 +81,7 @@ export function AssignModal({
 							<SelectContent>
 								<SelectItem value="unassigned">
 									<div className="flex items-center gap-2">
-										<div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">
+										<div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs">
 											?
 										</div>
 										Unassigned (shared)

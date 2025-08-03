@@ -15,9 +15,9 @@ function WelcomeState() {
 
 	return (
 		<div className="flex flex-1 items-center justify-center px-4">
-			<div className="text-center max-w-md">
-				<h1 className="text-4xl font-bold mb-4">Welcome!</h1>
-				<p className="text-lg text-muted-foreground mb-8">
+			<div className="max-w-md text-center">
+				<h1 className="mb-4 font-bold text-4xl">Welcome!</h1>
+				<p className="mb-8 text-lg text-muted-foreground">
 					Add your first animal to start tracking their medications and health.
 				</p>
 				<Button size="lg" onClick={() => openForm()} className="gap-2">
@@ -33,8 +33,8 @@ function WelcomeState() {
 function NoHouseholdState() {
 	return (
 		<div className="flex flex-1 items-center justify-center px-4">
-			<div className="text-center max-w-md">
-				<h1 className="text-3xl font-bold mb-2">Animals</h1>
+			<div className="max-w-md text-center">
+				<h1 className="mb-2 font-bold text-3xl">Animals</h1>
 				<p className="text-muted-foreground">
 					Please select a household to view animals
 				</p>
@@ -82,7 +82,7 @@ function AnimalList({
 			{/* Header with Add button */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold">Animals</h1>
+					<h1 className="font-bold text-3xl">Animals</h1>
 					<p className="text-muted-foreground">
 						Manage animal profiles and medical information
 					</p>
@@ -95,7 +95,7 @@ function AnimalList({
 
 			{/* Search bar */}
 			<div className="relative max-w-sm">
-				<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+				<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
 				<Input
 					placeholder="Search animals..."
 					value={searchQuery}
@@ -108,14 +108,14 @@ function AnimalList({
 			{filteredAnimals.length > 0 ? (
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{filteredAnimals.map((animal) => (
-						<Card key={animal.id} className="hover:shadow-md transition-shadow">
+						<Card key={animal.id} className="transition-shadow hover:shadow-md">
 							<CardHeader className="pb-3">
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-3">
 										<AnimalAvatar animal={animal} size="lg" showBadge />
 										<div>
 											<CardTitle className="text-lg">{animal.name}</CardTitle>
-											<p className="text-sm text-muted-foreground">
+											<p className="text-muted-foreground text-sm">
 												{animal.species}
 											</p>
 										</div>
@@ -123,7 +123,7 @@ function AnimalList({
 								</div>
 							</CardHeader>
 
-							<CardContent className="space-y-3 flex flex-col flex-1">
+							<CardContent className="flex flex-1 flex-col space-y-3">
 								{/* Status info */}
 								<div className="grid grid-cols-2 gap-2 text-sm">
 									<div>
@@ -139,7 +139,7 @@ function AnimalList({
 								</div>
 
 								{/* Actions */}
-								<div className="flex gap-2 pt-2 mt-auto">
+								<div className="mt-auto flex gap-2 pt-2">
 									<Button
 										variant="outline"
 										size="sm"
@@ -163,8 +163,8 @@ function AnimalList({
 					))}
 				</div>
 			) : (
-				<div className="text-center py-12">
-					<h3 className="text-lg font-medium mb-2">No animals found</h3>
+				<div className="py-12 text-center">
+					<h3 className="mb-2 font-medium text-lg">No animals found</h3>
 					<p className="text-muted-foreground">
 						Try adjusting your search terms or{" "}
 						<button

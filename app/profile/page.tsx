@@ -6,8 +6,8 @@ import VetMedPreferencesPage from "./components/vet-med-preferences";
 export default function ProfilePage() {
 	return (
 		<div className="min-h-screen bg-gray-50 py-8">
-			<div className="max-w-4xl mx-auto px-4">
-				<h1 className="text-3xl font-bold text-gray-900 mb-8">User Profile</h1>
+			<div className="mx-auto max-w-4xl px-4">
+				<h1 className="mb-8 font-bold text-3xl text-gray-900">User Profile</h1>
 
 				<UserProfile
 					path="/profile"
@@ -24,7 +24,7 @@ export default function ProfilePage() {
 					<UserProfile.Page
 						label="VetMed Preferences"
 						url="vetmed-preferences"
-						labelIcon={<Heart className="w-4 h-4" />}
+						labelIcon={<Heart className="h-4 w-4" />}
 					>
 						<VetMedPreferencesPage />
 					</UserProfile.Page>
@@ -33,7 +33,7 @@ export default function ProfilePage() {
 					<UserProfile.Page
 						label="Household Settings"
 						url="household-settings"
-						labelIcon={<MapPin className="w-4 h-4" />}
+						labelIcon={<MapPin className="h-4 w-4" />}
 					>
 						<HouseholdSettingsPage />
 					</UserProfile.Page>

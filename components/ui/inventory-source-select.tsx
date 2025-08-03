@@ -126,7 +126,7 @@ export function InventorySourceSelect({
 													<Badge variant="default">In Use</Badge>
 												)}
 											</div>
-											<div className="text-xs text-muted-foreground">
+											<div className="text-muted-foreground text-xs">
 												{source.unitsRemaining} units • Expires{" "}
 												{source.expiresOn?.toLocaleDateString() ?? "N/A"}
 											</div>

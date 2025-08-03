@@ -179,7 +179,7 @@ export function RegimenList() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold">Regimens</h2>
+					<h2 className="font-bold text-2xl">Regimens</h2>
 					<p className="text-muted-foreground">
 						Manage medication schedules and dosing
 					</p>
@@ -218,8 +218,8 @@ export function RegimenList() {
 							<div className="flex items-center gap-3">
 								<AnimalAvatar animal={animal} size="md" />
 								<div>
-									<h3 className="text-lg font-semibold">{animal.name}</h3>
-									<p className="text-sm text-muted-foreground">
+									<h3 className="font-semibold text-lg">{animal.name}</h3>
+									<p className="text-muted-foreground text-sm">
 										{regimens.length} active regimens
 									</p>
 								</div>
@@ -240,9 +240,9 @@ export function RegimenList() {
 				})}
 
 				{Object.keys(groupedRegimens).length === 0 && (
-					<div className="text-center py-12">
-						<Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-						<h3 className="text-lg font-medium mb-2">No regimens found</h3>
+					<div className="py-12 text-center">
+						<Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
+						<h3 className="mb-2 font-medium text-lg">No regimens found</h3>
 						<p className="text-muted-foreground">
 							{selectedAnimalId === "all"
 								? "Create your first medication regimen to get started"
@@ -273,14 +273,14 @@ function RegimenCard({
 	onArchive: () => void;
 }) {
 	return (
-		<Card className="hover:shadow-md transition-shadow">
+		<Card className="transition-shadow hover:shadow-md">
 			<CardHeader className="pb-3">
 				<div className="flex items-start justify-between">
 					<div>
 						<CardTitle className="text-base">
 							{regimen.medicationName}
 						</CardTitle>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted-foreground text-sm">
 							{regimen.strength} • {regimen.route}
 						</p>
 					</div>
@@ -288,9 +288,9 @@ function RegimenCard({
 						{regimen.highRisk && (
 							<Badge
 								variant="destructive"
-								className="text-xs whitespace-nowrap"
+								className="whitespace-nowrap text-xs"
 							>
-								<AlertTriangle className="h-3 w-3 mr-1" />
+								<AlertTriangle className="mr-1 h-3 w-3" />
 								High-risk
 							</Badge>
 						)}
@@ -298,7 +298,7 @@ function RegimenCard({
 							variant={
 								regimen.scheduleType === "FIXED" ? "default" : "secondary"
 							}
-							className="text-xs whitespace-nowrap"
+							className="whitespace-nowrap text-xs"
 						>
 							{regimen.scheduleType}
 						</Badge>
@@ -309,7 +309,7 @@ function RegimenCard({
 			<CardContent className="space-y-3">
 				{regimen.scheduleType === "FIXED" && regimen.timesLocal && (
 					<div>
-						<p className="text-sm font-medium mb-1">Schedule:</p>
+						<p className="mb-1 font-medium text-sm">Schedule:</p>
 						<div className="flex flex-wrap gap-1">
 							{regimen.timesLocal.map((time) => (
 								<Badge key={time} variant="outline" className="text-xs">
@@ -320,7 +320,7 @@ function RegimenCard({
 					</div>
 				)}
 
-				<div className="text-sm text-muted-foreground">
+				<div className="text-muted-foreground text-sm">
 					<div>Cutoff: {regimen.cutoffMins} minutes</div>
 					{regimen.startDate && (
 						<div>

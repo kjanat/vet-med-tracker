@@ -6,7 +6,7 @@ import {
 	animals,
 	medicationCatalog,
 	regimens,
-} from "../../db/schema";
+} from "@/db/schema";
 import {
 	createTRPCRouter,
 	householdProcedure,
@@ -26,7 +26,7 @@ interface ProcessedRegimen {
 	form: string;
 	strength: string;
 	dose: string;
-	targetTime?: Date;
+	targetTime?: string;
 	isPRN: boolean;
 	isHighRisk: boolean;
 	requiresCoSign: boolean;
@@ -38,7 +38,7 @@ interface ProcessedRegimen {
 	prnReason: string | null;
 	lastAdministration: {
 		id: string;
-		recordedAt: Date;
+		recordedAt: string;
 		status: string;
 	} | null;
 }
@@ -46,7 +46,7 @@ interface ProcessedRegimen {
 // Helper type for due status result
 type DueStatusResult = {
 	section: "due" | "later" | "prn";
-	targetTime?: Date;
+	targetTime?: string;
 	isOverdue: boolean;
 	minutesUntilDue: number;
 };
@@ -102,7 +102,7 @@ function calculateScheduledResult(
 
 	return {
 		section,
-		targetTime,
+		targetTime: targetTime.toISOString(),
 		isOverdue,
 		minutesUntilDue,
 	};
@@ -182,7 +182,7 @@ interface RegimenRow {
 	};
 	lastAdmin: {
 		id: string;
-		recordedAt: Date;
+		recordedAt: string;
 		status: string;
 	} | null;
 }
@@ -351,8 +351,8 @@ export const regimenRouter = createTRPCRouter({
 					administrations,
 					and(
 						eq(administrations.regimenId, regimens.id),
-						gte(administrations.recordedAt, startOfDay),
-						lte(administrations.recordedAt, endOfDay),
+						gte(administrations.recordedAt, startOfDay.toISOString()),
+						lte(administrations.recordedAt, endOfDay.toISOString()),
 					),
 				)
 				.where(and(...baseConditions))

@@ -78,7 +78,6 @@ export default function VetMedPreferencesPage() {
 	const { user, isLoaded } = useUser();
 	const [preferences, setPreferences] =
 		useState<VetMedPreferences>(defaultPreferences);
-	const [_isLoading, _setIsLoading] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 
 	useEffect(() => {
@@ -141,10 +140,10 @@ export default function VetMedPreferencesPage() {
 	return (
 		<div className="space-y-6 p-6">
 			<div>
-				<h2 className="text-2xl font-bold text-gray-900">
+				<h2 className="font-bold text-2xl text-gray-900">
 					VetMed Tracker Preferences
 				</h2>
-				<p className="text-gray-600 mt-1">
+				<p className="mt-1 text-gray-600">
 					Customize your medication tracking experience
 				</p>
 			</div>
@@ -153,7 +152,7 @@ export default function VetMedPreferencesPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Clock className="w-5 h-5" />
+						<Clock className="h-5 w-5" />
 						Location & Time Settings
 					</CardTitle>
 					<CardDescription>
@@ -183,7 +182,7 @@ export default function VetMedPreferencesPage() {
 						</Select>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="flex items-center justify-between space-x-2">
 							<Label htmlFor="use24hour">Use 24-hour time format</Label>
 							<Switch
@@ -238,7 +237,7 @@ export default function VetMedPreferencesPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Phone className="w-5 h-5" />
+						<Phone className="h-5 w-5" />
 						Contact Information
 					</CardTitle>
 					<CardDescription>
@@ -263,7 +262,7 @@ export default function VetMedPreferencesPage() {
 
 					<div className="space-y-4">
 						<h4 className="font-medium">Emergency Contact</h4>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor="emergency-name">Contact Name</Label>
 								<Input
@@ -296,7 +295,7 @@ export default function VetMedPreferencesPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Bell className="w-5 h-5" />
+						<Bell className="h-5 w-5" />
 						Notification Preferences
 					</CardTitle>
 					<CardDescription>
@@ -308,7 +307,7 @@ export default function VetMedPreferencesPage() {
 						<div className="flex items-center justify-between">
 							<div>
 								<Label htmlFor="email-reminders">Email Reminders</Label>
-								<p className="text-sm text-gray-500">
+								<p className="text-gray-500 text-sm">
 									Receive medication reminders via email
 								</p>
 							</div>
@@ -324,7 +323,7 @@ export default function VetMedPreferencesPage() {
 						<div className="flex items-center justify-between">
 							<div>
 								<Label htmlFor="sms-reminders">SMS Reminders</Label>
-								<p className="text-sm text-gray-500">
+								<p className="text-gray-500 text-sm">
 									Receive medication reminders via text message
 								</p>
 							</div>
@@ -340,7 +339,7 @@ export default function VetMedPreferencesPage() {
 						<div className="flex items-center justify-between">
 							<div>
 								<Label htmlFor="push-notifications">Push Notifications</Label>
-								<p className="text-sm text-gray-500">
+								<p className="text-gray-500 text-sm">
 									Receive browser push notifications
 								</p>
 							</div>

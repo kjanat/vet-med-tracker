@@ -114,7 +114,7 @@ export function InviteForm({ open, onOpenChange, onInvite }: InviteFormProps) {
 								>
 									<CardContent className="p-4">
 										<div className="flex items-start gap-3">
-											<role.icon className="h-5 w-5 mt-0.5" />
+											<role.icon className="mt-0.5 h-5 w-5" />
 											<div className="flex-1">
 												<CardTitle className="text-base">
 													{role.title}
@@ -124,7 +124,7 @@ export function InviteForm({ open, onOpenChange, onInvite }: InviteFormProps) {
 												</CardDescription>
 											</div>
 											<div
-												className={`w-4 h-4 rounded-full border-2 ${
+												className={`h-4 w-4 rounded-full border-2 ${
 													selectedRole === role.value
 														? "border-primary bg-primary"
 														: "border-muted-foreground"

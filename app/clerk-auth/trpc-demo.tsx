@@ -32,15 +32,15 @@ export default function TRPCDemo() {
 	};
 
 	return (
-		<div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-			<h2 className="text-2xl font-bold mb-4">tRPC + Clerk Demo</h2>
+		<div className="mx-auto mt-8 max-w-md rounded-lg bg-white p-6 shadow-md">
+			<h2 className="mb-4 font-bold text-2xl">tRPC + Clerk Demo</h2>
 
 			<div className="space-y-4">
 				<div>
 					<button
 						type="button"
 						onClick={callPublicEndpoint}
-						className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+						className="w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
 					>
 						Call Public Endpoint
 					</button>
@@ -53,7 +53,7 @@ export default function TRPCDemo() {
 					<button
 						type="button"
 						onClick={callProtectedEndpoint}
-						className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
+						className="w-full rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700"
 					>
 						Call Protected Endpoint
 					</button>

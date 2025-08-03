@@ -71,7 +71,7 @@ export function HistoryCalendar({
 		<div className="space-y-4">
 			{/* Calendar Header */}
 			<div className="flex items-center justify-between">
-				<h2 className="text-2xl font-bold">{format(month, "MMMM yyyy")}</h2>
+				<h2 className="font-bold text-2xl">{format(month, "MMMM yyyy")}</h2>
 				<div className="flex items-center gap-2">
 					<Button
 						variant="outline"
@@ -93,19 +93,19 @@ export function HistoryCalendar({
 			{/* Legend */}
 			<div className="flex flex-wrap items-center gap-3 text-sm">
 				<div className="flex items-center gap-1">
-					<div className="w-3 h-3 rounded-full bg-green-500" />
+					<div className="h-3 w-3 rounded-full bg-green-500" />
 					<span>On-time</span>
 				</div>
 				<div className="flex items-center gap-1">
-					<div className="w-3 h-3 rounded-full bg-yellow-500" />
+					<div className="h-3 w-3 rounded-full bg-yellow-500" />
 					<span>Late</span>
 				</div>
 				<div className="flex items-center gap-1">
-					<div className="w-3 h-3 rounded-full bg-red-500" />
+					<div className="h-3 w-3 rounded-full bg-red-500" />
 					<span>Missed</span>
 				</div>
 				<div className="flex items-center gap-1">
-					<div className="w-3 h-3 rounded-full bg-blue-500" />
+					<div className="h-3 w-3 rounded-full bg-blue-500" />
 					<span>PRN</span>
 				</div>
 			</div>
@@ -116,7 +116,7 @@ export function HistoryCalendar({
 				{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
 					<div
 						key={day}
-						className="p-2 text-center text-sm font-medium text-muted-foreground"
+						className="p-2 text-center font-medium text-muted-foreground text-sm"
 					>
 						{day}
 					</div>
@@ -134,7 +134,7 @@ export function HistoryCalendar({
 								<button
 									type="button"
 									className={cn(
-										"relative p-2 h-16 border rounded-lg hover:bg-accent transition-colors",
+										"relative h-16 rounded-lg border p-2 transition-colors hover:bg-accent",
 										!isCurrentMonth && "opacity-50",
 										dayCount && "cursor-pointer",
 									)}
@@ -145,12 +145,12 @@ export function HistoryCalendar({
 									}}
 									disabled={!dayCount}
 								>
-									<div className="text-sm font-medium">{format(day, "d")}</div>
+									<div className="font-medium text-sm">{format(day, "d")}</div>
 									{dayCount && (
-										<div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
+										<div className="-translate-x-1/2 absolute bottom-1 left-1/2 transform">
 											<div
 												className={cn(
-													"w-2 h-2 rounded-full",
+													"h-2 w-2 rounded-full",
 													getStatusColor(dayCount),
 												)}
 											/>
@@ -175,34 +175,34 @@ export function HistoryCalendar({
 										{/* Day Summary */}
 										<div className="grid grid-cols-4 gap-2">
 											<div className="text-center">
-												<div className="text-2xl font-bold text-green-600">
+												<div className="font-bold text-2xl text-green-600">
 													{dayCount.onTime}
 												</div>
-												<div className="text-xs text-muted-foreground">
+												<div className="text-muted-foreground text-xs">
 													On-time
 												</div>
 											</div>
 											<div className="text-center">
-												<div className="text-2xl font-bold text-yellow-600">
+												<div className="font-bold text-2xl text-yellow-600">
 													{dayCount.late}
 												</div>
-												<div className="text-xs text-muted-foreground">
+												<div className="text-muted-foreground text-xs">
 													Late
 												</div>
 											</div>
 											<div className="text-center">
-												<div className="text-2xl font-bold text-red-600">
+												<div className="font-bold text-2xl text-red-600">
 													{dayCount.missed}
 												</div>
-												<div className="text-xs text-muted-foreground">
+												<div className="text-muted-foreground text-xs">
 													Missed
 												</div>
 											</div>
 											<div className="text-center">
-												<div className="text-2xl font-bold text-blue-600">
+												<div className="font-bold text-2xl text-blue-600">
 													{dayCount.prn}
 												</div>
-												<div className="text-xs text-muted-foreground">PRN</div>
+												<div className="text-muted-foreground text-xs">PRN</div>
 											</div>
 										</div>
 
@@ -212,13 +212,13 @@ export function HistoryCalendar({
 											{dayRecords.map((record) => (
 												<div
 													key={record.id}
-													className="flex items-center justify-between p-3 border rounded-lg"
+													className="flex items-center justify-between rounded-lg border p-3"
 												>
 													<div>
 														<div className="font-medium">
 															{record.animalName} - {record.medicationName}
 														</div>
-														<div className="text-sm text-muted-foreground">
+														<div className="text-muted-foreground text-sm">
 															{format(record.recordedAt, "h:mm a")} •{" "}
 															{record.caregiverName}
 														</div>

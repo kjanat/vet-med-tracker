@@ -109,7 +109,7 @@ export function DateInput({
 						<Button
 							id={id ? `${id}-picker` : undefined}
 							variant="ghost"
-							className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+							className="-translate-y-1/2 absolute top-1/2 right-2 size-6"
 						>
 							<CalendarIcon className="size-3.5" />
 							<span className="sr-only">Select date</span>

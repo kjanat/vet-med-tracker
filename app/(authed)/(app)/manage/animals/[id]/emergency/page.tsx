@@ -57,9 +57,9 @@ export default function EmergencyCardPage() {
 	return (
 		<div className="min-h-screen bg-white">
 			{/* Print Button - hidden when printing */}
-			<div className="no-print p-4 border-b">
-				<div className="flex items-center justify-between max-w-4xl mx-auto">
-					<h1 className="text-2xl font-bold">
+			<div className="no-print border-b p-4">
+				<div className="mx-auto flex max-w-4xl items-center justify-between">
+					<h1 className="font-bold text-2xl">
 						Emergency Card - {mockAnimal.name}
 					</h1>
 					<Button onClick={handlePrint}>Print Card</Button>
@@ -67,11 +67,11 @@ export default function EmergencyCardPage() {
 			</div>
 
 			{/* Emergency Card Content */}
-			<div className="max-w-4xl mx-auto p-8 print:p-4">
-				<div className="border-2 border-red-500 rounded-lg p-6 print:border-black">
+			<div className="mx-auto max-w-4xl p-8 print:p-4">
+				<div className="rounded-lg border-2 border-red-500 p-6 print:border-black">
 					{/* Header */}
-					<div className="text-center mb-6">
-						<h1 className="text-3xl font-bold text-red-600 print:text-black mb-2">
+					<div className="mb-6 text-center">
+						<h1 className="mb-2 font-bold text-3xl text-red-600 print:text-black">
 							EMERGENCY CARD
 						</h1>
 						<p className="text-lg text-muted-foreground">
@@ -93,7 +93,7 @@ export default function EmergencyCardPage() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+							<div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
 								<div>
 									<span className="font-medium">Sex:</span> {mockAnimal.sex}
 									{mockAnimal.neutered && " (Neutered)"}
@@ -132,17 +132,17 @@ export default function EmergencyCardPage() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div className="p-4 border rounded-lg">
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div className="rounded-lg border p-4">
 									<div className="font-medium text-lg">
 										Primary Veterinarian
 									</div>
-									<div className="text-xl font-bold">{mockAnimal.vetName}</div>
+									<div className="font-bold text-xl">{mockAnimal.vetName}</div>
 									<div className="text-lg">{mockAnimal.vetPhone}</div>
 								</div>
-								<div className="p-4 border rounded-lg">
+								<div className="rounded-lg border p-4">
 									<div className="font-medium text-lg">Owner</div>
-									<div className="text-xl font-bold">John Smith</div>
+									<div className="font-bold text-xl">John Smith</div>
 									<div className="text-lg">(555) 123-4567</div>
 								</div>
 							</div>
@@ -162,7 +162,7 @@ export default function EmergencyCardPage() {
 							<CardContent>
 								{mockAnimal.allergies.length > 0 && (
 									<div className="mb-4">
-										<div className="font-medium text-red-700 print:text-black mb-2">
+										<div className="mb-2 font-medium text-red-700 print:text-black">
 											ALLERGIES:
 										</div>
 										<div className="flex flex-wrap gap-2">
@@ -181,7 +181,7 @@ export default function EmergencyCardPage() {
 
 								{mockAnimal.conditions.length > 0 && (
 									<div>
-										<div className="font-medium text-red-700 print:text-black mb-2">
+										<div className="mb-2 font-medium text-red-700 print:text-black">
 											CONDITIONS:
 										</div>
 										<div className="flex flex-wrap gap-2">
@@ -212,8 +212,8 @@ export default function EmergencyCardPage() {
 						<CardContent>
 							<div className="space-y-4">
 								{mockRegimens.map((regimen) => (
-									<div key={regimen.id} className="p-4 border rounded-lg">
-										<div className="flex justify-between items-start mb-2">
+									<div key={regimen.id} className="rounded-lg border p-4">
+										<div className="mb-2 flex items-start justify-between">
 											<div>
 												<div className="font-medium text-lg">
 													{regimen.medicationName}
@@ -225,7 +225,7 @@ export default function EmergencyCardPage() {
 											<Badge variant="outline">{regimen.schedule}</Badge>
 										</div>
 										{regimen.notes && (
-											<div className="text-sm text-muted-foreground">
+											<div className="text-muted-foreground text-sm">
 												<span className="font-medium">Notes:</span>{" "}
 												{regimen.notes}
 											</div>
@@ -237,7 +237,7 @@ export default function EmergencyCardPage() {
 					</Card>
 
 					{/* Footer */}
-					<div className="text-center text-sm text-muted-foreground border-t pt-4">
+					<div className="border-t pt-4 text-center text-muted-foreground text-sm">
 						<p>
 							Generated on {new Date().toLocaleDateString()} • Keep this card
 							updated

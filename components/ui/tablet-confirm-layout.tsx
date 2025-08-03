@@ -27,7 +27,7 @@ interface DueRegimen {
 	form: string;
 	strength: string;
 	dose?: string;
-	targetTime?: Date;
+	targetTime?: string;
 	isPRN: boolean;
 	isHighRisk: boolean;
 	requiresCoSign: boolean;
@@ -107,7 +107,7 @@ export function TabletConfirmLayout({
 			{/* Left column - Form */}
 			<div className="flex-1 overflow-hidden">
 				<ScrollArea className="h-full">
-					<div className="p-6 max-w-2xl">
+					<div className="max-w-2xl p-6">
 						<div className="space-y-8">
 							{/* Medication Summary - Compact for tablet */}
 							<Card>
@@ -115,10 +115,10 @@ export function TabletConfirmLayout({
 									<CardTitle className="flex items-center gap-3 text-xl">
 										{animal && <AnimalAvatar animal={animal} size="md" />}
 										<div className="min-w-0 flex-1">
-											<div className="font-semibold text-xl truncate">
+											<div className="truncate font-semibold text-xl">
 												{animal?.name} - {selectedRegimen.medicationName}
 											</div>
-											<div className="text-base font-normal text-muted-foreground">
+											<div className="font-normal text-base text-muted-foreground">
 												{selectedRegimen.strength} • {selectedRegimen.route} •{" "}
 												{selectedRegimen.form}
 											</div>
@@ -133,12 +133,12 @@ export function TabletConfirmLayout({
 							</Card>
 
 							{/* Two-column form layout */}
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+							<div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
 								{/* Left form column */}
 								<div className="space-y-6">
 									{/* Inventory Source */}
 									<div>
-										<Label className="text-base font-medium">
+										<Label className="font-medium text-base">
 											Inventory Source
 										</Label>
 										<div className="mt-3">
@@ -157,11 +157,11 @@ export function TabletConfirmLayout({
 									</div>
 
 									{/* Site and Media */}
-									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+									<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 										<div>
 											<Label
 												htmlFor="tablet-site"
-												className="text-base font-medium"
+												className="font-medium text-base"
 											>
 												Site/Side (Optional)
 											</Label>
@@ -174,12 +174,12 @@ export function TabletConfirmLayout({
 											/>
 										</div>
 										<div>
-											<Label className="text-base font-medium">
+											<Label className="font-medium text-base">
 												Photo/Video
 											</Label>
 											<Button
 												variant="outline"
-												className="w-full mt-2 h-11 bg-transparent"
+												className="mt-2 h-11 w-full bg-transparent"
 												type="button"
 											>
 												<Camera className="mr-2 h-4 w-4" />
@@ -192,7 +192,7 @@ export function TabletConfirmLayout({
 									<div>
 										<Label
 											htmlFor="tablet-notes"
-											className="text-base font-medium"
+											className="font-medium text-base"
 										>
 											Notes (Optional)
 										</Label>
@@ -231,18 +231,18 @@ export function TabletConfirmLayout({
 														<div className="space-y-1">
 															<Label
 																htmlFor="tablet-cosign"
-																className="text-sm font-medium"
+																className="font-medium text-sm"
 															>
 																Requires co-sign (high-risk medication)
 															</Label>
-															<p className="text-xs text-muted-foreground">
+															<p className="text-muted-foreground text-xs">
 																Another caregiver must co-sign this
 																administration within 10 minutes.
 															</p>
 														</div>
 													</div>
 													{requiresCoSign && (
-														<div className="text-xs text-orange-700 bg-orange-100 p-3 rounded-md">
+														<div className="rounded-md bg-orange-100 p-3 text-orange-700 text-xs">
 															Co-sign will be required after confirmation. Make
 															sure another authorized caregiver is available.
 														</div>
@@ -256,10 +256,10 @@ export function TabletConfirmLayout({
 									{selectedRegimen.instructions && (
 										<Card className="bg-muted/30">
 											<CardContent className="p-4">
-												<h4 className="font-medium text-sm mb-2">
+												<h4 className="mb-2 font-medium text-sm">
 													Instructions
 												</h4>
-												<p className="text-sm text-muted-foreground">
+												<p className="text-muted-foreground text-sm">
 													{selectedRegimen.instructions}
 												</p>
 											</CardContent>
@@ -274,10 +274,10 @@ export function TabletConfirmLayout({
 
 			{/* Right column - Action panel */}
 			<div className="w-80 shrink-0 border-l bg-muted/30">
-				<div className="p-6 h-full flex flex-col">
+				<div className="flex h-full flex-col p-6">
 					<div className="mb-6">
-						<h3 className="font-semibold text-lg mb-2">Ready to Record?</h3>
-						<p className="text-sm text-muted-foreground">
+						<h3 className="mb-2 font-semibold text-lg">Ready to Record?</h3>
+						<p className="text-muted-foreground text-sm">
 							Review your selections and hold the button below to confirm the
 							administration.
 						</p>
@@ -289,7 +289,7 @@ export function TabletConfirmLayout({
 						onConfirm={onConfirm}
 						disabled={isDisabled}
 						requiresCoSign={requiresCoSign}
-						className="w-full h-14 text-base"
+						className="h-14 w-full text-base"
 					>
 						{isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
 					</MedConfirmButton>
@@ -310,14 +310,14 @@ function TabletConditionTagSelector({
 
 	return (
 		<div>
-			<Label className="text-base font-medium">Condition Tags</Label>
-			<div className="grid grid-cols-2 gap-2 mt-3">
+			<Label className="font-medium text-base">Condition Tags</Label>
+			<div className="mt-3 grid grid-cols-2 gap-2">
 				{tags.map((tag) => (
 					<Button
 						key={tag}
 						variant={conditionTags.includes(tag) ? "default" : "outline"}
 						size="sm"
-						className="h-10 px-3 justify-start"
+						className="h-10 justify-start px-3"
 						onClick={() => {
 							setConditionTags((prev) =>
 								prev.includes(tag)

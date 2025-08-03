@@ -8,8 +8,8 @@ export default function TestClerkPage() {
 	const { openSignIn, signOut } = useClerk();
 
 	return (
-		<div className="container max-w-md mx-auto py-8">
-			<h1 className="text-2xl font-bold mb-4">Clerk Authentication Test</h1>
+		<div className="container mx-auto max-w-md py-8">
+			<h1 className="mb-4 font-bold text-2xl">Clerk Authentication Test</h1>
 
 			<SignedOut>
 				<div className="space-y-4">

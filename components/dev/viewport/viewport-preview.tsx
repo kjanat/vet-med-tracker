@@ -178,12 +178,12 @@ export const ViewportPreview: React.FC<ViewportPreviewProps> = ({
 			</Card>
 
 			{/* Device Info */}
-			<div className="mt-4 text-center text-sm text-muted-foreground">
+			<div className="mt-4 text-center text-muted-foreground text-sm">
 				<p>
 					{state.width} × {state.height} — {state.brand} {state.name}
 					{scale < 1 && ` (${Math.round(scale * 100)}% scale)`}
 				</p>
-				<p className="text-xs mt-1">
+				<p className="mt-1 text-xs">
 					{state.orientation} • {state.deviceType} • Color scheme:{" "}
 					{state.scheme}
 				</p>

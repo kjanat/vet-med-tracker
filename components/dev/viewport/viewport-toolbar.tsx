@@ -76,8 +76,8 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
 				<div className="grid gap-4 lg:grid-cols-3 lg:items-center">
 					{/* Title */}
 					<div>
-						<h1 className="text-2xl font-bold">Viewport Tester</h1>
-						<p className="text-sm text-muted-foreground">
+						<h1 className="font-bold text-2xl">Viewport Tester</h1>
+						<p className="text-muted-foreground text-sm">
 							{deviceCount} of {totalDevices} devices
 						</p>
 					</div>

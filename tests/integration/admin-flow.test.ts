@@ -1,22 +1,22 @@
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import * as schema from "@/db/schema";
 import { adminRouter } from "@/server/api/routers/admin";
-import type { Context } from "@/server/api/trpc/init";
-import * as schema from "@/server/db/schema";
 import {
 	cleanupTestData,
 	createTestDatabase,
 	testFactories,
 } from "../helpers/test-db";
+import { createTestTRPCContext } from "../helpers/test-trpc-context";
 
 describe("Admin Flow Integration", () => {
 	const db = createTestDatabase();
 	let testData: {
-		user: schema.User;
-		household: schema.Household;
-		animal: schema.Animal;
-		medication: schema.MedicationCatalog;
-		regimen: schema.Regimen;
+		user: typeof schema.users.$inferSelect;
+		household: typeof schema.households.$inferSelect;
+		animal: typeof schema.animals.$inferSelect;
+		medication: typeof schema.medicationCatalog.$inferSelect;
+		regimen: typeof schema.regimens.$inferSelect;
 	};
 
 	beforeEach(async () => {
@@ -83,36 +83,10 @@ describe("Admin Flow Integration", () => {
 
 	it("should create administration record in real database", async () => {
 		// Create context with real database
-		const ctx: Context = {
-			db,
+		const ctx = createTestTRPCContext({
 			user: testData.user,
-			session: {
-				userId: testData.user.id,
-				user: testData.user,
-				householdMemberships: [
-					{
-						id: "test-membership-id",
-						userId: testData.user.id,
-						householdId: testData.household.id,
-						role: "OWNER" as const,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					},
-				],
-				expiresAt: new Date(Date.now() + 3600000),
-			},
-			currentHouseholdId: testData.household.id,
-			currentMembership: {
-				id: "test-membership-id",
-				userId: testData.user.id,
-				householdId: testData.household.id,
-				role: "OWNER" as const,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			},
-			headers: new Headers(),
-			requestedHouseholdId: testData.household.id,
-		};
+			household: testData.household,
+		});
 
 		const caller = adminRouter.createCaller(ctx);
 
@@ -123,6 +97,7 @@ describe("Admin Flow Integration", () => {
 			regimenId: testData.regimen.id,
 			idempotencyKey: "test-key-123",
 			notes: "Integration test administration",
+			administeredAt: new Date().toISOString(), // Explicitly provide timestamp
 		});
 
 		// Verify the result
@@ -143,36 +118,10 @@ describe("Admin Flow Integration", () => {
 	});
 
 	it("should respect idempotency in real database", async () => {
-		const ctx: Context = {
-			db,
+		const ctx = createTestTRPCContext({
 			user: testData.user,
-			session: {
-				userId: testData.user.id,
-				user: testData.user,
-				householdMemberships: [
-					{
-						id: "test-membership-id",
-						userId: testData.user.id,
-						householdId: testData.household.id,
-						role: "OWNER" as const,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					},
-				],
-				expiresAt: new Date(Date.now() + 3600000),
-			},
-			currentHouseholdId: testData.household.id,
-			currentMembership: {
-				id: "test-membership-id",
-				userId: testData.user.id,
-				householdId: testData.household.id,
-				role: "OWNER" as const,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			},
-			headers: new Headers(),
-			requestedHouseholdId: testData.household.id,
-		};
+			household: testData.household,
+		});
 
 		const caller = adminRouter.createCaller(ctx);
 		const idempotencyKey = "duplicate-test-key";

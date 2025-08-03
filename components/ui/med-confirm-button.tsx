@@ -130,7 +130,7 @@ export function MedConfirmButton({
 			>
 				{/* Progress bar background */}
 				<div
-					className="absolute inset-0 bg-white/20 transition-transform duration-75 ease-out origin-left"
+					className="absolute inset-0 origin-left bg-white/20 transition-transform duration-75 ease-out"
 					style={{
 						transform: `scaleX(${progress / 100})`,
 					}}
@@ -152,7 +152,7 @@ export function MedConfirmButton({
 			{/* Progress indicator */}
 			{isHolding && (
 				<div
-					className="absolute -bottom-1 left-0 right-0 h-1 bg-background rounded-full overflow-hidden"
+					className="-bottom-1 absolute right-0 left-0 h-1 overflow-hidden rounded-full bg-background"
 					role="progressbar"
 					aria-valuenow={progress}
 					aria-valuemin={0}
@@ -160,7 +160,7 @@ export function MedConfirmButton({
 					aria-label="Hold progress"
 				>
 					<div
-						className="h-full bg-primary transition-transform duration-75 ease-out origin-left"
+						className="h-full origin-left bg-primary transition-transform duration-75 ease-out"
 						style={{
 							transform: `scaleX(${progress / 100})`,
 						}}

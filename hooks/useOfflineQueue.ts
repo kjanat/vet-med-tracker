@@ -65,8 +65,14 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 
 	// Update queue size
 	const updateQueueSize = useCallback(async () => {
-		const size = await getQueueSize(selectedHousehold?.id);
-		setQueueSize(size);
+		try {
+			const size = await getQueueSize(selectedHousehold?.id);
+			setQueueSize(size);
+		} catch (error) {
+			console.warn("Failed to update queue size:", error);
+			// Set to 0 as fallback - this prevents the UI from showing incorrect counts
+			setQueueSize(0);
+		}
 	}, [selectedHousehold?.id]);
 
 	useEffect(() => {
@@ -95,15 +101,26 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 				userId: clerkUser.id,
 			};
 
-			await addToQueue(mutation);
-			await updateQueueSize();
+			try {
+				await addToQueue(mutation);
+				await updateQueueSize();
 
-			// If online, process immediately
-			if (isOnline && !processingRef.current && processQueueRef.current) {
-				void processQueueRef.current();
+				// If online, process immediately
+				if (isOnline && !processingRef.current && processQueueRef.current) {
+					void processQueueRef.current();
+				}
+
+				return mutation.id;
+			} catch (error) {
+				console.error("Failed to enqueue mutation:", error);
+				toast.error(
+					"Offline storage unavailable. Changes may not be saved if you go offline.",
+				);
+
+				// If we can't store offline, still return the mutation ID
+				// The calling code might want to proceed with online-only operation
+				throw error;
 			}
-
-			return mutation.id;
 		},
 		[
 			isOnline,
@@ -266,7 +283,15 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 		} catch (error) {
 			console.error("Queue processing error:", error);
 			options.onSyncError?.(error as Error);
-			toast.error("Failed to sync offline changes");
+
+			// Check if it's an IndexedDB error
+			if (error instanceof Error && error.message.includes("IndexedDB")) {
+				toast.error(
+					"Offline storage unavailable. Please refresh the page or check browser settings.",
+				);
+			} else {
+				toast.error("Failed to sync offline changes");
+			}
 		} finally {
 			processingRef.current = false;
 			setIsProcessing(false);
@@ -313,16 +338,28 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 				if (!confirmed) return;
 			}
 
-			await clearQueue(selectedHousehold?.id);
-			await updateQueueSize();
-			toast.success("Offline queue cleared");
+			try {
+				await clearQueue(selectedHousehold?.id);
+				await updateQueueSize();
+				toast.success("Offline queue cleared");
+			} catch (error) {
+				console.error("Failed to clear queue:", error);
+				toast.error(
+					"Failed to clear offline queue. Please try refreshing the page.",
+				);
+			}
 		},
 		[queueSize, selectedHousehold?.id, updateQueueSize],
 	);
 
 	// Get queue details for debugging
 	const getQueueDetails = useCallback(async () => {
-		return getQueuedMutations(selectedHousehold?.id);
+		try {
+			return getQueuedMutations(selectedHousehold?.id);
+		} catch (error) {
+			console.error("Failed to get queue details:", error);
+			return [];
+		}
 	}, [selectedHousehold?.id]);
 
 	return {

@@ -4,106 +4,132 @@ This document explains how to set up and use authentication in the VetMed Tracke
 
 ## Overview
 
-VetMed Tracker uses OpenAuth.js for authentication, which provides a centralized OAuth 2.0 server for authentication across all your applications. The app supports multiple authentication providers configured through your OpenAuth server.
+VetMed Tracker uses Clerk for authentication, which provides a managed authentication service with support for multiple authentication methods including email/password, OAuth providers, and magic links. Clerk handles all the complexity of authentication while providing a great developer experience.
 
 ## Architecture
 
 ### Components
 
-1. **OpenAuth Server** ([https://auth.kajkowalski.nl](https://auth.kajkowalski.nl))
-   - Centralized authentication server
-   - Handles OAuth flows and token management
-   - Configured separately from this application
+1. **Clerk Dashboard** ([https://clerk.com](https://clerk.com))
+   - Manage authentication settings
+   - Configure OAuth providers
+   - User management interface
+   - Webhook configuration
 
-2. **OpenAuth Provider** (`server/auth/openauth-provider.ts`)
-   - Implements the `AuthProvider` interface
-   - Handles token verification and cookie management
-   - Creates/updates users on first login
+2. **Clerk Middleware** (`middleware.ts`)
+   - Protects routes automatically
+   - Handles authentication state
+   - Edge-runtime compatible
 
-3. **Auth API Routes** (`app/api/auth/*`)
-   - `/api/auth/login` - Initiates OAuth flow
-   - `/api/auth/callback` - Handles OAuth callback
-   - `/api/auth/logout` - Clears session
-   - `/api/auth/me` - Returns current user info
+3. **Clerk Provider** (`app/layout.tsx`)
+   - Wraps the entire application
+   - Provides authentication context
+   - Manages session state
 
-4. **Middleware** (`middleware.ts`)
-   - Protects authenticated routes
-   - Redirects to login when needed
+4. **User Sync** (`server/api/clerk-sync.ts`)
+   - Syncs Clerk users to database
+   - Creates default household on first login
+   - Handles user metadata updates
 
-5. **Auth Hooks** (`hooks/useAuth.ts`)
-   - Client-side auth state management
-   - Login/logout functionality
-   - User session management
+5. **Auth Context** (`components/providers/auth-provider.tsx`)
+   - Provides auth state to components
+   - Manages household memberships
+   - Handles role-based access
 
 ## Setup Instructions
 
-### 1. Environment Configuration
+### 1. Create a Clerk Application
+
+1. Sign up at [clerk.com](https://clerk.com)
+2. Create a new application
+3. Choose your authentication methods (email, OAuth providers, etc.)
+4. Copy your API keys
+
+### 2. Environment Configuration
 
 Create a `.env.local` file in the project root:
 
 ```env
-# OpenAuth Configuration
-OPENAUTH_ISSUER=https://auth.kajkowalski.nl
-OPENAUTH_CLIENT_ID=vetmed-tracker
-OPENAUTH_CLIENT_SECRET=your-client-secret-here  # Required for confidential client flows
-NEXT_PUBLIC_APP_URL=http://localhost:3000  # Change for production
+# Clerk Configuration
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 
 # Database Configuration (Neon)
 DATABASE_URL=postgresql://...
+DATABASE_URL_UNPOOLED=postgresql://...
 
-# Optional: Security Settings (Recommended for production)
-COOKIE_SECURE=true              # Ensure cookies are only sent over HTTPS
-COOKIE_SAME_SITE=strict         # Strict same-site cookie policy
-DEFAULT_TIMEZONE=UTC            # Default timezone for new households
+# Optional: Application Settings
+DEFAULT_TIMEZONE=America/New_York
 ```
 
-### 2. OpenAuth Server Configuration
+### 3. Configure Clerk Dashboard
 
-Your OpenAuth server at `https://auth.kajkowalski.nl` should be configured to:
+In your Clerk dashboard:
 
-1. **Redirect URI**: Accept `{NEXT_PUBLIC_APP_URL}/api/auth/callback`
-2. **Access Token Claims**: Include the following:
-   - `userId` - Unique user identifier
-   - `email` - User's email address
-   - `name` - User's display name (optional)
-   - `householdMemberships` - Array of household access (optional)
+1. **Paths**: Set the following URLs
+   - Sign-in URL: `/sign-in`
+   - Sign-up URL: `/sign-up`
+   - After sign-in URL: `/`
+   - After sign-up URL: `/`
 
-### 3. Database Setup
+2. **Webhooks** (for user sync):
+   - Endpoint: `https://your-domain.com/api/webhooks/clerk`
+   - Events: `user.created`, `user.updated`, `user.deleted`
+
+3. **OAuth Providers** (optional):
+   - Enable providers like Google, GitHub, etc.
+   - Configure redirect URLs
+
+### 4. Database Setup
 
 Run the database migrations to create the necessary tables:
 
 ```bash
-# Development (pushes schema directly - can be destructive)
+# Development
 pnpm db:push
 
-# Production (uses proper migrations - safer)
+# Production
 pnpm db:migrate
+
+# Seed with demo data (optional)
+pnpm db:seed
 ```
 
 ## Usage
 
 ### Protected Routes
 
-All routes under `app/(authed)/*` are automatically protected by the middleware. Users will be redirected to login if not authenticated.
+All routes under `app/(authed)/*` are automatically protected by Clerk middleware. Users will be redirected to sign-in if not authenticated.
 
-### In Components
+### In Client Components
 
-Use the `useAuth` hook to access authentication state:
+Use Clerk's hooks to access authentication state:
 
 ```tsx
-import { useAuth } from "@/hooks/useAuth";
+import { useUser, useAuth } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, UserButton } from "@clerk/nextjs";
 
 function MyComponent() {
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { signOut } = useAuth();
 
-  if (!isAuthenticated) {
-    return <button onClick={login}>Sign In</button>;
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isSignedIn) {
+    return <SignInButton />;
   }
 
   return (
     <div>
-      <p>Welcome, {user.name}!</p>
-      <button onClick={logout}>Sign Out</button>
+      <p>Welcome, {user.firstName}!</p>
+      <UserButton />
+      <SignOutButton />
     </div>
   );
 }
@@ -111,123 +137,150 @@ function MyComponent() {
 
 ### In Server Components
 
-Access the session through tRPC context:
+Access the auth state in server components:
 
 ```tsx
-// In a tRPC procedure
-export const myProcedure = protectedProcedure
-  .query(async ({ ctx }) => {
-    // ctx.user is the authenticated user
-    // ctx.session contains the full session
-    return {
-      userId: ctx.user.id,
-      email: ctx.user.email,
-    };
+import { auth, currentUser } from "@clerk/nextjs/server";
+
+export default async function ServerComponent() {
+  const { userId } = await auth();
+  const user = await currentUser();
+
+  if (!userId) {
+    return <div>Not authenticated</div>;
+  }
+
+  return <div>Welcome {user?.firstName}</div>;
+}
+```
+
+### In tRPC Procedures
+
+Access auth in tRPC context:
+
+```tsx
+import { auth } from "@clerk/nextjs/server";
+
+// In tRPC context creation
+export async function createTRPCContext(opts: CreateNextContextOptions) {
+  const { userId } = await auth();
+  
+  // Get user from database
+  const user = userId ? await db.user.findUnique({ where: { clerkId: userId } }) : null;
+  
+  return {
+    ...opts,
+    userId,
+    user,
+  };
+}
+
+// In a protected procedure
+export const protectedProcedure = t.procedure
+  .use(({ ctx, next }) => {
+    if (!ctx.user) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next({ ctx: { user: ctx.user } });
   });
 ```
 
 ## Authentication Flow
 
 1. User clicks "Sign In"
-2. Redirected to OpenAuth server
-3. User authenticates with chosen provider
-4. Redirected back to `/api/auth/callback`
-5. Tokens are verified and stored in httpOnly cookies
-6. User is created/updated in database
-7. Redirected to app with active session
+2. Redirected to Clerk's sign-in page
+3. User authenticates (email/password, OAuth, etc.)
+4. Clerk creates/updates session
+5. User is synced to database via webhook
+6. Default household created if first login
+7. User redirected back to app
 
-## Security
+## User Sync Process
 
-- Tokens stored in httpOnly cookies (inaccessible via JavaScript)
-- CSRF protection using state parameter
-- Automatic token refresh when expired
-- Secure cookie settings in production
+When a user signs in for the first time:
 
-## Development
+1. Clerk webhook fires `user.created` event
+2. API endpoint creates user in database
+3. Default household is created
+4. User becomes OWNER of their household
+5. User metadata is stored
 
-### Using Mock Auth
+## Security Features
 
-When `OPENAUTH_ISSUER` is not set, the app uses a mock auth provider for development:
+- **Session Management**: Clerk handles all session tokens
+- **JWT Tokens**: Secure, signed tokens for API access
+- **Multi-factor Auth**: Available through Clerk dashboard
+- **Rate Limiting**: Built-in protection against abuse
+- **Webhook Verification**: Ensures webhook authenticity
 
-```env
-# Uncomment to use mock auth
-# MOCK_USER_ID=dev-user-1
-```
+## Development Tips
 
-### Testing Auth Flows
+### Testing Authentication
 
-1. Start the app: `pnpm dev`
-2. Navigate to a protected route (e.g., `/settings`)
-3. You'll be redirected to login
-4. Complete authentication on OpenAuth server
-5. You'll be redirected back to the app
+1. Use Clerk's test mode for development
+2. Test email addresses: `test@example.com+clerk_test@example.com`
+3. Test phone numbers: `+15555550100`
+4. Verification code: `424242`
 
-## Troubleshooting
+### Debugging
 
-### Common Issues
-
-1. **"OpenAuth not configured" error**
-   - Ensure `OPENAUTH_ISSUER` is set in `.env.local`
-   - Restart the dev server after changing env vars
-
-2. **Redirect URI mismatch**
-   - Ensure `NEXT_PUBLIC_APP_URL` matches your actual app URL
-   - Add the callback URL to your OpenAuth server configuration
-
-3. **User not created**
-   - Check database connection
-   - Ensure migrations have been run
-   - Check server logs for errors
-
-### Debug Mode
-
-Enable debug logging by setting:
+Enable debug mode by setting:
 
 ```env
-NODE_ENV=development
+CLERK_LOGGING=true
 ```
 
-This will log auth-related events to the console.
+Check the browser console and server logs for detailed auth information.
 
-## Migration from Mock Auth
+### User Metadata
 
-The app is designed to seamlessly migrate from mock auth to OpenAuth:
+Store app-specific data in Clerk user metadata:
 
-1. Set the `OPENAUTH_ISSUER` environment variable
-2. Deploy the changes
-3. Users will be prompted to authenticate on next visit
-4. Existing data can be linked using email addresses
+```tsx
+import { clerkClient } from "@clerk/nextjs/server";
 
-## API Reference
+// Update user metadata
+await clerkClient.users.updateUser(userId, {
+  publicMetadata: {
+    defaultHouseholdId: "household_123",
+    role: "OWNER"
+  }
+});
+```
 
-### Auth Hooks
+## Common Issues
 
-- `useAuth()` - Main auth hook
-  - `user` - Current user object
-  - `households` - User's household memberships
-  - `isAuthenticated` - Boolean auth state
-  - `isLoading` - Loading state
-  - `error` - Error message if any
-  - `login()` - Initiate login
-  - `logout()` - Clear session
-  - `refreshAuth()` - Refresh user data
+### "Unauthorized" Errors
 
-- `useRequireAuth()` - Require auth or redirect
-  - Automatically redirects to login if not authenticated
-  - Returns user and loading state
+1. Check that `CLERK_SECRET_KEY` is set correctly
+2. Ensure middleware is configured properly
+3. Verify user is synced to database
 
-### Auth Context
+### Webhook Issues
 
-The tRPC context includes:
-- `session` - Full session object
-- `user` - Current user
-- `currentHouseholdId` - Selected household
-- `currentMembership` - User's role in household
+1. Verify webhook endpoint is accessible
+2. Check webhook signing secret
+3. Review webhook logs in Clerk dashboard
 
-## Future Enhancements
+### Session Issues
 
-- [ ] Social login providers (Google, GitHub, etc.)
-- [ ] Two-factor authentication
-- [ ] Session management UI
-- [ ] Remember me functionality
-- [ ] Account linking
+1. Clear browser cookies
+2. Check Clerk session settings
+3. Verify environment variables
+
+## Migration from Other Auth Systems
+
+If migrating from another auth system:
+
+1. Export user data from old system
+2. Use Clerk's bulk import API
+3. Map user IDs in database
+4. Update user references
+5. Test thoroughly before switching
+
+## Resources
+
+- [Clerk Documentation](https://clerk.com/docs)
+- [Next.js Integration Guide](https://clerk.com/docs/nextjs/get-started)
+- [Webhook Documentation](https://clerk.com/docs/webhooks/overview)
+- [User Metadata Guide](https://clerk.com/docs/users/metadata)

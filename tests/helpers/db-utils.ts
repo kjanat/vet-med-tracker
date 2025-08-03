@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { afterAll, beforeAll, beforeEach } from "vitest";
@@ -38,14 +39,33 @@ export async function cleanDatabase() {
 
 	const tables = Array.isArray(tablesResult) ? tablesResult : tablesResult.rows;
 
-	// Disable foreign key checks and truncate tables
-	await testDb.execute(`SET session_replication_role = 'replica'`);
+	// Sort tables to handle dependencies - audit logs first, then other tables
+	const sortedTables = [...tables].sort((a, b) => {
+		// Priority order for deletion
+		const priority: Record<string, number> = {
+			vetmed_audit_log: 1,
+			vetmed_notification_queue: 2,
+			vetmed_administrations: 3,
+			vetmed_regimens: 4,
+			vetmed_inventory_items: 5,
+			vetmed_animals: 6,
+			vetmed_memberships: 7,
+			vetmed_households: 8,
+			vetmed_users: 9,
+			vetmed_medication_catalog: 10,
+		};
 
-	for (const { tablename } of tables) {
+		const aPriority = priority[a.tablename] || 99;
+		const bPriority = priority[b.tablename] || 99;
+
+		return aPriority - bPriority;
+	});
+
+	// Use CASCADE to handle foreign key constraints without requiring superuser privileges
+	// This works on Neon databases
+	for (const { tablename } of sortedTables) {
 		await testDb.execute(`TRUNCATE TABLE "${tablename}" CASCADE`);
 	}
-
-	await testDb.execute(`SET session_replication_role = 'origin'`);
 }
 
 // Seed helpers
@@ -54,8 +74,7 @@ export async function seedTestData() {
 	const userResult = await testDb
 		.insert(users)
 		.values({
-			id: "test-user-1",
-			email: "test@example.com",
+			email: `test-${randomUUID()}@example.com`,
 			name: "Test User",
 		})
 		.returning();
@@ -66,7 +85,6 @@ export async function seedTestData() {
 	const householdResult = await testDb
 		.insert(households)
 		.values({
-			id: "test-household-1",
 			name: "Test Household",
 		})
 		.returning();
@@ -84,7 +102,6 @@ export async function seedTestData() {
 	const animalResult = await testDb
 		.insert(animals)
 		.values({
-			id: "test-animal-1",
 			name: "Buddy",
 			species: "dog",
 			breed: "Golden Retriever",
@@ -106,4 +123,4 @@ export async function withTransaction<T>(
 }
 
 // Import your schema tables (you'll need to update these imports based on your actual schema)
-import { animals, households, memberships, users } from "@/server/db/schema";
+import { animals, households, memberships, users } from "@/db/schema";

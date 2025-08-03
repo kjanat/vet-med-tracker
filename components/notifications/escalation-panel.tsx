@@ -123,7 +123,7 @@ export function EscalationPanel() {
 								<SelectItem value="60">1 hour</SelectItem>
 							</SelectContent>
 						</Select>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted-foreground text-sm">
 							How early to send the first reminder
 						</p>
 					</div>
@@ -160,7 +160,7 @@ export function EscalationPanel() {
 							))}
 						</div>
 
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted-foreground text-sm">
 							Negative numbers send reminders before the scheduled time,
 							positive numbers after
 						</p>
@@ -198,7 +198,7 @@ export function EscalationPanel() {
 								<SelectItem value="Lead">Lead Caregiver</SelectItem>
 							</SelectContent>
 						</Select>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted-foreground text-sm">
 							After 45 minutes past due, notify all members with this role
 						</p>
 					</div>

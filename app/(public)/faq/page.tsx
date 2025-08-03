@@ -179,22 +179,22 @@ export default function FAQPage() {
 		.filter((category) => category.questions.length > 0);
 
 	return (
-		<div className="container max-w-4xl mx-auto px-4 py-12">
-			<div className="text-center mb-12">
-				<h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
-				<p className="text-xl text-muted-foreground">
+		<div className="container mx-auto max-w-4xl px-4 py-12">
+			<div className="mb-12 text-center">
+				<h1 className="mb-4 font-bold text-4xl">Frequently Asked Questions</h1>
+				<p className="text-muted-foreground text-xl">
 					Find answers to common questions about VetMed Tracker
 				</p>
 			</div>
 
 			{/* Search */}
-			<div className="max-w-2xl mx-auto mb-8">
+			<div className="mx-auto mb-8 max-w-2xl">
 				<input
 					type="search"
 					placeholder="Search FAQs..."
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
-					className="w-full px-4 py-3 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+					className="w-full rounded-lg border bg-background px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
 				/>
 			</div>
 
@@ -203,7 +203,7 @@ export default function FAQPage() {
 				<div className="space-y-8">
 					{filteredCategories.map((category) => (
 						<div key={category.category}>
-							<h2 className="text-2xl font-semibold mb-4">
+							<h2 className="mb-4 font-semibold text-2xl">
 								{category.category}
 							</h2>
 							<Accordion type="single" collapsible className="space-y-4">
@@ -211,12 +211,12 @@ export default function FAQPage() {
 									<AccordionItem
 										key={`${category.category}-${index}`}
 										value={`${category.category}-${index}`}
-										className="border rounded-lg px-4"
+										className="rounded-lg border px-4"
 									>
 										<AccordionTrigger className="text-left hover:no-underline">
 											<span className="pr-4">{faq.question}</span>
 										</AccordionTrigger>
-										<AccordionContent className="text-muted-foreground pt-2 pb-4">
+										<AccordionContent className="pt-2 pb-4 text-muted-foreground">
 											{faq.answer}
 										</AccordionContent>
 									</AccordionItem>
@@ -226,8 +226,8 @@ export default function FAQPage() {
 					))}
 				</div>
 			) : (
-				<div className="text-center py-12">
-					<p className="text-muted-foreground mb-4">
+				<div className="py-12 text-center">
+					<p className="mb-4 text-muted-foreground">
 						No questions found matching &quot;{searchTerm}&quot;
 					</p>
 					<Button variant="outline" onClick={() => setSearchTerm("")}>
@@ -237,12 +237,12 @@ export default function FAQPage() {
 			)}
 
 			{/* Still have questions? */}
-			<div className="mt-16 text-center p-8 bg-muted/50 rounded-lg">
-				<h2 className="text-2xl font-semibold mb-4">Still Have Questions?</h2>
-				<p className="text-muted-foreground mb-6">
+			<div className="mt-16 rounded-lg bg-muted/50 p-8 text-center">
+				<h2 className="mb-4 font-semibold text-2xl">Still Have Questions?</h2>
+				<p className="mb-6 text-muted-foreground">
 					Can&apos;t find what you&apos;re looking for? We&apos;re here to help!
 				</p>
-				<div className="flex flex-col sm:flex-row gap-4 justify-center">
+				<div className="flex flex-col justify-center gap-4 sm:flex-row">
 					<Button asChild>
 						<Link href="/help">Visit Help Center</Link>
 					</Button>
@@ -253,7 +253,7 @@ export default function FAQPage() {
 			</div>
 
 			{/* Quick Links */}
-			<div className="mt-12 pt-8 border-t">
+			<div className="mt-12 border-t pt-8">
 				<div className="flex flex-wrap justify-center gap-4 text-sm">
 					<Link href="/help" className="text-primary hover:underline">
 						Help Center

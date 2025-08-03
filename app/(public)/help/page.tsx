@@ -101,30 +101,30 @@ export default function HelpPage() {
 	];
 
 	return (
-		<div className="container max-w-6xl mx-auto px-4 py-12">
-			<div className="text-center mb-12">
-				<h1 className="text-4xl font-bold mb-4">How Can We Help?</h1>
-				<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+		<div className="container mx-auto max-w-6xl px-4 py-12">
+			<div className="mb-12 text-center">
+				<h1 className="mb-4 font-bold text-4xl">How Can We Help?</h1>
+				<p className="mx-auto max-w-2xl text-muted-foreground text-xl">
 					Find answers, get support, and learn how to make the most of VetMed
 					Tracker
 				</p>
 			</div>
 
 			{/* Search Section */}
-			<div className="max-w-2xl mx-auto mb-12">
+			<div className="mx-auto mb-12 max-w-2xl">
 				<div className="relative">
 					<input
 						type="search"
 						placeholder="Search for help..."
-						className="w-full px-4 py-3 pr-12 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+						className="w-full rounded-lg border bg-background px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
 					/>
 					<button
 						type="button"
-						className="absolute right-3 top-1/2 -translate-y-1/2"
+						className="-translate-y-1/2 absolute top-1/2 right-3"
 						aria-label="Search"
 					>
 						<svg
-							className="w-5 h-5 text-muted-foreground"
+							className="h-5 w-5 text-muted-foreground"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -142,15 +142,15 @@ export default function HelpPage() {
 			</div>
 
 			{/* Help Categories */}
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+			<div className="mb-16 grid grid-cols-1 gap-6 md:grid-cols-2">
 				{helpCategories.map((category) => {
 					const Icon = category.icon;
 					return (
 						<Card key={category.title}>
 							<CardHeader>
 								<div className="flex items-center gap-3">
-									<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-										<Icon className="w-5 h-5 text-primary" />
+									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+										<Icon className="h-5 w-5 text-primary" />
 									</div>
 									<div>
 										<CardTitle className="text-xl">{category.title}</CardTitle>
@@ -164,7 +164,7 @@ export default function HelpPage() {
 										<li key={link.label}>
 											<Link
 												href={link.href}
-												className="text-primary hover:underline hover:text-primary/80 transition-colors"
+												className="text-primary transition-colors hover:text-primary/80 hover:underline"
 											>
 												{link.label}
 											</Link>
@@ -179,30 +179,30 @@ export default function HelpPage() {
 
 			{/* Quick Answers */}
 			<section className="mb-16">
-				<h2 className="text-2xl font-semibold mb-6 text-center">
+				<h2 className="mb-6 text-center font-semibold text-2xl">
 					Quick Answers
 				</h2>
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-					<div className="text-center p-6">
-						<Clock className="w-12 h-12 mx-auto mb-4 text-primary" />
-						<h3 className="font-semibold mb-2">3-Tap Recording</h3>
-						<p className="text-sm text-muted-foreground">
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+					<div className="p-6 text-center">
+						<Clock className="mx-auto mb-4 h-12 w-12 text-primary" />
+						<h3 className="mb-2 font-semibold">3-Tap Recording</h3>
+						<p className="text-muted-foreground text-sm">
 							Select medication, hold button for 3 seconds, done! It&apos;s that
 							simple.
 						</p>
 					</div>
-					<div className="text-center p-6">
-						<Smartphone className="w-12 h-12 mx-auto mb-4 text-primary" />
-						<h3 className="font-semibold mb-2">Works Offline</h3>
-						<p className="text-sm text-muted-foreground">
+					<div className="p-6 text-center">
+						<Smartphone className="mx-auto mb-4 h-12 w-12 text-primary" />
+						<h3 className="mb-2 font-semibold">Works Offline</h3>
+						<p className="text-muted-foreground text-sm">
 							Record medications without internet. Data syncs automatically when
 							reconnected.
 						</p>
 					</div>
-					<div className="text-center p-6">
-						<Users className="w-12 h-12 mx-auto mb-4 text-primary" />
-						<h3 className="font-semibold mb-2">Multiple Caregivers</h3>
-						<p className="text-sm text-muted-foreground">
+					<div className="p-6 text-center">
+						<Users className="mx-auto mb-4 h-12 w-12 text-primary" />
+						<h3 className="mb-2 font-semibold">Multiple Caregivers</h3>
+						<p className="text-muted-foreground text-sm">
 							Share care responsibilities with family members or pet sitters.
 						</p>
 					</div>
@@ -211,21 +211,21 @@ export default function HelpPage() {
 
 			{/* Contact Support */}
 			<section>
-				<h2 className="text-2xl font-semibold mb-6 text-center">
+				<h2 className="mb-6 text-center font-semibold text-2xl">
 					Still Need Help?
 				</h2>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 					{contactMethods.map((method) => {
 						const Icon = method.icon;
 						return (
 							<Card
 								key={method.title}
-								className="text-center hover:shadow-lg transition-shadow"
+								className="text-center transition-shadow hover:shadow-lg"
 							>
 								<CardContent className="pt-6">
-									<Icon className="w-12 h-12 mx-auto mb-4 text-primary" />
-									<h3 className="font-semibold mb-2">{method.title}</h3>
-									<p className="text-sm text-muted-foreground mb-4">
+									<Icon className="mx-auto mb-4 h-12 w-12 text-primary" />
+									<h3 className="mb-2 font-semibold">{method.title}</h3>
+									<p className="mb-4 text-muted-foreground text-sm">
 										{method.description}
 									</p>
 									<Button asChild variant="outline" className="w-full">
@@ -239,9 +239,9 @@ export default function HelpPage() {
 			</section>
 
 			{/* Emergency Support */}
-			<div className="mt-12 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg text-center">
-				<h3 className="font-semibold mb-2">Emergency Veterinary Help</h3>
-				<p className="text-sm mb-4">
+			<div className="mt-12 rounded-lg bg-red-50 p-6 text-center dark:bg-red-900/20">
+				<h3 className="mb-2 font-semibold">Emergency Veterinary Help</h3>
+				<p className="mb-4 text-sm">
 					For medical emergencies, contact your veterinarian immediately or
 					visit the nearest emergency animal hospital.
 				</p>
@@ -254,10 +254,10 @@ export default function HelpPage() {
 			</div>
 
 			{/* Feedback Section */}
-			<div className="mt-12 p-6 bg-primary/5 rounded-lg text-center">
-				<Lightbulb className="w-12 h-12 mx-auto mb-4 text-primary" />
-				<h3 className="font-semibold mb-2">Have a Suggestion?</h3>
-				<p className="text-sm mb-4">
+			<div className="mt-12 rounded-lg bg-primary/5 p-6 text-center">
+				<Lightbulb className="mx-auto mb-4 h-12 w-12 text-primary" />
+				<h3 className="mb-2 font-semibold">Have a Suggestion?</h3>
+				<p className="mb-4 text-sm">
 					We&apos;re always looking to improve VetMed Tracker. Share your ideas
 					with us!
 				</p>

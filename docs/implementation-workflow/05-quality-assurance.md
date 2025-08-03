@@ -39,18 +39,18 @@ This phase ensures the VetMed Tracker meets the highest quality standards throug
    // tests/utils/status-mapping.test.ts
    import { describe, it, expect } from 'vitest';
    import { mapDbStatusToUi, mapUiStatusToDb } from '@/utils/status-mapping';
-   
+
    describe('Status Mapping', () => {
      it('should map database status to UI format', () => {
        expect(mapDbStatusToUi('ON_TIME')).toBe('on-time');
        expect(mapDbStatusToUi('VERY_LATE')).toBe('very-late');
      });
-     
+
      it('should handle invalid status gracefully', () => {
        expect(() => mapDbStatusToUi('INVALID' as any))
          .toThrow('Invalid status');
      });
-     
+
      it('should be bidirectional', () => {
        const dbStatus = 'ON_TIME';
        const uiStatus = mapDbStatusToUi(dbStatus);
@@ -69,18 +69,18 @@ This phase ensures the VetMed Tracker meets the highest quality standards throug
          { status: 'LATE', scheduledTime: new Date() },
          { status: 'MISSED', scheduledTime: new Date() }
        ];
-       
+
        const result = calculateComplianceScore(administrations);
        expect(result.overall).toBe(66.67); // 2/3 = 66.67%
        expect(result.breakdown.onTime).toBe(33.33);
      });
-     
+
      it('should exclude PRN doses from compliance', () => {
        const administrations = [
          { status: 'ON_TIME', isPRN: false },
          { status: 'PRN', isPRN: true }
        ];
-       
+
        const result = calculateComplianceScore(administrations);
        expect(result.overall).toBe(100); // PRN excluded
      });
@@ -94,32 +94,32 @@ This phase ensures the VetMed Tracker meets the highest quality standards throug
      it('should queue operations when offline', async () => {
        // Mock offline state
        mockNavigator.onLine = false;
-       
+
        const { result } = renderHook(() => useOfflineQueue());
-       
+
        await act(async () => {
          await result.current.queueOperation({
            type: 'admin.create',
            data: { /* ... */ }
          });
        });
-       
+
        expect(result.current.queueSize).toBe(1);
      });
-     
+
      it('should prevent duplicate submissions', async () => {
        const { result } = renderHook(() => useOfflineQueue());
-       
+
        const operation = {
          type: 'admin.create',
          data: { idempotencyKey: 'test-key' }
        };
-       
+
        await act(async () => {
          await result.current.queueOperation(operation);
          await result.current.queueOperation(operation);
        });
-       
+
        expect(result.current.queueSize).toBe(1);
      });
    });
@@ -135,7 +135,7 @@ This phase ensures the VetMed Tracker meets the highest quality standards throug
    describe('Administration API', () => {
      it('should record medication with all validations', async () => {
        const caller = await createCaller({ user: mockUser });
-       
+
        const result = await caller.admin.create({
          animalId: 'test-animal',
          regimenId: 'test-regimen',
@@ -143,18 +143,18 @@ This phase ensures the VetMed Tracker meets the highest quality standards throug
          scheduledTime: new Date(),
          actualTime: new Date()
        });
-       
+
        expect(result).toMatchObject({
          id: expect.any(String),
          status: 'ON_TIME',
          administeredBy: mockUser.id
        });
      });
-     
+
      it('should enforce household permissions', async () => {
        const unauthorizedUser = createMockUser({ householdId: 'other' });
        const caller = await createCaller({ user: unauthorizedUser });
-       
+
        await expect(
          caller.admin.create({ /* ... */ })
        ).rejects.toThrow('Unauthorized');
@@ -170,27 +170,27 @@ This phase ensures the VetMed Tracker meets the highest quality standards throug
        await page.goto('/');
        await page.waitForLoadState('networkidle');
      });
-     
+
      it('should cache critical resources', async () => {
        // Go offline
        await page.context().setOffline(true);
-       
+
        // Navigate should still work
        await page.goto('/admin/record');
        await expect(page.locator('h1')).toContainText('Record');
      });
-     
+
      it('should sync queued operations when online', async () => {
        // Queue operation while offline
        await page.context().setOffline(true);
        await recordMedication(page);
-       
+
        // Go back online
        await page.context().setOffline(false);
-       
+
        // Wait for sync
        await page.waitForResponse(/api\/admin\/create/);
-       
+
        // Verify synced
        await expect(page.locator('[data-testid="sync-status"]'))
          .toContainText('Synced');
@@ -208,40 +208,40 @@ This phase ensures the VetMed Tracker meets the highest quality standards throug
    test.describe('Medication Recording', () => {
      test('should complete three-tap recording', async ({ page }) => {
        await page.goto('/admin/record');
-       
+
        // Tap 1: Select animal (should be pre-selected)
        await expect(page.locator('[data-testid="selected-animal"]'))
          .toContainText('Buddy');
-       
+
        // Tap 2: Select regimen
        await page.click('[data-testid="regimen-card-1"]');
-       
+
        // Tap 3: Hold to confirm
        const confirmButton = page.locator('[data-testid="confirm-button"]');
        await confirmButton.hover();
        await page.mouse.down();
-       
+
        // Wait for 3-second hold
        await page.waitForTimeout(3000);
        await page.mouse.up();
-       
+
        // Verify success
        await expect(page.locator('[data-testid="success-message"]'))
          .toContainText('Recorded at');
      });
-     
+
      test('should handle co-sign requirement', async ({ page }) => {
        // Record high-risk medication
        await recordHighRiskMedication(page);
-       
+
        // Verify co-sign required
        await expect(page.locator('[data-testid="cosign-required"]'))
          .toBeVisible();
-       
+
        // Switch user and co-sign
        await switchUser(page, 'cosigner');
        await page.click('[data-testid="cosign-button"]');
-       
+
        // Verify completion
        await expect(page.locator('[data-testid="cosign-complete"]'))
          .toBeVisible();
@@ -255,19 +255,19 @@ This phase ensures the VetMed Tracker meets the highest quality standards throug
    test.describe('Multi-Household Management', () => {
      test('should switch between households', async ({ page }) => {
        await page.goto('/');
-       
+
        // Current household
        await expect(page.locator('[data-testid="current-household"]'))
          .toContainText('Smith Family');
-       
+
        // Switch household
        await page.click('[data-testid="household-switcher"]');
        await page.click('[data-testid="household-foster-home"]');
-       
+
        // Verify switched
        await expect(page.locator('[data-testid="current-household"]'))
          .toContainText('Foster Home');
-       
+
        // Verify data isolation
        await page.goto('/animals');
        await expect(page.locator('[data-testid="animal-list"]'))
@@ -341,19 +341,19 @@ pnpm dlx @cyclonedx/bom
        if (!ctx.session?.user) {
          throw new TRPCError({ code: 'UNAUTHORIZED' });
        }
-       
+
        const membership = await getMembership(
          ctx.session.user.id,
          ctx.input.householdId
        );
-       
+
        if (!roles.includes(membership.role)) {
-         throw new TRPCError({ 
+         throw new TRPCError({
            code: 'FORBIDDEN',
            message: `Requires role: ${roles.join(' or ')}`
          });
        }
-       
+
        return next({ ctx: { ...ctx, membership } });
      });
    };
@@ -364,25 +364,25 @@ pnpm dlx @cyclonedx/bom
    // server/api/middleware/rate-limit.ts
    import { Ratelimit } from '@upstash/ratelimit';
    import { Redis } from '@upstash/redis';
-   
+
    const ratelimit = new Ratelimit({
      redis: Redis.fromEnv(),
      limiter: Ratelimit.slidingWindow(10, '10 s'),
      analytics: true
    });
-   
+
    export const rateLimitMiddleware = middleware(async ({ ctx, next }) => {
      const identifier = ctx.session?.user?.id || ctx.ip;
-     const { success, limit, reset, remaining } = 
+     const { success, limit, reset, remaining } =
        await ratelimit.limit(identifier);
-     
+
      if (!success) {
        throw new TRPCError({
          code: 'TOO_MANY_REQUESTS',
          message: `Rate limit exceeded. Try again in ${reset - Date.now()}ms`
        });
      }
-     
+
      return next();
    });
    ```
@@ -395,7 +395,7 @@ pnpm dlx @cyclonedx/bom
    ```typescript
    // lib/security/sanitization.ts
    import DOMPurify from 'isomorphic-dompurify';
-   
+
    export const sanitizeInput = (input: unknown): unknown => {
      if (typeof input === 'string') {
        return DOMPurify.sanitize(input, {
@@ -403,11 +403,11 @@ pnpm dlx @cyclonedx/bom
          ALLOWED_ATTR: []
        });
      }
-     
+
      if (Array.isArray(input)) {
        return input.map(sanitizeInput);
      }
-     
+
      if (input && typeof input === 'object') {
        return Object.fromEntries(
          Object.entries(input).map(([key, value]) => [
@@ -416,7 +416,7 @@ pnpm dlx @cyclonedx/bom
          ])
        );
      }
-     
+
      return input;
    };
    ```
@@ -505,25 +505,25 @@ export default function() {
     regimenId: 'test-regimen',
     actualTime: new Date()
   });
-  
+
   const params = {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${__ENV.API_TOKEN}`
     },
   };
-  
+
   const res = http.post(
     'https://api.vetmed.app/api/admin/create',
     payload,
     params
   );
-  
+
   check(res, {
     'status is 200': (r) => r.status === 200,
     'response time < 500ms': (r) => r.timings.duration < 500,
   });
-  
+
   sleep(1);
 }
 ```
@@ -535,15 +535,15 @@ export default function() {
 1. **Add Missing Indexes**
    ```sql
    -- Performance indexes
-   CREATE INDEX idx_administrations_household_time 
+   CREATE INDEX idx_administrations_household_time
    ON administrations(household_id, scheduled_time DESC);
-   
-   CREATE INDEX idx_administrations_animal_status 
+
+   CREATE INDEX idx_administrations_animal_status
    ON administrations(animal_id, status);
-   
-   CREATE INDEX idx_inventory_household_medication 
+
+   CREATE INDEX idx_inventory_household_medication
    ON inventory_items(household_id, medication_id);
-   
+
    -- Analyze query performance
    EXPLAIN ANALYZE
    SELECT a.*, an.name as animal_name, m.name as medication_name
@@ -561,7 +561,7 @@ export default function() {
    ```typescript
    // lib/db/connection-pool.ts
    import { Pool } from '@neondatabase/serverless';
-   
+
    export const pool = new Pool({
      connectionString: process.env.DATABASE_URL,
      max: 20, // Maximum connections
@@ -599,14 +599,14 @@ export default function() {
 2. **Test Scenarios**
    ```markdown
    ## Beta Test Scenarios
-   
+
    ### Week 1: Core Features
    - [ ] Set up household and add pets
    - [ ] Create medication regimens
    - [ ] Record daily medications
    - [ ] Handle missed doses
    - [ ] View compliance reports
-   
+
    ### Week 2: Advanced Features
    - [ ] Manage inventory
    - [ ] Set up reminders
@@ -621,7 +621,7 @@ export default function() {
    export function BetaFeedbackWidget() {
      const [showFeedback, setShowFeedback] = useState(false);
      const { mutate: submitFeedback } = trpc.feedback.submit.useMutation();
-     
+
      return (
        <>
          <Button
@@ -631,7 +631,7 @@ export default function() {
            <MessageSquare className="h-4 w-4 mr-2" />
            Beta Feedback
          </Button>
-         
+
          <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
            <DialogContent>
              <DialogHeader>
@@ -708,23 +708,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       # Unit & Integration Tests
       - name: Run Tests
         run: |
           pnpm test:unit
           pnpm test:integration
-          
+
       # E2E Tests
       - name: E2E Tests
         run: pnpm test:e2e
-        
+
       # Security Audit
       - name: Security Check
         run: |
           pnpm audit
           pnpm dlx @cyclonedx/bom
-          
+
       # Performance Tests
       - name: Lighthouse CI
         uses: treosh/lighthouse-ci-action@v10
@@ -732,7 +732,7 @@ jobs:
           urls: |
             https://preview.vetmed.app
             https://preview.vetmed.app/admin/record
-            
+
       # Coverage Report
       - name: Upload Coverage
         uses: codecov/codecov-action@v3

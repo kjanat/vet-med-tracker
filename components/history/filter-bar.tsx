@@ -41,7 +41,7 @@ export function FilterBar() {
 	};
 
 	return (
-		<div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 border-b">
+		<div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
 			<div className="container max-w-full py-2 md:py-3">
 				<div className="flex flex-col gap-2 md:gap-3">
 					{/* Mobile: View toggle and date on same row */}
@@ -132,7 +132,7 @@ export function FilterBar() {
 
 						{/* Active Filters Badge */}
 						{activeFilterCount > 0 && (
-							<div className="flex items-center gap-2 w-full md:w-auto">
+							<div className="flex w-full items-center gap-2 md:w-auto">
 								<Badge variant="secondary" className="gap-1">
 									<Filter className="h-3 w-3" />
 									{activeFilterCount} active
@@ -152,7 +152,7 @@ export function FilterBar() {
 
 					{/* Active Filter Pills - Only show on desktop to save mobile space */}
 					{activeFilterCount > 0 && (
-						<div className="hidden md:flex flex-wrap gap-2">
+						<div className="hidden flex-wrap gap-2 md:flex">
 							{filters.animalId && (
 								<FilterPill
 									label={`Animal: ${animals.find((a) => a.id === filters.animalId)?.name}`}
@@ -210,7 +210,7 @@ function DateRangePicker({
 				<Button
 					variant="outline"
 					size="sm"
-					className="gap-2 bg-transparent w-full md:w-auto justify-start text-left font-normal h-11"
+					className="h-11 w-full justify-start gap-2 bg-transparent text-left font-normal md:w-auto"
 				>
 					<Calendar className="h-4 w-4 shrink-0" />
 					<span className="truncate text-xs md:text-sm">
@@ -222,7 +222,7 @@ function DateRangePicker({
 			</PopoverTrigger>
 			<PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
 				{/* Mobile: Single range calendar */}
-				<div className="md:hidden p-3">
+				<div className="p-3 md:hidden">
 					<CalendarComponent
 						mode="range"
 						selected={{ from, to }}
@@ -235,10 +235,10 @@ function DateRangePicker({
 				</div>
 
 				{/* Desktop: Two separate calendars */}
-				<div className="hidden md:flex flex-row">
-					<div className="p-3 border-r">
+				<div className="hidden flex-row md:flex">
+					<div className="border-r p-3">
 						<div className="space-y-2">
-							<p className="text-sm font-medium">From</p>
+							<p className="font-medium text-sm">From</p>
 							<CalendarComponent
 								mode="single"
 								selected={from}
@@ -249,7 +249,7 @@ function DateRangePicker({
 					</div>
 					<div className="p-3">
 						<div className="space-y-2">
-							<p className="text-sm font-medium">To</p>
+							<p className="font-medium text-sm">To</p>
 							<CalendarComponent
 								mode="single"
 								selected={to}

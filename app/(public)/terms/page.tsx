@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function TermsPage() {
 	return (
-		<div className="container max-w-4xl mx-auto px-4 py-12">
+		<div className="container mx-auto max-w-4xl px-4 py-12">
 			<style jsx>{`
 				.legal-content {
 					font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
@@ -53,10 +53,10 @@ export default function TermsPage() {
 				}
 			`}</style>
 
-			<h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
+			<h1 className="mb-6 font-bold text-3xl">Terms of Service</h1>
 
 			<div className="legal-content prose dark:prose-invert max-w-none">
-				<p className="text-muted-foreground mb-6">
+				<p className="mb-6 text-muted-foreground">
 					Last updated: {new Date().toLocaleDateString()}
 				</p>
 
@@ -77,7 +77,7 @@ export default function TermsPage() {
 						help pet owners and caregivers track medication schedules for
 						animals. The Service includes:
 					</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>Medication schedule creation and management</li>
 						<li>Administration recording and tracking</li>
 						<li>Reminder notifications</li>
@@ -90,7 +90,7 @@ export default function TermsPage() {
 				<section className="mb-6">
 					<h2>3. Medical Disclaimer</h2>
 					<div className="legal-disclaimer">
-						<p className="font-semibold mb-2">Important Notice:</p>
+						<p className="mb-2 font-semibold">Important Notice:</p>
 						<p>
 							VetMed Tracker is NOT a substitute for professional veterinary
 							advice, diagnosis, or treatment. Always consult with a qualified
@@ -111,7 +111,7 @@ export default function TermsPage() {
 					<p className="mb-4">
 						To use certain features of the Service, you must:
 					</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>Create an account using accurate and complete information</li>
 						<li>Maintain the security of your account credentials</li>
 						<li>Promptly notify us of any unauthorized use of your account</li>
@@ -124,7 +124,7 @@ export default function TermsPage() {
 				<section className="mb-6">
 					<h2>5. User Responsibilities</h2>
 					<p className="mb-4">You agree to:</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>Use the Service only for lawful purposes</li>
 						<li>Enter accurate medication and administration information</li>
 						<li>Verify all medication details with your veterinarian</li>
@@ -235,14 +235,14 @@ export default function TermsPage() {
 					</ul>
 				</section>
 
-				<div className="mt-12 pt-8 border-t">
+				<div className="mt-12 border-t pt-8">
 					<div className="flex items-center justify-between">
 						<Link href="/privacy" className="text-primary hover:underline">
 							Privacy Policy
 						</Link>
 						<Separator
 							orientation="vertical"
-							className="h-4 mx-4 hidden sm:block"
+							className="mx-4 hidden h-4 sm:block"
 						/>
 						<span className="text-muted-foreground sm:hidden">|</span>
 						<Link href="/cookies" className="text-primary hover:underline">

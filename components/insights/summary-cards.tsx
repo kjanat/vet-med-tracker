@@ -57,12 +57,12 @@ function SummaryCardsLoading() {
 			{["compliance", "medications", "alerts", "trends"].map((cardType) => (
 				<Card key={`loading-${cardType}`}>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
-						<div className="h-4 w-4 bg-muted rounded animate-pulse"></div>
+						<div className="h-4 w-24 animate-pulse rounded bg-muted"></div>
+						<div className="h-4 w-4 animate-pulse rounded bg-muted"></div>
 					</CardHeader>
 					<CardContent>
-						<div className="h-8 w-16 bg-muted rounded animate-pulse mb-2"></div>
-						<div className="h-3 w-20 bg-muted rounded animate-pulse"></div>
+						<div className="mb-2 h-8 w-16 animate-pulse rounded bg-muted"></div>
+						<div className="h-3 w-20 animate-pulse rounded bg-muted"></div>
 					</CardContent>
 				</Card>
 			))}
@@ -114,7 +114,7 @@ function TopPerformerCard({
 
 	return (
 		<Card
-			className="cursor-pointer hover:shadow-md transition-shadow"
+			className="cursor-pointer transition-shadow hover:shadow-md"
 			onClick={() =>
 				topPerformer
 					? handleCardClick(`animalId=${topPerformer.animalId}`)
@@ -122,7 +122,7 @@ function TopPerformerCard({
 			}
 		>
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="text-sm font-medium">Top Performer</CardTitle>
+				<CardTitle className="font-medium text-sm">Top Performer</CardTitle>
 				<Award className="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
@@ -131,15 +131,15 @@ function TopPerformerCard({
 						{topAnimal && <AnimalAvatar animal={topAnimal} size="sm" />}
 						<div>
 							<div className="font-bold">{topPerformer?.animalName || "—"}</div>
-							<div className="text-sm text-muted-foreground">
+							<div className="text-muted-foreground text-sm">
 								{topPerformer?.adherencePct || 0}% adherence
 							</div>
 						</div>
 					</div>
 				) : (
 					<>
-						<div className="text-2xl font-bold">—</div>
-						<p className="text-xs text-muted-foreground">
+						<div className="font-bold text-2xl">—</div>
+						<p className="text-muted-foreground text-xs">
 							{!hasAnimals ? "Add animals to track" : "No doses recorded yet"}
 						</p>
 					</>
@@ -179,13 +179,13 @@ function AnimalLeaderboard({
 			</CardHeader>
 			<CardContent>
 				{!hasAnimals ? (
-					<div className="text-center py-8">
+					<div className="py-8 text-center">
 						<p className="text-muted-foreground">
 							Add animals to start tracking medication compliance
 						</p>
 					</div>
 				) : !hasData ? (
-					<div className="text-center py-8">
+					<div className="py-8 text-center">
 						<p className="text-muted-foreground">
 							Record doses to see compliance rankings
 						</p>
@@ -200,29 +200,29 @@ function AnimalLeaderboard({
 								<button
 									type="button"
 									key={animal.animalId}
-									className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors gap-3 w-full text-left"
+									className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent"
 									onClick={() => handleCardClick(`animalId=${animal.animalId}`)}
 								>
 									{/* Left side: Position, avatar, and animal info */}
-									<div className="flex items-center gap-3 min-w-0">
+									<div className="flex min-w-0 items-center gap-3">
 										<div className="flex flex-col items-center gap-2 sm:flex-row">
-											<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
+											<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-sm">
 												{index + 1}
 											</div>
 											<AnimalAvatar animal={animalData} size="sm" />
 										</div>
 										<div className="min-w-0">
-											<div className="font-medium truncate">
+											<div className="truncate font-medium">
 												{animal.animalName}
 											</div>
-											<div className="text-sm text-muted-foreground truncate">
+											<div className="truncate text-muted-foreground text-sm">
 												{animal.completed} of {animal.scheduled} doses
 											</div>
 										</div>
 									</div>
 
 									{/* Right side: Badges stacked vertically */}
-									<div className="flex flex-col gap-1 items-end shrink-0 sm:flex-row sm:items-center sm:gap-2">
+									<div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-2">
 										<Badge
 											variant={
 												animal.adherencePct >= 90
@@ -238,7 +238,7 @@ function AnimalLeaderboard({
 										{animal.missed > 0 && (
 											<Badge
 												variant="outline"
-												className="text-orange-600 whitespace-nowrap w-fit"
+												className="w-fit whitespace-nowrap text-orange-600"
 											>
 												{animal.missed} missed
 											</Badge>
@@ -382,11 +382,11 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 			{/* Household Streak */}
 			<Card
-				className="cursor-pointer hover:shadow-md transition-shadow"
+				className="cursor-pointer transition-shadow hover:shadow-md"
 				onClick={() => handleCardClick("type=scheduled")}
 			>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">
+					<CardTitle className="font-medium text-sm">
 						Household Streak
 					</CardTitle>
 					<TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -394,15 +394,15 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 				<CardContent>
 					{hasData ? (
 						<>
-							<div className="text-2xl font-bold">{householdStreak} days</div>
-							<p className="text-xs text-muted-foreground">
+							<div className="font-bold text-2xl">{householdStreak} days</div>
+							<p className="text-muted-foreground text-xs">
 								No missed scheduled doses
 							</p>
 						</>
 					) : (
 						<>
-							<div className="text-2xl font-bold">—</div>
-							<p className="text-xs text-muted-foreground">
+							<div className="font-bold text-2xl">—</div>
+							<p className="text-muted-foreground text-xs">
 								No doses recorded yet
 							</p>
 						</>
@@ -412,11 +412,11 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
 			{/* Overall Compliance */}
 			<Card
-				className="cursor-pointer hover:shadow-md transition-shadow"
+				className="cursor-pointer transition-shadow hover:shadow-md"
 				onClick={() => handleCardClick("type=all")}
 			>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">
+					<CardTitle className="font-medium text-sm">
 						Overall Compliance
 					</CardTitle>
 					<Target className="h-4 w-4 text-muted-foreground" />
@@ -424,15 +424,15 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 				<CardContent>
 					{householdTotals.scheduled > 0 ? (
 						<>
-							<div className="text-2xl font-bold">{householdAdherence}%</div>
-							<p className="text-xs text-muted-foreground">
+							<div className="font-bold text-2xl">{householdAdherence}%</div>
+							<p className="text-muted-foreground text-xs">
 								{householdTotals.completed} of {householdTotals.scheduled} doses
 							</p>
 						</>
 					) : (
 						<>
-							<div className="text-2xl font-bold">—</div>
-							<p className="text-xs text-muted-foreground">
+							<div className="font-bold text-2xl">—</div>
+							<p className="text-muted-foreground text-xs">
 								No scheduled doses yet
 							</p>
 						</>
@@ -451,25 +451,25 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
 			{/* Needs Attention */}
 			<Card
-				className="cursor-pointer hover:shadow-md transition-shadow"
+				className="cursor-pointer transition-shadow hover:shadow-md"
 				onClick={() => handleCardClick("status=missed")}
 			>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Needs Attention</CardTitle>
+					<CardTitle className="font-medium text-sm">Needs Attention</CardTitle>
 					<AlertTriangle className="h-4 w-4 text-muted-foreground" />
 				</CardHeader>
 				<CardContent>
 					{hasData ? (
 						<>
-							<div className="text-2xl font-bold">{householdTotals.missed}</div>
-							<p className="text-xs text-muted-foreground">
+							<div className="font-bold text-2xl">{householdTotals.missed}</div>
+							<p className="text-muted-foreground text-xs">
 								Missed doses this period
 							</p>
 						</>
 					) : (
 						<>
-							<div className="text-2xl font-bold">—</div>
-							<p className="text-xs text-muted-foreground">
+							<div className="font-bold text-2xl">—</div>
+							<p className="text-muted-foreground text-xs">
 								No doses to track yet
 							</p>
 						</>

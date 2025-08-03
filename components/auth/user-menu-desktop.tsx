@@ -51,13 +51,13 @@ export function UserMenuDesktop() {
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton
 							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
+							className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 							disabled={isLoading}
 						>
 							<Avatar className="h-8 w-8 rounded-lg">
 								<AvatarImage
-									src={user.image || undefined}
-									alt={user.name || user.email}
+									src={user.image ?? undefined}
+									alt={user.name || user.email || "User"}
 								/>
 								<AvatarFallback className="rounded-lg">
 									{initials}
@@ -78,12 +78,12 @@ export function UserMenuDesktop() {
 						align="end"
 						sideOffset={4}
 					>
-						<DropdownMenuLabel className="p-0 font-normal cursor-default">
+						<DropdownMenuLabel className="cursor-default p-0 font-normal">
 							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 								<Avatar className="h-8 w-8 rounded-lg">
 									<AvatarImage
-										src={user.image || undefined}
-										alt={user.name || user.email}
+										src={user.image ?? undefined}
+										alt={user.name || user.email || "User"}
 									/>
 									<AvatarFallback className="rounded-lg">
 										{initials}
@@ -115,7 +115,7 @@ export function UserMenuDesktop() {
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							onClick={logout}
-							className="text-red-600 cursor-pointer"
+							className="cursor-pointer text-red-600"
 						>
 							<LogOut />
 							Log out

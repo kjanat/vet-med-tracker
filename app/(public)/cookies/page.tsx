@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function CookiesPage() {
 	return (
-		<div className="container max-w-4xl mx-auto px-4 py-12">
+		<div className="container mx-auto max-w-4xl px-4 py-12">
 			<style jsx>{`
 				.legal-content {
 					font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
@@ -52,10 +52,10 @@ export default function CookiesPage() {
 				}
 			`}</style>
 
-			<h1 className="text-3xl font-bold mb-6">Cookie Policy</h1>
+			<h1 className="mb-6 font-bold text-3xl">Cookie Policy</h1>
 
 			<div className="legal-content prose dark:prose-invert max-w-none">
-				<p className="text-muted-foreground mb-6">
+				<p className="mb-6 text-muted-foreground">
 					Last updated: {new Date().toLocaleDateString()}
 				</p>
 
@@ -74,7 +74,7 @@ export default function CookiesPage() {
 					<p className="mb-4">
 						VetMed Tracker uses cookies for the following purposes:
 					</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>
 							<strong>Authentication:</strong> To keep you signed in securely
 							across sessions
@@ -104,7 +104,7 @@ export default function CookiesPage() {
 								These cookies are necessary for the website to function
 								properly.
 							</p>
-							<ul className="list-disc pl-6 space-y-1">
+							<ul className="list-disc space-y-1 pl-6">
 								<li>
 									<code>__clerk_*</code> - Authentication and security
 								</li>
@@ -123,7 +123,7 @@ export default function CookiesPage() {
 							<p className="mb-2">
 								These help us understand how visitors interact with our website.
 							</p>
-							<ul className="list-disc pl-6 space-y-1">
+							<ul className="list-disc space-y-1 pl-6">
 								<li>Service Worker cache data for offline functionality</li>
 								<li>IndexedDB for offline data storage</li>
 							</ul>
@@ -143,7 +143,7 @@ export default function CookiesPage() {
 						browser settings to decline cookies if you prefer. Here are links to
 						cookie management instructions for popular browsers:
 					</p>
-					<ul className="list-disc pl-6 space-y-2">
+					<ul className="list-disc space-y-2 pl-6">
 						<li>
 							<a
 								href="https://support.google.com/chrome/answer/95647"
@@ -210,14 +210,14 @@ export default function CookiesPage() {
 					</p>
 				</section>
 
-				<div className="mt-12 pt-8 border-t">
+				<div className="mt-12 border-t pt-8">
 					<div className="flex items-center justify-between">
 						<Link href="/privacy" className="text-primary hover:underline">
 							Privacy Policy
 						</Link>
 						<Separator
 							orientation="vertical"
-							className="h-4 mx-4 hidden sm:block"
+							className="mx-4 hidden h-4 sm:block"
 						/>
 						<span className="text-muted-foreground sm:hidden">|</span>
 						<Link href="/terms" className="text-primary hover:underline">

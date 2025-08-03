@@ -16,7 +16,7 @@ export function AnimalSwitcher() {
 					type="button"
 					onClick={() => setSelectedAnimal(null)}
 					className={cn(
-						"flex flex-shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors whitespace-nowrap",
+						"flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 font-medium text-sm transition-colors",
 						!selectedAnimal
 							? "bg-primary text-primary-foreground"
 							: "bg-background hover:bg-accent",
@@ -34,7 +34,7 @@ export function AnimalSwitcher() {
 						key={animal.id}
 						onClick={() => setSelectedAnimal(animal)}
 						className={cn(
-							"flex flex-shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors whitespace-nowrap",
+							"flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 font-medium text-sm transition-colors",
 							selectedAnimal?.id === animal.id
 								? "bg-primary text-primary-foreground"
 								: "bg-background hover:bg-accent",

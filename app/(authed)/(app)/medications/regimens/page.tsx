@@ -15,7 +15,7 @@ function RegimensContent() {
 export default function RegimensPage() {
 	return (
 		<Suspense
-			fallback={<div className="min-h-screen bg-background animate-pulse" />}
+			fallback={<div className="min-h-screen animate-pulse bg-background" />}
 		>
 			<RegimensContent />
 		</Suspense>

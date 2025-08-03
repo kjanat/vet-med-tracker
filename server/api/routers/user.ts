@@ -1,6 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { animals, households, memberships } from "../../db/schema";
+import { animals, households, memberships } from "@/db/schema";
+import type { VetMedPreferences } from "@/hooks/use-user-preferences";
 import { updateUserPreferences } from "../clerk-sync";
 import { createTRPCRouter, protectedProcedure } from "../trpc/clerk-init";
 
@@ -151,10 +152,23 @@ export const userRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			// Update preferences in database
-			await updateUserPreferences(ctx.auth.userId!, {
-				vetMedPreferences: input.vetMedPreferences,
-				householdSettings: input.householdSettings,
-			});
+			if (!ctx.dbUser.clerkUserId) {
+				throw new Error("User must have a Clerk ID to update preferences");
+			}
+			await updateUserPreferences(
+				ctx.dbUser.clerkUserId,
+				{
+					vetMedPreferences: input.vetMedPreferences as
+						| Partial<VetMedPreferences>
+						| undefined,
+					householdSettings: input.householdSettings,
+				},
+				{
+					userId: ctx.dbUser.id,
+					householdId:
+						ctx.currentHouseholdId || ctx.availableHouseholds[0]?.id || "",
+				},
+			);
 
 			return { success: true };
 		}),
@@ -165,7 +179,7 @@ export const userRouter = createTRPCRouter({
 			ctx.clerkUser?.unsafeMetadata?.vetMedPreferences ||
 			ctx.clerkUser?.unsafeMetadata?.householdSettings;
 		const hasCompletedOnboarding =
-			ctx.clerkUser?.publicMetadata?.onboardingComplete;
+			ctx.clerkUser?.unsafeMetadata?.onboardingComplete;
 
 		return !hasPreferences && !hasCompletedOnboarding;
 	}),

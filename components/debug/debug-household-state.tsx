@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/providers/app-provider";
 import { trpc } from "@/server/trpc/client";
 
@@ -17,16 +17,20 @@ export function DebugHouseholdState() {
 	});
 
 	const isAuthenticated = isLoaded && !!clerkUser;
-	const user = clerkUser
-		? {
-				id: clerkUser.id,
-				email: clerkUser.emailAddresses[0]?.emailAddress || "",
-				name:
-					clerkUser.firstName ||
-					clerkUser.emailAddresses[0]?.emailAddress ||
-					"Unknown",
-			}
-		: null;
+	const user = useMemo(
+		() =>
+			clerkUser
+				? {
+						id: clerkUser.id,
+						email: clerkUser.emailAddresses[0]?.emailAddress || "",
+						name:
+							clerkUser.firstName ||
+							clerkUser.emailAddresses[0]?.emailAddress ||
+							"Unknown",
+					}
+				: null,
+		[clerkUser],
+	);
 	const [localStorageValue, setLocalStorageValue] = useState<string>("SSR");
 
 	// Only access localStorage after mounting to avoid hydration issues
@@ -67,8 +71,8 @@ export function DebugHouseholdState() {
 	]);
 
 	return (
-		<div className="fixed bottom-4 right-4 bg-black/80 text-white p-4 rounded-lg text-xs max-w-md">
-			<h3 className="font-bold mb-2">Debug Household State</h3>
+		<div className="fixed right-4 bottom-4 max-w-md rounded-lg bg-black/80 p-4 text-white text-xs">
+			<h3 className="mb-2 font-bold">Debug Household State</h3>
 			<div>Auth: {isAuthenticated ? "✓" : "✗"}</div>
 			<div>User: {user?.email || "none"}</div>
 			<div>API Loading: {isLoading ? "⏳" : "✓"}</div>
@@ -78,7 +82,7 @@ export function DebugHouseholdState() {
 			<div>Selected Name: {selectedHousehold?.name || "none"}</div>
 			<div>LocalStorage: {localStorageValue}</div>
 			{householdData && householdData.length > 0 && (
-				<div className="mt-2 pt-2 border-t border-white/20">
+				<div className="mt-2 border-white/20 border-t pt-2">
 					<div className="font-bold">API Households:</div>
 					{householdData.map((h) => (
 						<div key={h.id} className="text-xs">

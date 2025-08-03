@@ -27,18 +27,18 @@ const steps = [
 export function HowItWorksSection() {
 	return (
 		<section id="demo" className="py-20">
-			<div className="container max-w-6xl mx-auto px-4">
+			<div className="container mx-auto max-w-6xl px-4">
 				{/* Section header */}
-				<div className="text-center mb-16">
-					<h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-					<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+				<div className="mb-16 text-center">
+					<h2 className="mb-4 font-bold text-3xl md:text-4xl">How It Works</h2>
+					<p className="mx-auto max-w-2xl text-muted-foreground text-xl">
 						Get started in minutes and never worry about missed medications
 						again.
 					</p>
 				</div>
 
 				{/* Steps */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+				<div className="mb-16 grid grid-cols-1 gap-8 md:grid-cols-3">
 					{steps.map((step, index) => (
 						<div
 							key={`step-${step.title.replace(/\s+/g, "-").toLowerCase()}`}
@@ -46,25 +46,25 @@ export function HowItWorksSection() {
 						>
 							{/* Connection line (hidden on mobile and last item) */}
 							{index < steps.length - 1 && (
-								<div className="hidden md:block absolute top-16 left-1/2 w-full h-0.5 bg-border" />
+								<div className="absolute top-16 left-1/2 hidden h-0.5 w-full bg-border md:block" />
 							)}
 
 							<div className="relative text-center">
 								{/* Step number */}
-								<div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6 relative">
-									<span className="text-4xl font-bold text-primary">
+								<div className="relative mx-auto mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-primary/10">
+									<span className="font-bold text-4xl text-primary">
 										{step.number}
 									</span>
-									<div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse" />
+									<div className="absolute inset-0 animate-pulse rounded-full border-2 border-primary/20" />
 								</div>
 
 								{/* Icon */}
-								<div className="w-12 h-12 rounded-full bg-background border-2 border-primary flex items-center justify-center mx-auto -mt-20 mb-6">
-									<step.icon className="w-6 h-6 text-primary" />
+								<div className="-mt-20 mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary bg-background">
+									<step.icon className="h-6 w-6 text-primary" />
 								</div>
 
 								{/* Content */}
-								<h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+								<h3 className="mb-2 font-semibold text-xl">{step.title}</h3>
 								<p className="text-muted-foreground">{step.description}</p>
 							</div>
 						</div>
@@ -72,17 +72,17 @@ export function HowItWorksSection() {
 				</div>
 
 				{/* Interactive demo */}
-				<div className="bg-muted/50 rounded-2xl p-8 text-center">
-					<h3 className="text-2xl font-semibold mb-4">Try It Yourself</h3>
-					<p className="text-muted-foreground mb-6">
+				<div className="rounded-2xl bg-muted/50 p-8 text-center">
+					<h3 className="mb-4 font-semibold text-2xl">Try It Yourself</h3>
+					<p className="mb-6 text-muted-foreground">
 						Experience our 3-tap recording system with this interactive demo.
 					</p>
-					<div className="max-w-md mx-auto">
+					<div className="mx-auto max-w-md">
 						{/* Demo placeholder */}
-						<div className="bg-background rounded-lg shadow-lg p-6 space-y-4">
-							<div className="h-12 bg-muted rounded animate-pulse" />
-							<div className="h-12 bg-muted rounded animate-pulse delay-75" />
-							<div className="h-12 bg-muted rounded animate-pulse delay-150" />
+						<div className="space-y-4 rounded-lg bg-background p-6 shadow-lg">
+							<div className="h-12 animate-pulse rounded bg-muted" />
+							<div className="h-12 animate-pulse rounded bg-muted delay-75" />
+							<div className="h-12 animate-pulse rounded bg-muted delay-150" />
 						</div>
 					</div>
 				</div>

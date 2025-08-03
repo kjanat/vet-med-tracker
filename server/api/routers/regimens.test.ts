@@ -18,9 +18,9 @@ describe("regimenRouter", () => {
 			const mockRegimens = [
 				{
 					regimen: {
-						id: "regimen-1",
-						animalId: "animal-1",
-						medicationId: "med-1",
+						id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+						animalId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+						medicationId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
 						scheduleType: "FIXED",
 						timesLocal: ["08:00", "18:00"],
 						active: true,
@@ -38,13 +38,13 @@ describe("regimenRouter", () => {
 						deletedAt: null,
 					},
 					animal: {
-						id: "animal-1",
+						id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
 						name: "Buddy",
 						species: "dog",
 						householdId: mockSession.access.householdId,
 					},
 					medication: {
-						id: "med-1",
+						id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
 						genericName: "Amoxicillin",
 						brandName: null,
 						route: "oral",
@@ -91,7 +91,7 @@ describe("regimenRouter", () => {
 
 			await caller.list({
 				householdId: mockSession.access.householdId,
-				animalId: "animal-123",
+				animalId: "ffffffff-ffff-4fff-8fff-ffffffffffff",
 			});
 
 			expect(whereSpy).toHaveBeenCalled();
@@ -106,7 +106,7 @@ describe("regimenRouter", () => {
 			const mockActiveRegimens = [
 				{
 					regimen: {
-						id: "regimen-1",
+						id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
 						scheduleType: "FIXED",
 						timesLocal: ["08:00", "18:00"],
 						route: "oral",
@@ -118,7 +118,7 @@ describe("regimenRouter", () => {
 						cutoffMinutes: 240,
 					},
 					animal: {
-						id: "animal-1",
+						id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
 						name: "Buddy",
 						species: "dog",
 						photoUrl: null,
@@ -163,9 +163,9 @@ describe("regimenRouter", () => {
 
 			const mockRegimen = {
 				regimen: {
-					id: "regimen-123",
-					animalId: "animal-123",
-					medicationId: "med-123",
+					id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+					animalId: "ffffffff-ffff-4fff-8fff-ffffffffffff",
+					medicationId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
 					scheduleType: "FIXED",
 					timesLocal: ["08:00", "18:00"],
 					active: true,
@@ -183,13 +183,13 @@ describe("regimenRouter", () => {
 					deletedAt: null,
 				},
 				animal: {
-					id: "animal-123",
+					id: "ffffffff-ffff-4fff-8fff-ffffffffffff",
 					name: "Buddy",
 					species: "dog",
 					householdId: mockSession.access.householdId,
 				},
 				medication: {
-					id: "med-123",
+					id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
 					genericName: "Amoxicillin",
 					brandName: null,
 					route: "oral",
@@ -210,7 +210,7 @@ describe("regimenRouter", () => {
 			);
 
 			const result = await caller.getById({
-				id: "regimen-123",
+				id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
 				householdId: mockSession.access.householdId,
 			});
 
@@ -234,7 +234,7 @@ describe("regimenRouter", () => {
 
 			await expect(
 				caller.getById({
-					id: "non-existent",
+					id: "00000000-0000-4000-8000-000000000000",
 					householdId: mockSession.access.householdId,
 				}),
 			).rejects.toThrow("NOT_FOUND");

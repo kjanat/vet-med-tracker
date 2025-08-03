@@ -27,7 +27,7 @@ interface DueRegimen {
 	form: string;
 	strength: string;
 	dose?: string;
-	targetTime?: Date;
+	targetTime?: string;
 	isPRN: boolean;
 	isHighRisk: boolean;
 	requiresCoSign: boolean;
@@ -103,24 +103,24 @@ export function MobileConfirmLayout({
 			!allowOverride);
 
 	return (
-		<div className="flex flex-col h-full">
+		<div className="flex h-full flex-col">
 			{/* Medication Summary Card - Fixed at top */}
-			<div className="shrink-0 p-4 bg-background border-b">
+			<div className="shrink-0 border-b bg-background p-4">
 				<Card>
 					<CardHeader className="pb-3">
 						<CardTitle className="flex items-center gap-3 text-base">
 							{animal && <AnimalAvatar animal={animal} size="sm" />}
 							<div className="min-w-0 flex-1">
-								<div className="font-medium truncate">
+								<div className="truncate font-medium">
 									{animal?.name} - {selectedRegimen.medicationName}
 								</div>
-								<div className="text-sm font-normal text-muted-foreground">
+								<div className="font-normal text-muted-foreground text-sm">
 									{selectedRegimen.strength} • {selectedRegimen.route} •{" "}
 									{selectedRegimen.form}
 								</div>
 							</div>
 							{selectedRegimen.isHighRisk && (
-								<Badge variant="destructive" className="text-xs shrink-0">
+								<Badge variant="destructive" className="shrink-0 text-xs">
 									High Risk
 								</Badge>
 							)}
@@ -131,10 +131,10 @@ export function MobileConfirmLayout({
 
 			{/* Scrollable Form Content */}
 			<ScrollArea className="flex-1">
-				<div className="p-4 space-y-6">
+				<div className="space-y-6 p-4">
 					{/* Inventory Source */}
 					<div>
-						<Label className="text-base font-medium">Inventory Source</Label>
+						<Label className="font-medium text-base">Inventory Source</Label>
 						<div className="mt-2">
 							{inventoryLoading ? (
 								<Skeleton className="h-12 w-full" />
@@ -153,7 +153,7 @@ export function MobileConfirmLayout({
 					{/* Site and Media Row */}
 					<div className="grid grid-cols-1 gap-4">
 						<div>
-							<Label htmlFor="mobile-site" className="text-base font-medium">
+							<Label htmlFor="mobile-site" className="font-medium text-base">
 								Site/Side (Optional)
 							</Label>
 							<Input
@@ -165,10 +165,10 @@ export function MobileConfirmLayout({
 							/>
 						</div>
 						<div>
-							<Label className="text-base font-medium">Photo/Video</Label>
+							<Label className="font-medium text-base">Photo/Video</Label>
 							<Button
 								variant="outline"
-								className="w-full mt-2 h-12 bg-transparent"
+								className="mt-2 h-12 w-full bg-transparent"
 								type="button"
 							>
 								<Camera className="mr-2 h-5 w-5" />
@@ -179,7 +179,7 @@ export function MobileConfirmLayout({
 
 					{/* Notes */}
 					<div>
-						<Label htmlFor="mobile-notes" className="text-base font-medium">
+						<Label htmlFor="mobile-notes" className="font-medium text-base">
 							Notes (Optional)
 						</Label>
 						<Textarea
@@ -199,7 +199,7 @@ export function MobileConfirmLayout({
 
 					{/* Co-sign Requirement */}
 					{selectedRegimen.isHighRisk && (
-						<div className="p-4 bg-orange-50 rounded-lg border border-orange-200 space-y-3">
+						<div className="space-y-3 rounded-lg border border-orange-200 bg-orange-50 p-4">
 							<div className="flex items-start space-x-3">
 								<Checkbox
 									id="mobile-cosign"
@@ -217,7 +217,7 @@ export function MobileConfirmLayout({
 								</Label>
 							</div>
 							{requiresCoSign && (
-								<div className="text-xs text-orange-600 bg-orange-100 p-2 rounded">
+								<div className="rounded bg-orange-100 p-2 text-orange-600 text-xs">
 									Another caregiver must co-sign this administration within 10
 									minutes.
 								</div>
@@ -228,12 +228,12 @@ export function MobileConfirmLayout({
 			</ScrollArea>
 
 			{/* Fixed Action Button */}
-			<div className="shrink-0 p-4 bg-background border-t">
+			<div className="shrink-0 border-t bg-background p-4">
 				<MedConfirmButton
 					onConfirm={onConfirm}
 					disabled={isDisabled}
 					requiresCoSign={requiresCoSign}
-					className="w-full h-14 text-base"
+					className="h-14 w-full text-base"
 				>
 					{isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
 				</MedConfirmButton>
@@ -253,8 +253,8 @@ function MobileConditionTagSelector({
 
 	return (
 		<div>
-			<Label className="text-base font-medium">Condition Tags</Label>
-			<div className="flex flex-wrap gap-2 mt-3">
+			<Label className="font-medium text-base">Condition Tags</Label>
+			<div className="mt-3 flex flex-wrap gap-2">
 				{tags.map((tag) => (
 					<Button
 						key={tag}

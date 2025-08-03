@@ -72,7 +72,7 @@ function ExpiryInfo({
 			<span
 				className={cn(
 					isExpired
-						? "text-red-600 dark:text-red-400 font-medium"
+						? "font-medium text-red-600 dark:text-red-400"
 						: isExpiring
 							? "text-orange-600 dark:text-orange-400"
 							: "",
@@ -106,7 +106,7 @@ function StatusBadges({
 			{isExpiring && !isExpired && (
 				<Badge
 					variant="secondary"
-					className="text-xs text-orange-600 dark:text-orange-400"
+					className="text-orange-600 text-xs dark:text-orange-400"
 				>
 					Expiring
 				</Badge>
@@ -114,14 +114,14 @@ function StatusBadges({
 			{isLowStock && (
 				<Badge
 					variant="secondary"
-					className="text-xs text-orange-600 dark:text-orange-400"
+					className="text-orange-600 text-xs dark:text-orange-400"
 				>
 					Low
 				</Badge>
 			)}
 			{storage === "FRIDGE" && (
 				<Badge variant="outline" className="text-xs">
-					<MapPin className="h-3 w-3 mr-1" />
+					<MapPin className="mr-1 h-3 w-3" />
 					Fridge
 				</Badge>
 			)}
@@ -180,19 +180,19 @@ export function InventoryCard({
 		>
 			<CardContent className="p-4">
 				<div className="flex items-start justify-between">
-					<div className="flex items-start gap-3 flex-1">
+					<div className="flex flex-1 items-start gap-3">
 						{/* Form Icon */}
 						<div className="text-2xl">
 							{formIcons[item.form as keyof typeof formIcons] || "📦"}
 						</div>
 
 						{/* Main Info */}
-						<div className="flex-1 min-w-0">
-							<div className="flex items-center gap-2 mb-1">
-								<h3 className="font-semibold truncate">
+						<div className="min-w-0 flex-1">
+							<div className="mb-1 flex items-center gap-2">
+								<h3 className="truncate font-semibold">
 									{item.name}
 									{item.brand && item.brand !== item.name && (
-										<span className="text-muted-foreground font-normal">
+										<span className="font-normal text-muted-foreground">
 											{" "}
 											({item.brand})
 										</span>
@@ -206,7 +206,7 @@ export function InventoryCard({
 								)}
 							</div>
 
-							<div className="text-sm text-muted-foreground space-y-1">
+							<div className="space-y-1 text-muted-foreground text-sm">
 								<div>
 									{item.strength || item.concentration} • {item.route}
 								</div>
@@ -226,7 +226,7 @@ export function InventoryCard({
 									{item.lot && (
 										<div className="flex items-center gap-1">
 											<span className="text-muted-foreground">Lot:</span>
-											<span className="font-mono text-xs bg-muted px-1 py-0.5 rounded select-all">
+											<span className="select-all rounded bg-muted px-1 py-0.5 font-mono text-xs">
 												{item.lot}
 											</span>
 										</div>
@@ -238,7 +238,7 @@ export function InventoryCard({
 										className={cn(
 											"text-xs",
 											isLowStock
-												? "text-orange-600 dark:text-orange-400 font-medium"
+												? "font-medium text-orange-600 dark:text-orange-400"
 												: "text-muted-foreground",
 										)}
 									>
@@ -247,7 +247,7 @@ export function InventoryCard({
 								)}
 
 								{item.inUseSince && (
-									<div className="text-xs text-muted-foreground">
+									<div className="text-muted-foreground text-xs">
 										In use since {format(item.inUseSince, "MMM d")}
 									</div>
 								)}
@@ -273,7 +273,7 @@ export function InventoryCard({
 				</div>
 
 				{/* Bottom Row */}
-				<div className="flex items-center justify-between mt-3 pt-3 border-t">
+				<div className="mt-3 flex items-center justify-between border-t pt-3">
 					{/* Assignment */}
 					<div className="flex items-center gap-2">
 						{assignedAnimal ? (

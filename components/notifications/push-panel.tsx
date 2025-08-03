@@ -235,7 +235,7 @@ function MobileLayout({
 				/>
 			)}
 			{permission === "denied" && (
-				<div className="text-sm text-center text-muted-foreground">
+				<div className="text-center text-muted-foreground text-sm">
 					Notifications are blocked. Enable them in your browser settings.
 				</div>
 			)}
@@ -293,7 +293,7 @@ function StatusDisplay({
 	return (
 		<div>
 			<div className="font-medium">Status: {status}</div>
-			<div className="text-sm text-muted-foreground">{description}</div>
+			<div className="text-muted-foreground text-sm">{description}</div>
 		</div>
 	);
 }

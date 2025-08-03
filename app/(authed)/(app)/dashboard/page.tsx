@@ -59,7 +59,7 @@ export default function DashboardPage() {
 				animal: regimen.animalName,
 				medication: `${regimen.medicationName} ${regimen.strength}`,
 				dueTime: regimen.targetTime
-					? formatTimeLocal(regimen.targetTime, "America/New_York")
+					? formatTimeLocal(new Date(regimen.targetTime), "America/New_York")
 					: "As needed",
 				status: regimen.isOverdue
 					? ("overdue" as const)
@@ -90,7 +90,7 @@ export default function DashboardPage() {
 		return (
 			<div className="space-y-6">
 				<div>
-					<h1 className="text-3xl font-bold">Dashboard</h1>
+					<h1 className="font-bold text-3xl">Dashboard</h1>
 					<p className="text-muted-foreground">Loading...</p>
 				</div>
 			</div>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
 		return (
 			<div className="space-y-6">
 				<div>
-					<h1 className="text-3xl font-bold">Dashboard</h1>
+					<h1 className="font-bold text-3xl">Dashboard</h1>
 					<p className="text-muted-foreground">
 						Please select a household to view your dashboard
 					</p>
@@ -114,10 +114,10 @@ export default function DashboardPage() {
 	// No animals
 	if (animals.length === 0) {
 		return (
-			<div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+			<div className="flex flex-col items-center justify-center px-4 py-16 text-center">
 				<div className="max-w-md">
-					<h1 className="text-3xl font-bold mb-4">Welcome to VetMed Tracker</h1>
-					<p className="text-lg text-muted-foreground mb-8">
+					<h1 className="mb-4 font-bold text-3xl">Welcome to VetMed Tracker</h1>
+					<p className="mb-8 text-lg text-muted-foreground">
 						{
 							"Taking care of your pets' health starts here. Add your first pet to begin tracking their medications and health regimens."
 						}
@@ -152,7 +152,7 @@ export default function DashboardPage() {
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-3xl font-bold">Dashboard</h1>
+					<h1 className="font-bold text-3xl">Dashboard</h1>
 					<p className="text-muted-foreground">
 						Managing {animals.length} animals across all households
 					</p>
@@ -164,16 +164,16 @@ export default function DashboardPage() {
 			<div className="grid gap-4 md:grid-cols-3">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="font-medium text-sm">
 							{"Today's Progress"}
 						</CardTitle>
 						<CheckCircle className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="font-bold text-2xl">
 							{todayStats.completed}/{todayStats.total}
 						</div>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-muted-foreground text-xs">
 							medications completed
 						</p>
 					</CardContent>
@@ -181,29 +181,29 @@ export default function DashboardPage() {
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="font-medium text-sm">
 							Compliance Rate
 						</CardTitle>
 						<Calendar className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{todayStats.compliance}%</div>
-						<p className="text-xs text-muted-foreground">this week</p>
+						<div className="font-bold text-2xl">{todayStats.compliance}%</div>
+						<p className="text-muted-foreground text-xs">this week</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="font-medium text-sm">
 							Pending Actions
 						</CardTitle>
 						<AlertTriangle className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="font-bold text-2xl">
 							{animals.reduce((sum, animal) => sum + animal.pendingMeds, 0)}
 						</div>
-						<p className="text-xs text-muted-foreground">medications due</p>
+						<p className="text-muted-foreground text-xs">medications due</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -218,8 +218,8 @@ export default function DashboardPage() {
 				</CardHeader>
 				<CardContent className="space-y-3">
 					{nextActions.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">
-							<CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+						<div className="py-8 text-center text-muted-foreground">
+							<CheckCircle className="mx-auto mb-4 h-12 w-12 opacity-50" />
 							<p>{"No medications due right now!"}</p>
 							<p className="text-sm">
 								Check back later or record PRN medications
@@ -231,14 +231,14 @@ export default function DashboardPage() {
 							return (
 								<div
 									key={action.id}
-									className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+									className="flex items-center gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50"
 								>
 									{foundAnimal && (
 										<AnimalAvatar animal={foundAnimal} size="md" />
 									)}
-									<div className="flex-1 min-w-0">
-										<div className="flex items-start justify-between gap-2 mb-1">
-											<div className="font-medium truncate">
+									<div className="min-w-0 flex-1">
+										<div className="mb-1 flex items-start justify-between gap-2">
+											<div className="truncate font-medium">
 												{action.animal} - {action.medication}
 											</div>
 											<Badge
@@ -254,13 +254,13 @@ export default function DashboardPage() {
 												{action.status}
 											</Badge>
 										</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted-foreground text-sm">
 											{action.route} • Due {action.dueTime}
 										</div>
 									</div>
 									<Button
 										size="sm"
-										className="shrink-0 w-20"
+										className="w-20 shrink-0"
 										onClick={() => {
 											window.location.href = `/admin/record?regimenId=${action.id}&from=home`;
 										}}
@@ -283,7 +283,7 @@ function SingleAnimalView({ animal }: { animal: Animal }) {
 			<div className="flex items-center gap-4">
 				<AnimalAvatar animal={animal} size="lg" showBadge />
 				<div>
-					<h1 className="text-3xl font-bold">{animal.name}</h1>
+					<h1 className="font-bold text-3xl">{animal.name}</h1>
 					<p className="text-muted-foreground">{animal.species}</p>
 				</div>
 			</div>
@@ -296,10 +296,10 @@ function SingleAnimalView({ animal }: { animal: Animal }) {
 					<CardContent>
 						<div className="space-y-2">
 							<div className="font-medium">Rimadyl 75mg</div>
-							<div className="text-sm text-muted-foreground">
+							<div className="text-muted-foreground text-sm">
 								Due in 2 hours (2:00 PM)
 							</div>
-							<RecordButton className="w-full mt-4" />
+							<RecordButton className="mt-4 w-full" />
 						</div>
 					</CardContent>
 				</Card>

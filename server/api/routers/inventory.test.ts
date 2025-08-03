@@ -16,9 +16,9 @@ describe("inventoryRouter", () => {
 			const caller = inventoryRouter.createCaller(ctx);
 
 			const mockInventoryItem = {
-				id: "inv-123",
+				id: "88888888-8888-4888-8888-888888888888",
 				householdId: mockSession.access.householdId,
-				medicationId: "med-123",
+				medicationId: "77777777-7777-4777-8777-777777777777",
 				unitsTotal: 30,
 				unitType: "tablets",
 				expiresOn: "2025-12-31",
@@ -39,7 +39,7 @@ describe("inventoryRouter", () => {
 
 			const result = await caller.create({
 				householdId: mockSession.access.householdId,
-				medicationId: "med-123",
+				medicationId: "77777777-7777-4777-8777-777777777777",
 				unitsTotal: 30,
 				unitType: "tablets",
 				expiresOn: new Date("2025-12-31"),
@@ -60,7 +60,7 @@ describe("inventoryRouter", () => {
 			await expect(
 				caller.create({
 					householdId: mockSession.access.householdId,
-					medicationId: "med-123",
+					medicationId: "77777777-7777-4777-8777-777777777777",
 					unitsTotal: 30,
 					unitType: "tablets",
 					expiresOn: pastDate,
@@ -82,7 +82,7 @@ describe("inventoryRouter", () => {
 			await expect(
 				caller.create({
 					householdId: mockSession.access.householdId,
-					medicationId: "med-123",
+					medicationId: "77777777-7777-4777-8777-777777777777",
 					unitsTotal: 30,
 					unitType: "tablets",
 					expiresOn: new Date("2025-12-31"),
@@ -98,9 +98,9 @@ describe("inventoryRouter", () => {
 			const caller = inventoryRouter.createCaller(ctx);
 
 			const updatedItem = {
-				id: "inv-123",
+				id: "88888888-8888-4888-8888-888888888888",
 				householdId: mockSession.access.householdId,
-				medicationId: "med-123",
+				medicationId: "77777777-7777-4777-8777-777777777777",
 				unitsRemaining: 25,
 				unitsTotal: 30,
 				unitType: "tablets",
@@ -118,9 +118,10 @@ describe("inventoryRouter", () => {
 					({
 						from: vi.fn().mockReturnThis(),
 						where: vi.fn().mockReturnThis(),
+						limit: vi.fn().mockReturnThis(),
 						execute: vi.fn().mockResolvedValue([
 							{
-								id: "inv-123",
+								id: "88888888-8888-4888-8888-888888888888",
 								householdId: mockSession.access.householdId,
 								unitsRemaining: 30,
 							},
@@ -139,7 +140,7 @@ describe("inventoryRouter", () => {
 			);
 
 			const result = await caller.updateQuantity({
-				id: "inv-123",
+				id: "88888888-8888-4888-8888-888888888888",
 				householdId: mockSession.access.householdId,
 				quantityChange: -5,
 				reason: "Used 5 tablets",
@@ -155,7 +156,7 @@ describe("inventoryRouter", () => {
 
 			await expect(
 				caller.updateQuantity({
-					id: "inv-123",
+					id: "88888888-8888-4888-8888-888888888888",
 					householdId: mockSession.access.householdId,
 					quantityChange: -35,
 					reason: "Invalid update",
@@ -173,9 +174,10 @@ describe("inventoryRouter", () => {
 					({
 						from: vi.fn().mockReturnThis(),
 						where: vi.fn().mockReturnThis(),
+						limit: vi.fn().mockReturnThis(),
 						execute: vi.fn().mockResolvedValue([
 							{
-								id: "inv-123",
+								id: "88888888-8888-4888-8888-888888888888",
 								householdId: mockSession.access.householdId,
 								unitsRemaining: 30,
 							},
@@ -203,7 +205,7 @@ describe("inventoryRouter", () => {
 			);
 
 			await caller.updateQuantity({
-				id: "inv-123",
+				id: "88888888-8888-4888-8888-888888888888",
 				householdId: mockSession.access.householdId,
 				quantityChange: -5,
 				reason: "Used 5 tablets",
@@ -228,15 +230,15 @@ describe("inventoryRouter", () => {
 			const caller = inventoryRouter.createCaller(ctx);
 
 			const updatedItem = {
-				id: "inv-123",
+				id: "88888888-8888-4888-8888-888888888888",
 				householdId: mockSession.access.householdId,
-				medicationId: "med-123",
+				medicationId: "77777777-7777-4777-8777-777777777777",
 				unitsTotal: 30,
 				unitsRemaining: 30,
 				unitType: "tablets",
 				expiresOn: "2025-12-31",
 				lot: "LOT123",
-				assignedAnimalId: "animal-123",
+				assignedAnimalId: "99999999-9999-4999-8999-999999999999",
 				inUse: true,
 				createdAt: new Date(),
 				updatedAt: new Date(),
@@ -248,12 +250,13 @@ describe("inventoryRouter", () => {
 					({
 						from: vi.fn().mockReturnThis(),
 						where: vi.fn().mockReturnThis(),
+						limit: vi.fn().mockReturnThis(),
 						execute: vi.fn().mockResolvedValue([
 							{
-								id: "inv-123",
+								id: "88888888-8888-4888-8888-888888888888",
 								householdId: mockSession.access.householdId,
 								inUse: false,
-								medicationId: "med-123",
+								medicationId: "77777777-7777-4777-8777-777777777777",
 							},
 						]),
 					}) as any,
@@ -270,14 +273,16 @@ describe("inventoryRouter", () => {
 			);
 
 			const result = await caller.markAsInUse({
-				id: "inv-123",
+				id: "88888888-8888-4888-8888-888888888888",
 				householdId: mockSession.access.householdId,
-				animalId: "animal-123",
+				animalId: "99999999-9999-4999-8999-999999999999",
 			});
 
 			expect(result).toEqual(updatedItem);
 			expect(result.inUse).toBe(true);
-			expect(result.assignedAnimalId).toBe("animal-123");
+			expect(result.assignedAnimalId).toBe(
+				"99999999-9999-4999-8999-999999999999",
+			);
 		});
 
 		it("should unmark other items of same medication when marking as in use", async () => {
@@ -290,12 +295,13 @@ describe("inventoryRouter", () => {
 					({
 						from: vi.fn().mockReturnThis(),
 						where: vi.fn().mockReturnThis(),
+						limit: vi.fn().mockReturnThis(),
 						execute: vi.fn().mockResolvedValue([
 							{
-								id: "inv-123",
+								id: "88888888-8888-4888-8888-888888888888",
 								householdId: mockSession.access.householdId,
 								inUse: false,
-								medicationId: "med-123",
+								medicationId: "77777777-7777-4777-8777-777777777777",
 							},
 						]),
 					}) as any,
@@ -311,9 +317,9 @@ describe("inventoryRouter", () => {
 			);
 
 			await caller.markAsInUse({
-				id: "inv-123",
+				id: "88888888-8888-4888-8888-888888888888",
 				householdId: mockSession.access.householdId,
-				animalId: "animal-123",
+				animalId: "99999999-9999-4999-8999-999999999999",
 			});
 
 			// Should be called twice: once to unmark others, once to mark this one
@@ -328,14 +334,14 @@ describe("inventoryRouter", () => {
 
 			const mockInventory = [
 				{
-					id: "inv-1",
+					id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
 					quantity: 30,
 					medicationName: "Amoxicillin",
 					expiresOn: "2025-12-31",
 					inUse: true,
 				},
 				{
-					id: "inv-2",
+					id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
 					quantity: 20,
 					medicationName: "Prednisone",
 					expiresOn: "2025-06-30",
@@ -394,7 +400,7 @@ describe("inventoryRouter", () => {
 
 			await caller.getHouseholdInventory({
 				householdId: mockSession.access.householdId,
-				medicationId: "med-123",
+				medicationId: "77777777-7777-4777-8777-777777777777",
 			});
 
 			expect(whereSpy).toHaveBeenCalled();

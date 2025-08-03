@@ -1,6 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
+import { animals, households, memberships, regimens } from "@/db/schema";
 import { appRouter } from "@/server/api/routers/_app";
-import { animals, households, memberships, regimens } from "@/server/db/schema";
 import {
 	seedTestData,
 	setupTestDatabase,
@@ -37,10 +38,10 @@ describe("Administration Workflow Integration", () => {
 			const caller = appRouter.createCaller(ctx);
 
 			// Step 1: Create a medication regimen directly in database
+			const medicationId = randomUUID();
 			const regimenData = {
-				id: "test-regimen-1",
 				animalId: testData.animal.id,
-				medicationId: "med-amoxicillin",
+				medicationId: medicationId,
 				dose: "250mg",
 				scheduleType: "FIXED" as const,
 				timesLocal: ["08:00", "20:00"],
@@ -64,7 +65,7 @@ describe("Administration Workflow Integration", () => {
 			// Step 2: Add medication to inventory
 			const inventoryItemResult = await caller.inventory.create({
 				householdId: testData.household.id,
-				medicationId: "med-amoxicillin",
+				medicationId: medicationId,
 				unitsTotal: 30,
 				unitType: "tablets",
 				expiresOn: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
@@ -106,7 +107,7 @@ describe("Administration Workflow Integration", () => {
 			// Step 5: Verify inventory was decremented
 			const updatedInventory = await caller.inventory.list({
 				householdId: testData.household.id,
-				medicationId: "med-amoxicillin",
+				medicationId: medicationId,
 			});
 
 			expect(updatedInventory[0]?.unitsRemaining).toBe(29); // Decreased by 1
@@ -139,9 +140,8 @@ describe("Administration Workflow Integration", () => {
 
 			// Create regimen directly in database
 			const regimenData = {
-				id: `test-regimen-${Date.now()}`,
 				animalId: testData.animal.id,
-				medicationId: "med-123",
+				medicationId: randomUUID(),
 				dose: "100mg",
 				scheduleType: "FIXED" as const,
 				timesLocal: ["09:00"],
@@ -206,9 +206,8 @@ describe("Administration Workflow Integration", () => {
 
 			// Create regimen directly in database
 			const regimenData = {
-				id: `test-regimen-${Date.now()}`,
 				animalId: testData.animal.id,
-				medicationId: "med-123",
+				medicationId: randomUUID(),
 				dose: "100mg",
 				scheduleType: "FIXED" as const,
 				timesLocal: ["08:00", "20:00"],
@@ -260,9 +259,8 @@ describe("Administration Workflow Integration", () => {
 
 			// Create PRN regimen directly in database
 			const prnRegimenData = {
-				id: `test-prn-regimen-${Date.now()}`,
 				animalId: testData.animal.id,
-				medicationId: "med-pain",
+				medicationId: randomUUID(),
 				dose: "5mg",
 				scheduleType: "PRN" as const,
 				timesLocal: [],
@@ -313,9 +311,8 @@ describe("Administration Workflow Integration", () => {
 			startDate.setDate(startDate.getDate() - 7);
 
 			const regimenData = {
-				id: `test-compliance-regimen-${Date.now()}`,
 				animalId: testData.animal.id,
-				medicationId: "med-123",
+				medicationId: randomUUID(),
 				dose: "100mg",
 				scheduleType: "FIXED" as const,
 				timesLocal: ["08:00", "20:00"], // Twice daily = 14 doses in 7 days
@@ -367,7 +364,6 @@ describe("Administration Workflow Integration", () => {
 				await testDb
 					.insert(households)
 					.values({
-						id: "other-household",
 						name: "Other Household",
 					})
 					.returning()
@@ -377,7 +373,6 @@ describe("Administration Workflow Integration", () => {
 				await testDb
 					.insert(animals)
 					.values({
-						id: "other-animal",
 						name: "Max",
 						species: "cat",
 						householdId: otherHousehold.id,
@@ -412,7 +407,6 @@ describe("Administration Workflow Integration", () => {
 				await testDb
 					.insert(households)
 					.values({
-						id: "second-household",
 						name: "Second Household",
 					})
 					.returning()
@@ -428,7 +422,6 @@ describe("Administration Workflow Integration", () => {
 				await testDb
 					.insert(animals)
 					.values({
-						id: "second-animal",
 						name: "Luna",
 						species: "cat",
 						householdId: secondHousehold.id,

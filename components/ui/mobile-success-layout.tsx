@@ -9,7 +9,7 @@ interface MobileSuccessLayoutProps {
 	isOnline: boolean;
 	onReturnHome: () => void;
 	onRecordAnother: () => void;
-	recordedAt?: Date;
+	recordedAt?: string;
 	animalName?: string;
 	medicationName?: string;
 }
@@ -18,19 +18,19 @@ export function MobileSuccessLayout({
 	isOnline,
 	onReturnHome,
 	onRecordAnother,
-	recordedAt = new Date(),
+	recordedAt = new Date().toISOString(),
 	animalName,
 	medicationName,
 }: MobileSuccessLayoutProps) {
 	return (
-		<div className="flex flex-col items-center justify-center min-h-full p-6 text-center">
+		<div className="flex min-h-full flex-col items-center justify-center p-6 text-center">
 			{/* Success Icon */}
 			<div className="mb-6">
-				<div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-					<CheckCircle className="w-10 h-10 text-green-600" />
+				<div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+					<CheckCircle className="h-10 w-10 text-green-600" />
 				</div>
 
-				<h1 className="text-2xl font-bold text-green-700 mb-2">
+				<h1 className="mb-2 font-bold text-2xl text-green-700">
 					Recorded Successfully!
 				</h1>
 
@@ -43,12 +43,12 @@ export function MobileSuccessLayout({
 					<div className="flex items-center justify-center gap-2 text-sm">
 						<Clock className="h-4 w-4" />
 						<span>
-							Recorded at {formatTimeLocal(recordedAt, "America/New_York")} by
-							You
+							Recorded at{" "}
+							{formatTimeLocal(new Date(recordedAt), "America/New_York")} by You
 						</span>
 					</div>
 					{!isOnline && (
-						<p className="text-amber-600 text-sm font-medium">
+						<p className="font-medium text-amber-600 text-sm">
 							Will sync when online
 						</p>
 					)}
@@ -59,7 +59,7 @@ export function MobileSuccessLayout({
 			<div className="w-full max-w-sm space-y-3">
 				<Button
 					onClick={onRecordAnother}
-					className="w-full h-12 text-base"
+					className="h-12 w-full text-base"
 					variant="default"
 				>
 					Record Another
@@ -67,7 +67,7 @@ export function MobileSuccessLayout({
 
 				<Button
 					onClick={onReturnHome}
-					className="w-full h-12 text-base"
+					className="h-12 w-full text-base"
 					variant="outline"
 				>
 					<Home className="mr-2 h-5 w-5" />
@@ -79,7 +79,7 @@ export function MobileSuccessLayout({
 						// TODO: Open reminder adjustment sheet
 						console.log("Adjust reminder");
 					}}
-					className="w-full h-12 text-base"
+					className="h-12 w-full text-base"
 					variant="ghost"
 				>
 					<Bell className="mr-2 h-5 w-5" />
@@ -88,10 +88,10 @@ export function MobileSuccessLayout({
 			</div>
 
 			{/* Additional Info Card */}
-			<Card className="w-full max-w-sm mt-6 bg-muted/30">
+			<Card className="mt-6 w-full max-w-sm bg-muted/30">
 				<CardContent className="p-4">
-					<div className="text-sm text-muted-foreground text-center">
-						<p className="font-medium mb-1">Next Steps</p>
+					<div className="text-center text-muted-foreground text-sm">
+						<p className="mb-1 font-medium">Next Steps</p>
 						<p>
 							Check the History tab to view this administration or set up
 							reminders for future doses.

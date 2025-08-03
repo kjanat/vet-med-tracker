@@ -29,30 +29,30 @@ const footerLinks = {
 
 export function PublicFooter() {
 	return (
-		<footer className="bg-muted/50 border-t">
-			<div className="container max-w-6xl mx-auto px-4 py-12">
+		<footer className="border-t bg-muted/50">
+			<div className="container mx-auto max-w-6xl px-4 py-12">
 				{/* Main footer content */}
-				<div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+				<div className="mb-8 grid grid-cols-2 gap-8 md:grid-cols-5">
 					{/* Brand column */}
 					<div className="col-span-2 md:col-span-1">
-						<div className="flex items-center gap-2 mb-4">
+						<div className="mb-4 flex items-center gap-2">
 							<Logo size="sm" />
 							<span className="font-semibold">VetMed Tracker</span>
 						</div>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted-foreground text-sm">
 							Professional medication tracking for your beloved pets.
 						</p>
 					</div>
 
 					{/* Links columns */}
 					<div>
-						<h3 className="font-semibold mb-3">Product</h3>
+						<h3 className="mb-3 font-semibold">Product</h3>
 						<ul className="space-y-2">
 							{footerLinks.product.map((link) => (
 								<li key={link.name}>
 									<Link
 										href={link.href}
-										className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+										className="text-muted-foreground text-sm transition-colors hover:text-foreground"
 									>
 										{link.name}
 									</Link>
@@ -62,13 +62,13 @@ export function PublicFooter() {
 					</div>
 
 					<div>
-						<h3 className="font-semibold mb-3">Company</h3>
+						<h3 className="mb-3 font-semibold">Company</h3>
 						<ul className="space-y-2">
 							{footerLinks.company.map((link) => (
 								<li key={link.name}>
 									<Link
 										href={link.href}
-										className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+										className="text-muted-foreground text-sm transition-colors hover:text-foreground"
 									>
 										{link.name}
 									</Link>
@@ -78,13 +78,13 @@ export function PublicFooter() {
 					</div>
 
 					<div>
-						<h3 className="font-semibold mb-3">Legal</h3>
+						<h3 className="mb-3 font-semibold">Legal</h3>
 						<ul className="space-y-2">
 							{footerLinks.legal.map((link) => (
 								<li key={link.name}>
 									<Link
 										href={link.href}
-										className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+										className="text-muted-foreground text-sm transition-colors hover:text-foreground"
 									>
 										{link.name}
 									</Link>
@@ -94,13 +94,13 @@ export function PublicFooter() {
 					</div>
 
 					<div>
-						<h3 className="font-semibold mb-3">Support</h3>
+						<h3 className="mb-3 font-semibold">Support</h3>
 						<ul className="space-y-2">
 							{footerLinks.support.map((link) => (
 								<li key={link.name}>
 									<Link
 										href={link.href}
-										className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+										className="text-muted-foreground text-sm transition-colors hover:text-foreground"
 									>
 										{link.name}
 									</Link>
@@ -111,27 +111,27 @@ export function PublicFooter() {
 				</div>
 
 				{/* Bottom bar */}
-				<div className="pt-8 border-t">
-					<div className="flex flex-col md:flex-row justify-between items-center gap-4">
-						<p className="text-sm text-muted-foreground">
+				<div className="border-t pt-8">
+					<div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+						<p className="text-muted-foreground text-sm">
 							© {new Date().getFullYear()} VetMed Tracker. All rights reserved.
 						</p>
 						<div className="flex gap-6">
 							<Link
 								href="https://twitter.com/vetmedtracker"
-								className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+								className="text-muted-foreground text-sm transition-colors hover:text-foreground"
 							>
 								Twitter
 							</Link>
 							<Link
 								href="https://github.com/vetmedtracker"
-								className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+								className="text-muted-foreground text-sm transition-colors hover:text-foreground"
 							>
 								GitHub
 							</Link>
 							<Link
 								href="https://linkedin.com/company/vetmedtracker"
-								className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+								className="text-muted-foreground text-sm transition-colors hover:text-foreground"
 							>
 								LinkedIn
 							</Link>

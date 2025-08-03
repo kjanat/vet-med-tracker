@@ -1,6 +1,5 @@
 {
 	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"root": true,
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -9,7 +8,22 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**", "!.next", "!.git", "!tests", "!**/*.test.ts"]
+		"includes": [
+			"**",
+			"!.cache",
+			"!.claude",
+			"!logs",
+			"!.next",
+			"!.git",
+			"!node_modules",
+			"!playwright-report",
+			"!sample-components",
+			"!screenshots",
+			"!test-results",
+			"!.vercel",
+			"!.vscode",
+			"!drizzle"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -21,16 +35,32 @@
 			"recommended": true,
 			"complexity": {
 				"noExcessiveCognitiveComplexity": "on"
+			},
+			"nursery": {
+				"useSortedClasses": {
+					"level": "warn",
+					"fix": "safe",
+					"options": {
+						"functions": ["clsx", "cva", "cn"]
+					}
+				}
 			}
 		},
 		"domains": {
 			"next": "all",
-			"project": "recommended"
+			"project": "recommended",
+			"test": "all"
 		}
 	},
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
+		}
+	},
+
+	"css": {
+		"formatter": {
+			"enabled": true
 		}
 	},
 	"assist": {
@@ -40,5 +70,40 @@
 				"organizeImports": "on"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["tests/**", "**/*.test.ts", "**/test-*.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					},
+					"style": {
+						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["db/drizzle.ts", "drizzle.config.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["lib/lazy-load.tsx", "lib/connection-middleware.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					}
+				}
+			}
+		}
+	]
 }

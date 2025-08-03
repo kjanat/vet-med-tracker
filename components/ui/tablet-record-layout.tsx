@@ -24,7 +24,7 @@ interface DueRegimen {
 	form: string;
 	strength: string;
 	dose?: string;
-	targetTime?: Date;
+	targetTime?: string;
 	isPRN: boolean;
 	isHighRisk: boolean;
 	requiresCoSign: boolean;
@@ -136,8 +136,8 @@ export function TabletRecordLayout({
 			{/* Left column - Header and stats */}
 			<div className="w-80 shrink-0 border-r bg-muted/30">
 				<div className="p-6">
-					<div className="flex items-center justify-between mb-4">
-						<h1 className="text-2xl font-bold">Record Medication</h1>
+					<div className="mb-4 flex items-center justify-between">
+						<h1 className="font-bold text-2xl">Record Medication</h1>
 						<Button
 							variant="ghost"
 							size="sm"
@@ -148,7 +148,7 @@ export function TabletRecordLayout({
 						</Button>
 					</div>
 
-					<div className="text-muted-foreground mb-6">
+					<div className="mb-6 text-muted-foreground">
 						Select a medication to record administration
 					</div>
 
@@ -179,7 +179,7 @@ export function TabletRecordLayout({
 				{regimensLoading ? (
 					<TabletLoadingSkeleton />
 				) : !selectedHousehold ? (
-					<div className="flex-1 flex items-center justify-center p-8">
+					<div className="flex flex-1 items-center justify-center p-8">
 						<Alert>
 							<AlertDescription>
 								Please select a household to view medications.
@@ -190,7 +190,7 @@ export function TabletRecordLayout({
 					<EmptyMedicationsState />
 				) : (
 					<ScrollArea className="h-full">
-						<div className="p-6 space-y-6">
+						<div className="space-y-6 p-6">
 							{sections.map((section) => (
 								<div key={section.key} className="space-y-4">
 									<div className="flex items-center justify-between">
@@ -203,7 +203,7 @@ export function TabletRecordLayout({
 										</Badge>
 									</div>
 
-									<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+									<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 										{section.regimens.map((regimen) => {
 											const animal = animals.find(
 												(a) => a.id === regimen.animalId,
@@ -230,12 +230,12 @@ export function TabletRecordLayout({
 
 function TabletLoadingSkeleton() {
 	return (
-		<div className="p-6 space-y-6">
+		<div className="space-y-6 p-6">
 			<div className="space-y-2">
 				<Skeleton className="h-6 w-32" />
 				<Skeleton className="h-4 w-48" />
 			</div>
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				{[1, 2, 3, 4].map((i) => (
 					<Card key={i}>
 						<CardContent className="p-4">
@@ -301,7 +301,7 @@ function SidebarContext({
 }) {
 	return (
 		<div className="w-80 shrink-0 border-r bg-muted/30">
-			<div className="p-4 border-b">
+			<div className="border-b p-4">
 				<div className="flex items-center justify-between">
 					<h2 className="font-semibold text-lg">Record Medication</h2>
 					<Button
@@ -313,7 +313,7 @@ function SidebarContext({
 						<X className="h-4 w-4" />
 					</Button>
 				</div>
-				<div className="mt-2 text-sm text-muted-foreground">
+				<div className="mt-2 text-muted-foreground text-sm">
 					Step {step === "confirm" ? "2" : "3"} of 3
 				</div>
 			</div>
@@ -338,7 +338,7 @@ function SidebarContext({
 									<div className="font-semibold text-lg text-primary">
 										{selectedRegimen.medicationName}
 									</div>
-									<div className="text-sm text-muted-foreground space-y-1">
+									<div className="space-y-1 text-muted-foreground text-sm">
 										<div>{selectedRegimen.strength}</div>
 										<div>
 											{selectedRegimen.route} • {selectedRegimen.form}
@@ -378,11 +378,11 @@ function StatsDisplay({
 	stats: { dueCount: number; overdueCount: number; complianceRate: number };
 }) {
 	return (
-		<div className="space-y-3 mb-6">
+		<div className="mb-6 space-y-3">
 			<div className="flex items-center justify-between text-sm">
 				<span className="text-muted-foreground">Due Now</span>
 				<div className="flex items-center gap-2">
-					<div className="h-2 w-2 bg-green-600 rounded-full" />
+					<div className="h-2 w-2 rounded-full bg-green-600" />
 					<span className="font-medium">{stats.dueCount}</span>
 				</div>
 			</div>
@@ -391,7 +391,7 @@ function StatsDisplay({
 				<div className="flex items-center justify-between text-sm">
 					<span className="text-muted-foreground">Overdue</span>
 					<div className="flex items-center gap-2">
-						<div className="h-2 w-2 bg-red-600 rounded-full" />
+						<div className="h-2 w-2 rounded-full bg-red-600" />
 						<span className="font-medium text-red-600">
 							{stats.overdueCount}
 						</span>
@@ -410,12 +410,12 @@ function StatsDisplay({
 // Helper component for empty state
 function EmptyMedicationsState() {
 	return (
-		<div className="flex-1 flex items-center justify-center p-8">
+		<div className="flex flex-1 items-center justify-center p-8">
 			<div className="text-center text-muted-foreground">
-				<div className="w-16 h-16 mx-auto mb-4 opacity-50 rounded-full bg-muted flex items-center justify-center">
+				<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted opacity-50">
 					💊
 				</div>
-				<h3 className="text-lg font-medium mb-2">No medications due</h3>
+				<h3 className="mb-2 font-medium text-lg">No medications due</h3>
 				<p className="text-sm">
 					All caught up! No medications are due at this time.
 				</p>

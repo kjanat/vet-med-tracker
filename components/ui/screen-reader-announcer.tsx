@@ -213,12 +213,12 @@ export function SkipNavigation({
 			aria-label="Skip navigation"
 			className="sr-only focus-within:not-sr-only"
 		>
-			<ul className="flex gap-2 p-2 bg-primary text-primary-foreground">
+			<ul className="flex gap-2 bg-primary p-2 text-primary-foreground">
 				{links.map((link) => (
 					<li key={link.href}>
 						<a
 							href={link.href}
-							className="inline-block px-3 py-2 bg-background text-foreground rounded focus:outline-none focus:ring-2 focus:ring-ring"
+							className="inline-block rounded bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 						>
 							{link.label}
 						</a>

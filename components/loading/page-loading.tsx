@@ -14,7 +14,7 @@ import {
 // Home page loading state
 export function HomePageLoading() {
 	return (
-		<div className="container mx-auto px-4 py-6 space-y-6">
+		<div className="container mx-auto space-y-6 px-4 py-6">
 			{/* Header */}
 			<div className="space-y-2">
 				<Skeleton className="h-8 w-48" />
@@ -22,7 +22,7 @@ export function HomePageLoading() {
 			</div>
 
 			{/* Action cards */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 				{Array.from({ length: 4 }, (_, i) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
 					<SummaryCardSkeleton key={i} />
@@ -46,13 +46,13 @@ export function HomePageLoading() {
 // Record administration page loading
 export function RecordPageLoading() {
 	return (
-		<div className="container mx-auto px-4 py-6 space-y-6">
+		<div className="container mx-auto space-y-6 px-4 py-6">
 			<div className="space-y-2">
 				<Skeleton className="h-8 w-48" />
 				<Skeleton className="h-4 w-64" />
 			</div>
 
-			<div className="max-w-2xl mx-auto">
+			<div className="mx-auto max-w-2xl">
 				<FormSkeleton fields={4} />
 			</div>
 		</div>
@@ -62,7 +62,7 @@ export function RecordPageLoading() {
 // History page loading
 export function HistoryPageLoading() {
 	return (
-		<div className="container mx-auto px-4 py-6 space-y-6">
+		<div className="container mx-auto space-y-6 px-4 py-6">
 			<div className="space-y-2">
 				<Skeleton className="h-8 w-48" />
 				<Skeleton className="h-4 w-64" />
@@ -79,7 +79,7 @@ export function HistoryPageLoading() {
 			<div className="space-y-2">
 				{Array.from({ length: 5 }, (_, i) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					<div key={i} className="border rounded-lg p-4">
+					<div key={i} className="rounded-lg border p-4">
 						<ListSkeleton count={1} />
 					</div>
 				))}
@@ -91,7 +91,7 @@ export function HistoryPageLoading() {
 // Inventory page loading
 export function InventoryPageLoading() {
 	return (
-		<div className="container mx-auto px-4 py-6 space-y-6">
+		<div className="container mx-auto space-y-6 px-4 py-6">
 			<div className="flex items-center justify-between">
 				<div className="space-y-2">
 					<Skeleton className="h-8 w-48" />
@@ -101,7 +101,7 @@ export function InventoryPageLoading() {
 			</div>
 
 			{/* Stats */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 				{Array.from({ length: 3 }, (_, i) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
 					<SummaryCardSkeleton key={i} />
@@ -122,14 +122,14 @@ export function InventoryPageLoading() {
 // Insights page loading
 export function InsightsPageLoading() {
 	return (
-		<div className="container mx-auto px-4 py-6 space-y-6">
+		<div className="container mx-auto space-y-6 px-4 py-6">
 			<div className="space-y-2">
 				<Skeleton className="h-8 w-48" />
 				<Skeleton className="h-4 w-64" />
 			</div>
 
 			{/* Summary cards */}
-			<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
 				{Array.from({ length: 4 }, (_, i) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
 					<SummaryCardSkeleton key={i} />
@@ -144,8 +144,8 @@ export function InsightsPageLoading() {
 
 			{/* Additional insights */}
 			<div className="grid gap-4">
-				<div className="border rounded-lg p-6">
-					<Skeleton className="h-6 w-40 mb-4" />
+				<div className="rounded-lg border p-6">
+					<Skeleton className="mb-4 h-6 w-40" />
 					<ListSkeleton count={3} />
 				</div>
 			</div>
@@ -156,7 +156,7 @@ export function InsightsPageLoading() {
 // Animals page loading
 export function AnimalsPageLoading() {
 	return (
-		<div className="container mx-auto px-4 py-6 space-y-6">
+		<div className="container mx-auto space-y-6 px-4 py-6">
 			<div className="flex items-center justify-between">
 				<div className="space-y-2">
 					<Skeleton className="h-8 w-48" />
@@ -179,8 +179,8 @@ export function AnimalsPageLoading() {
 // Settings page loading
 export function SettingsPageLoading() {
 	return (
-		<div className="container mx-auto px-4 py-6 max-w-4xl">
-			<div className="space-y-2 mb-8">
+		<div className="container mx-auto max-w-4xl px-4 py-6">
+			<div className="mb-8 space-y-2">
 				<Skeleton className="h-8 w-48" />
 				<Skeleton className="h-4 w-64" />
 			</div>
@@ -191,7 +191,7 @@ export function SettingsPageLoading() {
 					<div
 						// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
 						key={i}
-						className="border rounded-lg p-6 space-y-4"
+						className="space-y-4 rounded-lg border p-6"
 					>
 						<Skeleton className="h-6 w-32" />
 						<FormSkeleton fields={2} />

@@ -9,8 +9,11 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import type { vetmedUsers } from "@/db/schema";
+
+type User = typeof vetmedUsers.$inferSelect;
+
 import { getQueueSize } from "@/lib/offline/db";
-import type { User } from "@/server/db/schema/users";
 import { trpc } from "@/server/trpc/client";
 import { AnimalFormProvider } from "./animal-form-provider";
 import { InventoryFormProvider } from "./inventory-form-provider";
@@ -73,9 +76,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 	const [pendingSyncCount, setPendingSyncCount] = useState(0);
 	const [households, setHouseholds] = useState<Household[]>([]);
 
-	// Convert Clerk user to app user format
-	const user: User | null = clerkUser
-		? {
+	// Convert Clerk user to minimal user format
+	const user = clerkUser
+		? ({
 				id: clerkUser.id,
 				name:
 					clerkUser.firstName ||
@@ -84,9 +87,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 				email: clerkUser.emailAddresses[0]?.emailAddress || "",
 				image: clerkUser.imageUrl || null,
 				emailVerified: null, // Clerk handles verification
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			}
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				// Add required fields with defaults
+				clerkUserId: clerkUser.id,
+				preferredTimezone: null,
+				preferredPhoneNumber: null,
+				use24HourTime: null,
+				temperatureUnit: null,
+				weightUnit: null,
+				emailReminders: null,
+				smsReminders: null,
+				pushNotifications: null,
+				reminderLeadTimeMinutes: null,
+				emergencyContactName: null,
+				emergencyContactPhone: null,
+				onboardingComplete: null,
+				onboardingCompletedAt: null,
+				preferencesBackup: null,
+			} as User)
 		: null;
 
 	// Fetch household details from API
@@ -153,8 +172,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 	// Update pending sync count
 	const updatePendingSyncCount = useCallback(async () => {
-		const count = await getQueueSize(selectedHousehold?.id);
-		setPendingSyncCount(count);
+		try {
+			const count = await getQueueSize(selectedHousehold?.id);
+			setPendingSyncCount(count);
+		} catch (error) {
+			console.warn("Failed to get pending sync count:", error);
+			// Set to 0 as fallback - this prevents showing incorrect sync indicators
+			setPendingSyncCount(0);
+		}
 	}, [selectedHousehold?.id]);
 
 	useEffect(() => {

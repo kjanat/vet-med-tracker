@@ -149,8 +149,8 @@ export function WelcomeFlow() {
 				return (
 					<Card>
 						<CardHeader className="text-center">
-							<div className="flex justify-center mb-4">
-								<Heart className="w-12 h-12 text-green-600" />
+							<div className="mb-4 flex justify-center">
+								<Heart className="h-12 w-12 text-green-600" />
 							</div>
 							<CardTitle>Welcome to VetMed Tracker!</CardTitle>
 							<CardDescription>
@@ -171,7 +171,7 @@ export function WelcomeFlow() {
 										updateData({ householdName: e.target.value })
 									}
 								/>
-								<p className="text-sm text-gray-500">
+								<p className="text-gray-500 text-sm">
 									This helps us personalize your experience and organize your
 									pets' information.
 								</p>
@@ -184,8 +184,8 @@ export function WelcomeFlow() {
 				return (
 					<Card>
 						<CardHeader className="text-center">
-							<div className="flex justify-center mb-4">
-								<Clock className="w-12 h-12 text-blue-600" />
+							<div className="mb-4 flex justify-center">
+								<Clock className="h-12 w-12 text-blue-600" />
 							</div>
 							<CardTitle>Time & Location</CardTitle>
 							<CardDescription>
@@ -223,7 +223,7 @@ export function WelcomeFlow() {
 										updateData({ preferredPhoneNumber: e.target.value })
 									}
 								/>
-								<p className="text-sm text-gray-500">
+								<p className="text-gray-500 text-sm">
 									We'll use this for SMS reminders if you enable them later.
 								</p>
 							</div>
@@ -235,8 +235,8 @@ export function WelcomeFlow() {
 				return (
 					<Card>
 						<CardHeader className="text-center">
-							<div className="flex justify-center mb-4">
-								<Home className="w-12 h-12 text-purple-600" />
+							<div className="mb-4 flex justify-center">
+								<Home className="h-12 w-12 text-purple-600" />
 							</div>
 							<CardTitle>Veterinary Information</CardTitle>
 							<CardDescription>
@@ -271,7 +271,7 @@ export function WelcomeFlow() {
 								/>
 							</div>
 
-							<p className="text-sm text-gray-500">
+							<p className="text-gray-500 text-sm">
 								You can always add or update this information later in your
 								profile settings.
 							</p>
@@ -283,8 +283,8 @@ export function WelcomeFlow() {
 				return (
 					<Card>
 						<CardHeader className="text-center">
-							<div className="flex justify-center mb-4">
-								<CheckCircle className="w-12 h-12 text-green-600" />
+							<div className="mb-4 flex justify-center">
+								<CheckCircle className="h-12 w-12 text-green-600" />
 							</div>
 							<CardTitle>You're All Set!</CardTitle>
 							<CardDescription>
@@ -323,11 +323,11 @@ export function WelcomeFlow() {
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+		<div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
 			<div className="w-full max-w-md space-y-6">
 				<div className="space-y-2">
 					<Progress value={progress} className="w-full" />
-					<p className="text-sm text-gray-600 text-center">
+					<p className="text-center text-gray-600 text-sm">
 						Step {currentStep} of {totalSteps}
 					</p>
 				</div>

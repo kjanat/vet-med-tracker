@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { WelcomeFlow } from "@/components/onboarding/welcome-flow";
 
@@ -11,7 +11,6 @@ interface OnboardingCheckerProps {
 
 export function OnboardingChecker({ children }: OnboardingCheckerProps) {
 	const { user, isLoaded } = useUser();
-	const _router = useRouter();
 	const pathname = usePathname();
 	const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -22,7 +21,7 @@ export function OnboardingChecker({ children }: OnboardingCheckerProps) {
 		const hasPreferences =
 			user.unsafeMetadata?.vetMedPreferences ||
 			user.unsafeMetadata?.householdSettings;
-		const hasCompletedOnboarding = user.publicMetadata?.onboardingComplete;
+		const hasCompletedOnboarding = user.unsafeMetadata?.onboardingComplete;
 		const needsOnboarding = !hasPreferences && !hasCompletedOnboarding;
 
 		// Don't show onboarding on profile pages or if already completed
@@ -35,8 +34,8 @@ export function OnboardingChecker({ children }: OnboardingCheckerProps) {
 	// Show loading while determining onboarding status
 	if (!isLoaded) {
 		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+			<div className="flex min-h-screen items-center justify-center bg-gray-50">
+				<div className="h-8 w-8 animate-spin rounded-full border-green-600 border-b-2"></div>
 			</div>
 		);
 	}

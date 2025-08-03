@@ -61,7 +61,7 @@ export function MobileRecordHeader({
 	};
 
 	return (
-		<header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+		<header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 			<div className="flex items-center justify-between px-4 py-3">
 				{/* Left: Back/Cancel */}
 				<div className="flex items-center gap-2">
@@ -89,12 +89,12 @@ export function MobileRecordHeader({
 				</div>
 
 				{/* Center: Title and Context */}
-				<div className="flex-1 text-center min-w-0 mx-4">
-					<h1 className="text-lg font-semibold truncate">{stepTitles[step]}</h1>
+				<div className="mx-4 min-w-0 flex-1 text-center">
+					<h1 className="truncate font-semibold text-lg">{stepTitles[step]}</h1>
 
 					{/* Animal and medication context */}
 					{selectedAnimalName && (
-						<div className="flex items-center justify-center gap-2 mt-1">
+						<div className="mt-1 flex items-center justify-center gap-2">
 							{selectedAnimal && (
 								<AnimalAvatar
 									animal={selectedAnimal}
@@ -103,7 +103,7 @@ export function MobileRecordHeader({
 								/>
 							)}
 							<div className="min-w-0">
-								<p className="text-sm text-muted-foreground truncate">
+								<p className="truncate text-muted-foreground text-sm">
 									{selectedAnimalName}
 									{selectedMedication && ` • ${selectedMedication}`}
 								</p>
@@ -150,17 +150,17 @@ export function MobileRecordStats({
 	className?: string;
 }) {
 	return (
-		<div className={`bg-muted/50 border-b px-4 py-2 ${className}`}>
+		<div className={`border-b bg-muted/50 px-4 py-2 ${className}`}>
 			<div className="flex items-center justify-between text-sm">
 				<div className="flex items-center gap-4">
 					<div className="flex items-center gap-1">
-						<div className="h-2 w-2 bg-green-600 rounded-full" />
+						<div className="h-2 w-2 rounded-full bg-green-600" />
 						<span className="text-muted-foreground">Due: {dueCount}</span>
 					</div>
 
 					{overdueCount > 0 && (
 						<div className="flex items-center gap-1">
-							<div className="h-2 w-2 bg-red-600 rounded-full" />
+							<div className="h-2 w-2 rounded-full bg-red-600" />
 							<span className="text-muted-foreground">
 								Overdue: {overdueCount}
 							</span>

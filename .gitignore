@@ -303,3 +303,11 @@ sample-components/
 
 # Windows / WSL
 *:Zone.Identifier
+
+logs_result.csv
+logs_result.json
+
+test-results/
+playwright-report/
+
+.neon

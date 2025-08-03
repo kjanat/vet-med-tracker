@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { animals, type NewAnimal } from "../../db/schema";
+import { animals, type NewAnimal } from "@/db/schema";
 import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 
 // Input validation schemas
@@ -135,7 +135,7 @@ export const animalRouter = createTRPCRouter({
 					...updateData,
 					dob: updateData.dob,
 					weightKg: updateData.weightKg?.toString(),
-					updatedAt: new Date(),
+					updatedAt: new Date().toISOString(),
 				})
 				.where(eq(animals.id, id))
 				.returning();
@@ -177,8 +177,8 @@ export const animalRouter = createTRPCRouter({
 			const result = await ctx.db
 				.update(animals)
 				.set({
-					deletedAt: new Date(),
-					updatedAt: new Date(),
+					deletedAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
 				})
 				.where(eq(animals.id, input.id))
 				.returning();

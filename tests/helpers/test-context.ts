@@ -1,15 +1,41 @@
 import { vi } from "vitest";
-import type { Context } from "@/server/api/trpc/init";
+import type { ClerkContext } from "@/server/api/trpc/clerk-init";
 
-export function createTestContext(): Context {
-	const mockUser = {
+export function createTestContext(): ClerkContext {
+	const mockDbUser = {
 		id: "test-user-id",
-		email: "test@example.com",
 		name: "Test User",
+		clerkUserId: "clerk_test-user-id",
+		email: "test@example.com",
 		image: null,
 		emailVerified: null,
-		createdAt: new Date(),
-		updatedAt: new Date(),
+		preferredTimezone: null,
+		preferredPhoneNumber: null,
+		onboardingComplete: false,
+		onboardingCompletedAt: null,
+		preferencesBackup: null,
+		use24HourTime: false,
+		temperatureUnit: "celsius" as const,
+		weightUnit: "kg" as const,
+		emailReminders: true,
+		smsReminders: false,
+		pushNotifications: true,
+		reminderLeadTimeMinutes: 15,
+		emergencyContactName: null,
+		emergencyContactPhone: null,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+	};
+
+	const mockClerkUser = {
+		id: "clerk_test-user-id",
+		emailAddresses: [{ emailAddress: "test@example.com" }],
+		firstName: "Test",
+		lastName: "User",
+		username: "testuser",
+		imageUrl: null,
+		publicMetadata: {},
+		unsafeMetadata: {},
 	};
 
 	return {
@@ -39,22 +65,9 @@ export function createTestContext(): Context {
 				where: vi.fn().mockResolvedValue([]),
 			}),
 		} as any,
-		user: mockUser,
-		session: {
-			userId: "test-user-id",
-			user: mockUser,
-			householdMemberships: [
-				{
-					id: "test-membership-id",
-					userId: "test-user-id",
-					householdId: "test-household-id",
-					role: "OWNER" as const,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
-			],
-			expiresAt: new Date(Date.now() + 3600000),
-		},
+		auth: vi.fn().mockResolvedValue({ userId: "clerk_test-user-id" }) as any,
+		clerkUser: mockClerkUser as any,
+		dbUser: mockDbUser as any,
 		headers: new Headers(),
 		requestedHouseholdId: "test-household-id",
 		currentHouseholdId: "test-household-id",
@@ -63,8 +76,25 @@ export function createTestContext(): Context {
 			userId: "test-user-id",
 			householdId: "test-household-id",
 			role: "OWNER" as const,
-			createdAt: new Date(),
-			updatedAt: new Date(),
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 		},
+		availableHouseholds: [
+			{
+				id: "test-household-id",
+				name: "Test Household",
+				timezone: "America/New_York",
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				membership: {
+					id: "test-membership-id",
+					userId: "test-user-id",
+					householdId: "test-household-id",
+					role: "OWNER" as const,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				},
+			},
+		],
 	};
 }

@@ -4,6 +4,28 @@ import { useCallback, useEffect } from "react";
 
 type NavigationDirection = "horizontal" | "vertical" | "grid";
 
+// Navigation key mappings with improved type safety
+const navigationKeys = Object.freeze({
+	ArrowDown: {
+		directions: ["vertical", "grid"] as NavigationDirection[],
+		delta: 1,
+	},
+	ArrowUp: {
+		directions: ["vertical", "grid"] as NavigationDirection[],
+		delta: -1,
+	},
+	ArrowRight: {
+		directions: ["horizontal", "grid"] as NavigationDirection[],
+		delta: 1,
+	},
+	ArrowLeft: {
+		directions: ["horizontal", "grid"] as NavigationDirection[],
+		delta: -1,
+	},
+	Home: { absolute: 0 },
+	End: { absolute: -1 }, // Will be resolved to items.length - 1
+} as const);
+
 /**
  * Global keyboard shortcuts for the VetMed Tracker application
  */
@@ -318,19 +340,6 @@ export function useKeyboardNavigation(
 		[wrap],
 	);
 
-	// Navigation key mappings
-	const navigationKeys: Record<
-		string,
-		{ directions: NavigationDirection[]; delta: number } | { absolute: number }
-	> = {
-		ArrowDown: { directions: ["vertical", "grid"], delta: 1 },
-		ArrowUp: { directions: ["vertical", "grid"], delta: -1 },
-		ArrowRight: { directions: ["horizontal", "grid"], delta: 1 },
-		ArrowLeft: { directions: ["horizontal", "grid"], delta: -1 },
-		Home: { absolute: 0 },
-		End: { absolute: -1 }, // Will be resolved to items.length - 1
-	};
-
 	// Helper to calculate the next index based on navigation config
 	const calculateNextIndex = useCallback(
 		(
@@ -361,7 +370,8 @@ export function useKeyboardNavigation(
 			);
 			if (currentIndex === -1) return;
 
-			const navConfig = navigationKeys[event.key];
+			const navConfig =
+				navigationKeys[event.key as keyof typeof navigationKeys];
 			if (!navConfig) return;
 
 			const nextIndex = calculateNextIndex(

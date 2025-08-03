@@ -1,12 +1,16 @@
-name: Code quality
+name: Code Quality
 
 on:
   push:
   pull_request:
 
 jobs:
-  quality:
+  biome_check:
+    name: Biome Code Quality Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,5 +23,13 @@ jobs:
         with:
           version: latest
 
-      - name: Run Biome
+      - name: Run Biome CI Check
         run: biome ci . --reporter=github
+
+      # Add reviewdog for PR comments on pull requests
+      - name: Run Biome with reviewdog
+        if: github.event_name == 'pull_request'
+        uses: mongolyy/reviewdog-action-biome@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review

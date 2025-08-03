@@ -28,7 +28,7 @@ export function PublicHeader() {
 
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-			<div className="container max-w-6xl mx-auto flex h-16 items-center px-4">
+			<div className="container mx-auto flex h-16 max-w-6xl items-center px-4">
 				{/* Logo */}
 				<Link href="/" className="flex items-center gap-2">
 					<Logo size="sm" />
@@ -36,12 +36,12 @@ export function PublicHeader() {
 				</Link>
 
 				{/* Desktop Navigation */}
-				<nav className="hidden md:flex items-center gap-6 mx-auto">
+				<nav className="mx-auto hidden items-center gap-6 md:flex">
 					{navigation.map((item) => (
 						<Link
 							key={item.name}
 							href={item.href}
-							className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+							className="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
 						>
 							{item.name}
 						</Link>
@@ -49,7 +49,7 @@ export function PublicHeader() {
 				</nav>
 
 				{/* Desktop CTA */}
-				<div className="hidden md:flex items-center gap-4">
+				<div className="hidden items-center gap-4 md:flex">
 					{isLoaded && !user && (
 						<>
 							<Button variant="ghost" onClick={() => openSignIn()}>
@@ -67,7 +67,7 @@ export function PublicHeader() {
 
 				{/* Mobile Menu */}
 				<Sheet open={isOpen} onOpenChange={setIsOpen}>
-					<SheetTrigger asChild className="md:hidden ml-auto">
+					<SheetTrigger asChild className="ml-auto md:hidden">
 						<Button variant="ghost" size="icon">
 							<Menu className="h-5 w-5" />
 						</Button>
@@ -76,18 +76,18 @@ export function PublicHeader() {
 						<SheetHeader>
 							<SheetTitle>Menu</SheetTitle>
 						</SheetHeader>
-						<nav className="flex flex-col gap-4 mt-8">
+						<nav className="mt-8 flex flex-col gap-4">
 							{navigation.map((item) => (
 								<Link
 									key={item.name}
 									href={item.href}
 									onClick={() => setIsOpen(false)}
-									className="text-lg font-medium hover:text-primary transition-colors"
+									className="font-medium text-lg transition-colors hover:text-primary"
 								>
 									{item.name}
 								</Link>
 							))}
-							<div className="pt-4 border-t space-y-3">
+							<div className="space-y-3 border-t pt-4">
 								{isLoaded && !user && (
 									<>
 										<Button

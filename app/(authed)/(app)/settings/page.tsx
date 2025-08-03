@@ -16,8 +16,8 @@ function SettingsContent() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
-				<p className="text-sm md:text-base text-muted-foreground">
+				<h1 className="font-bold text-2xl md:text-3xl">Settings</h1>
+				<p className="text-muted-foreground text-sm md:text-base">
 					Manage household, data privacy, notifications, and application
 					preferences
 				</p>
@@ -62,7 +62,7 @@ function SettingsContent() {
 export default function SettingsPage() {
 	return (
 		<Suspense
-			fallback={<div className="min-h-screen bg-background animate-pulse" />}
+			fallback={<div className="min-h-screen animate-pulse bg-background" />}
 		>
 			<SettingsContent />
 		</Suspense>

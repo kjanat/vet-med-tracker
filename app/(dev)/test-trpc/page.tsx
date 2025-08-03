@@ -157,7 +157,7 @@ function HouseholdItem({
 	return (
 		<button
 			type="button"
-			className={`p-4 border rounded-lg cursor-pointer transition-colors w-full text-left ${
+			className={`w-full cursor-pointer rounded-lg border p-4 text-left transition-colors ${
 				isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/50"
 			}`}
 			onClick={onClick}
@@ -165,7 +165,7 @@ function HouseholdItem({
 			<div className="flex items-center justify-between">
 				<div>
 					<h3 className="font-semibold">{household.name}</h3>
-					<p className="text-sm text-muted-foreground">{household.timezone}</p>
+					<p className="text-muted-foreground text-sm">{household.timezone}</p>
 				</div>
 				<Badge variant={household.role === "OWNER" ? "default" : "secondary"}>
 					{household.role}
@@ -250,7 +250,7 @@ function DetailSection<T extends { id?: string }>({
 }) {
 	return (
 		<div>
-			<h4 className="font-semibold mb-2">{title}</h4>
+			<h4 className="mb-2 font-semibold">{title}</h4>
 			{items && items.length > 0 ? (
 				<ul className="space-y-1">
 					{items.map((item, index) => (
@@ -260,7 +260,7 @@ function DetailSection<T extends { id?: string }>({
 					))}
 				</ul>
 			) : (
-				<p className="text-sm text-muted-foreground">{emptyMessage}</p>
+				<p className="text-muted-foreground text-sm">{emptyMessage}</p>
 			)}
 		</div>
 	);
@@ -361,7 +361,7 @@ export default function TestTRPCPage() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-3xl font-bold">Test tRPC + Database Connection</h1>
+				<h1 className="font-bold text-3xl">Test tRPC + Database Connection</h1>
 				<p className="text-muted-foreground">
 					Testing Drizzle ORM with Neon PostgreSQL through tRPC
 				</p>
@@ -398,11 +398,11 @@ export default function TestTRPCPage() {
 				<CardContent className="space-y-2 text-sm">
 					<p>
 						1. Run migrations:{" "}
-						<code className="bg-muted px-2 py-1 rounded">pnpm db:push</code>
+						<code className="rounded bg-muted px-2 py-1">pnpm db:push</code>
 					</p>
 					<p>
 						2. Seed the database:{" "}
-						<code className="bg-muted px-2 py-1 rounded">pnpm db:seed</code>
+						<code className="rounded bg-muted px-2 py-1">pnpm db:seed</code>
 					</p>
 					<p>3. Refresh this page to see the seeded data</p>
 					<p className="mt-4 text-muted-foreground">

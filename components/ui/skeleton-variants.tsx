@@ -96,8 +96,8 @@ export function ChartSkeleton({ className }: { className?: string }) {
 					<Skeleton className="h-6 w-32" />
 					<Skeleton className="h-4 w-48" />
 				</div>
-				<div className="h-64 relative">
-					<div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-1">
+				<div className="relative h-64">
+					<div className="absolute right-0 bottom-0 left-0 flex items-end justify-between gap-1">
 						{Array.from({ length: 7 }, (_, i) => (
 							<Skeleton
 								// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader

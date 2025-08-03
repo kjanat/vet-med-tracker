@@ -21,7 +21,7 @@ import { trpc } from "@/server/trpc/client";
 export default function UsersPage() {
 	const { selectedHousehold } = useApp();
 	const [searchQuery, setSearchQuery] = useState("");
-	const [_invitingUser, setInvitingUser] = useState(false);
+	const [, setInvitingUser] = useState(false);
 
 	// Get household members
 	const { data: members, isLoading } = trpc.household.getMembers.useQuery(
@@ -47,7 +47,7 @@ export default function UsersPage() {
 		return (
 			<div className="space-y-6">
 				<div>
-					<h1 className="text-3xl font-bold">Manage Users</h1>
+					<h1 className="font-bold text-3xl">Manage Users</h1>
 					<p className="text-muted-foreground">
 						Please select a household to manage users
 					</p>
@@ -60,7 +60,7 @@ export default function UsersPage() {
 		return (
 			<div className="space-y-6">
 				<div>
-					<h1 className="text-3xl font-bold">Manage Users</h1>
+					<h1 className="font-bold text-3xl">Manage Users</h1>
 					<p className="text-muted-foreground">Loading...</p>
 				</div>
 			</div>
@@ -72,7 +72,7 @@ export default function UsersPage() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold">Manage Users</h1>
+					<h1 className="font-bold text-3xl">Manage Users</h1>
 					<p className="text-muted-foreground">
 						Members of {selectedHousehold.name}
 					</p>
@@ -87,7 +87,7 @@ export default function UsersPage() {
 
 			{/* Search */}
 			<div className="relative">
-				<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+				<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 				<Input
 					placeholder="Search users..."
 					value={searchQuery}
@@ -102,7 +102,7 @@ export default function UsersPage() {
 					const initials =
 						member.user.name
 							?.split(" ")
-							.map((n) => n[0])
+							.map((n: string) => n[0])
 							.join("")
 							.toUpperCase() ||
 						member.user.email?.[0]?.toUpperCase() ||
@@ -135,10 +135,10 @@ export default function UsersPage() {
 													{member.role}
 												</Badge>
 											</div>
-											<p className="text-sm text-muted-foreground">
+											<p className="text-muted-foreground text-sm">
 												{member.user.email}
 											</p>
-											<p className="text-xs text-muted-foreground mt-1">
+											<p className="mt-1 text-muted-foreground text-xs">
 												Joined {new Date(member.createdAt).toLocaleDateString()}
 											</p>
 										</div>
@@ -171,9 +171,9 @@ export default function UsersPage() {
 			{filteredMembers?.length === 0 && (
 				<Card>
 					<CardContent className="flex flex-col items-center justify-center py-12">
-						<Search className="h-12 w-12 text-muted-foreground mb-4" />
-						<h3 className="font-semibold text-lg mb-2">No users found</h3>
-						<p className="text-muted-foreground text-center">
+						<Search className="mb-4 h-12 w-12 text-muted-foreground" />
+						<h3 className="mb-2 font-semibold text-lg">No users found</h3>
+						<p className="text-center text-muted-foreground">
 							{searchQuery
 								? "Try adjusting your search"
 								: "No members in this household yet"}

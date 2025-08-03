@@ -133,7 +133,7 @@ export function NavMain({
 															<button
 																type="button"
 																onClick={subItem.onClick}
-																className="w-full text-left cursor-pointer"
+																className="w-full cursor-pointer text-left"
 																aria-label={`${subItem.title} action`}
 															>
 																<span>{subItem.title}</span>

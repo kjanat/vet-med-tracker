@@ -147,7 +147,7 @@ export function AddItemModal({
 	return (
 		<>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
-				<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+				<DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
 					<DialogHeader>
 						<DialogTitle>Add Inventory Item</DialogTitle>
 						<DialogDescription>
@@ -179,7 +179,7 @@ export function AddItemModal({
 								) : (
 									<div className="space-y-4">
 										{!isScanning ? (
-											<div className="text-center py-8">
+											<div className="py-8 text-center">
 												<Button
 													onClick={startScanning}
 													size="lg"
@@ -188,7 +188,7 @@ export function AddItemModal({
 													<Camera className="h-5 w-5" />
 													Start Scanning
 												</Button>
-												<p className="text-sm text-muted-foreground mt-2">
+												<p className="mt-2 text-muted-foreground text-sm">
 													Point your camera at a barcode
 												</p>
 											</div>
@@ -197,12 +197,12 @@ export function AddItemModal({
 												<div className="relative">
 													<video
 														ref={videoRef}
-														className="w-full h-64 bg-black rounded-lg object-cover"
+														className="h-64 w-full rounded-lg bg-black object-cover"
 														playsInline
 														muted
 													/>
-													<div className="absolute inset-0 border-2 border-primary rounded-lg pointer-events-none">
-														<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-24 border-2 border-white rounded-lg"></div>
+													<div className="pointer-events-none absolute inset-0 rounded-lg border-2 border-primary">
+														<div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-24 w-48 transform rounded-lg border-2 border-white"></div>
 													</div>
 												</div>
 
@@ -218,11 +218,11 @@ export function AddItemModal({
 											<Alert>
 												<AlertDescription>
 													Scanned:{" "}
-													<span className="font-mono bg-muted px-1.5 py-0.5 rounded select-all">
+													<span className="select-all rounded bg-muted px-1.5 py-0.5 font-mono">
 														{scannedBarcode}
 													</span>
 													<br />
-													<span className="text-sm text-muted-foreground">
+													<span className="text-muted-foreground text-sm">
 														Switch to Manual tab to complete the details
 													</span>
 												</AlertDescription>
@@ -598,7 +598,7 @@ export function AddItemModal({
 															onCheckedChange={field.onChange}
 														/>
 													</FormControl>
-													<FormLabel className="text-sm font-normal">
+													<FormLabel className="font-normal text-sm">
 														Set as &quot;In Use&quot; for this animal
 													</FormLabel>
 												</FormItem>
@@ -608,8 +608,8 @@ export function AddItemModal({
 
 									{form.watch("barcode") && (
 										<div className="space-y-2">
-											<div className="text-sm font-medium">Barcode</div>
-											<div className="text-sm font-mono bg-muted p-2 rounded select-all">
+											<div className="font-medium text-sm">Barcode</div>
+											<div className="select-all rounded bg-muted p-2 font-mono text-sm">
 												{form.watch("barcode")}
 											</div>
 										</div>
@@ -648,7 +648,7 @@ export function AddItemModal({
 								{scanError}
 							</span>
 						</AlertDialogDescription>
-						<p className="text-sm text-muted-foreground mt-2">
+						<p className="mt-2 text-muted-foreground text-sm">
 							You can still add the item manually using the Manual tab.
 						</p>
 					</AlertDialogHeader>
