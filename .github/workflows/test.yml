@@ -49,7 +49,7 @@ jobs:
         run: |
           # Use db:push for local PostgreSQL, skip for external (already migrated)
           if [[ -z "${{ inputs.database_url }}" ]]; then
-            pnpm db:push
+            pnpm db:push --force
           else
             echo "Using external database - skipping schema push"
           fi
