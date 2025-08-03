@@ -46,21 +46,17 @@ export function HowItWorksSection() {
 						>
 							{/* Connection line (hidden on mobile and last item) */}
 							{index < steps.length - 1 && (
-								<div className="absolute top-16 left-1/2 hidden h-0.5 w-full bg-border md:block" />
+								<div className="absolute top-12 left-1/2 hidden h-0.5 w-full bg-border md:block" />
 							)}
 
 							<div className="relative text-center">
-								{/* Step number */}
-								<div className="relative mx-auto mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-primary/10">
-									<span className="font-bold text-4xl text-primary">
-										{step.number}
-									</span>
-									<div className="absolute inset-0 animate-pulse rounded-full border-2 border-primary/20" />
-								</div>
-
-								{/* Icon */}
-								<div className="-mt-20 mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary bg-background">
-									<step.icon className="h-6 w-6 text-primary" />
+								{/* Step circle with icon */}
+								<div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+									<step.icon className="h-10 w-10 text-primary" />
+									{/* Step number badge */}
+									<div className="-top-2 -right-2 absolute flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+										<span className="font-bold text-sm">{step.number}</span>
+									</div>
 								</div>
 
 								{/* Content */}
@@ -81,8 +77,8 @@ export function HowItWorksSection() {
 						{/* Demo placeholder */}
 						<div className="space-y-4 rounded-lg bg-background p-6 shadow-lg">
 							<div className="h-12 animate-pulse rounded bg-muted" />
-							<div className="h-12 animate-pulse rounded bg-muted delay-75" />
-							<div className="h-12 animate-pulse rounded bg-muted delay-150" />
+							<div className="h-12 animate-pulse rounded bg-muted [animation-delay:75ms]" />
+							<div className="h-12 animate-pulse rounded bg-muted [animation-delay:150ms]" />
 						</div>
 					</div>
 				</div>
