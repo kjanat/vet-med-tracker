@@ -39,7 +39,7 @@ pnpm lint         # Run ESLint
 - **State Management**: React Context API (AppProvider) + React Query
 - **API Layer**: tRPC (server + client) for type-safe APIs
 - **Database**: Prisma + Postgres
-- **Authentication**: OpenAuth.js (OAuth 2.0 with custom auth server)
+- **Authentication**: Clerk (managed authentication service)
 - **Forms**: React Hook Form with Zod validation
 - **Package Manager**: pnpm 10.13.1
 - **Deployment**: Vercel (edge functions where beneficial)
@@ -111,15 +111,20 @@ The app uses responsive design with distinct mobile and desktop layouts:
 
 ### Authentication
 
-The app uses OpenAuth.js for authentication:
-- **OAuth 2.0 Server**: [https://auth.kajkowalski.nl](https://auth.kajkowalski.nl) (custom OpenAuth server)
+The app uses Clerk for authentication:
+- **Managed Auth Service**: Clerk handles all authentication flows (OAuth, Email/Password, Social logins)
 - **Protected Routes**: All routes under `app/(authed)/` require authentication
-- **Auth Hooks**: `useAuth()` for client-side auth state
-- **Token Storage**: httpOnly cookies for security
-- **Auto-refresh**: Tokens are refreshed automatically when expired
-- **User Creation**: New users are created on first login with a default household
+- **Middleware**: `clerkMiddleware` in `middleware.ts` protects routes
+- **Providers**: `ClerkProvider` wraps the app in `app/layout.tsx`
+- **User Sync**: Users are automatically synced to the database on first login
+- **Multi-tenancy**: Users can belong to multiple households with different roles
 
-See `docs/AUTH_SETUP.md` for detailed authentication setup instructions.
+Clerk provides:
+- Built-in UI components (SignIn, SignUp, UserButton)
+- Session management and JWT tokens
+- User profile management
+- Organization/household support
+- Webhook integration for user sync
 
 ## Core Domain Concepts
 

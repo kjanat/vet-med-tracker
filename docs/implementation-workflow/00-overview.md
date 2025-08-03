@@ -9,7 +9,7 @@ The VetMed Tracker application is **85% complete** with excellent foundational a
 - ✅ Comprehensive UI components (shadcn/ui)
 - ✅ Complete database schema (Drizzle ORM)
 - ✅ Functional tRPC API with all main routers
-- ✅ Authentication via OpenAuth.js
+- ✅ Authentication via Clerk
 - ✅ PWA infrastructure with service worker
 - ✅ Offline queue implementation
 

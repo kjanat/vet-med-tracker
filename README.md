@@ -20,7 +20,7 @@ A Progressive Web App (PWA) for managing veterinary medications for pets and ani
 ### Prerequisites
 - Node.js 18+ and pnpm 10.13.1+
 - PostgreSQL database (Neon recommended)
-- OpenAuth.js server (for authentication)
+- Clerk account (for authentication)
 
 ### Installation
 
@@ -77,7 +77,7 @@ pnpm test:e2e     # Run end-to-end tests
 - **State Management**: React Context API (AppProvider) + React Query
 - **API Layer**: tRPC (server + client) for type-safe APIs
 - **Database**: Drizzle ORM + PostgreSQL (Neon)
-- **Authentication**: OpenAuth.js (OAuth 2.0 with custom auth server)
+- **Authentication**: Clerk (managed authentication service)
 - **Forms**: React Hook Form with Zod validation
 - **PWA**: Service Worker with offline queue (IndexedDB)
 - **Package Manager**: pnpm 10.13.1
@@ -351,7 +351,7 @@ curl "http://localhost:3000/api/health?detailed=true" | jq '.metrics.queue'
 
 ### Complete Documentation
 - 🏗️ **[Architecture Guide](./CLAUDE.md)** - Comprehensive project overview
-- 🔐 **[Authentication Setup](./docs/AUTH_SETUP.md)** - OpenAuth.js configuration
+- 🔐 **[Authentication Setup](./docs/AUTH_SETUP.md)** - Clerk configuration
 - 📊 **[Production Monitoring](./docs/PRODUCTION_MONITORING.md)** - Monitoring and observability
 - 📱 **[Offline Support](./docs/OFFLINE_QUEUE.md)** - PWA and offline capabilities
 - 🗄️ **[Database Guide](./docs/DATABASE_POOLING.md)** - Database optimization

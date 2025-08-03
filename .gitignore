@@ -306,3 +306,6 @@ sample-components/
 
 logs_result.csv
 logs_result.json
+
+test-results/
+playwright-report/
