@@ -149,16 +149,17 @@ export type SearchParamPageType = keyof typeof schemaMap;
  * // Result: "animalId=123&type=scheduled"
  * ```
  */
-export function createTypedQueryString<
-	T extends Record<string, string | undefined>,
->(params: T, currentParams?: URLSearchParams): string {
+export function createTypedQueryString<T>(
+	params: Partial<T>,
+	currentParams?: URLSearchParams,
+): string {
 	const newParams = new URLSearchParams(currentParams);
 
 	Object.entries(params).forEach(([key, value]) => {
-		if (value === undefined || value === "") {
+		if (value === undefined || value === null || value === "") {
 			newParams.delete(key);
 		} else {
-			newParams.set(key, value);
+			newParams.set(key, String(value));
 		}
 	});
 
@@ -230,9 +231,10 @@ export function parseTypedSearchParams<T>(
  * // Preserves other params but sets type and removes view
  * ```
  */
-export function updateSearchParams<
-	T extends Record<string, string | undefined>,
->(currentParams: URLSearchParams, updates: T): string {
+export function updateSearchParams<T>(
+	currentParams: URLSearchParams,
+	updates: Partial<T>,
+): string {
 	return createTypedQueryString(
 		updates,
 		new URLSearchParams(currentParams.toString()),
@@ -258,9 +260,7 @@ export function updateSearchParams<
  * // Always returns type and view, even if not in URL
  * ```
  */
-export function getTypedSearchParams<
-	T extends Record<string, string | undefined>,
->(
+export function getTypedSearchParams<T>(
 	searchParams: URLSearchParams,
 	pageType: SearchParamPageType,
 	defaults: Partial<T> = {},

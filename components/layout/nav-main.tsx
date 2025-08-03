@@ -1,25 +1,13 @@
 "use client";
 
-import { ChevronRight, type LucideIcon } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import type { LucideIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 import {
 	SidebarGroup,
 	SidebarGroupLabel,
 	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
-	SidebarMenuSub,
-	SidebarMenuSubButton,
-	SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { NavMainItem } from "./nav-main-item";
 
 export function NavMain({
 	items,
@@ -36,30 +24,17 @@ export function NavMain({
 		}[];
 	}[];
 }) {
-	// Initialize state for all items at the top level
-	const [openStates, setOpenStates] = useState<Record<string, boolean>>(() => {
-		const initialStates: Record<string, boolean> = {};
-		items.forEach((item) => {
-			initialStates[item.title] = item.isActive || false;
-		});
-		return initialStates;
-	});
-
-	const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
-
-	const toggleOpen = (itemTitle: string) => {
-		setOpenStates((prev) => ({
-			...prev,
-			[itemTitle]: !prev[itemTitle],
-		}));
-	};
+	const firstMenuItemRef = useRef<HTMLDivElement>(null);
 
 	// Listen for menu toggle events from keyboard shortcuts
 	useEffect(() => {
 		const handleMenuToggle = () => {
 			// Focus the first menu item when Alt+M is pressed
 			if (firstMenuItemRef.current) {
-				firstMenuItemRef.current.focus();
+				const firstLink = firstMenuItemRef.current.querySelector("a, button");
+				if (firstLink instanceof HTMLElement) {
+					firstLink.focus();
+				}
 			}
 		};
 
@@ -74,90 +49,14 @@ export function NavMain({
 				VetMed Tracker
 			</SidebarGroupLabel>
 			<SidebarMenu>
-				{items.map((item, index) => {
-					const isOpen = openStates[item.title] || false;
-					const isFirstItem = index === 0;
-
-					return (
-						<Collapsible
-							key={item.title}
-							asChild
-							open={isOpen}
-							onOpenChange={() => toggleOpen(item.title)}
-						>
-							<SidebarMenuItem>
-								{item.items?.length ? (
-									<CollapsibleTrigger asChild>
-										<SidebarMenuButton
-											tooltip={item.title}
-											isActive={item.isActive}
-											className="cursor-pointer"
-											aria-expanded={isOpen}
-											aria-controls={`submenu-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
-											aria-label={`${item.title} menu`}
-										>
-											<item.icon aria-hidden="true" />
-											<span>{item.title}</span>
-											<ChevronRight
-												aria-hidden="true"
-												className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
-											/>
-										</SidebarMenuButton>
-									</CollapsibleTrigger>
-								) : (
-									<SidebarMenuButton
-										asChild
-										tooltip={item.title}
-										isActive={item.isActive}
-										className="cursor-pointer"
-									>
-										<Link
-											ref={isFirstItem ? firstMenuItemRef : undefined}
-											href={item.url as Route}
-											aria-label={`Navigate to ${item.title}`}
-										>
-											<item.icon aria-hidden="true" />
-											<span>{item.title}</span>
-										</Link>
-									</SidebarMenuButton>
-								)}
-								{item.items?.length ? (
-									<CollapsibleContent
-										className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down"
-										id={`submenu-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
-									>
-										<SidebarMenuSub aria-label={`${item.title} submenu`}>
-											{item.items?.map((subItem) => (
-												<SidebarMenuSubItem key={subItem.title}>
-													<SidebarMenuSubButton asChild>
-														{subItem.onClick ? (
-															<button
-																type="button"
-																onClick={subItem.onClick}
-																className="w-full cursor-pointer text-left"
-																aria-label={`${subItem.title} action`}
-															>
-																<span>{subItem.title}</span>
-															</button>
-														) : (
-															<Link
-																href={(subItem.url || "#") as Route}
-																className="cursor-pointer"
-																aria-label={`Navigate to ${subItem.title}`}
-															>
-																<span>{subItem.title}</span>
-															</Link>
-														)}
-													</SidebarMenuSubButton>
-												</SidebarMenuSubItem>
-											))}
-										</SidebarMenuSub>
-									</CollapsibleContent>
-								) : null}
-							</SidebarMenuItem>
-						</Collapsible>
-					);
-				})}
+				{items.map((item, index) => (
+					<div
+						key={item.title}
+						ref={index === 0 ? firstMenuItemRef : undefined}
+					>
+						<NavMainItem item={item} />
+					</div>
+				))}
 			</SidebarMenu>
 		</SidebarGroup>
 	);

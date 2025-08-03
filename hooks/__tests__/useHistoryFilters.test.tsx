@@ -1,5 +1,10 @@
 import { act, renderHook } from "@testing-library/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+	type ReadonlyURLSearchParams,
+	usePathname,
+	useRouter,
+	useSearchParams,
+} from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useHistoryFilters } from "../useHistoryFilters";
 
@@ -14,10 +19,29 @@ describe("useHistoryFilters", () => {
 	const mockPush = vi.fn();
 	const mockReplace = vi.fn();
 	let mockSearchParams: URLSearchParams;
+	let readonlySearchParams: ReadonlyURLSearchParams;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockSearchParams = new URLSearchParams();
+
+		// Create a ReadonlyURLSearchParams mock that delegates to URLSearchParams
+		readonlySearchParams = {
+			get: (name: string) => mockSearchParams.get(name),
+			getAll: (name: string) => mockSearchParams.getAll(name),
+			has: (name: string) => mockSearchParams.has(name),
+			keys: () => mockSearchParams.keys(),
+			values: () => mockSearchParams.values(),
+			entries: () => mockSearchParams.entries(),
+			forEach: (
+				callback: (value: string, key: string, parent: URLSearchParams) => void,
+			) => mockSearchParams.forEach(callback),
+			toString: () => mockSearchParams.toString(),
+			get size() {
+				return mockSearchParams.size;
+			},
+			[Symbol.iterator]: () => mockSearchParams[Symbol.iterator](),
+		} as unknown as ReadonlyURLSearchParams;
 		vi.mocked(useRouter).mockReturnValue({
 			push: mockPush,
 			replace: mockReplace,
@@ -26,7 +50,7 @@ describe("useHistoryFilters", () => {
 			refresh: vi.fn(),
 			prefetch: vi.fn(),
 		});
-		vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
+		vi.mocked(useSearchParams).mockReturnValue(readonlySearchParams);
 		vi.mocked(usePathname).mockReturnValue("/dashboard/history");
 	});
 

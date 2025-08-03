@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type * as React from "react";
 import { NotificationsSidebarItem } from "@/components/notifications/notifications-sidebar-item";
 import { useAnimalForm } from "@/components/providers/animal-form-provider";
@@ -162,14 +161,12 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const pathname = usePathname();
 	const { openForm } = useAnimalForm();
 	const { openForm: openInventoryForm } = useInventoryForm();
 
-	// Update active state and add click handlers based on current path
-	const navMainWithActive = data.navMain.map((item) => ({
+	// Add click handlers for dialog-based actions
+	const navMainWithHandlers = data.navMain.map((item) => ({
 		...item,
-		isActive: pathname === item.url || pathname.startsWith(`${item.url}/`),
 		items: item.items?.map((subItem) => {
 			// Convert "Add Animal" links to use the dialog
 			if (subItem.title === "Add Animal") {
@@ -198,7 +195,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			</SidebarHeader>
 			<SidebarContent>
 				<NavDashboard items={data.dashboard} />
-				<NavMain items={navMainWithActive} />
+				<NavMain items={navMainWithHandlers} />
 
 				{/* Custom secondary navigation with notifications popover */}
 				<SidebarGroup className="mt-auto">
