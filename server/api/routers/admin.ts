@@ -1,13 +1,15 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gte, lte } from "drizzle-orm";
+import { and, eq, gte, isNull, lte } from "drizzle-orm";
 import { z } from "zod";
 import {
 	administrations,
 	type adminStatusEnum,
 	animals,
 	inventoryItems,
+	medicationCatalog,
 	type NewAdministration,
 	regimens,
+	users,
 } from "@/db/schema";
 import { createAuditLog } from "@/server/utils/audit-log";
 import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
@@ -362,7 +364,7 @@ export const adminRouter = createTRPCRouter({
 			return result;
 		}),
 
-	// List administrations for an animal or household
+	// List administrations for an animal or household with proper joins
 	list: householdProcedure
 		.input(
 			z.object({
@@ -399,13 +401,294 @@ export const adminRouter = createTRPCRouter({
 			}
 
 			const result = await ctx.db
-				.select()
+				.select({
+					// Administration fields
+					id: administrations.id,
+					regimenId: administrations.regimenId,
+					animalId: administrations.animalId,
+					householdId: administrations.householdId,
+					caregiverId: administrations.caregiverId,
+					scheduledFor: administrations.scheduledFor,
+					recordedAt: administrations.recordedAt,
+					status: administrations.status,
+					sourceItemId: administrations.sourceItemId,
+					site: administrations.site,
+					dose: administrations.dose,
+					notes: administrations.notes,
+					mediaUrls: administrations.mediaUrls,
+					coSignUserId: administrations.coSignUserId,
+					coSignedAt: administrations.coSignedAt,
+					coSignNotes: administrations.coSignNotes,
+					adverseEvent: administrations.adverseEvent,
+					adverseEventDescription: administrations.adverseEventDescription,
+					idempotencyKey: administrations.idempotencyKey,
+					createdAt: administrations.createdAt,
+					updatedAt: administrations.updatedAt,
+					// Joined fields
+					animalName: animals.name,
+					caregiverName: users.name,
+					caregiverEmail: users.email,
+					medicationGenericName: medicationCatalog.genericName,
+					medicationBrandName: medicationCatalog.brandName,
+					medicationStrength: medicationCatalog.strength,
+					medicationRoute: medicationCatalog.route,
+					medicationForm: medicationCatalog.form,
+					// Co-signer details
+					coSignUserName: users.name,
+					// Inventory item details
+					inventoryBrandOverride: inventoryItems.brandOverride,
+					inventoryLot: inventoryItems.lot,
+					inventoryExpiresOn: inventoryItems.expiresOn,
+				})
 				.from(administrations)
+				.innerJoin(animals, eq(administrations.animalId, animals.id))
+				.innerJoin(users, eq(administrations.caregiverId, users.id))
+				.innerJoin(regimens, eq(administrations.regimenId, regimens.id))
+				.innerJoin(
+					medicationCatalog,
+					eq(regimens.medicationId, medicationCatalog.id),
+				)
+				.leftJoin(
+					inventoryItems,
+					eq(administrations.sourceItemId, inventoryItems.id),
+				)
 				.where(and(...conditions))
 				.orderBy(administrations.recordedAt)
 				.limit(input.limit)
 				.execute();
 
 			return result;
+		}),
+
+	// Delete (soft delete) an administration record
+	delete: householdProcedure
+		.input(
+			z.object({
+				householdId: z.string().uuid(),
+				recordId: z.string().uuid(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Verify the record exists and belongs to the household
+			const existing = await ctx.db
+				.select()
+				.from(administrations)
+				.where(
+					and(
+						eq(administrations.id, input.recordId),
+						eq(administrations.householdId, input.householdId),
+					),
+				)
+				.limit(1)
+				.execute();
+
+			if (!existing[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Administration record not found",
+				});
+			}
+
+			// For this implementation, we'll actually delete the record
+			// In a real system, you might want to add a deletedAt field for soft delete
+			const result = await ctx.db
+				.delete(administrations)
+				.where(eq(administrations.id, input.recordId))
+				.returning()
+				.execute();
+
+			if (!result[0]) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to delete administration record",
+				});
+			}
+
+			// Create audit log
+			await createAuditLog(ctx.db, {
+				userId: ctx.dbUser.id,
+				householdId: input.householdId,
+				action: "DELETE",
+				tableName: "administrations",
+				recordId: input.recordId,
+				oldValues: existing[0],
+			});
+
+			return { success: true, deletedRecord: result[0] };
+		}),
+
+	// Undo an administration record (if recorded recently)
+	undo: householdProcedure
+		.input(
+			z.object({
+				householdId: z.string().uuid(),
+				recordId: z.string().uuid(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Get the record with verification
+			const existing = await ctx.db
+				.select()
+				.from(administrations)
+				.where(
+					and(
+						eq(administrations.id, input.recordId),
+						eq(administrations.householdId, input.householdId),
+						eq(administrations.caregiverId, ctx.dbUser.id), // Only allow undo by original caregiver
+					),
+				)
+				.limit(1)
+				.execute();
+
+			if (!existing[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message:
+						"Administration record not found or you don't have permission to undo it",
+				});
+			}
+
+			// Check if record is recent enough to undo (within 30 minutes)
+			const recordedAt = new Date(existing[0].recordedAt);
+			const now = new Date();
+			const diffMinutes = (now.getTime() - recordedAt.getTime()) / (1000 * 60);
+
+			if (diffMinutes > 30) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot undo administration after 30 minutes",
+				});
+			}
+
+			// Check if already co-signed (can't undo co-signed records)
+			if (existing[0].coSignedAt) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot undo a co-signed administration",
+				});
+			}
+
+			// Delete the record
+			const result = await ctx.db
+				.delete(administrations)
+				.where(eq(administrations.id, input.recordId))
+				.returning()
+				.execute();
+
+			if (!result[0]) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to undo administration record",
+				});
+			}
+
+			// Create audit log
+			await createAuditLog(ctx.db, {
+				userId: ctx.dbUser.id,
+				householdId: input.householdId,
+				action: "UNDO",
+				tableName: "administrations",
+				recordId: input.recordId,
+				oldValues: existing[0],
+			});
+
+			return { success: true, undoneRecord: result[0] };
+		}),
+
+	// Co-sign an administration record (for high-risk medications)
+	cosign: householdProcedure
+		.input(
+			z.object({
+				householdId: z.string().uuid(),
+				recordId: z.string().uuid(),
+				notes: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Get the record and verify it exists and needs co-signing
+			const existing = await ctx.db
+				.select({
+					administration: administrations,
+					regimen: regimens,
+				})
+				.from(administrations)
+				.innerJoin(regimens, eq(administrations.regimenId, regimens.id))
+				.where(
+					and(
+						eq(administrations.id, input.recordId),
+						eq(administrations.householdId, input.householdId),
+						isNull(administrations.coSignedAt), // Not already co-signed
+					),
+				)
+				.limit(1)
+				.execute();
+
+			if (!existing[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Administration record not found or already co-signed",
+				});
+			}
+
+			// Verify the regimen requires co-signing
+			if (!existing[0].regimen.requiresCoSign) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "This medication does not require co-signing",
+				});
+			}
+
+			// Can't co-sign your own administration
+			if (existing[0].administration.caregiverId === ctx.dbUser.id) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot co-sign your own administration",
+				});
+			}
+
+			// Check if co-sign is within time limit (10 minutes)
+			const recordedAt = new Date(existing[0].administration.recordedAt);
+			const now = new Date();
+			const diffMinutes = (now.getTime() - recordedAt.getTime()) / (1000 * 60);
+
+			if (diffMinutes > 10) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Co-sign window has expired (must be within 10 minutes)",
+				});
+			}
+
+			// Update the record with co-sign information
+			const result = await ctx.db
+				.update(administrations)
+				.set({
+					coSignUserId: ctx.dbUser.id,
+					coSignedAt: new Date().toISOString(),
+					coSignNotes: input.notes || null,
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(administrations.id, input.recordId))
+				.returning()
+				.execute();
+
+			if (!result[0]) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to co-sign administration record",
+				});
+			}
+
+			// Create audit log
+			await createAuditLog(ctx.db, {
+				userId: ctx.dbUser.id,
+				householdId: input.householdId,
+				action: "COSIGN",
+				tableName: "administrations",
+				recordId: input.recordId,
+				newValues: result[0],
+				oldValues: existing[0].administration,
+			});
+
+			return { success: true, cosignedRecord: result[0] };
 		}),
 });

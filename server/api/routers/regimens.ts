@@ -5,8 +5,11 @@ import {
 	administrations,
 	animals,
 	medicationCatalog,
+	type NewRegimen,
 	regimens,
+	scheduleTypeEnum,
 } from "@/db/schema";
+import { createAuditLog } from "@/server/utils/audit-log";
 import {
 	createTRPCRouter,
 	householdProcedure,
@@ -407,5 +410,449 @@ export const regimenRouter = createTRPCRouter({
 			}
 
 			return result[0];
+		}),
+
+	// Create a new regimen
+	create: householdProcedure
+		.input(
+			z.object({
+				householdId: z.string().uuid(),
+				animalId: z.string().uuid(),
+				medicationId: z.string().uuid(),
+				name: z.string().optional(),
+				instructions: z.string().optional(),
+				scheduleType: z.enum(scheduleTypeEnum.enumValues),
+				timesLocal: z.array(z.string().regex(/^\d{2}:\d{2}$/)).optional(),
+				intervalHours: z.number().int().positive().optional(),
+				startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+				endDate: z
+					.string()
+					.regex(/^\d{4}-\d{2}-\d{2}$/)
+					.optional(),
+				prnReason: z.string().optional(),
+				maxDailyDoses: z.number().int().positive().optional(),
+				cutoffMinutes: z.number().int().positive().default(240),
+				highRisk: z.boolean().default(false),
+				requiresCoSign: z.boolean().default(false),
+				dose: z.string().optional(),
+				route: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Verify animal belongs to household
+			const animal = await ctx.db
+				.select({ id: animals.id })
+				.from(animals)
+				.where(
+					and(
+						eq(animals.id, input.animalId),
+						eq(animals.householdId, input.householdId),
+						isNull(animals.deletedAt),
+					),
+				)
+				.limit(1);
+
+			if (!animal[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Animal not found in this household",
+				});
+			}
+
+			// Verify medication exists
+			const medication = await ctx.db
+				.select({ id: medicationCatalog.id })
+				.from(medicationCatalog)
+				.where(eq(medicationCatalog.id, input.medicationId))
+				.limit(1);
+
+			if (!medication[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Medication not found",
+				});
+			}
+
+			// Validate schedule type constraints
+			if (
+				input.scheduleType === "FIXED" &&
+				(!input.timesLocal || input.timesLocal.length === 0)
+			) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "FIXED schedule requires at least one time",
+				});
+			}
+
+			if (input.scheduleType === "INTERVAL" && !input.intervalHours) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "INTERVAL schedule requires intervalHours",
+				});
+			}
+
+			if (input.scheduleType === "PRN" && !input.prnReason) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "PRN schedule requires prnReason",
+				});
+			}
+
+			const newRegimen: NewRegimen = {
+				animalId: input.animalId,
+				medicationId: input.medicationId,
+				name: input.name,
+				instructions: input.instructions,
+				scheduleType: input.scheduleType,
+				timesLocal: input.timesLocal,
+				intervalHours: input.intervalHours,
+				startDate: input.startDate,
+				endDate: input.endDate,
+				prnReason: input.prnReason,
+				maxDailyDoses: input.maxDailyDoses,
+				cutoffMinutes: input.cutoffMinutes,
+				highRisk: input.highRisk,
+				requiresCoSign: input.requiresCoSign,
+				dose: input.dose,
+				route: input.route,
+				active: true,
+			};
+
+			const result = await ctx.db
+				.insert(regimens)
+				.values(newRegimen)
+				.returning();
+
+			// Create audit log entry
+			await createAuditLog(ctx.db, {
+				userId: ctx.dbUser.id,
+				householdId: input.householdId,
+				action: "CREATE",
+				resourceType: "regimen",
+				resourceId: result[0]?.id,
+				newValues: newRegimen,
+			});
+
+			// Get the complete regimen with medication details
+			const completeRegimen = await ctx.db
+				.select({
+					regimen: regimens,
+					animal: animals,
+					medication: medicationCatalog,
+				})
+				.from(regimens)
+				.innerJoin(animals, eq(regimens.animalId, animals.id))
+				.innerJoin(
+					medicationCatalog,
+					eq(regimens.medicationId, medicationCatalog.id),
+				)
+				.where(eq(regimens.id, result[0]?.id ?? ""))
+				.limit(1);
+
+			return completeRegimen[0];
+		}),
+
+	// Update an existing regimen
+	update: householdProcedure
+		.input(
+			z.object({
+				id: z.string().uuid(),
+				householdId: z.string().uuid(),
+				name: z.string().optional(),
+				instructions: z.string().optional(),
+				scheduleType: z.enum(scheduleTypeEnum.enumValues).optional(),
+				timesLocal: z.array(z.string().regex(/^\d{2}:\d{2}$/)).optional(),
+				intervalHours: z.number().int().positive().optional(),
+				startDate: z
+					.string()
+					.regex(/^\d{4}-\d{2}-\d{2}$/)
+					.optional(),
+				endDate: z
+					.string()
+					.regex(/^\d{4}-\d{2}-\d{2}$/)
+					.optional(),
+				prnReason: z.string().optional(),
+				maxDailyDoses: z.number().int().positive().optional(),
+				cutoffMinutes: z.number().int().positive().optional(),
+				highRisk: z.boolean().optional(),
+				requiresCoSign: z.boolean().optional(),
+				dose: z.string().optional(),
+				route: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const { id, householdId, ...updateData } = input;
+
+			// Verify regimen exists and belongs to household
+			const existing = await ctx.db
+				.select({ regimen: regimens, animal: animals })
+				.from(regimens)
+				.innerJoin(animals, eq(regimens.animalId, animals.id))
+				.where(
+					and(
+						eq(regimens.id, id),
+						eq(animals.householdId, householdId),
+						isNull(regimens.deletedAt),
+					),
+				)
+				.limit(1);
+
+			if (!existing[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Regimen not found",
+				});
+			}
+
+			// Validate schedule type constraints if schedule type is being updated
+			if (updateData.scheduleType) {
+				if (
+					updateData.scheduleType === "FIXED" &&
+					(!updateData.timesLocal || updateData.timesLocal.length === 0)
+				) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "FIXED schedule requires at least one time",
+					});
+				}
+
+				if (
+					updateData.scheduleType === "INTERVAL" &&
+					!updateData.intervalHours
+				) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "INTERVAL schedule requires intervalHours",
+					});
+				}
+
+				if (updateData.scheduleType === "PRN" && !updateData.prnReason) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "PRN schedule requires prnReason",
+					});
+				}
+			}
+
+			await ctx.db
+				.update(regimens)
+				.set({
+					...updateData,
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(regimens.id, id))
+				.returning();
+
+			// Create audit log entry
+			await createAuditLog(ctx.db, {
+				userId: ctx.dbUser.id,
+				householdId: householdId,
+				action: "UPDATE",
+				resourceType: "regimen",
+				resourceId: id,
+				oldValues: existing[0]?.regimen,
+				newValues: updateData,
+			});
+
+			// Get the complete updated regimen with medication details
+			const completeRegimen = await ctx.db
+				.select({
+					regimen: regimens,
+					animal: animals,
+					medication: medicationCatalog,
+				})
+				.from(regimens)
+				.innerJoin(animals, eq(regimens.animalId, animals.id))
+				.innerJoin(
+					medicationCatalog,
+					eq(regimens.medicationId, medicationCatalog.id),
+				)
+				.where(eq(regimens.id, id))
+				.limit(1);
+
+			return completeRegimen[0];
+		}),
+
+	// Soft delete a regimen
+	delete: householdProcedure
+		.input(
+			z.object({
+				id: z.string().uuid(),
+				householdId: z.string().uuid(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Verify regimen exists and belongs to household
+			const existing = await ctx.db
+				.select({ regimen: regimens, animal: animals })
+				.from(regimens)
+				.innerJoin(animals, eq(regimens.animalId, animals.id))
+				.where(
+					and(
+						eq(regimens.id, input.id),
+						eq(animals.householdId, input.householdId),
+						isNull(regimens.deletedAt),
+					),
+				)
+				.limit(1);
+
+			if (!existing[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Regimen not found",
+				});
+			}
+
+			const result = await ctx.db
+				.update(regimens)
+				.set({
+					deletedAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(regimens.id, input.id))
+				.returning();
+
+			// Create audit log entry
+			await createAuditLog(ctx.db, {
+				userId: ctx.dbUser.id,
+				householdId: input.householdId,
+				action: "DELETE",
+				resourceType: "regimen",
+				resourceId: input.id,
+				oldValues: existing[0]?.regimen,
+			});
+
+			return { success: true, regimen: result[0] };
+		}),
+
+	// Pause a regimen
+	pause: householdProcedure
+		.input(
+			z.object({
+				id: z.string().uuid(),
+				householdId: z.string().uuid(),
+				reason: z.string().min(1).max(500),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Verify regimen exists and belongs to household
+			const existing = await ctx.db
+				.select({ regimen: regimens, animal: animals })
+				.from(regimens)
+				.innerJoin(animals, eq(regimens.animalId, animals.id))
+				.where(
+					and(
+						eq(regimens.id, input.id),
+						eq(animals.householdId, input.householdId),
+						isNull(regimens.deletedAt),
+						eq(regimens.active, true),
+					),
+				)
+				.limit(1);
+
+			if (!existing[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Active regimen not found",
+				});
+			}
+
+			// Check if already paused
+			if (existing[0].regimen.pausedAt) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Regimen is already paused",
+				});
+			}
+
+			const result = await ctx.db
+				.update(regimens)
+				.set({
+					pausedAt: new Date().toISOString(),
+					pauseReason: input.reason,
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(regimens.id, input.id))
+				.returning();
+
+			// Create audit log entry
+			await createAuditLog(ctx.db, {
+				userId: ctx.dbUser.id,
+				householdId: input.householdId,
+				action: "PAUSE",
+				resourceType: "regimen",
+				resourceId: input.id,
+				details: { reason: input.reason },
+				oldValues: { pausedAt: existing[0].regimen.pausedAt },
+				newValues: { pausedAt: result[0]?.pausedAt, pauseReason: input.reason },
+			});
+
+			return { success: true, regimen: result[0] };
+		}),
+
+	// Resume a paused regimen
+	resume: householdProcedure
+		.input(
+			z.object({
+				id: z.string().uuid(),
+				householdId: z.string().uuid(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Verify regimen exists and belongs to household
+			const existing = await ctx.db
+				.select({ regimen: regimens, animal: animals })
+				.from(regimens)
+				.innerJoin(animals, eq(regimens.animalId, animals.id))
+				.where(
+					and(
+						eq(regimens.id, input.id),
+						eq(animals.householdId, input.householdId),
+						isNull(regimens.deletedAt),
+						eq(regimens.active, true),
+					),
+				)
+				.limit(1);
+
+			if (!existing[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Active regimen not found",
+				});
+			}
+
+			// Check if already resumed (not paused)
+			if (!existing[0].regimen.pausedAt) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Regimen is not paused",
+				});
+			}
+
+			const result = await ctx.db
+				.update(regimens)
+				.set({
+					pausedAt: null,
+					pauseReason: null,
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(regimens.id, input.id))
+				.returning();
+
+			// Create audit log entry
+			await createAuditLog(ctx.db, {
+				userId: ctx.dbUser.id,
+				householdId: input.householdId,
+				action: "RESUME",
+				resourceType: "regimen",
+				resourceId: input.id,
+				oldValues: {
+					pausedAt: existing[0].regimen.pausedAt,
+					pauseReason: existing[0].regimen.pauseReason,
+				},
+				newValues: { pausedAt: null, pauseReason: null },
+			});
+
+			return { success: true, regimen: result[0] };
 		}),
 });

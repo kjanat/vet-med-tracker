@@ -171,12 +171,54 @@ function HistoryContent() {
 		}));
 	}, [filteredRecords, currentMonth]);
 
-	const handleUndo = async (id: string) => {
-		// TODO: Implement undo mutation when available
-		console.log("Undoing record:", id);
-		// await trpc.admin.undo.mutate({ recordId: id, householdId: selectedHousehold.id });
+	const utils = trpc.useUtils();
 
-		// Queue for offline sync when mutation is implemented
+	const undoMutation = trpc.admin.undo.useMutation({
+		onSuccess: () => {
+			// Refetch the administration list
+			utils.admin.list.invalidate();
+		},
+		onError: (error) => {
+			console.error("Failed to undo administration:", error);
+			// TODO: Show error toast
+		},
+	});
+
+	const deleteMutation = trpc.admin.delete.useMutation({
+		onSuccess: () => {
+			// Refetch the administration list
+			utils.admin.list.invalidate();
+		},
+		onError: (error) => {
+			console.error("Failed to delete administration:", error);
+			// TODO: Show error toast
+		},
+	});
+
+	const cosignMutation = trpc.admin.cosign.useMutation({
+		onSuccess: () => {
+			// Refetch the administration list
+			utils.admin.list.invalidate();
+		},
+		onError: (error) => {
+			console.error("Failed to co-sign administration:", error);
+			// TODO: Show error toast
+		},
+	});
+
+	const handleUndo = async (id: string) => {
+		if (!selectedHousehold?.id) return;
+
+		try {
+			await undoMutation.mutateAsync({
+				recordId: id,
+				householdId: selectedHousehold.id,
+			});
+		} catch {
+			// Error handling is done in onError above
+		}
+
+		// TODO: Queue for offline sync when offline queue is implemented
 		// await enqueue(
 		//   "admin.undo",
 		//   { recordId: id, householdId: selectedHousehold?.id },
@@ -185,11 +227,18 @@ function HistoryContent() {
 	};
 
 	const handleDelete = async (id: string) => {
-		// TODO: Implement delete mutation when available
-		console.log("Deleting record:", id);
-		// await trpc.admin.delete.mutate({ recordId: id, householdId: selectedHousehold.id });
+		if (!selectedHousehold?.id) return;
 
-		// Queue for offline sync when mutation is implemented
+		try {
+			await deleteMutation.mutateAsync({
+				recordId: id,
+				householdId: selectedHousehold.id,
+			});
+		} catch {
+			// Error handling is done in onError above
+		}
+
+		// TODO: Queue for offline sync when offline queue is implemented
 		// await enqueue(
 		//   "admin.delete",
 		//   { recordId: id, householdId: selectedHousehold?.id },
@@ -197,15 +246,23 @@ function HistoryContent() {
 		// );
 	};
 
-	const handleCosign = async (id: string) => {
-		// TODO: Implement cosign mutation when available
-		console.log("Co-signing record:", id);
-		// await trpc.admin.cosign.mutate({ recordId: id, householdId: selectedHousehold.id });
+	const handleCosign = async (id: string, notes?: string) => {
+		if (!selectedHousehold?.id) return;
 
-		// Queue for offline sync when mutation is implemented
+		try {
+			await cosignMutation.mutateAsync({
+				recordId: id,
+				householdId: selectedHousehold.id,
+				notes,
+			});
+		} catch {
+			// Error handling is done in onError above
+		}
+
+		// TODO: Queue for offline sync when offline queue is implemented
 		// await enqueue(
 		//   "admin.cosign",
-		//   { recordId: id, householdId: selectedHousehold?.id },
+		//   { recordId: id, householdId: selectedHousehold?.id, notes },
 		//   `cosign:${id}`,
 		// );
 	};
@@ -332,7 +389,7 @@ function HistoryContent() {
 						hasMore={false} // Implement pagination logic
 						onUndo={handleUndo}
 						onDelete={handleDelete}
-						onCosign={handleCosign}
+						onCosign={(id) => handleCosign(id)}
 					/>
 				) : (
 					<HistoryCalendar

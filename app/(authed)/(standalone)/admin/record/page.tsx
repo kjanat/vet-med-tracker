@@ -115,6 +115,7 @@ function useRecordState() {
 function useRecordData(
 	state: ReturnType<typeof useRecordState>,
 	selectedHousehold: { id: string } | null,
+	refreshPendingMeds: () => void,
 ) {
 	const utils = trpc.useUtils();
 
@@ -140,6 +141,8 @@ function useRecordData(
 		onSuccess: () => {
 			// Invalidate due regimens to refresh the list
 			utils.regimen.listDue.invalidate();
+			// Refresh pending medication counts in app provider
+			refreshPendingMeds();
 			state.setStep("success");
 		},
 		onError: (error) => {
@@ -481,7 +484,7 @@ function resetRecordState(state: RecordState) {
 function RecordContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const { animals, selectedHousehold } = useApp();
+	const { animals, selectedHousehold, refreshPendingMeds } = useApp();
 	const { isOnline, enqueue } = useOfflineQueue();
 	const state = useRecordState();
 	const isMobile = useMediaQuery("(max-width: 768px)");
@@ -495,7 +498,7 @@ function RecordContent() {
 		updateInventoryMutation,
 		inventorySources,
 		inventoryLoading,
-	} = useRecordData(state, selectedHousehold);
+	} = useRecordData(state, selectedHousehold, refreshPendingMeds);
 
 	// Handle URL params for pre-filling
 	useURLParams(state, dueRegimens);

@@ -11,6 +11,7 @@ interface InventoryItem {
 interface DaysOfSupplyData {
 	itemId: string;
 	daysLeft: number | null;
+	animalName?: string | null;
 }
 
 export function useDaysOfSupply(

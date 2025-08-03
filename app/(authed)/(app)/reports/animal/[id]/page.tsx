@@ -1,85 +1,31 @@
 "use client";
 
 import { format, subDays } from "date-fns";
-// import { useParams } from "next/navigation"
 import {
+	AlertCircle,
 	AlertTriangle,
 	Calendar,
+	Loader2,
 	Pill,
 	Printer,
 	TrendingUp,
 } from "lucide-react";
+import { useParams } from "next/navigation";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-// Mock data - replace with tRPC
-const mockAnimal = {
-	id: "1",
-	name: "Buddy",
-	species: "Dog",
-	breed: "Golden Retriever",
-	weightKg: 32,
-	avatar: undefined,
-	pendingMeds: 0,
-};
-
-const mockComplianceData = {
-	adherencePct: 92,
-	scheduled: 60,
-	completed: 55,
-	missed: 3,
-	late: 2,
-	veryLate: 0,
-	streak: 5, // days without missed doses
-};
-
-const mockRegimens = [
-	{
-		id: "regimen-1",
-		medicationName: "Rimadyl",
-		strength: "75mg",
-		route: "Oral",
-		schedule: "8:00 AM, 8:00 PM",
-		adherence: 95,
-		notes: "Give with food",
-	},
-	{
-		id: "regimen-2",
-		medicationName: "Joint Supplement",
-		strength: "1 tablet",
-		route: "Oral",
-		schedule: "Daily with breakfast",
-		adherence: 88,
-		notes: "Glucosamine/Chondroitin",
-	},
-];
-
-const mockNotableEvents = [
-	{
-		id: "event-1",
-		date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-		medication: "Rimadyl",
-		note: "Took with food as recommended",
-		tags: ["Normal"],
-	},
-	{
-		id: "event-2",
-		date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-		medication: "Joint Supplement",
-		note: "Slight improvement in mobility",
-		tags: ["Improved"],
-	},
-];
+import { trpc } from "@/lib/trpc/client";
 
 export default function AnimalReportPage() {
-	// const params = useParams()
-	// const animalId = params.id as string
+	const params = useParams();
+	const animalId = params.id as string;
 
-	const handlePrint = () => {
-		window.print();
-	};
+	// Get selected household from localStorage (this would typically come from context)
+	const selectedHouseholdId =
+		typeof window !== "undefined"
+			? localStorage.getItem("selectedHouseholdId") || ""
+			: "";
 
 	const reportDate = new Date();
 	const reportPeriod = {
@@ -87,13 +33,89 @@ export default function AnimalReportPage() {
 		to: reportDate,
 	};
 
+	// Query the report data
+	const {
+		data: reportData,
+		isLoading,
+		error,
+	} = trpc.reports.animalReport.useQuery(
+		{
+			animalId,
+			householdId: selectedHouseholdId,
+			startDate: reportPeriod.from.toISOString(),
+			endDate: reportPeriod.to.toISOString(),
+		},
+		{
+			enabled: !!animalId && !!selectedHouseholdId,
+		},
+	);
+
+	const handlePrint = () => {
+		window.print();
+	};
+
+	// Loading state
+	if (isLoading) {
+		return (
+			<div className="min-h-screen bg-white">
+				<div className="no-print border-b p-4">
+					<div className="mx-auto flex max-w-4xl items-center justify-between">
+						<h1 className="font-bold text-2xl">Loading Report...</h1>
+					</div>
+				</div>
+				<div className="mx-auto max-w-4xl p-8">
+					<div className="flex items-center justify-center py-12">
+						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+						<span className="ml-2 text-lg text-muted-foreground">
+							Loading report data...
+						</span>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Error state
+	if (error || !reportData) {
+		return (
+			<div className="min-h-screen bg-white">
+				<div className="no-print border-b p-4">
+					<div className="mx-auto flex max-w-4xl items-center justify-between">
+						<h1 className="font-bold text-2xl">Report Error</h1>
+					</div>
+				</div>
+				<div className="mx-auto max-w-4xl p-8">
+					<div className="flex items-center justify-center py-12">
+						<Card className="w-full max-w-md">
+							<CardContent className="pt-6">
+								<div className="flex items-center gap-3 text-center">
+									<AlertCircle className="h-8 w-8 text-destructive" />
+									<div>
+										<h3 className="font-semibold text-lg">
+											Unable to Load Report
+										</h3>
+										<p className="text-muted-foreground text-sm">
+											{error?.message || "Animal not found or access denied"}
+										</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	const { animal, compliance, regimens, notableEvents } = reportData;
+
 	return (
 		<div className="min-h-screen bg-white">
 			{/* Print Button - hidden when printing */}
 			<div className="no-print border-b p-4">
 				<div className="mx-auto flex max-w-4xl items-center justify-between">
 					<h1 className="font-bold text-2xl">
-						Compliance Report - {mockAnimal.name}
+						Compliance Report - {animal.name}
 					</h1>
 					<Button onClick={handlePrint} className="gap-2">
 						<Printer className="h-4 w-4" />
@@ -119,12 +141,20 @@ export default function AnimalReportPage() {
 				<Card className="mb-6">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-3">
-							<AnimalAvatar animal={mockAnimal} size="lg" />
+							<AnimalAvatar
+								animal={{
+									...animal,
+									avatar: animal.photoUrl || undefined,
+									pendingMeds: animal.pendingMeds || 0,
+								}}
+								size="lg"
+							/>
 							<div>
-								<div className="text-2xl">{mockAnimal.name}</div>
+								<div className="text-2xl">{animal.name}</div>
 								<div className="text-lg text-muted-foreground">
-									{mockAnimal.breed} {mockAnimal.species} •{" "}
-									{mockAnimal.weightKg}kg
+									{animal.breed && `${animal.breed} `}
+									{animal.species}
+									{animal.weightKg && ` • ${animal.weightKg}kg`}
 								</div>
 							</div>
 						</CardTitle>
@@ -142,11 +172,10 @@ export default function AnimalReportPage() {
 						</CardHeader>
 						<CardContent>
 							<div className="font-bold text-3xl">
-								{mockComplianceData.adherencePct}%
+								{compliance.adherencePct}%
 							</div>
 							<p className="text-muted-foreground text-sm">
-								{mockComplianceData.completed} of {mockComplianceData.scheduled}{" "}
-								doses
+								{compliance.completed} of {compliance.scheduled} doses
 							</p>
 						</CardContent>
 					</Card>
@@ -159,9 +188,7 @@ export default function AnimalReportPage() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="font-bold text-3xl">
-								{mockComplianceData.streak}
-							</div>
+							<div className="font-bold text-3xl">{compliance.streak}</div>
 							<p className="text-muted-foreground text-sm">
 								days without missed doses
 							</p>
@@ -173,9 +200,7 @@ export default function AnimalReportPage() {
 							<CardTitle className="font-medium text-sm">Late Doses</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="font-bold text-3xl">
-								{mockComplianceData.late}
-							</div>
+							<div className="font-bold text-3xl">{compliance.late}</div>
 							<p className="text-muted-foreground text-sm">
 								within cutoff window
 							</p>
@@ -190,9 +215,7 @@ export default function AnimalReportPage() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="font-bold text-3xl">
-								{mockComplianceData.missed}
-							</div>
+							<div className="font-bold text-3xl">{compliance.missed}</div>
 							<p className="text-muted-foreground text-sm">
 								beyond cutoff window
 							</p>
@@ -210,35 +233,42 @@ export default function AnimalReportPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							{mockRegimens.map((regimen) => (
-								<div
-									key={regimen.id}
-									className="flex items-center justify-between rounded-lg border p-4"
-								>
-									<div className="flex-1">
-										<div className="font-medium text-lg">
-											{regimen.medicationName}
-										</div>
-										<div className="text-muted-foreground">
-											{regimen.strength} • {regimen.route} • {regimen.schedule}
-										</div>
-										{regimen.notes && (
-											<div className="mt-1 text-muted-foreground text-sm">
-												<span className="font-medium">Notes:</span>{" "}
-												{regimen.notes}
+							{regimens.length === 0 ? (
+								<p className="py-4 text-center text-muted-foreground">
+									No active medications found for this period.
+								</p>
+							) : (
+								regimens.map((regimen) => (
+									<div
+										key={regimen.id}
+										className="flex items-center justify-between rounded-lg border p-4"
+									>
+										<div className="flex-1">
+											<div className="font-medium text-lg">
+												{regimen.medicationName}
 											</div>
-										)}
-									</div>
-									<div className="text-right">
-										<div className="font-bold text-2xl">
-											{regimen.adherence}%
+											<div className="text-muted-foreground">
+												{regimen.strength && `${regimen.strength} • `}
+												{regimen.route} • {regimen.schedule}
+											</div>
+											{regimen.notes && (
+												<div className="mt-1 text-muted-foreground text-sm">
+													<span className="font-medium">Notes:</span>{" "}
+													{regimen.notes}
+												</div>
+											)}
 										</div>
-										<div className="text-muted-foreground text-sm">
-											adherence
+										<div className="text-right">
+											<div className="font-bold text-2xl">
+												{regimen.adherence}%
+											</div>
+											<div className="text-muted-foreground text-sm">
+												adherence
+											</div>
 										</div>
 									</div>
-								</div>
-							))}
+								))
+							)}
 						</div>
 					</CardContent>
 				</Card>
@@ -250,26 +280,36 @@ export default function AnimalReportPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-3">
-							{mockNotableEvents.map((event) => (
-								<div key={event.id} className="rounded-lg border p-3">
-									<div className="mb-2 flex items-center justify-between">
-										<div className="font-medium">{event.medication}</div>
-										<div className="text-muted-foreground text-sm">
-											{format(event.date, "MMM d, yyyy")}
+							{notableEvents.length === 0 ? (
+								<p className="py-4 text-center text-muted-foreground">
+									No notable events found for this period.
+								</p>
+							) : (
+								notableEvents.map((event) => (
+									<div key={event.id} className="rounded-lg border p-3">
+										<div className="mb-2 flex items-center justify-between">
+											<div className="font-medium">{event.medication}</div>
+											<div className="text-muted-foreground text-sm">
+												{format(new Date(event.date), "MMM d, yyyy")}
+											</div>
+										</div>
+										<div className="mb-2 text-muted-foreground text-sm">
+											{event.note}
+										</div>
+										<div className="flex gap-1">
+											{event.tags.map((tag) => (
+												<Badge
+													key={tag}
+													variant="secondary"
+													className="text-xs"
+												>
+													{tag}
+												</Badge>
+											))}
 										</div>
 									</div>
-									<div className="mb-2 text-muted-foreground text-sm">
-										{event.note}
-									</div>
-									<div className="flex gap-1">
-										{event.tags.map((tag) => (
-											<Badge key={tag} variant="secondary" className="text-xs">
-												{tag}
-											</Badge>
-										))}
-									</div>
-								</div>
-							))}
+								))
+							)}
 						</div>
 					</CardContent>
 				</Card>

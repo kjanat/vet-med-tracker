@@ -1,6 +1,12 @@
-import { and, eq, gte, isNull } from "drizzle-orm";
+import { and, count, eq, gte, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { inventoryItems, medicationCatalog } from "@/db/schema";
+import {
+	administrations,
+	animals,
+	inventoryItems,
+	medicationCatalog,
+	regimens,
+} from "@/db/schema";
 import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 
 export const inventoryRouter = createTRPCRouter({
@@ -46,12 +52,14 @@ export const inventoryRouter = createTRPCRouter({
 				.select({
 					item: inventoryItems,
 					medication: medicationCatalog,
+					animal: animals,
 				})
 				.from(inventoryItems)
 				.innerJoin(
 					medicationCatalog,
 					eq(inventoryItems.medicationId, medicationCatalog.id),
 				)
+				.leftJoin(animals, eq(inventoryItems.assignedAnimalId, animals.id))
 				.where(and(...conditions))
 				.orderBy(inventoryItems.expiresOn, inventoryItems.lot);
 
@@ -78,6 +86,7 @@ export const inventoryRouter = createTRPCRouter({
 				isWrongMed: false, // TODO: Implement logic to check if it matches the regimen
 				inUse: row.item.inUse,
 				assignedAnimalId: row.item.assignedAnimalId,
+				assignedAnimalName: row.animal?.name || null,
 				storage: row.item.storage,
 				notes: row.item.notes,
 			}));
@@ -486,6 +495,112 @@ export const inventoryRouter = createTRPCRouter({
 			}
 
 			return updated[0];
+		}),
+
+	// Calculate days of supply for inventory items
+	getDaysOfSupply: householdProcedure
+		.input(
+			z.object({
+				householdId: z.string().uuid(),
+				itemIds: z.array(z.string().uuid()).optional(), // If provided, only calculate for these items
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			// Get inventory items with their medication info and assigned animals
+			const inventoryConditions = [
+				eq(inventoryItems.householdId, input.householdId),
+				isNull(inventoryItems.deletedAt),
+				gte(inventoryItems.unitsRemaining, 1), // Only items with remaining units
+			];
+
+			if (input.itemIds && input.itemIds.length > 0) {
+				inventoryConditions.push(
+					sql`${inventoryItems.id} = ANY(${input.itemIds})`,
+				);
+			}
+
+			const inventoryResult = await ctx.db
+				.select({
+					itemId: inventoryItems.id,
+					medicationId: inventoryItems.medicationId,
+					assignedAnimalId: inventoryItems.assignedAnimalId,
+					unitsRemaining: inventoryItems.unitsRemaining,
+					animalName: animals.name,
+				})
+				.from(inventoryItems)
+				.leftJoin(animals, eq(inventoryItems.assignedAnimalId, animals.id))
+				.where(and(...inventoryConditions));
+
+			// Calculate days of supply for each item
+			const daysOfSupplyResults = await Promise.all(
+				inventoryResult.map(async (item) => {
+					try {
+						// Calculate average daily usage from the last 30 days of administrations
+						const thirtyDaysAgo = new Date();
+						thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+						// Build conditions array dynamically
+						const conditions = [
+							eq(administrations.householdId, input.householdId),
+							eq(regimens.medicationId, item.medicationId),
+							gte(administrations.recordedAt, thirtyDaysAgo.toISOString()),
+						];
+
+						// Only count administrations for the assigned animal if item is assigned
+						if (item.assignedAnimalId) {
+							conditions.push(
+								eq(administrations.animalId, item.assignedAnimalId),
+							);
+						}
+
+						const usageQuery = ctx.db
+							.select({
+								adminCount: count(administrations.id),
+							})
+							.from(administrations)
+							.innerJoin(regimens, eq(administrations.regimenId, regimens.id))
+							.where(and(...conditions));
+
+						const usageResult = await usageQuery;
+						const totalAdministrations = usageResult[0]?.adminCount || 0;
+
+						// Calculate average daily usage (administrations per day)
+						const averageDailyUsage = totalAdministrations / 30;
+
+						// If no usage data, return null (will display as "—")
+						if (averageDailyUsage === 0 || !item.unitsRemaining) {
+							return {
+								itemId: item.itemId,
+								daysLeft: null,
+								animalName: item.animalName,
+							};
+						}
+
+						// Calculate days of supply
+						const daysLeft = Math.floor(
+							item.unitsRemaining / averageDailyUsage,
+						);
+
+						return {
+							itemId: item.itemId,
+							daysLeft: daysLeft > 0 ? daysLeft : 0,
+							animalName: item.animalName,
+						};
+					} catch (error) {
+						console.error(
+							`Error calculating days of supply for item ${item.itemId}:`,
+							error,
+						);
+						return {
+							itemId: item.itemId,
+							daysLeft: null,
+							animalName: item.animalName,
+						};
+					}
+				}),
+			);
+
+			return daysOfSupplyResults;
 		}),
 
 	// Get household inventory (used by offline queue)

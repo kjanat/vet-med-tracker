@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import {
 	Crown,
 	Eye,
@@ -10,6 +11,7 @@ import {
 	Trash2,
 } from "lucide-react";
 import { useState } from "react";
+import { useApp } from "@/components/providers/app-provider";
 import {
 	Accordion,
 	AccordionContent,
@@ -33,9 +35,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { getAvatarColor } from "@/lib/avatar-utils";
 import { cn } from "@/lib/utils";
+import { trpc } from "@/server/trpc/client";
 import { InviteForm } from "./invite-form";
 
 export interface Member {
@@ -44,7 +48,7 @@ export interface Member {
 	email: string;
 	name?: string;
 	avatar?: string;
-	role: "Owner" | "Caregiver" | "VetReadOnly";
+	role: "OWNER" | "CAREGIVER" | "VETREADONLY";
 	joinedAt: Date;
 	lastActiveAt?: Date;
 }
@@ -52,75 +56,162 @@ export interface Member {
 export interface PendingInvite {
 	id: string;
 	email: string;
-	role: "Owner" | "Caregiver" | "VetReadOnly";
+	role: "OWNER" | "CAREGIVER" | "VETREADONLY";
 	invitedBy: string;
 	invitedAt: Date;
 	expiresAt: Date;
 }
 
-// Mock data - replace with tRPC
-const mockMembers: Member[] = [
-	{
-		id: "1",
-		userId: "user-1",
-		email: "john@example.com",
-		name: "John Smith",
-		avatar: undefined,
-		role: "Owner",
-		joinedAt: new Date("2024-01-01"),
-		lastActiveAt: new Date(),
-	},
-	{
-		id: "2",
-		userId: "user-2",
-		email: "jane@example.com",
-		name: "Jane Doe",
-		avatar: undefined,
-		role: "Caregiver",
-		joinedAt: new Date("2024-01-15"),
-		lastActiveAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-	},
-];
-
-const mockPendingInvites: PendingInvite[] = [
-	{
-		id: "invite-1",
-		email: "vet@example.com",
-		role: "VetReadOnly",
-		invitedBy: "John Smith",
-		invitedAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-		expiresAt: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days from now
-	},
-];
-
-// Mock current user - replace with auth context
-const currentUser = { id: "user-1", role: "Owner" };
-
 const roleIcons = {
-	Owner: Crown,
-	Caregiver: Shield,
-	VetReadOnly: Eye,
+	OWNER: Crown,
+	CAREGIVER: Shield,
+	VETREADONLY: Eye,
 };
 
 const roleColors = {
-	Owner: "bg-yellow-100 text-yellow-800 border-yellow-200",
-	Caregiver: "bg-blue-100 text-blue-800 border-blue-200",
-	VetReadOnly: "bg-gray-100 text-gray-800 border-gray-200",
+	OWNER: "bg-yellow-100 text-yellow-800 border-yellow-200",
+	CAREGIVER: "bg-blue-100 text-blue-800 border-blue-200",
+	VETREADONLY: "bg-gray-100 text-gray-800 border-gray-200",
 };
 
 export function MemberList() {
 	const [inviteFormOpen, setInviteFormOpen] = useState(false);
-	const [members, setMembers] = useState(mockMembers);
-	const [pendingInvites, setPendingInvites] = useState(mockPendingInvites);
+	const { selectedHousehold } = useApp();
+	const { user: clerkUser } = useUser();
+	const { toast } = useToast();
 	const isMobile = useMediaQuery("(max-width: 768px)");
+	const utils = trpc.useUtils();
 
-	const canManageRoles = currentUser.role === "Owner";
+	// Get household members
+	const { data: membersData = [], isLoading: membersLoading } =
+		trpc.household.getMembers.useQuery(
+			{ householdId: selectedHousehold?.id ?? "" },
+			{ enabled: !!selectedHousehold?.id },
+		);
+
+	// Transform data to match UI expectations
+	const members = membersData.map((member) => ({
+		id: member.id,
+		userId: member.userId,
+		email: member.user.email,
+		name: member.user.name,
+		avatar: member.user.image,
+		role: member.role,
+		joinedAt: new Date(member.createdAt),
+		lastActiveAt: new Date(member.updatedAt),
+	}));
+
+	// For now, use empty array for pending invites since we don't have a full invitation system
+	const pendingInvites: PendingInvite[] = [];
+
+	// Check if current user can manage roles (must be OWNER)
+	const currentUserMembership = membersData.find(
+		(m) => m.user.email === clerkUser?.emailAddresses[0]?.emailAddress,
+	);
+	const canManageRoles = currentUserMembership?.role === "OWNER";
+
+	// Mutations
+	const inviteMemberMutation = trpc.household.inviteMember.useMutation({
+		onSuccess: (data) => {
+			toast({
+				title: "Success",
+				description: data.message,
+				variant: "default",
+			});
+			utils.household.getMembers.invalidate();
+		},
+		onError: (error) => {
+			toast({
+				title: "Error",
+				description: error.message,
+				variant: "destructive",
+			});
+		},
+	});
+
+	const updateRoleMutation = trpc.household.updateMemberRole.useMutation({
+		onSuccess: (data) => {
+			toast({
+				title: "Success",
+				description: data.message,
+				variant: "default",
+			});
+			utils.household.getMembers.invalidate();
+		},
+		onError: (error) => {
+			toast({
+				title: "Error",
+				description: error.message,
+				variant: "destructive",
+			});
+		},
+	});
+
+	const removeMemberMutation = trpc.household.removeMember.useMutation({
+		onSuccess: (data) => {
+			toast({
+				title: "Success",
+				description: data.message,
+				variant: "default",
+			});
+			utils.household.getMembers.invalidate();
+		},
+		onError: (error) => {
+			toast({
+				title: "Error",
+				description: error.message,
+				variant: "destructive",
+			});
+		},
+	});
+
+	const resendInviteMutation = trpc.household.resendInvite.useMutation({
+		onSuccess: (data) => {
+			toast({
+				title: "Success",
+				description: data.message,
+				variant: "default",
+			});
+		},
+		onError: (error) => {
+			toast({
+				title: "Error",
+				description: error.message,
+				variant: "destructive",
+			});
+		},
+	});
+
+	const revokeInviteMutation = trpc.household.revokeInvite.useMutation({
+		onSuccess: (data) => {
+			toast({
+				title: "Success",
+				description: data.message,
+				variant: "default",
+			});
+		},
+		onError: (error) => {
+			toast({
+				title: "Error",
+				description: error.message,
+				variant: "destructive",
+			});
+		},
+	});
+
+	if (membersLoading) {
+		return <div>Loading members...</div>;
+	}
+
+	if (!selectedHousehold) {
+		return <div>Please select a household</div>;
+	}
 
 	const handleInvite = async (
 		email: string,
-		role: "Owner" | "Caregiver" | "VetReadOnly",
+		role: "OWNER" | "CAREGIVER" | "VETREADONLY",
 	) => {
-		console.log("Inviting:", { email, role });
+		if (!selectedHousehold?.id) return;
 
 		// Fire instrumentation event
 		window.dispatchEvent(
@@ -129,32 +220,24 @@ export function MemberList() {
 			}),
 		);
 
-		// TODO: tRPC mutation
-		// await inviteMember.mutateAsync({ householdId, email, role })
-
-		// Optimistic update
-		const newInvite: PendingInvite = {
-			id: `invite-${Date.now()}`,
-			email,
-			role,
-			invitedBy: currentUser.id,
-			invitedAt: new Date(),
-			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-		};
-
-		setPendingInvites((prev) => [...prev, newInvite]);
-		setInviteFormOpen(false);
-
-		console.log(`Invited ${email} as ${role}`);
+		try {
+			await inviteMemberMutation.mutateAsync({
+				householdId: selectedHousehold.id,
+				email,
+				role,
+			});
+			setInviteFormOpen(false);
+		} catch (error) {
+			// Error handled by mutation onError
+			console.error("Failed to invite member:", error);
+		}
 	};
 
 	const handleRoleChange = async (
 		memberId: string,
-		newRole: "Owner" | "Caregiver" | "VetReadOnly",
+		newRole: "OWNER" | "CAREGIVER" | "VETREADONLY",
 	) => {
-		if (!canManageRoles) return;
-
-		console.log("Changing role:", { memberId, newRole });
+		if (!canManageRoles || !selectedHousehold?.id) return;
 
 		// Fire instrumentation event
 		window.dispatchEvent(
@@ -163,39 +246,44 @@ export function MemberList() {
 			}),
 		);
 
-		// TODO: tRPC mutation
-		// await updateMemberRole.mutateAsync({ membershipId: memberId, role: newRole })
-
-		// Optimistic update
-		setMembers((prev) =>
-			prev.map((member) =>
-				member.id === memberId ? { ...member, role: newRole } : member,
-			),
-		);
-
-		console.log(`Updated role to ${newRole}`);
+		try {
+			await updateRoleMutation.mutateAsync({
+				householdId: selectedHousehold.id,
+				membershipId: memberId,
+				newRole,
+			});
+		} catch (error) {
+			// Error handled by mutation onError
+			console.error("Failed to update role:", error);
+		}
 	};
 
 	const handleRevokeInvite = async (inviteId: string) => {
-		console.log("Revoking invite:", inviteId);
+		if (!selectedHousehold?.id) return;
 
-		// TODO: tRPC mutation
-		// await revokeInvite.mutateAsync({ inviteId })
-
-		setPendingInvites((prev) =>
-			prev.filter((invite) => invite.id !== inviteId),
-		);
-
-		console.log("Invite revoked");
+		try {
+			await revokeInviteMutation.mutateAsync({
+				householdId: selectedHousehold.id,
+				inviteId,
+			});
+		} catch (error) {
+			// Error handled by mutation onError
+			console.error("Failed to revoke invite:", error);
+		}
 	};
 
 	const handleResendInvite = async (inviteId: string) => {
-		console.log("Resending invite:", inviteId);
+		if (!selectedHousehold?.id) return;
 
-		// TODO: tRPC mutation
-		// await resendInvite.mutateAsync({ inviteId })
-
-		console.log("Invite resent");
+		try {
+			await resendInviteMutation.mutateAsync({
+				householdId: selectedHousehold.id,
+				inviteId,
+			});
+		} catch (error) {
+			// Error handled by mutation onError
+			console.error("Failed to resend invite:", error);
+		}
 	};
 
 	return (
@@ -208,7 +296,11 @@ export function MemberList() {
 					</p>
 				</div>
 				{canManageRoles && (
-					<Button onClick={() => setInviteFormOpen(true)} className="gap-2">
+					<Button
+						onClick={() => setInviteFormOpen(true)}
+						className="gap-2"
+						disabled={inviteMemberMutation.isPending}
+					>
 						<Plus className="h-4 w-4" />
 						Invite Member
 					</Button>
@@ -370,32 +462,33 @@ export function MemberList() {
 								</div>
 
 								<div className="flex items-center gap-3 self-end sm:self-center">
-									{canManageRoles && member.id !== currentUser.id ? (
+									{canManageRoles && member.userId !== clerkUser?.id ? (
 										<Select
 											value={member.role}
 											onValueChange={(value) =>
 												handleRoleChange(member.id, value as typeof member.role)
 											}
+											disabled={updateRoleMutation.isPending}
 										>
 											<SelectTrigger className="w-[110px] sm:w-[140px]">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="Owner">
+												<SelectItem value="OWNER">
 													<div className="flex items-center gap-2">
 														<Crown className="h-4 w-4" />
 														<span className="hidden sm:inline">Owner</span>
 														<span className="sm:hidden">Own</span>
 													</div>
 												</SelectItem>
-												<SelectItem value="Caregiver">
+												<SelectItem value="CAREGIVER">
 													<div className="flex items-center gap-2">
 														<Shield className="h-4 w-4" />
 														<span className="hidden sm:inline">Caregiver</span>
 														<span className="sm:hidden">Care</span>
 													</div>
 												</SelectItem>
-												<SelectItem value="VetReadOnly">
+												<SelectItem value="VETREADONLY">
 													<div className="flex items-center gap-2">
 														<Eye className="h-4 w-4" />
 														<span className="hidden sm:inline">
@@ -417,11 +510,19 @@ export function MemberList() {
 												const Icon = roleIcons[member.role];
 												return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
 											})()}
-											<span className="hidden sm:inline">{member.role}</span>
+											<span className="hidden sm:inline">
+												{member.role === "OWNER"
+													? "Owner"
+													: member.role === "CAREGIVER"
+														? "Caregiver"
+														: "Vet Read-Only"}
+											</span>
 											<span className="sm:hidden">
-												{member.role === "VetReadOnly"
+												{member.role === "VETREADONLY"
 													? "Vet"
-													: member.role.slice(0, 4)}
+													: member.role === "OWNER"
+														? "Own"
+														: "Care"}
 											</span>
 										</Badge>
 									)}
@@ -478,24 +579,40 @@ export function MemberList() {
 												const Icon = roleIcons[invite.role];
 												return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
 											})()}
-											<span className="hidden sm:inline">{invite.role}</span>
+											<span className="hidden sm:inline">
+												{invite.role === "OWNER"
+													? "Owner"
+													: invite.role === "CAREGIVER"
+														? "Caregiver"
+														: "Vet Read-Only"}
+											</span>
 											<span className="sm:hidden">
-												{invite.role === "VetReadOnly"
-													? "VetReadOnly"
-													: invite.role}
+												{invite.role === "VETREADONLY"
+													? "Vet"
+													: invite.role === "OWNER"
+														? "Own"
+														: "Care"}
 											</span>
 										</Badge>
 
 										{canManageRoles && (
 											<DropdownMenu>
 												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="icon">
+													<Button
+														variant="ghost"
+														size="icon"
+														disabled={
+															resendInviteMutation.isPending ||
+															revokeInviteMutation.isPending
+														}
+													>
 														<MoreHorizontal className="h-4 w-4" />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
 													<DropdownMenuItem
 														onClick={() => handleResendInvite(invite.id)}
+														disabled={resendInviteMutation.isPending}
 													>
 														<Mail className="mr-2 h-4 w-4" />
 														Resend Invite
@@ -503,6 +620,7 @@ export function MemberList() {
 													<DropdownMenuItem
 														onClick={() => handleRevokeInvite(invite.id)}
 														className="text-destructive"
+														disabled={revokeInviteMutation.isPending}
 													>
 														<Trash2 className="mr-2 h-4 w-4" />
 														Revoke Invite

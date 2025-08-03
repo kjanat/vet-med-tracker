@@ -7,6 +7,7 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useState,
 } from "react";
 import type { vetmedUsers } from "@/db/schema";
@@ -43,6 +44,8 @@ interface AppContextType {
 	households: Household[];
 	isOffline: boolean;
 	pendingSyncCount: number;
+	// Function to refresh pending medication counts
+	refreshPendingMeds: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -59,6 +62,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 	const { user: clerkUser, isLoaded } = useUser();
 	const [selectedHousehold, setSelectedHouseholdState] =
 		useState<Household | null>(null);
+	const utils = trpc.useUtils();
 
 	// Wrapper to update both state and localStorage
 	const setSelectedHousehold = useCallback((household: Household | null) => {
@@ -210,15 +214,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
 		{ enabled: !!selectedHousehold?.id },
 	);
 
-	// Format animals with placeholder data
-	const animals: Animal[] =
-		animalData?.map((animal) => ({
+	// Fetch pending medications count for all animals in household
+	const { data: pendingMedsData } = trpc.household.getPendingMeds.useQuery(
+		{
+			householdId: selectedHousehold?.id || "",
+		},
+		{
+			enabled: !!selectedHousehold?.id,
+			refetchInterval: 60000, // Refresh every minute
+		},
+	);
+
+	// Function to refresh pending medication counts
+	const refreshPendingMeds = useCallback(() => {
+		if (selectedHousehold?.id) {
+			utils.household.getPendingMeds.invalidate({
+				householdId: selectedHousehold.id,
+			});
+		}
+	}, [utils.household.getPendingMeds, selectedHousehold?.id]);
+
+	// Format animals with pending medication counts
+	const animals: Animal[] = useMemo(() => {
+		if (!animalData) return [];
+
+		const pendingByAnimal = pendingMedsData?.byAnimal || {};
+
+		return animalData.map((animal) => ({
 			id: animal.id,
 			name: animal.name,
 			species: animal.species,
 			avatar: undefined, // TODO: Add avatar support
-			pendingMeds: 0, // TODO: Calculate from actual data
-		})) || [];
+			pendingMeds: pendingByAnimal[animal.id] || 0,
+		}));
+	}, [animalData, pendingMedsData]);
 
 	return (
 		<AppContext.Provider
@@ -232,6 +261,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 				households,
 				isOffline,
 				pendingSyncCount,
+				refreshPendingMeds,
 			}}
 		>
 			<InventoryFormProvider>

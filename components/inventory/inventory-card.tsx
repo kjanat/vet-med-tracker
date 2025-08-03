@@ -35,6 +35,7 @@ export interface InventoryItem {
 	inUse: boolean;
 	inUseSince?: Date;
 	assignedAnimalId?: string;
+	assignedAnimalName?: string;
 	catalogId: string;
 	notes?: string;
 }
