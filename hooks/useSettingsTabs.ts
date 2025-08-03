@@ -1,7 +1,14 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import type { Route } from "next";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
+import {
+	getTypedSearchParams,
+	isValidSettingsTab,
+	type SettingsSearchParams,
+	updateSearchParams,
+} from "@/lib/search-params";
 
 export type SettingsTab =
 	| "data"
@@ -11,17 +18,43 @@ export type SettingsTab =
 
 export function useSettingsTabs() {
 	const router = useRouter();
+	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
-	const activeTab = (searchParams.get("tab") as SettingsTab) || "data";
+	// Memoize the search params string for stable dependency tracking
+	const searchParamsString = useMemo(
+		() => searchParams.toString(),
+		[searchParams],
+	);
 
+	// Memoize the parsed parameters to prevent re-parsing
+	const typedParams = useMemo(() => {
+		return getTypedSearchParams<SettingsSearchParams>(
+			new URLSearchParams(searchParamsString),
+			"settings",
+			{ tab: "data" },
+		);
+	}, [searchParamsString]);
+
+	// Memoize the active tab to prevent unnecessary re-renders
+	const activeTab = useMemo(() => typedParams.tab || "data", [typedParams.tab]);
+
+	// Optimize setActiveTab with more granular dependency
 	const setActiveTab = useCallback(
 		(tab: SettingsTab) => {
-			const params = new URLSearchParams(searchParams.toString());
-			params.set("tab", tab);
-			router.push(`/settings?${params.toString()}`, { scroll: false });
+			// Validate the tab value before setting
+			if (!isValidSettingsTab(tab)) {
+				console.warn(`Invalid settings tab: ${tab}, falling back to 'data'`);
+				tab = "data";
+			}
+
+			const queryString = updateSearchParams(
+				new URLSearchParams(searchParamsString),
+				{ tab },
+			);
+			router.push(`${pathname}?${queryString}` as Route, { scroll: false });
 		},
-		[router, searchParams],
+		[router, pathname, searchParamsString],
 	);
 
 	return { activeTab, setActiveTab };

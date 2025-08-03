@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { Calendar, Filter } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useApp } from "@/components/providers/app-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,6 +92,15 @@ export function ComplianceHeatmap({
 	const { animals } = useApp();
 	const router = useRouter();
 
+	// Helper function to create query string following Next.js patterns
+	const createQueryString = useCallback((params: Record<string, string>) => {
+		const searchParams = new URLSearchParams();
+		Object.entries(params).forEach(([key, value]) => {
+			searchParams.set(key, value);
+		});
+		return searchParams.toString();
+	}, []);
+
 	useEffect(() => {
 		// TODO: Replace with tRPC query
 		// const data = await insights.heatmap.query({
@@ -129,15 +138,19 @@ export function ComplianceHeatmap({
 	const handleOpenInHistory = () => {
 		if (!selectedCell) return;
 
-		const params = new URLSearchParams();
-		params.set("from", range.from.toISOString().split("T")[0] || "");
-		params.set("to", range.to.toISOString().split("T")[0] || "");
+		const params: Record<string, string> = {
+			from: range.from.toISOString().split("T")[0] || "",
+			to: range.to.toISOString().split("T")[0] || "",
+		};
+
 		if (selectedAnimalId !== "all") {
-			params.set("animalId", selectedAnimalId);
+			params.animalId = selectedAnimalId;
 		}
 		// Add hour/dow filters when History supports them
 
-		router.push(`/dashboard/history?${params.toString()}` as Route);
+		const queryString = createQueryString(params);
+		const historyPath = "/dashboard/history";
+		router.push(`${historyPath}?${queryString}` as Route);
 		setSheetOpen(false);
 	};
 

@@ -47,7 +47,8 @@ function buildHistoryUrl(
 		}
 	});
 
-	return `/dashboard/history?${params.toString()}`;
+	const historyPath = "/dashboard/history";
+	return `${historyPath}?${params.toString()}`;
 }
 
 // Loading state component
@@ -337,6 +338,7 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
 	const handleCardClick = useCallback(
 		(filter: string) => {
+			// Navigate to history page with filters
 			router.push(buildHistoryUrl(range, filter) as Route);
 		},
 		[range, router],

@@ -1,8 +1,14 @@
 "use client";
 
 import type { Route } from "next";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
+import {
+	createTypedQueryString,
+	getTypedSearchParams,
+	type HistorySearchParams,
+	updateSearchParams,
+} from "@/lib/search-params";
 
 export interface HistoryFilters {
 	animalId?: string;
@@ -16,72 +22,101 @@ export interface HistoryFilters {
 
 export function useHistoryFilters() {
 	const router = useRouter();
+	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
-	const filters = useMemo((): HistoryFilters => {
-		// Use a stable date calculation to avoid hydration mismatch
-		const fromParam = searchParams.get("from");
-		const toParam = searchParams.get("to");
+	// Memoize the search params string to prevent unnecessary recalculations
+	// This provides more granular dependency tracking than using searchParams directly
+	const searchParamsString = useMemo(
+		() => searchParams.toString(),
+		[searchParams],
+	);
 
-		// Default values will be calculated on client only
-		const defaultFrom = fromParam || "";
-		const defaultTo = toParam || "";
+	// Memoize the parsed parameters to prevent re-parsing on every render
+	const typedParams = useMemo(() => {
+		return getTypedSearchParams<HistorySearchParams>(
+			new URLSearchParams(searchParamsString),
+			"history",
+			{
+				type: "all",
+				view: "list",
+			},
+		);
+	}, [searchParamsString]);
+
+	// Memoize the final filters object to prevent unnecessary re-renders downstream
+	const filters = useMemo((): HistoryFilters => {
+		// Use stable empty strings to avoid hydration mismatch
+		const defaultFrom = typedParams.from || "";
+		const defaultTo = typedParams.to || "";
 
 		return {
-			animalId: searchParams.get("animalId") || undefined,
-			regimenId: searchParams.get("regimenId") || undefined,
-			caregiverId: searchParams.get("caregiverId") || undefined,
-			type: (searchParams.get("type") as "all" | "scheduled" | "prn") || "all",
-			view: (searchParams.get("view") as "list" | "calendar") || "list",
+			animalId: typedParams.animalId,
+			regimenId: typedParams.regimenId,
+			caregiverId: typedParams.caregiverId,
+			type: typedParams.type || "all",
+			view: typedParams.view || "list",
 			from: defaultFrom,
 			to: defaultTo,
 		};
-	}, [searchParams]);
+	}, [typedParams]);
 
+	// Memoize the createQueryString helper to prevent recreating on every render
+	// Use searchParamsString for more granular dependency tracking
+	const createQueryString = useCallback(
+		(updates: Record<string, string | undefined>) => {
+			return createTypedQueryString(
+				updates,
+				new URLSearchParams(searchParamsString),
+			);
+		},
+		[searchParamsString],
+	);
+
+	// Optimize setFilter callback - removed filters dependency to prevent recreation
+	// when filters object changes (which happens on every URL change)
 	const setFilter = useCallback(
 		(key: keyof HistoryFilters, value: string | undefined) => {
-			const params = new URLSearchParams(searchParams.toString());
+			const queryString = createQueryString({ [key]: value });
 
-			if (value === undefined || value === "") {
-				params.delete(key);
-			} else {
-				params.set(key, value);
-			}
-
-			// Use shallow routing to avoid full reload
-			router.push(`/dashboard/history?${params.toString()}` as Route, {
+			// Use the recommended Next.js pattern
+			router.push(`${pathname}?${queryString}` as Route, {
 				scroll: false,
 			});
 
-			// Fire instrumentation event
+			// Fire instrumentation event - calculate current filters inline to avoid dependency
 			if (typeof window !== "undefined") {
+				// Calculate current filters from search params to avoid filters dependency
+				// This prevents the callback from being recreated every time the URL changes
+				const currentParams = getTypedSearchParams<HistorySearchParams>(
+					new URLSearchParams(searchParamsString),
+					"history",
+					{ type: "all", view: "list" },
+				);
+				const currentFilters = { ...currentParams, [key]: value };
 				window.dispatchEvent(
 					new CustomEvent("history_filter_change", {
-						detail: { key, value, filters: { ...filters, [key]: value } },
+						detail: { key, value, filters: currentFilters },
 					}),
 				);
 			}
 		},
-		[router, searchParams, filters],
+		[router, pathname, createQueryString, searchParamsString], // Removed filters dependency
 	);
 
+	// Optimize setFilters with more granular dependency
 	const setFilters = useCallback(
 		(newFilters: Partial<HistoryFilters>) => {
-			const params = new URLSearchParams(searchParams.toString());
+			const queryString = updateSearchParams(
+				new URLSearchParams(searchParamsString),
+				newFilters,
+			);
 
-			Object.entries(newFilters).forEach(([key, value]) => {
-				if (value === undefined || value === "") {
-					params.delete(key);
-				} else {
-					params.set(key, value.toString());
-				}
-			});
-
-			router.push(`/dashboard/history?${params.toString()}` as Route, {
+			router.push(`${pathname}?${queryString}` as Route, {
 				scroll: false,
 			});
 		},
-		[router, searchParams],
+		[router, pathname, searchParamsString],
 	);
 
 	// Set default dates after mount if not provided in URL
@@ -91,18 +126,20 @@ export function useHistoryFilters() {
 			const thirtyDaysAgo = new Date(now);
 			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-			const params = new URLSearchParams(searchParams.toString());
+			const updates: Record<string, string> = {};
 			if (!searchParams.get("from")) {
-				params.set("from", thirtyDaysAgo.toISOString().split("T")[0] || "");
+				updates.from = thirtyDaysAgo.toISOString().split("T")[0] || "";
 			}
 			if (!searchParams.get("to")) {
-				params.set("to", now.toISOString().split("T")[0] || "");
+				updates.to = now.toISOString().split("T")[0] || "";
 			}
-			router.replace(`/dashboard/history?${params.toString()}` as Route, {
+
+			const queryString = createQueryString(updates);
+			router.replace(`${pathname}?${queryString}` as Route, {
 				scroll: false,
 			});
 		}
-	}, [router, searchParams]);
+	}, [router, pathname, searchParams, createQueryString]);
 
 	return { filters, setFilter, setFilters };
 }
