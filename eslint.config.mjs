@@ -23,6 +23,13 @@ export default defineConfig([
 		rules: {
 			"@typescript-eslint/no-explicit-any": "warn",
 			"react/no-unescaped-entities": "off",
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{
+					argsIgnorePattern: "^_",
+					varsIgnorePattern: "^_",
+				},
+			],
 		},
 	},
 ]);
@@ -51,6 +58,13 @@ const eslintConfig = [
 		rules: {
 			"@typescript-eslint/no-explicit-any": "warn",
 			"react/no-unescaped-entities": "off",
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{
+					argsIgnorePattern: "^_",
+					varsIgnorePattern: "^_",
+				},
+			],
 		},
 	}),
 ];

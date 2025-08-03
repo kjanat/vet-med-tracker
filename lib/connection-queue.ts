@@ -199,7 +199,7 @@ export class ConnectionQueue extends EventEmitter {
 	 */
 
 	private generateId(): string {
-		return `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		return `conn_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 	}
 
 	private insertByPriority<T>(item: QueueItem<T>): void {

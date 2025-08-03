@@ -718,7 +718,7 @@ export function setupGlobalErrorHandling(): void {
  */
 export function createErrorBoundaryInfo(
 	error: Error,
-	_errorInfo: ReactErrorInfo, // eslint-disable-line @typescript-eslint/no-unused-vars
+	_errorInfo: ReactErrorInfo,
 ): EnhancedError {
 	return createEnhancedError(error, {
 		endpoint: "react_boundary",

@@ -418,7 +418,6 @@ export class ConnectionMiddleware {
 
 	private async checkAdaptiveThrottling(
 		req: NextRequest,
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_context: ConnectionContext,
 	): Promise<ConnectionMiddlewareResult> {
 		// Update adaptive rate limiter based on current health
