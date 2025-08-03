@@ -4,6 +4,7 @@
 	"private": true,
 	"scripts": {
 		"build": "next build",
+		"build:vercel": "pnpm dlx vercel build",
 		"check": "biome check .",
 		"check:unsafe": "biome check --write --unsafe .",
 		"check:write": "biome check --write .",

@@ -30,8 +30,8 @@ jobs:
   create_neon_branch:
     name: Create Neon Branch
     outputs:
-      db_url: ${{ steps.create_neon_branch.outputs.db_url }}
-      db_url_pooled: ${{ steps.create_neon_branch.outputs.db_url_pooled }}
+      db_url: ${{ steps.create_neon_branch.outputs.connection_uri }}
+      db_url_pooled: ${{ steps.create_neon_branch.outputs.pooled_connection_uri }}
     needs: setup
     if: |
       github.event_name == 'pull_request' && (
@@ -63,11 +63,12 @@ jobs:
       - name: Debug Neon outputs
         run: |
           echo "🔍 Neon action outputs:"
-          echo "db_url exists: ${{ steps.create_neon_branch.outputs.db_url != '' }}"
-          echo "db_url_pooled exists: ${{ steps.create_neon_branch.outputs.db_url_pooled != '' }}"
-          echo "db_url_with_pooler exists: ${{ steps.create_neon_branch.outputs.db_url_with_pooler != '' }}"
+          echo "connection_uri exists: ${{ steps.create_neon_branch.outputs.connection_uri != '' }}"
+          echo "pooled_connection_uri exists: ${{ steps.create_neon_branch.outputs.pooled_connection_uri != '' }}"
           echo "branch_id: ${{ steps.create_neon_branch.outputs.branch_id }}"
-          echo "created: ${{ steps.create_neon_branch.outputs.created }}"
+          echo "branch_name: ${{ steps.create_neon_branch.outputs.branch_name }}"
+          echo "database_host: ${{ steps.create_neon_branch.outputs.database_host }}"
+          echo "database_name: ${{ steps.create_neon_branch.outputs.database_name }}"
 
 
   migrate_database:
@@ -86,6 +87,11 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
+      - name: Install PostgreSQL client tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          
       - name: Verify database connectivity
         run: |
           # Debug: Show the full DATABASE_URL (masking password)
