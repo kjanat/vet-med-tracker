@@ -16,30 +16,30 @@ export function HeroSection() {
 	const { user, isLoaded } = useUser();
 
 	return (
-		<section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+		<section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
 			{/* Animated background elements */}
 			<div className="absolute inset-0 overflow-hidden">
-				<div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-				<div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse delay-1000" />
+				<div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-primary/10 blur-3xl" />
+				<div className="-bottom-40 -left-40 absolute h-80 w-80 animate-pulse rounded-full bg-primary/10 blur-3xl delay-1000" />
 			</div>
 
 			{/* Hero content */}
-			<div className="relative z-10 container max-w-6xl mx-auto px-4 py-16 text-center">
+			<div className="container relative z-10 mx-auto max-w-6xl px-4 py-16 text-center">
 				{/* Badge */}
-				<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-8">
-					<Shield className="w-4 h-4" />
-					<span className="text-sm font-medium">
+				<div className="mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-primary">
+					<Shield className="h-4 w-4" />
+					<span className="font-medium text-sm">
 						Trusted by 10,000+ Pet Parents
 					</span>
 				</div>
 
 				{/* Main heading */}
-				<h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
+				<h1 className="mb-6 font-bold text-4xl tracking-tight md:text-6xl lg:text-7xl">
 					Never Miss a{" "}
-					<span className="text-primary relative">
+					<span className="relative text-primary">
 						Dose
 						<svg
-							className="absolute -bottom-2 left-0 w-full"
+							className="-bottom-2 absolute left-0 w-full"
 							viewBox="0 0 200 20"
 							fill="none"
 							xmlns="http://www.w3.org/2000/svg"
@@ -57,17 +57,17 @@ export function HeroSection() {
 				</h1>
 
 				{/* Subtitle */}
-				<p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8">
+				<p className="mx-auto mb-8 max-w-3xl text-muted-foreground text-xl md:text-2xl">
 					Professional medication tracking for your beloved pets. Simple,
 					reliable, and designed with your peace of mind at heart.
 				</p>
 
 				{/* CTA buttons */}
-				<div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+				<div className="mb-12 flex flex-col justify-center gap-4 sm:flex-row">
 					{isLoaded && !user && (
 						<Button
 							size="lg"
-							className="text-lg px-8"
+							className="px-8 text-lg"
 							onClick={() => openSignIn()}
 						>
 							Start Free
@@ -75,43 +75,43 @@ export function HeroSection() {
 						</Button>
 					)}
 					{isLoaded && user && (
-						<Button size="lg" className="text-lg px-8" asChild>
+						<Button size="lg" className="px-8 text-lg" asChild>
 							<Link href="/dashboard">
 								Go to Dashboard
 								<ArrowRight className="ml-2 h-5 w-5" />
 							</Link>
 						</Button>
 					)}
-					<Button size="lg" variant="outline" className="text-lg px-8" asChild>
+					<Button size="lg" variant="outline" className="px-8 text-lg" asChild>
 						<Link href="#demo">See How It Works</Link>
 					</Button>
 				</div>
 
 				{/* Feature highlights */}
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-					<div className="flex items-center gap-3 justify-center">
-						<div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-							<CheckCircle className="w-5 h-5 text-green-600" />
+				<div className="mx-auto grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3">
+					<div className="flex items-center justify-center gap-3">
+						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20">
+							<CheckCircle className="h-5 w-5 text-green-600" />
 						</div>
-						<span className="text-sm font-medium">3-Tap Recording</span>
+						<span className="font-medium text-sm">3-Tap Recording</span>
 					</div>
-					<div className="flex items-center gap-3 justify-center">
-						<div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-							<Smartphone className="w-5 h-5 text-blue-600" />
+					<div className="flex items-center justify-center gap-3">
+						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20">
+							<Smartphone className="h-5 w-5 text-blue-600" />
 						</div>
-						<span className="text-sm font-medium">Works Offline</span>
+						<span className="font-medium text-sm">Works Offline</span>
 					</div>
-					<div className="flex items-center gap-3 justify-center">
-						<div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-							<Pill className="w-5 h-5 text-purple-600" />
+					<div className="flex items-center justify-center gap-3">
+						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/20">
+							<Pill className="h-5 w-5 text-purple-600" />
 						</div>
-						<span className="text-sm font-medium">Smart Reminders</span>
+						<span className="font-medium text-sm">Smart Reminders</span>
 					</div>
 				</div>
 
 				{/* Pet silhouettes animation */}
-				<div className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden opacity-10">
-					<div className="flex gap-8 animate-scroll">
+				<div className="absolute right-0 bottom-0 left-0 h-32 overflow-hidden opacity-10">
+					<div className="flex animate-scroll gap-8">
 						{[
 							"dog",
 							"cat",

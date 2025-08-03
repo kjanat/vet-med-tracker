@@ -98,17 +98,17 @@ export function ProgressiveList<T>({
 
 			{/* Load more trigger */}
 			{displayCount < items.length && (
-				<div ref={loaderRef} className="py-4 flex justify-center">
+				<div ref={loaderRef} className="flex justify-center py-4">
 					{isLoading ? (
 						(loadingComponent ?? (
-							<div className="space-y-2 w-full">
+							<div className="w-full space-y-2">
 								<Skeleton className="h-16 w-full" />
 								<Skeleton className="h-16 w-full" />
 							</div>
 						))
 					) : (
-						<div className="text-center space-y-2">
-							<div className="text-sm text-muted-foreground">
+						<div className="space-y-2 text-center">
+							<div className="text-muted-foreground text-sm">
 								Showing {displayCount} of {items.length}
 							</div>
 							{/* Hidden button for keyboard/screen reader users */}
@@ -239,8 +239,8 @@ export function StaggeredList<T>({
 					key={keyExtractor?.(item, index) ?? index}
 					className={`transition-all duration-300 ${
 						visibleIndexes.has(index)
-							? "opacity-100 translate-y-0"
-							: "opacity-0 translate-y-2"
+							? "translate-y-0 opacity-100"
+							: "translate-y-2 opacity-0"
 					}`}
 				>
 					{renderItem(item, index)}

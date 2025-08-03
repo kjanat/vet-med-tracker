@@ -265,7 +265,7 @@ const MobileResponsiveTester: React.FC = () => {
 				{useSidebar ? (
 					<>
 						{/* Sidebar layout */}
-						<div ref={sidebarRef} className="w-96 border-r flex flex-col">
+						<div ref={sidebarRef} className="flex w-96 flex-col border-r">
 							<ScrollArea style={scrollAreaStyle} className="flex-1">
 								<div className="grid gap-2 p-4">
 									{filteredDevices.map((device) => (
@@ -294,7 +294,7 @@ const MobileResponsiveTester: React.FC = () => {
 					<div className="flex-1 overflow-auto p-8">
 						{/* Device grid above preview */}
 						<div className="mx-auto mb-8 max-w-7xl">
-							<div className="border rounded-lg">
+							<div className="rounded-lg border">
 								<ScrollArea className="w-full">
 									<div className="flex gap-2 p-4">
 										{filteredDevices.map((device) => (

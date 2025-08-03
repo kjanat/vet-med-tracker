@@ -271,7 +271,7 @@ function InventoryContent() {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="text-center">
-					<Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50 animate-pulse" />
+					<Package className="mx-auto mb-4 h-12 w-12 animate-pulse text-muted-foreground opacity-50" />
 					<p className="text-muted-foreground">Loading...</p>
 				</div>
 			</div>
@@ -283,8 +283,8 @@ function InventoryContent() {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="text-center">
-					<Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-					<h3 className="text-lg font-medium mb-2">No household selected</h3>
+					<Package className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
+					<h3 className="mb-2 font-medium text-lg">No household selected</h3>
 					<p className="text-muted-foreground">
 						Please select a household to view inventory
 					</p>
@@ -298,7 +298,7 @@ function InventoryContent() {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="text-center">
-					<Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50 animate-pulse" />
+					<Package className="mx-auto mb-4 h-12 w-12 animate-pulse text-muted-foreground opacity-50" />
 					<p className="text-muted-foreground">Loading inventory...</p>
 				</div>
 			</div>
@@ -310,9 +310,9 @@ function InventoryContent() {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="text-center">
-					<AlertTriangle className="h-12 w-12 mx-auto mb-4 text-destructive" />
-					<h3 className="text-lg font-medium mb-2">Failed to load inventory</h3>
-					<p className="text-muted-foreground mb-4">
+					<AlertTriangle className="mx-auto mb-4 h-12 w-12 text-destructive" />
+					<h3 className="mb-2 font-medium text-lg">Failed to load inventory</h3>
+					<p className="mb-4 text-muted-foreground">
 						{error.message || "An unexpected error occurred"}
 					</p>
 					<Button
@@ -331,7 +331,7 @@ function InventoryContent() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold">Inventory</h1>
+					<h1 className="font-bold text-3xl">Inventory</h1>
 					<p className="text-muted-foreground">
 						Manage medications and supplies
 					</p>
@@ -356,7 +356,7 @@ function InventoryContent() {
 									variant="outline"
 									size="sm"
 									onClick={() => handleAlertClick(alert.id)}
-									className="text-orange-600 border-orange-200 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-800 dark:hover:bg-orange-900"
+									className="border-orange-200 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900"
 								>
 									View Item
 								</Button>
@@ -378,7 +378,7 @@ function InventoryContent() {
 									variant="outline"
 									size="sm"
 									onClick={() => handleAlertClick(alert.id)}
-									className="text-yellow-600 border-yellow-200 hover:bg-yellow-100 dark:text-yellow-400 dark:border-yellow-800 dark:hover:bg-yellow-900"
+									className="border-yellow-200 text-yellow-600 hover:bg-yellow-100 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900"
 								>
 									View Item
 								</Button>
@@ -405,7 +405,7 @@ function InventoryContent() {
 				{/* Search - expandable on mobile */}
 				<div className="relative flex-1">
 					<div className="hidden sm:block">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+						<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
 						<Input
 							placeholder="Search medications..."
 							value={searchQuery}
@@ -432,7 +432,7 @@ function InventoryContent() {
 								<Button
 									variant="ghost"
 									size="icon"
-									className="absolute right-0 top-0 h-full"
+									className="absolute top-0 right-0 h-full"
 									onClick={() => {
 										setSearchQuery("");
 										setShowMobileSearch(false);
@@ -456,9 +456,9 @@ function InventoryContent() {
 
 			{/* Items List */}
 			{filteredAndSortedItems.length === 0 ? (
-				<div className="text-center py-12">
-					<Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-					<h3 className="text-lg font-medium mb-2">No items found</h3>
+				<div className="py-12 text-center">
+					<Package className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
+					<h3 className="mb-2 font-medium text-lg">No items found</h3>
 					<p className="text-muted-foreground">
 						{searchQuery
 							? "Try adjusting your search terms"

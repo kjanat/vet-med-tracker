@@ -212,7 +212,7 @@ export function RegimenForm({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-[95vw] sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-xl md:max-w-2xl">
 				<DialogHeader>
 					<DialogTitle>{regimen ? "Edit Regimen" : "Add Regimen"}</DialogTitle>
 					<DialogDescription>
@@ -222,7 +222,7 @@ export function RegimenForm({
 					</DialogDescription>
 				</DialogHeader>
 
-				<form onSubmit={handleSubmit} className="space-y-6 mt-6">
+				<form onSubmit={handleSubmit} className="mt-6 space-y-6">
 					{/* Animal Selection */}
 					<AnimalSelector
 						animals={animals}
@@ -274,7 +274,7 @@ export function RegimenForm({
 						</Popover>
 
 						{formData.medicationName && (
-							<div className="text-sm text-muted-foreground">
+							<div className="text-muted-foreground text-sm">
 								{formData.strength} • {formData.route} • {formData.form}
 							</div>
 						)}
@@ -369,7 +369,7 @@ export function RegimenForm({
 									<SelectItem value="720">12 hours</SelectItem>
 								</SelectContent>
 							</Select>
-							<p className="text-xs text-muted-foreground">
+							<p className="text-muted-foreground text-xs">
 								Time after scheduled dose when it&apos;s marked as
 								&quot;missed&quot;
 							</p>
@@ -430,7 +430,7 @@ function MedicationEmpty({
 }) {
 	return (
 		<div className="p-4 text-center">
-			<p className="text-sm text-muted-foreground mb-2">No medication found</p>
+			<p className="mb-2 text-muted-foreground text-sm">No medication found</p>
 			<Button size="sm" onClick={onCreateCustom}>
 				Create &quot;{medicationSearch}&quot;
 			</Button>
@@ -451,13 +451,13 @@ function MedicationItem({
 				<div className="font-medium">
 					{medication.brand || medication.generic}
 					{medication.brand && medication.brand !== medication.generic && (
-						<span className="text-muted-foreground font-normal">
+						<span className="font-normal text-muted-foreground">
 							{" "}
 							({medication.generic})
 						</span>
 					)}
 				</div>
-				<div className="text-sm text-muted-foreground">
+				<div className="text-muted-foreground text-sm">
 					{medication.strength} • {medication.route} • {medication.form}
 				</div>
 			</div>
@@ -534,7 +534,7 @@ function ScheduleTypeSelector({
 				>
 					<CardContent className="p-4">
 						<div className="font-medium">Fixed Schedule</div>
-						<div className="text-sm text-muted-foreground">
+						<div className="text-muted-foreground text-sm">
 							Regular times each day
 						</div>
 					</CardContent>
@@ -548,7 +548,7 @@ function ScheduleTypeSelector({
 				>
 					<CardContent className="p-4">
 						<div className="font-medium">PRN (As Needed)</div>
-						<div className="text-sm text-muted-foreground">
+						<div className="text-muted-foreground text-sm">
 							Given when required
 						</div>
 					</CardContent>
@@ -599,7 +599,7 @@ function FixedScheduleTimes({
 			</div>
 
 			{timesLocal?.length === 0 && (
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted-foreground text-sm">
 					Add at least one daily time
 				</p>
 			)}

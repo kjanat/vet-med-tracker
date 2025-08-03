@@ -5,7 +5,7 @@ export default function AuditLogLoading() {
 		<div className="space-y-6">
 			{/* Header */}
 			<div>
-				<Skeleton className="h-8 w-32 mb-2" />
+				<Skeleton className="mb-2 h-8 w-32" />
 				<Skeleton className="h-4 w-96" />
 			</div>
 
@@ -17,9 +17,9 @@ export default function AuditLogLoading() {
 			</div>
 
 			{/* Table */}
-			<div className="border rounded-lg">
+			<div className="rounded-lg border">
 				{/* Table Header */}
-				<div className="border-b p-4 grid grid-cols-5 gap-4">
+				<div className="grid grid-cols-5 gap-4 border-b p-4">
 					<Skeleton className="h-4 w-20" />
 					<Skeleton className="h-4 w-24" />
 					<Skeleton className="h-4 w-16" />
@@ -30,7 +30,7 @@ export default function AuditLogLoading() {
 				{/* Table Rows */}
 				{Array.from({ length: 10 }).map((_, i) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					<div key={i} className="border-b p-4 grid grid-cols-5 gap-4">
+					<div key={i} className="grid grid-cols-5 gap-4 border-b p-4">
 						<Skeleton className="h-4 w-32" />
 						<Skeleton className="h-4 w-28" />
 						<Skeleton className="h-4 w-20" />
@@ -41,7 +41,7 @@ export default function AuditLogLoading() {
 			</div>
 
 			{/* Pagination */}
-			<div className="flex justify-between items-center">
+			<div className="flex items-center justify-between">
 				<Skeleton className="h-4 w-48" />
 				<div className="flex gap-2">
 					<Skeleton className="h-8 w-8" />

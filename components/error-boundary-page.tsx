@@ -35,7 +35,7 @@ export function PageErrorBoundary({
 
 	const fallback = (
 		<div className="container mx-auto px-4 py-8">
-			<Card className="max-w-2xl mx-auto">
+			<Card className="mx-auto max-w-2xl">
 				<CardHeader>
 					<div className="flex items-center gap-2">
 						<AlertCircle className="h-5 w-5 text-destructive" />
@@ -48,24 +48,24 @@ export function PageErrorBoundary({
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-4">
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted-foreground text-sm">
 							This might be a temporary issue. You can try refreshing the page
 							or navigating to a different section.
 						</p>
 						{/* Context-specific suggestions based on page */}
 						{pageName === "Record Administration" && (
-							<div className="p-4 bg-muted rounded-lg">
-								<p className="text-sm font-medium">Offline Mode Available</p>
-								<p className="text-sm text-muted-foreground mt-1">
+							<div className="rounded-lg bg-muted p-4">
+								<p className="font-medium text-sm">Offline Mode Available</p>
+								<p className="mt-1 text-muted-foreground text-sm">
 									Your medication records are saved locally and will sync when
 									the connection is restored.
 								</p>
 							</div>
 						)}
 						{pageName === "Inventory" && (
-							<div className="p-4 bg-muted rounded-lg">
-								<p className="text-sm font-medium">Inventory Data</p>
-								<p className="text-sm text-muted-foreground mt-1">
+							<div className="rounded-lg bg-muted p-4">
+								<p className="font-medium text-sm">Inventory Data</p>
+								<p className="mt-1 text-muted-foreground text-sm">
 									Your inventory changes are queued and will be saved once the
 									issue is resolved.
 								</p>

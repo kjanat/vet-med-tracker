@@ -104,7 +104,7 @@ export function AnimalList() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold">Animals</h2>
+					<h2 className="font-bold text-2xl">Animals</h2>
 					<p className="text-muted-foreground">
 						Manage animal profiles and medical information
 					</p>
@@ -117,7 +117,7 @@ export function AnimalList() {
 
 			{/* Search */}
 			<div className="relative max-w-sm">
-				<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+				<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
 				<Input
 					placeholder="Search animals..."
 					value={searchQuery}
@@ -129,14 +129,14 @@ export function AnimalList() {
 			{/* Animals Grid */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{filteredAnimals.map((animal) => (
-					<Card key={animal.id} className="hover:shadow-md transition-shadow">
+					<Card key={animal.id} className="transition-shadow hover:shadow-md">
 						<CardHeader className="pb-3">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-3">
 									<AnimalAvatar animal={animal} size="lg" showBadge />
 									<div>
 										<CardTitle className="text-lg">{animal.name}</CardTitle>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted-foreground text-sm">
 											{animal.breed
 												? `${animal.breed} ${animal.species}`
 												: animal.species}
@@ -146,7 +146,7 @@ export function AnimalList() {
 							</div>
 						</CardHeader>
 
-						<CardContent className="space-y-3 flex flex-col flex-1">
+						<CardContent className="flex flex-1 flex-col space-y-3">
 							<div className="grid grid-cols-2 gap-2 text-sm">
 								{animal.sex && (
 									<div>
@@ -174,7 +174,7 @@ export function AnimalList() {
 
 							{animal.conditions.length > 0 && (
 								<div>
-									<p className="text-sm font-medium mb-1">Conditions:</p>
+									<p className="mb-1 font-medium text-sm">Conditions:</p>
 									<div className="flex flex-wrap gap-1">
 										{animal.conditions.map((condition) => (
 											<Badge
@@ -191,7 +191,7 @@ export function AnimalList() {
 
 							{animal.allergies.length > 0 && (
 								<div>
-									<p className="text-sm font-medium mb-1">Allergies:</p>
+									<p className="mb-1 font-medium text-sm">Allergies:</p>
 									<div className="flex flex-wrap gap-1">
 										{animal.allergies.map((allergy) => (
 											<Badge
@@ -206,7 +206,7 @@ export function AnimalList() {
 								</div>
 							)}
 
-							<div className="flex gap-2 pt-2 mt-auto">
+							<div className="mt-auto flex gap-2 pt-2">
 								<Button
 									variant="outline"
 									size="sm"

@@ -25,10 +25,10 @@ export function ClerkNavUser() {
 			<SidebarMenu>
 				<SidebarMenuItem>
 					<SidebarMenuButton size="lg" disabled>
-						<div className="h-8 w-8 rounded-lg bg-gray-200 animate-pulse" />
+						<div className="h-8 w-8 animate-pulse rounded-lg bg-gray-200" />
 						<div className="grid flex-1 text-left text-sm leading-tight">
-							<div className="h-4 bg-gray-200 rounded animate-pulse" />
-							<div className="h-3 bg-gray-200 rounded animate-pulse mt-1" />
+							<div className="h-4 animate-pulse rounded bg-gray-200" />
+							<div className="mt-1 h-3 animate-pulse rounded bg-gray-200" />
 						</div>
 					</SidebarMenuButton>
 				</SidebarMenuItem>
@@ -40,7 +40,7 @@ export function ClerkNavUser() {
 		<SidebarMenu>
 			<SidebarMenuItem>
 				<SignedIn>
-					<div className="flex items-center w-full">
+					<div className="flex w-full items-center">
 						<UserButton
 							appearance={{
 								elements: {
@@ -54,13 +54,13 @@ export function ClerkNavUser() {
 							<UserButton.UserProfilePage
 								label="VetMed Preferences"
 								url="vetmed-preferences"
-								labelIcon={<Heart className="w-4 h-4" />}
+								labelIcon={<Heart className="h-4 w-4" />}
 							>
 								<div className="p-4">
-									<h2 className="text-lg font-semibold mb-4">
+									<h2 className="mb-4 font-semibold text-lg">
 										VetMed Preferences
 									</h2>
-									<p className="text-gray-600 mb-4">
+									<p className="mb-4 text-gray-600">
 										Configure your medication tracking preferences, timezones,
 										and notification settings.
 									</p>
@@ -75,13 +75,13 @@ export function ClerkNavUser() {
 							<UserButton.UserProfilePage
 								label="Household Settings"
 								url="household-settings"
-								labelIcon={<Home className="w-4 h-4" />}
+								labelIcon={<Home className="h-4 w-4" />}
 							>
 								<div className="p-4">
-									<h2 className="text-lg font-semibold mb-4">
+									<h2 className="mb-4 font-semibold text-lg">
 										Household Settings
 									</h2>
-									<p className="text-gray-600 mb-4">
+									<p className="mb-4 text-gray-600">
 										Manage your household information, locations, and veterinary
 										contacts.
 									</p>
@@ -97,7 +97,7 @@ export function ClerkNavUser() {
 							<UserButton.UserProfileLink
 								label="Full Profile Settings"
 								url="/profile"
-								labelIcon={<Settings className="w-4 h-4" />}
+								labelIcon={<Settings className="h-4 w-4" />}
 							/>
 
 							{/* Reorder default pages */}
@@ -106,7 +106,7 @@ export function ClerkNavUser() {
 						</UserButton>
 
 						{user && (
-							<div className="grid flex-1 text-left text-sm leading-tight ml-3">
+							<div className="ml-3 grid flex-1 text-left text-sm leading-tight">
 								<span className="truncate font-medium">
 									{user.firstName && user.lastName
 										? `${user.firstName} ${user.lastName}`
@@ -114,7 +114,7 @@ export function ClerkNavUser() {
 											user.username ||
 											user.emailAddresses[0]?.emailAddress}
 								</span>
-								<span className="truncate text-xs text-gray-600">
+								<span className="truncate text-gray-600 text-xs">
 									{user.emailAddresses[0]?.emailAddress}
 								</span>
 							</div>
@@ -123,10 +123,10 @@ export function ClerkNavUser() {
 				</SignedIn>
 
 				<SignedOut>
-					<div className="flex items-center w-full">
+					<div className="flex w-full items-center">
 						<SignInButton mode="modal">
 							<SidebarMenuButton size="lg">
-								<div className="h-8 w-8 rounded-lg bg-gray-300 flex items-center justify-center">
+								<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-300">
 									<User className="h-4 w-4" />
 								</div>
 								<div className="grid flex-1 text-left text-sm leading-tight">

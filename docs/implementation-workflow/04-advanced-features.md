@@ -41,28 +41,28 @@ This phase focuses on implementing advanced features that provide significant va
      trend: 'improving' | 'stable' | 'declining';
      insights: ComplianceInsight[];
    }
-   
+
    export function calculateComplianceScore(
      administrations: Administration[],
      regimens: Regimen[]
    ): ComplianceScore {
      // Calculate on-time percentage
-     const onTimeRate = administrations.filter(a => 
+     const onTimeRate = administrations.filter(a =>
        a.status === 'ON_TIME'
      ).length / administrations.length;
-     
+
      // Calculate consistency (standard deviation of administration times)
      const consistency = calculateConsistency(administrations);
-     
+
      // Calculate completion rate
      const completionRate = calculateCompletionRate(
-       administrations, 
+       administrations,
        regimens
      );
-     
+
      // Calculate trend using linear regression
      const trend = calculateTrend(administrations, 30); // 30-day trend
-     
+
      // Generate insights
      const insights = generateInsights({
        onTimeRate,
@@ -71,7 +71,7 @@ This phase focuses on implementing advanced features that provide significant va
        administrations,
        regimens
      });
-     
+
      return {
        overall: (onTimeRate * 0.5 + consistency * 0.3 + completionRate * 0.2) * 100,
        breakdown: {
@@ -93,7 +93,7 @@ This phase focuses on implementing advanced features that provide significant va
      reasons: string[];
      preventionSuggestions: string[];
    }
-   
+
    export function predictMissedDoses(
      history: Administration[],
      upcoming: ScheduledDose[],
@@ -104,7 +104,7 @@ This phase focuses on implementing advanced features that provide significant va
      }
    ): Map<string, MissedDosePrediction> {
      const predictions = new Map();
-     
+
      for (const dose of upcoming) {
        // Analyze historical patterns
        const historicalMissRate = calculateHistoricalMissRate(
@@ -112,10 +112,10 @@ This phase focuses on implementing advanced features that provide significant va
          dose,
          context
        );
-       
+
        // Factor in external conditions
        const externalFactors = analyzeExternalFactors(context);
-       
+
        // Machine learning model (simplified)
        const mlPrediction = mlModel.predict({
          historicalMissRate,
@@ -123,14 +123,14 @@ This phase focuses on implementing advanced features that provide significant va
          medicationImportance: dose.isHighRisk ? 1 : 0.5,
          timeSlot: dose.timeSlot
        });
-       
+
        predictions.set(dose.id, {
          probability: mlPrediction.probability,
          reasons: mlPrediction.reasons,
          preventionSuggestions: generateSuggestions(mlPrediction)
        });
      }
-     
+
      return predictions;
    }
    ```
@@ -139,10 +139,10 @@ This phase focuses on implementing advanced features that provide significant va
    ```typescript
    // components/insights/insight-cards.tsx
    export function InsightCards({ data }: { data: AnalyticsData }) {
-     const insights = useMemo(() => 
+     const insights = useMemo(() =>
        generateInsights(data), [data]
      );
-     
+
      return (
        <div className="space-y-4">
          {insights.map(insight => (
@@ -163,8 +163,8 @@ This phase focuses on implementing advanced features that provide significant va
                  {insight.description}
                </p>
                {insight.action && (
-                 <Button 
-                   size="sm" 
+                 <Button
+                   size="sm"
                    className="mt-3"
                    onClick={insight.action.handler}
                  >
@@ -196,7 +196,7 @@ This phase focuses on implementing advanced features that provide significant va
      };
      recommendation: 'continue' | 'consult-vet' | 'consider-alternative';
    }
-   
+
    export function analyzeMedicationEffectiveness(
      regimen: Regimen,
      administrations: Administration[],
@@ -207,20 +207,20 @@ This phase focuses on implementing advanced features that provide significant va
        administrations,
        healthNotes
      );
-     
+
      // Analyze symptom trends
      const symptomTrend = analyzeSymptomTrends(
        healthNotes,
        regimen.startDate
      );
-     
+
      // Identify potential side effects
      const sideEffects = identifySideEffects(
        healthNotes,
        administrations,
        regimen.medication
      );
-     
+
      return {
        medication: regimen.medication.name,
        period: { start: regimen.startDate, end: new Date() },
@@ -239,11 +239,11 @@ This phase focuses on implementing advanced features that provide significant va
    // components/insights/health-timeline.tsx
    export function HealthTimeline({ animalId }: { animalId: string }) {
      const { data } = useHealthTimeline(animalId);
-     
+
      return (
        <div className="relative">
          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border" />
-         
+
          {data.events.map((event, index) => (
            <div key={event.id} className="relative flex items-start mb-4">
              <div className={cn(
@@ -253,7 +253,7 @@ This phase focuses on implementing advanced features that provide significant va
                event.type === 'improvement' && "bg-green-500",
                event.type === 'vet-visit' && "bg-purple-500"
              )} />
-             
+
              <div className="ml-16 flex-1">
                <Card>
                  <CardContent className="p-3">
@@ -286,7 +286,7 @@ This phase focuses on implementing advanced features that provide significant va
    ```typescript
    // lib/reports/pdf-generator.ts
    import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-   
+
    export async function generateVetReport(
      animal: Animal,
      dateRange: DateRange,
@@ -299,10 +299,10 @@ This phase focuses on implementing advanced features that provide significant va
    ): Promise<Uint8Array> {
      const pdfDoc = await PDFDocument.create();
      const page = pdfDoc.addPage([595, 842]); // A4
-     
+
      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-     
+
      // Header
      page.drawText('Veterinary Medication Report', {
        x: 50,
@@ -310,7 +310,7 @@ This phase focuses on implementing advanced features that provide significant va
        size: 20,
        font: boldFont
      });
-     
+
      // Animal Information
      page.drawText(`Patient: ${animal.name}`, {
        x: 50,
@@ -318,29 +318,29 @@ This phase focuses on implementing advanced features that provide significant va
        size: 12,
        font
      });
-     
+
      page.drawText(`Species: ${animal.species} (${animal.breed})`, {
        x: 50,
        y: 740,
        size: 12,
        font
      });
-     
+
      // Compliance Summary
      drawComplianceSection(page, data.complianceScore, 50, 680);
-     
+
      // Medication Schedule
      drawMedicationSchedule(page, data.regimens, 50, 500);
-     
+
      // Administration History
      drawAdministrationHistory(page, data.administrations, 50, 300);
-     
+
      // Health Notes
      if (data.healthNotes.length > 0) {
        const secondPage = pdfDoc.addPage();
        drawHealthNotes(secondPage, data.healthNotes, 50, 800);
      }
-     
+
      return await pdfDoc.save();
    }
    ```
@@ -356,13 +356,13 @@ This phase focuses on implementing advanced features that provide significant va
        includeHealthNotes: true,
        includeComplianceScore: true
      });
-     
+
      const { mutate: scheduleReport } = trpc.reports.schedule.useMutation({
        onSuccess: () => {
          toast.success('Report scheduled successfully');
        }
      });
-     
+
      return (
        <Card>
          <CardHeader>
@@ -376,7 +376,7 @@ This phase focuses on implementing advanced features that provide significant va
              <div className="space-y-4">
                <div>
                  <Label>Frequency</Label>
-                 <Select 
+                 <Select
                    value={schedule.frequency}
                    onValueChange={(v) => setSchedule({
                      ...schedule,
@@ -393,7 +393,7 @@ This phase focuses on implementing advanced features that provide significant va
                    </SelectContent>
                  </Select>
                </div>
-               
+
                {/* Additional form fields */}
              </div>
            </form>
@@ -426,27 +426,27 @@ This phase focuses on implementing advanced features that provide significant va
 1. **Scanner Component Integration**
    ```tsx
    // components/inventory/barcode-scanner-modal.tsx
-   export function BarcodeScannerModal({ 
-     open, 
-     onClose, 
-     onScan 
+   export function BarcodeScannerModal({
+     open,
+     onClose,
+     onScan
    }: BarcodeScannerProps) {
-     const { 
-       isScanning, 
-       hasPermission, 
-       videoRef, 
-       startScanning, 
-       stopScanning 
+     const {
+       isScanning,
+       hasPermission,
+       videoRef,
+       startScanning,
+       stopScanning
      } = useBarcodeScanner({
        onScan: async (barcode) => {
          // Haptic feedback
          if ('vibrate' in navigator) {
            navigator.vibrate(200);
          }
-         
+
          // Play success sound
          playSound('scan-success');
-         
+
          await onScan(barcode);
          onClose();
        },
@@ -454,20 +454,20 @@ This phase focuses on implementing advanced features that provide significant va
          toast.error(error);
        }
      });
-     
+
      return (
        <Dialog open={open} onOpenChange={onClose}>
          <DialogContent className="sm:max-w-md">
            <DialogHeader>
              <DialogTitle>Scan Medication Barcode</DialogTitle>
            </DialogHeader>
-           
+
            {!hasPermission && (
              <Alert>
                <AlertDescription>
                  Camera permission is required to scan barcodes.
-                 <Button 
-                   size="sm" 
+                 <Button
+                   size="sm"
                    className="mt-2"
                    onClick={requestCameraPermission}
                  >
@@ -476,7 +476,7 @@ This phase focuses on implementing advanced features that provide significant va
                </AlertDescription>
              </Alert>
            )}
-           
+
            {hasPermission && (
              <div className="relative aspect-square">
                <video
@@ -484,14 +484,14 @@ This phase focuses on implementing advanced features that provide significant va
                  className="w-full h-full object-cover rounded-lg"
                  playsInline
                />
-               
+
                {/* Scanning overlay */}
                <div className="absolute inset-0 pointer-events-none">
                  <div className="absolute inset-4 border-2 border-white rounded-lg">
                    <div className="absolute inset-x-0 top-1/2 h-0.5 bg-red-500 animate-scan" />
                  </div>
                </div>
-               
+
                {/* Manual entry fallback */}
                <Button
                  variant="secondary"
@@ -521,15 +521,15 @@ This phase focuses on implementing advanced features that provide significant va
      QR_CODE: /^.*$/,
      DATA_MATRIX: /^.*$/
    };
-   
+
    export function validateBarcode(
-     barcode: string, 
+     barcode: string,
      format?: keyof typeof SUPPORTED_FORMATS
    ): boolean {
      if (format) {
        return SUPPORTED_FORMATS[format].test(barcode);
      }
-     
+
      // Check against all formats
      return Object.values(SUPPORTED_FORMATS).some(
        regex => regex.test(barcode)
@@ -546,24 +546,24 @@ This phase focuses on implementing advanced features that provide significant va
    // server/api/services/medication-lookup.ts
    export class MedicationLookupService {
      private cache = new Map<string, MedicationInfo>();
-     
+
      async lookupByBarcode(barcode: string): Promise<MedicationInfo | null> {
        // Check cache first
        if (this.cache.has(barcode)) {
          return this.cache.get(barcode)!;
        }
-       
+
        // Try local database
        const localMed = await db
          .select()
          .from(medicationCatalog)
          .where(eq(medicationCatalog.barcode, barcode))
          .limit(1);
-       
+
        if (localMed.length > 0) {
          return localMed[0];
        }
-       
+
        // Try external API (if available)
        try {
          const externalData = await fetchFromFDADatabase(barcode);
@@ -575,28 +575,28 @@ This phase focuses on implementing advanced features that provide significant va
        } catch (error) {
          console.error('External lookup failed:', error);
        }
-       
+
        return null;
      }
-     
+
      async verifyMedication(
-       scannedBarcode: string, 
+       scannedBarcode: string,
        expectedMedication: string
      ): Promise<VerificationResult> {
        const medicationInfo = await this.lookupByBarcode(scannedBarcode);
-       
+
        if (!medicationInfo) {
          return {
            verified: false,
            reason: 'Unknown medication'
          };
        }
-       
+
        // Check if it matches expected medication
-       const isMatch = 
+       const isMatch =
          medicationInfo.genericName === expectedMedication ||
          medicationInfo.brandNames.includes(expectedMedication);
-       
+
        if (!isMatch) {
          return {
            verified: false,
@@ -605,9 +605,9 @@ This phase focuses on implementing advanced features that provide significant va
            expected: expectedMedication
          };
        }
-       
+
        // Check expiration
-       if (medicationInfo.expiryDate && 
+       if (medicationInfo.expiryDate &&
            new Date(medicationInfo.expiryDate) < new Date()) {
          return {
            verified: false,
@@ -615,7 +615,7 @@ This phase focuses on implementing advanced features that provide significant va
            expiryDate: medicationInfo.expiryDate
          };
        }
-       
+
        return {
          verified: true,
          medicationInfo
@@ -630,27 +630,27 @@ This phase focuses on implementing advanced features that provide significant va
    export function AddItemWithBarcode() {
      const [showScanner, setShowScanner] = useState(false);
      const { mutate: lookupMedication } = trpc.medications.lookupByBarcode.useMutation();
-     
+
      const handleBarcodeScan = async (barcode: string) => {
        const result = await lookupMedication({ barcode });
-       
+
        if (result.found) {
          // Auto-fill form with medication data
          form.setValue('medicationId', result.medication.id);
          form.setValue('name', result.medication.name);
          form.setValue('strength', result.medication.strength);
          form.setValue('form', result.medication.form);
-         
+
          // Focus on quantity field
          quantityRef.current?.focus();
-         
+
          toast.success(`Found: ${result.medication.name}`);
        } else {
          toast.error('Medication not found. Please enter manually.');
          setShowManualEntry(true);
        }
      };
-     
+
      return (
        <>
          <Button
@@ -662,7 +662,7 @@ This phase focuses on implementing advanced features that provide significant va
            <Camera className="mr-2 h-4 w-4" />
            Scan Barcode
          </Button>
-         
+
          <BarcodeScannerModal
            open={showScanner}
            onClose={() => setShowScanner(false)}
@@ -704,7 +704,7 @@ export function calculateReorderSuggestions(
   regimens: Regimen[]
 ): ReorderSuggestion[] {
   const suggestions: ReorderSuggestion[] = [];
-  
+
   for (const item of inventory) {
     // Calculate average daily usage
     const avgDailyUsage = calculateAverageDailyUsage(
@@ -712,23 +712,23 @@ export function calculateReorderSuggestions(
       usageHistory,
       30 // 30-day window
     );
-    
+
     // Calculate future usage based on active regimens
     const projectedDailyUsage = calculateProjectedUsage(
       item.medicationId,
       regimens
     );
-    
+
     // Use higher of historical or projected
     const dailyUsage = Math.max(avgDailyUsage, projectedDailyUsage);
-    
+
     if (dailyUsage > 0) {
       const daysUntilOut = item.quantity / dailyUsage;
-      
+
       // Factor in lead time and safety stock
       const leadTimeDays = 5; // Configurable
       const safetyStockDays = 7; // Configurable
-      
+
       if (daysUntilOut <= leadTimeDays + safetyStockDays) {
         // Calculate optimal order quantity (Economic Order Quantity simplified)
         const orderQuantity = calculateEOQ(
@@ -736,7 +736,7 @@ export function calculateReorderSuggestions(
           item.cost,
           0.25 // Holding cost rate
         );
-        
+
         suggestions.push({
           item,
           currentStock: item.quantity,
@@ -748,7 +748,7 @@ export function calculateReorderSuggestions(
       }
     }
   }
-  
+
   return suggestions.sort((a, b) => a.daysUntilOut - b.daysUntilOut);
 }
 ```
@@ -757,7 +757,7 @@ export function calculateReorderSuggestions(
 
 **Schema Updates**:
 ```typescript
-// server/db/schema/inventory.ts
+// @/db/schema/inventory.ts
 export const inventoryBatches = pgTable('inventory_batches', {
   id: uuid('id').primaryKey().defaultRandom(),
   inventoryItemId: uuid('inventory_item_id')
@@ -768,12 +768,12 @@ export const inventoryBatches = pgTable('inventory_batches', {
   quantity: integer('quantity').notNull(),
   dateReceived: timestamp('date_received').notNull().defaultNow(),
   supplier: varchar('supplier', { length: 255 }),
-  
+
   // Recall tracking
   isRecalled: boolean('is_recalled').default(false),
   recallDate: timestamp('recall_date'),
   recallReason: text('recall_reason'),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
@@ -786,13 +786,13 @@ export const inventoryBatches = pgTable('inventory_batches', {
 ```tsx
 // components/inventory/cost-analytics.tsx
 export function CostAnalytics({ householdId }: { householdId: string }) {
-  const { data } = trpc.inventory.getCostAnalytics.useQuery({ 
+  const { data } = trpc.inventory.getCostAnalytics.useQuery({
     householdId,
     period: 'last-6-months'
   });
-  
+
   if (!data) return <Skeleton />;
-  
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -812,7 +812,7 @@ export function CostAnalytics({ householdId }: { householdId: string }) {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">
@@ -832,7 +832,7 @@ export function CostAnalytics({ householdId }: { householdId: string }) {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">
@@ -855,7 +855,7 @@ export function CostAnalytics({ householdId }: { householdId: string }) {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Cost Breakdown Chart */}
       <Card>
         <CardHeader>
@@ -865,9 +865,9 @@ export function CostAnalytics({ householdId }: { householdId: string }) {
           <CostBreakdownChart data={data.breakdown} />
         </CardContent>
       </Card>
-      
+
       {/* Budget Management */}
-      <BudgetManager 
+      <BudgetManager
         currentSpending={data.currentMonthTotal}
         budget={data.budget}
         onBudgetUpdate={handleBudgetUpdate}

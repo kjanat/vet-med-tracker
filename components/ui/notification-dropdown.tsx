@@ -132,7 +132,7 @@ export function NotificationDropdown({
 					{unreadCount > 0 && (
 						<Badge
 							variant="destructive"
-							className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+							className="-top-1 -right-1 absolute flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
 						>
 							{unreadCount}
 						</Badge>
@@ -163,7 +163,7 @@ export function NotificationDropdown({
 						notifications.map((notification) => (
 							<DropdownMenuItem
 								key={notification.id}
-								className="flex items-start gap-3 p-4 cursor-pointer"
+								className="flex cursor-pointer items-start gap-3 p-4"
 								onClick={() => handleNotificationClick(notification)}
 							>
 								<div
@@ -173,23 +173,23 @@ export function NotificationDropdown({
 								</div>
 								<div className="flex-1 space-y-1">
 									<p
-										className={`text-sm font-medium leading-none ${
+										className={`font-medium text-sm leading-none ${
 											notification.read ? "text-muted-foreground" : ""
 										}`}
 									>
 										{notification.title}
 									</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted-foreground text-sm">
 										{notification.message}
 									</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="text-muted-foreground text-xs">
 										{formatDistanceToNow(notification.timestamp, {
 											addSuffix: true,
 										})}
 									</p>
 								</div>
 								{!notification.read && (
-									<div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5" />
+									<div className="mt-1.5 h-2 w-2 rounded-full bg-blue-500" />
 								)}
 							</DropdownMenuItem>
 						))

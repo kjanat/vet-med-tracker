@@ -4,19 +4,19 @@ import { SyncStatus } from "@/components/debug/sync-status";
 
 export default function DebugSyncPage() {
 	return (
-		<div className="container max-w-2xl mx-auto py-8 px-4">
-			<h1 className="text-2xl font-bold mb-6">Debug User Sync</h1>
-			<p className="text-muted-foreground mb-8">
+		<div className="container mx-auto max-w-2xl px-4 py-8">
+			<h1 className="mb-6 font-bold text-2xl">Debug User Sync</h1>
+			<p className="mb-8 text-muted-foreground">
 				This page helps diagnose and fix user synchronization issues between
 				Clerk authentication and the application database.
 			</p>
 			<SyncStatus />
 
-			<div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-				<h2 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">
+			<div className="mt-8 rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
+				<h2 className="mb-2 font-semibold text-yellow-900 dark:text-yellow-100">
 					Troubleshooting Steps:
 				</h2>
-				<ol className="list-decimal list-inside space-y-2 text-sm text-yellow-800 dark:text-yellow-200">
+				<ol className="list-inside list-decimal space-y-2 text-sm text-yellow-800 dark:text-yellow-200">
 					<li>
 						Check if your Clerk user appears in the &quot;Clerk User&quot;
 						section
@@ -30,11 +30,11 @@ export default function DebugSyncPage() {
 				</ol>
 			</div>
 
-			<div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-				<h2 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+			<div className="mt-8 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+				<h2 className="mb-2 font-semibold text-blue-900 dark:text-blue-100">
 					Common Issues:
 				</h2>
-				<ul className="list-disc list-inside space-y-2 text-sm text-blue-800 dark:text-blue-200">
+				<ul className="list-inside list-disc space-y-2 text-blue-800 text-sm dark:text-blue-200">
 					<li>Database connection issues in production</li>
 					<li>Missing environment variables</li>
 					<li>Database migrations not run</li>

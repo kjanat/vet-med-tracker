@@ -2,7 +2,7 @@
 
 ## ✅ What Was Implemented
 
-### 1. **Neon Database Configuration** (`server/db/index.ts`)
+### 1. **Neon Database Configuration** ([`@/db/index.ts`](./server/db/index.ts))
 - **Pooled connection** for API routes (short-lived queries)
 - **Unpooled connection** for migrations and long operations
 - **Transaction support** via WebSocket connection

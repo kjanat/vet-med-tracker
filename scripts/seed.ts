@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { loadEnvConfig } from "@next/env";
 import { drizzle } from "drizzle-orm/neon-http";
-import * as schema from "../server/db/schema";
+import * as schema from "@/db/schema";
 import {
 	administrations,
 	animals,
@@ -11,7 +11,7 @@ import {
 	memberships,
 	regimens,
 	users,
-} from "../server/db/schema";
+} from "@/db/schema";
 
 // Load environment variables using Next.js env loader
 const projectDir = process.cwd();
@@ -52,28 +52,28 @@ async function createUsers(): Promise<User[]> {
 		{
 			email: "sarah.johnson@gmail.com",
 			name: "Sarah Johnson",
-			emailVerified: new Date("2024-01-15T10:30:00Z"),
+			emailVerified: "2024-01-15T10:30:00Z",
 		},
 		{
 			email: "michael.chen@outlook.com",
 			name: "Michael Chen",
-			emailVerified: new Date("2024-02-20T14:45:00Z"),
+			emailVerified: "2024-02-20T14:45:00Z",
 		},
 		{
 			email: "dr.emma.wilson@vetclinic.com",
 			name: "Dr. Emma Wilson, DVM",
-			emailVerified: new Date("2023-11-10T09:00:00Z"),
+			emailVerified: "2023-11-10T09:00:00Z",
 			image: "https://api.dicebear.com/7.x/avataaars/svg?seed=emma",
 		},
 		{
 			email: "james.martinez@gmail.com",
 			name: "James Martinez",
-			emailVerified: new Date("2024-03-05T16:20:00Z"),
+			emailVerified: "2024-03-05T16:20:00Z",
 		},
 		{
 			email: "lisa.thompson@yahoo.com",
 			name: "Lisa Thompson",
-			emailVerified: new Date("2024-04-12T11:15:00Z"),
+			emailVerified: "2024-04-12T11:15:00Z",
 		},
 	];
 	return await db.insert(users).values(userData).returning();
@@ -843,8 +843,8 @@ function createAdministration(
 		animalId,
 		householdId,
 		caregiverId,
-		scheduledFor,
-		recordedAt,
+		scheduledFor: scheduledFor.toISOString(),
+		recordedAt: recordedAt.toISOString(),
 		status,
 		sourceItemId,
 		dose,

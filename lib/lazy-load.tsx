@@ -19,97 +19,108 @@ const GenericLoader = () => (
 );
 
 // Lazy load with custom loading component
-// biome-ignore lint/suspicious/noExplicitAny: Next.js dynamic requires any for proper typing
-export function lazyLoad<T extends ComponentType<any>>(
-	importFunc: () => Promise<{ default: T }>,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function lazyLoad<P = any>(
+	importFunc: () => Promise<{ default: ComponentType<P> }>,
 	loadingComponent?: ComponentType,
-) {
+): ComponentType<P> {
 	return dynamic(importFunc, {
 		loading: () => {
 			const Loader = loadingComponent || GenericLoader;
 			return <Loader />;
 		},
-	}) as T;
+	});
 }
 
 // Pre-configured lazy loaders for common components
-export const LazyChart = lazyLoad(
+export const LazyChart = dynamic(
 	() =>
-		import("@/components/insights/compliance-heatmap").then((mod) => ({
-			default: mod.ComplianceHeatmap,
-		})),
-	ChartSkeleton,
+		import("@/components/insights/compliance-heatmap").then(
+			(mod) => mod.ComplianceHeatmap,
+		),
+	{
+		loading: () => <ChartSkeleton />,
+	},
 );
 
-export const LazyMedicationSearch = lazyLoad(
+export const LazyMedicationSearch = dynamic(
 	() =>
-		import("@/components/medication/medication-search").then((mod) => ({
-			default: mod.MedicationSearch,
-		})),
-	() => <FormSkeleton fields={1} />,
+		import("@/components/medication/medication-search").then(
+			(mod) => mod.MedicationSearch,
+		),
+	{
+		loading: () => <FormSkeleton fields={1} />,
+	},
 );
 
-export const LazyRegimenForm = lazyLoad(
+export const LazyRegimenForm = dynamic(
 	() =>
-		import("@/components/regimens/regimen-form").then((mod) => ({
-			default: mod.RegimenForm,
-		})),
-	() => <FormSkeleton fields={5} />,
+		import("@/components/regimens/regimen-form").then((mod) => mod.RegimenForm),
+	{
+		loading: () => <FormSkeleton fields={5} />,
+	},
 );
 
-export const LazyInventoryForm = lazyLoad(
+export const LazyInventoryForm = dynamic(
 	() =>
-		import("@/components/inventory/add-item-modal").then((mod) => ({
-			default: mod.AddItemModal,
-		})),
-	() => <FormSkeleton fields={4} />,
+		import("@/components/inventory/add-item-modal").then(
+			(mod) => mod.AddItemModal,
+		),
+	{
+		loading: () => <FormSkeleton fields={4} />,
+	},
 );
 
-export const LazyAnimalForm = lazyLoad(
+export const LazyAnimalForm = dynamic(
 	() =>
-		import("@/components/settings/animals/animal-form").then((mod) => ({
-			default: mod.AnimalForm,
-		})),
-	() => <FormSkeleton fields={5} />,
+		import("@/components/settings/animals/animal-form").then(
+			(mod) => mod.AnimalForm,
+		),
+	{
+		loading: () => <FormSkeleton fields={5} />,
+	},
 );
 
 // Heavy list components
-export const LazyHistoryList = lazyLoad(
+export const LazyHistoryList = dynamic(
 	() =>
-		import("@/components/history/history-list").then((mod) => ({
-			default: mod.HistoryList,
-		})),
-	() => <ListSkeleton count={5} />,
+		import("@/components/history/history-list").then((mod) => mod.HistoryList),
+	{
+		loading: () => <ListSkeleton count={5} />,
+	},
 );
 
 // Note: inventory-grid doesn't exist, using inventory-card instead
-export const LazyInventoryGrid = lazyLoad(
+export const LazyInventoryGrid = dynamic(
 	() =>
-		import("@/components/inventory/inventory-card").then((mod) => ({
-			default: mod.InventoryCard,
-		})),
-	() => (
-		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-			{Array.from({ length: 6 }, (_, i) => (
-				<Skeleton
-					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					key={i}
-					className="h-32"
-				/>
-			))}
-		</div>
-	),
+		import("@/components/inventory/inventory-card").then(
+			(mod) => mod.InventoryCard,
+		),
+	{
+		loading: () => (
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				{Array.from({ length: 6 }, (_, i) => (
+					<Skeleton
+						// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+						key={i}
+						className="h-32"
+					/>
+				))}
+			</div>
+		),
+	},
 );
 
 // Export utility for creating lazy loaded modals
-export function createLazyModal<P = Record<string, unknown>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createLazyModal<P = any>(
 	importPath: () => Promise<{ default: ComponentType<P> }>,
 	loadingHeight = "400px",
 ) {
 	return dynamic(importPath, {
 		loading: () => (
 			<div className="p-6">
-				<Skeleton className="h-8 w-48 mb-4" />
+				<Skeleton className="mb-4 h-8 w-48" />
 				<div style={{ height: loadingHeight }}>
 					<FormSkeleton fields={4} />
 				</div>

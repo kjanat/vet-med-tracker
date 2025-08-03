@@ -65,15 +65,15 @@ export function HistoryList({
 	if (groups.length === 0) {
 		return (
 			<output
-				className="text-center py-12"
+				className="py-12 text-center"
 				aria-label="No medication administrations found"
 			>
 				<div className="text-muted-foreground">
 					<Clock
-						className="h-12 w-12 mx-auto mb-4 opacity-50"
+						className="mx-auto mb-4 h-12 w-12 opacity-50"
 						aria-hidden="true"
 					/>
-					<h3 className="text-lg font-medium mb-2">No administrations found</h3>
+					<h3 className="mb-2 font-medium text-lg">No administrations found</h3>
 					<p>No administrations in this range. Try widening your filters.</p>
 				</div>
 			</output>
@@ -100,7 +100,7 @@ export function HistoryList({
 						className="space-y-3"
 						aria-labelledby={`date-heading-${groupIndex}`}
 					>
-						<div className="sticky top-20 bg-background/95 backdrop-blur-sm py-2">
+						<div className="sticky top-20 bg-background/95 py-2 backdrop-blur-sm">
 							<h2
 								id={`date-heading-${groupIndex}`}
 								className="font-semibold text-lg"
@@ -110,7 +110,7 @@ export function HistoryList({
 						</div>
 
 						<ul
-							className="space-y-2 list-none"
+							className="list-none space-y-2"
 							aria-label={`${dateLabel} administrations`}
 						>
 							{group.records.map((record) => (
@@ -129,7 +129,7 @@ export function HistoryList({
 			})}
 
 			{hasMore && (
-				<nav className="text-center py-6" aria-label="Load more history">
+				<nav className="py-6 text-center" aria-label="Load more history">
 					<Button
 						variant="outline"
 						onClick={() => {
@@ -145,7 +145,7 @@ export function HistoryList({
 
 			{!isOnline && (
 				<div
-					className="text-center py-4 text-sm text-muted-foreground"
+					className="py-4 text-center text-muted-foreground text-sm"
 					role="alert"
 					aria-live="polite"
 				>
@@ -196,7 +196,7 @@ function AdministrationBadges({ record }: { record: AdministrationRecord }) {
 			{record.cosignPending && (
 				<Badge
 					variant="outline"
-					className="text-orange-600 border-orange-200 hidden sm:inline-flex"
+					className="hidden border-orange-200 text-orange-600 sm:inline-flex"
 				>
 					Co-sign
 				</Badge>
@@ -207,7 +207,7 @@ function AdministrationBadges({ record }: { record: AdministrationRecord }) {
 						<TooltipTrigger>
 							<Badge
 								variant="secondary"
-								className="text-xs hidden sm:inline-flex"
+								className="hidden text-xs sm:inline-flex"
 							>
 								edited
 							</Badge>
@@ -241,29 +241,29 @@ function AdministrationMainContent({
 }) {
 	return (
 		<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-			<div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
-				<div className="text-sm font-mono text-muted-foreground shrink-0">
+			<div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
+				<div className="shrink-0 font-mono text-muted-foreground text-sm">
 					{formatTimeLocal(record.recordedAt, "America/New_York")}
 				</div>
 
 				{animal && <AnimalAvatar animal={animal} size="sm" />}
 
-				<div className="flex-1 min-w-0">
-					<div className="font-medium truncate">
+				<div className="min-w-0 flex-1">
+					<div className="truncate font-medium">
 						{record.animalName} - {record.medicationName} {record.strength}
 					</div>
-					<div className="text-sm text-muted-foreground">
+					<div className="text-muted-foreground text-sm">
 						{record.slot || "PRN"} • {record.caregiverName}
 					</div>
 				</div>
 			</div>
 
-			<div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
+			<div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
 				<StatusIcon status={status} />
 				<AdministrationBadges record={record} />
 
 				<ChevronRight
-					className={`h-4 w-4 transition-transform shrink-0 ${isExpanded ? "rotate-90" : ""}`}
+					className={`h-4 w-4 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
 				/>
 			</div>
 		</div>
@@ -280,7 +280,7 @@ function StatusIcon({
 		<TooltipProvider>
 			<Tooltip>
 				<TooltipTrigger>
-					<div className={`p-1 rounded-full ${status.bg}`}>
+					<div className={`rounded-full p-1 ${status.bg}`}>
 						<status.icon className={`h-4 w-4 ${status.color}`} />
 					</div>
 				</TooltipTrigger>
@@ -329,7 +329,7 @@ function AdministrationRow({
 				<Collapsible open={isExpanded} onOpenChange={handleExpandToggle}>
 					<CollapsibleTrigger asChild>
 						<CardContent
-							className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+							className="cursor-pointer p-4 transition-colors hover:bg-accent/50"
 							aria-expanded={isExpanded}
 							aria-controls={`administration-details-${record.id}`}
 							aria-label={`${isExpanded ? "Hide" : "Show"} details for ${record.animalName} ${record.medicationName} administration`}
@@ -344,10 +344,10 @@ function AdministrationRow({
 					</CollapsibleTrigger>
 
 					<CollapsibleContent id={`administration-details-${record.id}`}>
-						<CardContent className="pt-0 pb-4 px-4">
-							<div className="border-t pt-4 space-y-4">
+						<CardContent className="px-4 pt-0 pb-4">
+							<div className="space-y-4 border-t pt-4">
 								{/* Details */}
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+								<div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
 									{record.scheduledFor && (
 										<div>
 											<span className="font-medium">Scheduled:</span>{" "}
@@ -375,7 +375,7 @@ function AdministrationRow({
 								{record.notes && (
 									<div>
 										<span className="font-medium text-sm">Notes:</span>
-										<p className="text-sm text-muted-foreground mt-1">
+										<p className="mt-1 text-muted-foreground text-sm">
 											{record.notes}
 										</p>
 									</div>
@@ -445,7 +445,7 @@ function AdministrationRow({
 											}}
 											disabled={isOffline}
 										>
-											<Trash2 className="h-4 w-4 mr-1" />
+											<Trash2 className="mr-1 h-4 w-4" />
 											Delete
 										</Button>
 									)}
@@ -468,7 +468,7 @@ function AdministrationRow({
 											}}
 											disabled={isOffline}
 										>
-											<UserCheck className="h-4 w-4 mr-1" />
+											<UserCheck className="mr-1 h-4 w-4" />
 											Co-sign
 										</Button>
 									)}

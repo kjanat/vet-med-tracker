@@ -30,7 +30,7 @@ export default function HouseholdsPage() {
 		return (
 			<div className="space-y-6">
 				<div>
-					<h1 className="text-3xl font-bold">Manage Households</h1>
+					<h1 className="font-bold text-3xl">Manage Households</h1>
 					<p className="text-muted-foreground">Loading...</p>
 				</div>
 			</div>
@@ -42,7 +42,7 @@ export default function HouseholdsPage() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold">Manage Households</h1>
+					<h1 className="font-bold text-3xl">Manage Households</h1>
 					<p className="text-muted-foreground">
 						Organizations you belong to or manage
 					</p>
@@ -67,7 +67,7 @@ export default function HouseholdsPage() {
 							<CardHeader>
 								<div className="flex items-start justify-between">
 									<div className="flex items-center gap-3">
-										<div className="p-3 rounded-full bg-muted">
+										<div className="rounded-full bg-muted p-3">
 											<Building2 className="h-5 w-5" />
 										</div>
 										<div>
@@ -96,7 +96,7 @@ export default function HouseholdsPage() {
 							</CardHeader>
 							<CardContent>
 								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-6 text-sm text-muted-foreground">
+									<div className="flex items-center gap-6 text-muted-foreground text-sm">
 										<div className="flex items-center gap-1">
 											<Users className="h-4 w-4" />
 											<span>
@@ -145,9 +145,9 @@ export default function HouseholdsPage() {
 			{(!memberships || memberships.length === 0) && (
 				<Card>
 					<CardContent className="flex flex-col items-center justify-center py-12">
-						<Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-						<h3 className="font-semibold text-lg mb-2">No households yet</h3>
-						<p className="text-muted-foreground text-center mb-4">
+						<Building2 className="mb-4 h-12 w-12 text-muted-foreground" />
+						<h3 className="mb-2 font-semibold text-lg">No households yet</h3>
+						<p className="mb-4 text-center text-muted-foreground">
 							Create your first household to start managing medications
 						</p>
 						<Button onClick={() => setCreatingHousehold(true)}>

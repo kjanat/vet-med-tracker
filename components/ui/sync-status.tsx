@@ -87,7 +87,7 @@ export function SyncStatus() {
 			{queueSize > 0 && (
 				<Badge
 					variant="destructive"
-					className="absolute -top-2 -right-2 h-5 min-w-[20px] px-1 text-xs"
+					className="-top-2 -right-2 absolute h-5 min-w-[20px] px-1 text-xs"
 				>
 					{queueSize}
 				</Badge>
@@ -113,7 +113,7 @@ export function SyncStatus() {
 				</Tooltip>
 
 				<PopoverContent className="w-80" align="end">
-					<div className="flex items-center justify-between mb-4">
+					<div className="mb-4 flex items-center justify-between">
 						<h3 className="font-semibold">Offline Queue</h3>
 						<Button
 							variant="ghost"
@@ -126,7 +126,7 @@ export function SyncStatus() {
 
 					{isProcessing && (
 						<div className="mb-4">
-							<div className="flex items-center justify-between text-sm mb-2">
+							<div className="mb-2 flex items-center justify-between text-sm">
 								<span>Syncing changes...</span>
 								<span className="text-muted-foreground">
 									{syncProgress.current} / {syncProgress.total}
@@ -136,14 +136,14 @@ export function SyncStatus() {
 						</div>
 					)}
 
-					<div className="space-y-2 max-h-64 overflow-y-auto">
+					<div className="max-h-64 space-y-2 overflow-y-auto">
 						{queueDetails.length === 0 ? (
-							<p className="text-center text-muted-foreground py-4">
+							<p className="py-4 text-center text-muted-foreground">
 								No pending changes
 							</p>
 						) : (
 							queueDetails.map((item) => (
-								<div key={item.id} className="text-sm p-2 rounded-md bg-muted">
+								<div key={item.id} className="rounded-md bg-muted p-2 text-sm">
 									<div className="flex items-center justify-between">
 										<span className="font-medium">
 											{getMutationTypeLabel(item.type)}
@@ -154,13 +154,13 @@ export function SyncStatus() {
 											</Badge>
 										)}
 									</div>
-									<div className="text-xs text-muted-foreground mt-1">
+									<div className="mt-1 text-muted-foreground text-xs">
 										{formatDistanceToNow(new Date(item.timestamp), {
 											addSuffix: true,
 										})}
 									</div>
 									{item.lastError && (
-										<div className="text-xs text-destructive mt-1">
+										<div className="mt-1 text-destructive text-xs">
 											Error: {item.lastError}
 										</div>
 									)}
@@ -180,7 +180,7 @@ export function SyncStatus() {
 									disabled={!canSync}
 									className="flex-1"
 								>
-									<RefreshCw className="h-4 w-4 mr-2" />
+									<RefreshCw className="mr-2 h-4 w-4" />
 									Sync Now
 								</Button>
 								<Button

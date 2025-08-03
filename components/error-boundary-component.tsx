@@ -67,7 +67,7 @@ export function ComponentErrorBoundary({
 			)}
 			{showDetails && isExpanded && (
 				<div className="mt-3 rounded-md bg-muted p-3">
-					<p className="text-xs font-mono">Check console for error details</p>
+					<p className="font-mono text-xs">Check console for error details</p>
 				</div>
 			)}
 		</Alert>

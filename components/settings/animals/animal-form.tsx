@@ -150,7 +150,7 @@ export function AnimalForm({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-[95vw] sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-xl md:max-w-2xl">
 				<DialogHeader>
 					<DialogTitle>{animal ? "Edit Animal" : "Add Animal"}</DialogTitle>
 					<DialogDescription>
@@ -163,11 +163,11 @@ export function AnimalForm({
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
-						className="space-y-6 mt-6"
+						className="mt-6 space-y-6"
 					>
 						{/* Basic Info */}
 						<div className="space-y-4">
-							<h3 className="text-lg font-medium">Basic Information</h3>
+							<h3 className="font-medium text-lg">Basic Information</h3>
 
 							<div className="grid grid-cols-2 gap-4">
 								<FormField
@@ -390,7 +390,7 @@ export function AnimalForm({
 
 						{/* Veterinary Info */}
 						<div className="space-y-4">
-							<h3 className="text-lg font-medium">Veterinary Information</h3>
+							<h3 className="font-medium text-lg">Veterinary Information</h3>
 
 							<div className="grid grid-cols-2 gap-4">
 								<FormField
@@ -425,7 +425,7 @@ export function AnimalForm({
 
 						{/* Medical Info */}
 						<div className="space-y-4">
-							<h3 className="text-lg font-medium">Medical Information</h3>
+							<h3 className="font-medium text-lg">Medical Information</h3>
 
 							<div className="space-y-3">
 								<FormField
@@ -434,7 +434,7 @@ export function AnimalForm({
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>Allergies</FormLabel>
-											<div className="flex gap-2 mt-1">
+											<div className="mt-1 flex gap-2">
 												<Input
 													placeholder="Add allergy"
 													value={newAllergy}
@@ -450,7 +450,7 @@ export function AnimalForm({
 													Add
 												</Button>
 											</div>
-											<div className="flex flex-wrap gap-1 mt-2">
+											<div className="mt-2 flex flex-wrap gap-1">
 												{field.value?.map((allergy) => (
 													<Badge
 														key={allergy}
@@ -478,7 +478,7 @@ export function AnimalForm({
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>Medical Conditions</FormLabel>
-											<div className="flex gap-2 mt-1">
+											<div className="mt-1 flex gap-2">
 												<Input
 													placeholder="Add condition"
 													value={newCondition}
@@ -494,7 +494,7 @@ export function AnimalForm({
 													Add
 												</Button>
 											</div>
-											<div className="flex flex-wrap gap-1 mt-2">
+											<div className="mt-2 flex flex-wrap gap-1">
 												{field.value?.map((condition) => (
 													<Badge
 														key={condition}
@@ -520,13 +520,13 @@ export function AnimalForm({
 
 						{/* Photo Upload */}
 						<div className="space-y-2">
-							<div className="text-sm font-medium">Photo</div>
-							<div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-								<Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-								<p className="text-sm text-muted-foreground">
+							<div className="font-medium text-sm">Photo</div>
+							<div className="rounded-lg border-2 border-muted-foreground/25 border-dashed p-6 text-center">
+								<Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+								<p className="text-muted-foreground text-sm">
 									Click to upload or drag and drop
 								</p>
-								<p className="text-xs text-muted-foreground">
+								<p className="text-muted-foreground text-xs">
 									PNG, JPG up to 5MB
 								</p>
 							</div>

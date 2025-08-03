@@ -80,7 +80,7 @@ export function PrefsPanel() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold">Preferences</h2>
+				<h2 className="font-bold text-2xl">Preferences</h2>
 				<p className="text-muted-foreground">
 					Customize your experience and default settings
 				</p>
@@ -112,8 +112,8 @@ export function PrefsPanel() {
 								}
 							>
 								<CardContent className="p-4 text-center">
-									<Monitor className="h-6 w-6 mx-auto mb-2" />
-									<div className="font-medium truncate">System</div>
+									<Monitor className="mx-auto mb-2 h-6 w-6" />
+									<div className="truncate font-medium">System</div>
 								</CardContent>
 							</Card>
 
@@ -128,8 +128,8 @@ export function PrefsPanel() {
 								}
 							>
 								<CardContent className="p-4 text-center">
-									<Sun className="h-6 w-6 mx-auto mb-2" />
-									<div className="font-medium truncate">Light</div>
+									<Sun className="mx-auto mb-2 h-6 w-6" />
+									<div className="truncate font-medium">Light</div>
 								</CardContent>
 							</Card>
 
@@ -142,8 +142,8 @@ export function PrefsPanel() {
 								onClick={() => setPrefs((prev) => ({ ...prev, theme: "dark" }))}
 							>
 								<CardContent className="p-4 text-center">
-									<Moon className="h-6 w-6 mx-auto mb-2" />
-									<div className="font-medium truncate">Dark</div>
+									<Moon className="mx-auto mb-2 h-6 w-6" />
+									<div className="truncate font-medium">Dark</div>
 								</CardContent>
 							</Card>
 						</div>
@@ -232,8 +232,8 @@ export function PrefsPanel() {
 								}
 							>
 								<CardContent className="p-4 text-center">
-									<div className="font-medium truncate">Metric</div>
-									<div className="text-sm text-muted-foreground truncate">
+									<div className="truncate font-medium">Metric</div>
+									<div className="truncate text-muted-foreground text-sm">
 										kg, ml, cm
 									</div>
 								</CardContent>
@@ -250,8 +250,8 @@ export function PrefsPanel() {
 								}
 							>
 								<CardContent className="p-4 text-center">
-									<div className="font-medium truncate">Imperial</div>
-									<div className="text-sm text-muted-foreground truncate">
+									<div className="truncate font-medium">Imperial</div>
+									<div className="truncate text-muted-foreground text-sm">
 										lbs, fl oz, in
 									</div>
 								</CardContent>

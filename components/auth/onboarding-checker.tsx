@@ -34,8 +34,8 @@ export function OnboardingChecker({ children }: OnboardingCheckerProps) {
 	// Show loading while determining onboarding status
 	if (!isLoaded) {
 		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+			<div className="flex min-h-screen items-center justify-center bg-gray-50">
+				<div className="h-8 w-8 animate-spin rounded-full border-green-600 border-b-2"></div>
 			</div>
 		);
 	}

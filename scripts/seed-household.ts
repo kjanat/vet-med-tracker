@@ -7,8 +7,8 @@ import { neon } from "@neondatabase/serverless";
 import { loadEnvConfig } from "@next/env";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
-import * as schema from "../server/db/schema";
-import { households, memberships } from "../server/db/schema";
+import * as schema from "@/db/schema";
+import { households, memberships } from "@/db/schema";
 
 // Load environment variables using Next.js env loader
 const projectDir = process.cwd();

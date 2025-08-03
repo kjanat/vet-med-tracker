@@ -1,15 +1,15 @@
 import type { User as ClerkUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { db } from "../../db";
-import { households, memberships, type users } from "../../db/schema";
+import { dbPooled as db } from "@/db/drizzle";
+import { households, memberships, type users } from "@/db/schema";
 import { type ClerkUserData, syncUserToDatabase } from "../clerk-sync";
 
 interface HouseholdWithMembership {
 	id: string;
 	name: string;
 	timezone: string;
-	createdAt: Date;
-	updatedAt: Date;
+	createdAt: string;
+	updatedAt: string;
 	membership: typeof memberships.$inferSelect;
 }
 

@@ -21,7 +21,7 @@ interface MobileMedicationCardProps {
 		form: string;
 		strength: string;
 		dose?: string;
-		targetTime?: Date;
+		targetTime?: string;
 		isPRN: boolean;
 		isHighRisk: boolean;
 		requiresCoSign: boolean;
@@ -99,7 +99,10 @@ export function MobileMedicationCard({
 		}
 
 		if (regimen.targetTime) {
-			const timeStr = formatTimeLocal(regimen.targetTime, "America/New_York");
+			const timeStr = formatTimeLocal(
+				new Date(regimen.targetTime),
+				"America/New_York",
+			);
 			if (regimen.isOverdue && regimen.minutesUntilDue) {
 				const overdueMins = Math.abs(regimen.minutesUntilDue);
 				return `${timeStr} (${overdueMins}m overdue)`;
@@ -133,7 +136,7 @@ export function MobileMedicationCard({
 				{/* Priority indicator */}
 				{statusInfo.priority === "urgent" && (
 					<output
-						className={`absolute top-2 right-2 h-3 w-3 bg-red-500 rounded-full ${PRIORITY_ANIMATIONS.urgent}`}
+						className={`absolute top-2 right-2 h-3 w-3 rounded-full bg-red-500 ${PRIORITY_ANIMATIONS.urgent}`}
 						aria-label="Urgent medication"
 					/>
 				)}
@@ -147,9 +150,9 @@ export function MobileMedicationCard({
 					)}
 
 					{/* Main content */}
-					<div className="flex-1 min-w-0">
+					<div className="min-w-0 flex-1">
 						{/* Status and time */}
-						<div className="flex items-center justify-between mb-2">
+						<div className="mb-2 flex items-center justify-between">
 							<div className="flex items-center gap-2">
 								<StatusIcon
 									className={`h-4 w-4 ${statusInfo.config.icon}`}
@@ -172,36 +175,36 @@ export function MobileMedicationCard({
 								</Badge>
 							</div>
 
-							<div className="text-sm text-muted-foreground font-mono">
+							<div className="font-mono text-muted-foreground text-sm">
 								{getTimeDisplay()}
 							</div>
 						</div>
 
 						{/* Animal name */}
-						<div className="font-medium text-base mb-1 truncate">
+						<div className="mb-1 truncate font-medium text-base">
 							{regimen.animalName}
 						</div>
 
 						{/* Medication details */}
 						<div className="space-y-1">
-							<div className="font-semibold text-lg truncate">
+							<div className="truncate font-semibold text-lg">
 								{regimen.medicationName}
 								{regimen.brandName &&
 									regimen.brandName !== regimen.medicationName && (
-										<span className="text-muted-foreground font-normal text-base ml-1">
+										<span className="ml-1 font-normal text-base text-muted-foreground">
 											({regimen.brandName})
 										</span>
 									)}
 							</div>
 
-							<div className="text-sm text-muted-foreground">
+							<div className="text-muted-foreground text-sm">
 								{regimen.strength} • {regimen.route}
 								{regimen.dose && ` • ${regimen.dose}`}
 							</div>
 						</div>
 
 						{/* Special indicators */}
-						<div className="flex items-center gap-2 mt-2">
+						<div className="mt-2 flex items-center gap-2">
 							{regimen.isHighRisk && (
 								<Badge variant="destructive" className="text-xs">
 									High Risk
@@ -223,7 +226,7 @@ export function MobileMedicationCard({
 
 						{/* Instructions preview */}
 						{regimen.instructions && (
-							<div className="mt-2 text-sm text-muted-foreground line-clamp-2">
+							<div className="mt-2 line-clamp-2 text-muted-foreground text-sm">
 								{regimen.instructions}
 							</div>
 						)}
@@ -249,19 +252,19 @@ export function MobileSectionHeader({
 	className?: string;
 }) {
 	return (
-		<div className={`px-4 py-3 bg-muted/30 border-y ${className}`}>
+		<div className={`border-y bg-muted/30 px-4 py-3 ${className}`}>
 			<div className="flex items-center justify-between">
 				<div>
 					<h2 className="font-semibold text-lg">
 						{title}
 						{count !== undefined && (
-							<span className="ml-2 text-muted-foreground font-normal">
+							<span className="ml-2 font-normal text-muted-foreground">
 								({count})
 							</span>
 						)}
 					</h2>
 					{subtitle && (
-						<p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+						<p className="mt-1 text-muted-foreground text-sm">{subtitle}</p>
 					)}
 				</div>
 			</div>

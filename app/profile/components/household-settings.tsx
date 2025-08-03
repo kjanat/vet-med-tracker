@@ -215,8 +215,8 @@ export default function HouseholdSettingsPage() {
 	return (
 		<div className="space-y-6 p-6">
 			<div>
-				<h2 className="text-2xl font-bold text-gray-900">Household Settings</h2>
-				<p className="text-gray-600 mt-1">
+				<h2 className="font-bold text-2xl text-gray-900">Household Settings</h2>
+				<p className="mt-1 text-gray-600">
 					Manage your household information and preferences
 				</p>
 			</div>
@@ -225,7 +225,7 @@ export default function HouseholdSettingsPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Home className="w-5 h-5" />
+						<Home className="h-5 w-5" />
 						Household Information
 					</CardTitle>
 					<CardDescription>
@@ -251,7 +251,7 @@ export default function HouseholdSettingsPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<MapPin className="w-5 h-5" />
+						<MapPin className="h-5 w-5" />
 						Default Location
 					</CardTitle>
 					<CardDescription>
@@ -269,7 +269,7 @@ export default function HouseholdSettingsPage() {
 						/>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<div className="space-y-2">
 							<Label htmlFor="city">City</Label>
 							<Input
@@ -314,7 +314,7 @@ export default function HouseholdSettingsPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Users className="w-5 h-5" />
+						<Users className="h-5 w-5" />
 						Household Roles
 					</CardTitle>
 					<CardDescription>
@@ -335,7 +335,7 @@ export default function HouseholdSettingsPage() {
 									onClick={() => removeRole(role)}
 									className="ml-1 hover:text-red-600"
 								>
-									<X className="w-3 h-3" />
+									<X className="h-3 w-3" />
 								</button>
 							</Badge>
 						))}
@@ -349,7 +349,7 @@ export default function HouseholdSettingsPage() {
 							onKeyPress={(e) => e.key === "Enter" && addRole()}
 						/>
 						<Button onClick={addRole} variant="outline" size="sm">
-							<Plus className="w-4 h-4" />
+							<Plus className="h-4 w-4" />
 							Add
 						</Button>
 					</div>
@@ -375,7 +375,7 @@ export default function HouseholdSettingsPage() {
 						/>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="space-y-2">
 							<Label htmlFor="vet-phone">Phone Number</Label>
 							<Input
@@ -410,7 +410,7 @@ export default function HouseholdSettingsPage() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="space-y-2">
 							<Label htmlFor="low-stock">Low Stock Threshold (days)</Label>
 							<Select
@@ -461,7 +461,7 @@ export default function HouseholdSettingsPage() {
 					<div className="flex items-center justify-between">
 						<div>
 							<Label htmlFor="auto-reorder">Auto-reorder Notifications</Label>
-							<p className="text-sm text-gray-500">
+							<p className="text-gray-500 text-sm">
 								Get notified when medications run low
 							</p>
 						</div>

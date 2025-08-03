@@ -30,7 +30,7 @@ export function HouseholdSwitcher() {
 			<SidebarMenu>
 				<SidebarMenuItem>
 					<SidebarMenuButton size="lg" disabled>
-						<div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+						<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
 							<Home className="size-4" />
 						</div>
 						<div className="grid flex-1 text-left text-sm leading-tight">
@@ -50,7 +50,7 @@ export function HouseholdSwitcher() {
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton
 							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
+							className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 						>
 							<Avatar className="h-8 w-8 rounded-lg">
 								{selectedHousehold.avatar && (
@@ -59,7 +59,7 @@ export function HouseholdSwitcher() {
 								<AvatarFallback
 									className={cn(
 										getAvatarColor(selectedHousehold.name),
-										"text-white font-medium rounded-lg",
+										"rounded-lg font-medium text-white",
 									)}
 								>
 									{selectedHousehold.name[0]}
@@ -80,21 +80,21 @@ export function HouseholdSwitcher() {
 						side={isMobile ? "bottom" : "right"}
 						sideOffset={4}
 					>
-						<DropdownMenuLabel className="text-muted-foreground text-xs cursor-default">
+						<DropdownMenuLabel className="cursor-default text-muted-foreground text-xs">
 							Households
 						</DropdownMenuLabel>
 						{households.map((household) => (
 							<DropdownMenuItem
 								key={household.id}
 								onClick={() => setSelectedHousehold(household)}
-								className="gap-2 p-2 cursor-pointer"
+								className="cursor-pointer gap-2 p-2"
 							>
 								<Avatar className="h-6 w-6 rounded-md">
 									{household.avatar && <AvatarImage src={household.avatar} />}
 									<AvatarFallback
 										className={cn(
 											getAvatarColor(household.name),
-											"text-white font-medium text-xs rounded-md",
+											"rounded-md font-medium text-white text-xs",
 										)}
 									>
 										{household.name[0]}
@@ -112,11 +112,11 @@ export function HouseholdSwitcher() {
 							</DropdownMenuItem>
 						))}
 						<DropdownMenuSeparator />
-						<DropdownMenuItem className="gap-2 p-2 cursor-pointer">
+						<DropdownMenuItem className="cursor-pointer gap-2 p-2">
 							<div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
 								<Home className="size-4" />
 							</div>
-							<div className="text-muted-foreground font-medium">
+							<div className="font-medium text-muted-foreground">
 								Add household
 							</div>
 						</DropdownMenuItem>

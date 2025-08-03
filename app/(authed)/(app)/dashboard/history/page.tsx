@@ -225,16 +225,16 @@ function HistoryContent() {
 	// Initial loading state (when households are still loading)
 	if (isLoadingHouseholds) {
 		return (
-			<div className="bg-background max-w-full overflow-x-hidden">
+			<div className="max-w-full overflow-x-hidden bg-background">
 				<FilterBar />
 				<div className="p-4 md:p-6">
 					<div className="flex items-center justify-center py-12">
 						<div className="text-center">
 							<div className="animate-pulse">
-								<div className="h-8 w-32 bg-muted rounded mb-2 mx-auto"></div>
-								<div className="h-4 w-48 bg-muted rounded mx-auto"></div>
+								<div className="mx-auto mb-2 h-8 w-32 rounded bg-muted"></div>
+								<div className="mx-auto h-4 w-48 rounded bg-muted"></div>
 							</div>
-							<p className="text-muted-foreground mt-4">Loading...</p>
+							<p className="mt-4 text-muted-foreground">Loading...</p>
 						</div>
 					</div>
 				</div>
@@ -245,12 +245,12 @@ function HistoryContent() {
 	// No household selected (only after households have loaded)
 	if (!selectedHousehold) {
 		return (
-			<div className="bg-background max-w-full overflow-x-hidden">
+			<div className="max-w-full overflow-x-hidden bg-background">
 				<FilterBar />
 				<div className="p-4 md:p-6">
 					<div className="flex items-center justify-center py-12">
 						<div className="text-center">
-							<h3 className="text-lg font-medium mb-2">
+							<h3 className="mb-2 font-medium text-lg">
 								No household selected
 							</h3>
 							<p className="text-muted-foreground">
@@ -266,16 +266,16 @@ function HistoryContent() {
 	// History loading state (when household is selected but history is loading)
 	if (isLoading) {
 		return (
-			<div className="bg-background max-w-full overflow-x-hidden">
+			<div className="max-w-full overflow-x-hidden bg-background">
 				<FilterBar />
 				<div className="p-4 md:p-6">
 					<div className="flex items-center justify-center py-12">
 						<div className="text-center">
 							<div className="animate-pulse">
-								<div className="h-8 w-32 bg-muted rounded mb-2 mx-auto"></div>
-								<div className="h-4 w-48 bg-muted rounded mx-auto"></div>
+								<div className="mx-auto mb-2 h-8 w-32 rounded bg-muted"></div>
+								<div className="mx-auto h-4 w-48 rounded bg-muted"></div>
 							</div>
-							<p className="text-muted-foreground mt-4">
+							<p className="mt-4 text-muted-foreground">
 								Loading administration history...
 							</p>
 						</div>
@@ -288,15 +288,15 @@ function HistoryContent() {
 	// Error state
 	if (error) {
 		return (
-			<div className="bg-background max-w-full overflow-x-hidden">
+			<div className="max-w-full overflow-x-hidden bg-background">
 				<FilterBar />
 				<div className="p-4 md:p-6">
 					<div className="flex items-center justify-center py-12">
 						<div className="text-center">
-							<h3 className="text-lg font-medium mb-2 text-destructive">
+							<h3 className="mb-2 font-medium text-destructive text-lg">
 								Failed to load history
 							</h3>
-							<p className="text-muted-foreground mb-4">
+							<p className="mb-4 text-muted-foreground">
 								{error.message || "An unexpected error occurred"}
 							</p>
 							<button
@@ -316,7 +316,7 @@ function HistoryContent() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-3xl font-bold">History</h1>
+				<h1 className="font-bold text-3xl">History</h1>
 				<p className="text-muted-foreground">
 					View past medication administrations and compliance
 				</p>
@@ -350,7 +350,7 @@ function HistoryContent() {
 
 export default function HistoryPage() {
 	return (
-		<Suspense fallback={<div className="bg-background animate-pulse" />}>
+		<Suspense fallback={<div className="animate-pulse bg-background" />}>
 			<HistoryContent />
 		</Suspense>
 	);

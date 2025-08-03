@@ -16,7 +16,7 @@ interface TabletSuccessLayoutProps {
 	isOnline: boolean;
 	onReturnHome: () => void;
 	onRecordAnother: () => void;
-	recordedAt?: Date;
+	recordedAt?: string;
 	animalName?: string;
 	medicationName?: string;
 }
@@ -25,40 +25,41 @@ export function TabletSuccessLayout({
 	isOnline,
 	onReturnHome,
 	onRecordAnother,
-	recordedAt = new Date(),
+	recordedAt = new Date().toISOString(),
 	animalName,
 	medicationName,
 }: TabletSuccessLayoutProps) {
 	return (
 		<div className="flex h-full">
 			{/* Left column - Success message and details */}
-			<div className="flex-1 flex items-center justify-center p-8">
-				<div className="max-w-md text-center space-y-6">
+			<div className="flex flex-1 items-center justify-center p-8">
+				<div className="max-w-md space-y-6 text-center">
 					{/* Success Icon */}
 					<div>
-						<div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-							<CheckCircle className="w-12 h-12 text-green-600" />
+						<div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
+							<CheckCircle className="h-12 w-12 text-green-600" />
 						</div>
 
-						<h1 className="text-3xl font-bold text-green-700 mb-3">
+						<h1 className="mb-3 font-bold text-3xl text-green-700">
 							Successfully Recorded!
 						</h1>
 
 						<div className="space-y-2 text-muted-foreground">
 							{animalName && medicationName && (
-								<p className="text-lg font-medium text-foreground">
+								<p className="font-medium text-foreground text-lg">
 									{animalName} - {medicationName}
 								</p>
 							)}
 							<div className="flex items-center justify-center gap-2 text-base">
 								<Clock className="h-4 w-4" />
 								<span>
-									Recorded at {formatTimeLocal(recordedAt, "America/New_York")}{" "}
-									by You
+									Recorded at{" "}
+									{formatTimeLocal(new Date(recordedAt), "America/New_York")} by
+									You
 								</span>
 							</div>
 							{!isOnline && (
-								<p className="text-amber-600 font-medium">
+								<p className="font-medium text-amber-600">
 									Will sync when connection is restored
 								</p>
 							)}
@@ -66,11 +67,11 @@ export function TabletSuccessLayout({
 					</div>
 
 					{/* Status card */}
-					<Card className="bg-green-50 border-green-200">
+					<Card className="border-green-200 bg-green-50">
 						<CardContent className="p-4">
 							<div className="flex items-center justify-center gap-2">
-								<div className="h-3 w-3 bg-green-600 rounded-full" />
-								<span className="text-sm font-medium text-green-800">
+								<div className="h-3 w-3 rounded-full bg-green-600" />
+								<span className="font-medium text-green-800 text-sm">
 									Administration recorded successfully
 								</span>
 							</div>
@@ -81,20 +82,20 @@ export function TabletSuccessLayout({
 
 			{/* Right column - Actions and next steps */}
 			<div className="w-80 shrink-0 border-l bg-muted/30">
-				<div className="p-6 h-full flex flex-col">
+				<div className="flex h-full flex-col p-6">
 					<div className="mb-6">
-						<h3 className="font-semibold text-lg mb-2">What's Next?</h3>
-						<p className="text-sm text-muted-foreground">
+						<h3 className="mb-2 font-semibold text-lg">What's Next?</h3>
+						<p className="text-muted-foreground text-sm">
 							Choose your next action or return to the home screen to see
 							updated medication schedules.
 						</p>
 					</div>
 
 					{/* Quick Actions */}
-					<div className="space-y-3 mb-8">
+					<div className="mb-8 space-y-3">
 						<Button
 							onClick={onRecordAnother}
-							className="w-full h-12 text-base justify-start"
+							className="h-12 w-full justify-start text-base"
 							variant="default"
 						>
 							<RotateCcw className="mr-3 h-5 w-5" />
@@ -103,7 +104,7 @@ export function TabletSuccessLayout({
 
 						<Button
 							onClick={onReturnHome}
-							className="w-full h-12 text-base justify-start"
+							className="h-12 w-full justify-start text-base"
 							variant="outline"
 						>
 							<Home className="mr-3 h-5 w-5" />
@@ -115,7 +116,7 @@ export function TabletSuccessLayout({
 								// TODO: Open reminder adjustment sheet
 								console.log("Adjust reminder");
 							}}
-							className="w-full h-12 text-base justify-start"
+							className="h-12 w-full justify-start text-base"
 							variant="ghost"
 						>
 							<Bell className="mr-3 h-5 w-5" />
@@ -131,11 +132,11 @@ export function TabletSuccessLayout({
 							<CardHeader className="pb-3">
 								<CardTitle className="text-sm">Quick Navigation</CardTitle>
 							</CardHeader>
-							<CardContent className="p-4 pt-0 space-y-2">
+							<CardContent className="space-y-2 p-4 pt-0">
 								<Button
 									variant="ghost"
 									size="sm"
-									className="w-full justify-start text-sm h-8"
+									className="h-8 w-full justify-start text-sm"
 									onClick={() => {
 										// TODO: Navigate to history
 										console.log("View history");
@@ -147,7 +148,7 @@ export function TabletSuccessLayout({
 								<Button
 									variant="ghost"
 									size="sm"
-									className="w-full justify-start text-sm h-8"
+									className="h-8 w-full justify-start text-sm"
 									onClick={() => {
 										// TODO: Navigate to insights
 										console.log("View insights");
@@ -158,7 +159,7 @@ export function TabletSuccessLayout({
 							</CardContent>
 						</Card>
 
-						<div className="text-xs text-muted-foreground text-center">
+						<div className="text-center text-muted-foreground text-xs">
 							This administration has been logged and will appear in your
 							medication history.
 						</div>

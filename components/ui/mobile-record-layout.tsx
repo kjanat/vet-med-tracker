@@ -28,7 +28,7 @@ interface DueRegimen {
 	form: string;
 	strength: string;
 	dose?: string;
-	targetTime?: Date;
+	targetTime?: string;
 	isPRN: boolean;
 	isHighRisk: boolean;
 	requiresCoSign: boolean;
@@ -199,7 +199,7 @@ export function MobileRecordLayout({
 	}
 
 	return (
-		<div className="flex flex-col h-full">
+		<div className="flex h-full flex-col">
 			<MobileRecordHeader step="select" onCancel={onCancel} />
 
 			{(stats.dueCount > 0 || stats.overdueCount > 0) && (
@@ -227,7 +227,7 @@ export function MobileRecordLayout({
 					<EmptyMedicationsState />
 				) : (
 					<div
-						className="flex-1 flex flex-col"
+						className="flex flex-1 flex-col"
 						onTouchStart={handleTouchStart}
 						onTouchEnd={handleTouchEnd}
 					>
@@ -249,12 +249,12 @@ export function MobileRecordLayout({
 
 						{/* Swipe indicator */}
 						{sections.length > 1 && (
-							<div className="flex justify-center py-2 bg-background/95 backdrop-blur border-t">
+							<div className="flex justify-center border-t bg-background/95 py-2 backdrop-blur">
 								<div className="flex gap-1">
 									{sections.map((section, index) => (
 										<div
 											key={`section-indicator-${section.key}`}
-											className={`w-2 h-2 rounded-full transition-colors ${
+											className={`h-2 w-2 rounded-full transition-colors ${
 												index === currentSectionIndex
 													? "bg-primary"
 													: "bg-muted-foreground/30"
@@ -276,7 +276,7 @@ export function MobileRecordLayout({
 
 function MobileLoadingSkeleton() {
 	return (
-		<div className="p-4 space-y-4">
+		<div className="space-y-4 p-4">
 			<div className="space-y-2">
 				<Skeleton className="h-6 w-32" />
 				<Skeleton className="h-4 w-48" />
@@ -384,7 +384,7 @@ function SectionNavigationTabs({
 				<button
 					type="button"
 					key={section.key}
-					className={`flex-1 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
+					className={`flex-1 border-b-2 px-3 py-3 font-medium text-sm transition-colors ${
 						index === currentSectionIndex
 							? "border-primary text-primary"
 							: "border-transparent text-muted-foreground hover:text-foreground"
@@ -395,7 +395,7 @@ function SectionNavigationTabs({
 					<div className="flex items-center justify-center gap-2">
 						<span>{section.title}</span>
 						<span
-							className={`inline-flex items-center justify-center w-5 h-5 text-xs rounded-full ${
+							className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs ${
 								section.urgent
 									? "bg-red-100 text-red-700"
 									: "bg-muted text-muted-foreground"
@@ -413,12 +413,12 @@ function SectionNavigationTabs({
 // Helper component for empty state
 function EmptyMedicationsState() {
 	return (
-		<div className="flex-1 flex items-center justify-center p-8">
+		<div className="flex flex-1 items-center justify-center p-8">
 			<div className="text-center text-muted-foreground">
-				<div className="w-16 h-16 mx-auto mb-4 opacity-50 rounded-full bg-muted flex items-center justify-center">
+				<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted opacity-50">
 					💊
 				</div>
-				<h3 className="text-lg font-medium mb-2">No medications due</h3>
+				<h3 className="mb-2 font-medium text-lg">No medications due</h3>
 				<p className="text-sm">
 					All caught up! No medications are due at this time.
 				</p>

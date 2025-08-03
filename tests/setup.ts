@@ -1,12 +1,8 @@
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
 
-// Mock environment variables for database
-vi.stubEnv("DATABASE_URL", "postgresql://test:test@localhost:5432/vetmed_test");
-vi.stubEnv(
-	"DATABASE_URL_UNPOOLED",
-	"postgresql://test:test@localhost:5432/vetmed_test",
-);
+// Environment variables are set in vitest.config.ts
+// No need to duplicate them here
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({

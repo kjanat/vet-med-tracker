@@ -15,8 +15,11 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import type { vetmedMedicationCatalog } from "@/db/schema";
+
+type MedicationCatalog = typeof vetmedMedicationCatalog.$inferSelect;
+
 import { cn } from "@/lib/utils";
-import type { MedicationCatalog } from "@/server/db/schema/medications";
 import { trpc } from "@/server/trpc/client";
 
 interface MedicationSearchProps {
@@ -111,7 +114,7 @@ export function MedicationSearch({
 					</CommandEmpty>
 					<CommandGroup>
 						{query.length === 0 && frequentMeds && frequentMeds.length > 0 && (
-							<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+							<div className="px-2 py-1.5 font-semibold text-muted-foreground text-xs">
 								Frequently Used
 							</div>
 						)}
@@ -134,19 +137,19 @@ export function MedicationSearch({
 							>
 								<Check
 									className={cn(
-										"mr-2 h-4 w-4 mt-0.5",
+										"mt-0.5 mr-2 h-4 w-4",
 										value === medication.id ? "opacity-100" : "opacity-0",
 									)}
 								/>
 								<div className="flex flex-col">
 									<span className="font-medium">{medication.genericName}</span>
-									<span className="text-sm text-muted-foreground">
+									<span className="text-muted-foreground text-sm">
 										{medication.brandName && <>{medication.brandName} • </>}
 										{medication.form} • {medication.route}
 										{medication.strength && <> • {medication.strength}</>}
 									</span>
 									{medication.controlledSubstance && (
-										<span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+										<span className="font-medium text-orange-600 text-xs dark:text-orange-400">
 											Controlled Substance
 										</span>
 									)}

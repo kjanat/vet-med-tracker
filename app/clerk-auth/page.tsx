@@ -9,17 +9,17 @@ import TRPCDemo from "./trpc-demo";
 
 export default function ClerkAuthPage() {
 	return (
-		<div className="flex flex-col items-center justify-center min-h-screen py-2">
-			<h1 className="text-4xl font-bold mb-8">Clerk Authentication Demo</h1>
+		<div className="flex min-h-screen flex-col items-center justify-center py-2">
+			<h1 className="mb-8 font-bold text-4xl">Clerk Authentication Demo</h1>
 
 			<div className="flex flex-col items-center space-y-4">
 				<SignedOut>
-					<p className="text-lg mb-4">You are not signed in</p>
+					<p className="mb-4 text-lg">You are not signed in</p>
 					<div className="flex space-x-4">
 						<SignInButton mode="modal">
 							<button
 								type="button"
-								className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+								className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
 							>
 								Sign In
 							</button>
@@ -27,7 +27,7 @@ export default function ClerkAuthPage() {
 						<SignUpButton mode="modal">
 							<button
 								type="button"
-								className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+								className="rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700"
 							>
 								Sign Up
 							</button>
@@ -36,7 +36,7 @@ export default function ClerkAuthPage() {
 				</SignedOut>
 
 				<SignedIn>
-					<p className="text-lg mb-4">Welcome! You are signed in</p>
+					<p className="mb-4 text-lg">Welcome! You are signed in</p>
 					<UserButton
 						appearance={{
 							elements: {

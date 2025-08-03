@@ -54,7 +54,7 @@ interface DueRegimen {
 	form: string;
 	strength: string;
 	dose?: string;
-	targetTime?: Date;
+	targetTime?: string;
 	isPRN: boolean;
 	isHighRisk: boolean;
 	requiresCoSign: boolean;
@@ -66,7 +66,7 @@ interface DueRegimen {
 	prnReason?: string | null;
 	lastAdministration?: {
 		id: string;
-		recordedAt: Date;
+		recordedAt: string;
 		status: string;
 	} | null;
 }
@@ -225,10 +225,10 @@ function SelectionStep({
 	);
 
 	return (
-		<div className="max-w-4xl mx-auto space-y-6">
+		<div className="mx-auto max-w-4xl space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold">Record Medication</h1>
+					<h1 className="font-bold text-3xl">Record Medication</h1>
 					<p className="text-muted-foreground">
 						{state.selectedAnimalId
 							? `Recording for ${animals.find((a) => a.id === state.selectedAnimalId)?.name}`
@@ -628,13 +628,13 @@ function RegimenCard({
 	};
 
 	const timeDisplay = regimen.targetTime
-		? formatTimeLocal(regimen.targetTime, "America/New_York")
+		? formatTimeLocal(new Date(regimen.targetTime), "America/New_York")
 		: "As needed";
 
 	return (
 		<button
 			type="button"
-			className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors w-full text-left"
+			className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-4 text-left transition-colors hover:bg-accent"
 			onClick={() => onSelect(regimen)}
 		>
 			<div className="flex items-center gap-3">
@@ -643,11 +643,11 @@ function RegimenCard({
 					<div className="font-medium">
 						{regimen.animalName} - {regimen.medicationName} {regimen.strength}
 					</div>
-					<div className="text-sm text-muted-foreground">
+					<div className="text-muted-foreground text-sm">
 						{regimen.route} • {regimen.form} • {timeDisplay}
 						{regimen.dose && ` • ${regimen.dose}`}
 					</div>
-					<div className="text-xs text-muted-foreground">
+					<div className="text-muted-foreground text-xs">
 						{regimen.compliance}% compliance
 						{regimen.isHighRisk && " • High-risk medication"}
 					</div>
@@ -722,16 +722,16 @@ function SuccessStep({
 	router: ReturnType<typeof useRouter>;
 }) {
 	return (
-		<div className="max-w-md mx-auto space-y-6">
-			<div className="text-center space-y-4">
-				<div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-					<div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
+		<div className="mx-auto max-w-md space-y-6">
+			<div className="space-y-4 text-center">
+				<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+					<div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
 						✓
 					</div>
 				</div>
 
 				<div>
-					<h1 className="text-2xl font-bold text-green-700">
+					<h1 className="font-bold text-2xl text-green-700">
 						Recorded Successfully
 					</h1>
 					<p className="text-muted-foreground">
@@ -798,7 +798,7 @@ function ConfirmStep({
 			!state.allowOverride);
 
 	return (
-		<div className="max-w-2xl mx-auto space-y-6">
+		<div className="mx-auto max-w-2xl space-y-6">
 			<div className="flex items-center gap-4">
 				<Button
 					variant="ghost"
@@ -807,7 +807,7 @@ function ConfirmStep({
 				>
 					<ArrowLeft className="h-4 w-4" />
 				</Button>
-				<h1 className="text-2xl font-bold">Confirm Administration</h1>
+				<h1 className="font-bold text-2xl">Confirm Administration</h1>
 			</div>
 
 			<Card>
@@ -818,7 +818,7 @@ function ConfirmStep({
 							<div>
 								{animal?.name} - {state.selectedRegimen?.medicationName}
 							</div>
-							<div className="text-sm font-normal text-muted-foreground">
+							<div className="font-normal text-muted-foreground text-sm">
 								{state.selectedRegimen?.strength} •{" "}
 								{state.selectedRegimen?.route} • {state.selectedRegimen?.form}
 							</div>
@@ -876,7 +876,7 @@ function ConfirmStep({
 					/>
 
 					{state.selectedRegimen?.isHighRisk && (
-						<div className="flex items-center space-x-2 p-4 bg-orange-50 rounded-lg border border-orange-200">
+						<div className="flex items-center space-x-2 rounded-lg border border-orange-200 bg-orange-50 p-4">
 							<Checkbox
 								id="cosign"
 								checked={state.requiresCoSign}
@@ -919,7 +919,7 @@ function ConditionTagSelector({
 	return (
 		<div>
 			<Label>Condition Tags</Label>
-			<div className="flex flex-wrap gap-2 mt-2">
+			<div className="mt-2 flex flex-wrap gap-2">
 				{tags.map((tag) => (
 					<Button
 						key={tag}
@@ -999,7 +999,7 @@ function RenderMobileLayout({
 					isOnline={isOnline}
 					onReturnHome={() => router.push("/")}
 					onRecordAnother={() => resetRecordState(state)}
-					recordedAt={new Date()}
+					recordedAt={new Date().toISOString()}
 					animalName={state.selectedRegimen?.animalName}
 					medicationName={state.selectedRegimen?.medicationName}
 				/>
@@ -1087,7 +1087,7 @@ function RenderTabletLayout({
 					isOnline={isOnline}
 					onReturnHome={() => router.push("/")}
 					onRecordAnother={() => resetRecordState(state)}
-					recordedAt={new Date()}
+					recordedAt={new Date().toISOString()}
 					animalName={state.selectedRegimen?.animalName}
 					medicationName={state.selectedRegimen?.medicationName}
 				/>
@@ -1122,7 +1122,7 @@ export default function RecordPage() {
 	return (
 		<RecordAdminErrorBoundary>
 			<Suspense
-				fallback={<div className="min-h-screen bg-background animate-pulse" />}
+				fallback={<div className="min-h-screen animate-pulse bg-background" />}
 			>
 				<RecordContent />
 			</Suspense>

@@ -30,7 +30,7 @@ Audit Logging
    - `server/api/routers/admin.ts` - Records administrations
    - `server/api/routers/inventory.ts` - Manages inventory sources
 3. **Offline Support**: `hooks/useOfflineQueue.ts`
-4. **Database Schema**: `server/db/schema/regimens.ts`, `server/db/schema/audit.ts`
+4. **Database Schema**: [`@/db/schema/regimens.ts`](./server/db/schema/regimens.ts),  [`@/db/schema/audit.ts`](./server/db/schema/audit.ts)
 
 ## API Reference
 

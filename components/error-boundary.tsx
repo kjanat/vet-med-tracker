@@ -85,8 +85,8 @@ export class ErrorBoundary extends Component<Props, State> {
 			const isDevelopment = process.env.NODE_ENV === "development";
 
 			return (
-				<div className="min-h-screen flex items-center justify-center p-4 bg-background">
-					<Card className="max-w-lg w-full">
+				<div className="flex min-h-screen items-center justify-center bg-background p-4">
+					<Card className="w-full max-w-lg">
 						<CardHeader>
 							<div className="flex items-center gap-2">
 								<AlertTriangle className="h-5 w-5 text-destructive" />
@@ -97,26 +97,26 @@ export class ErrorBoundary extends Component<Props, State> {
 						<CardContent>
 							{isDevelopment && error && (
 								<details className="mt-4">
-									<summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
+									<summary className="cursor-pointer font-medium text-muted-foreground text-sm hover:text-foreground">
 										Error Details (Development Only)
 									</summary>
 									<div className="mt-2 space-y-2">
-										<div className="p-3 bg-muted rounded-md">
-											<p className="text-xs font-mono break-all">
+										<div className="rounded-md bg-muted p-3">
+											<p className="break-all font-mono text-xs">
 												{error.message}
 											</p>
 										</div>
 										{error.stack && (
-											<pre className="p-3 bg-muted rounded-md text-xs overflow-auto max-h-48">
+											<pre className="max-h-48 overflow-auto rounded-md bg-muted p-3 text-xs">
 												{error.stack}
 											</pre>
 										)}
 										{this.state.errorInfo?.componentStack && (
 											<details className="mt-2">
-												<summary className="cursor-pointer text-xs font-medium">
+												<summary className="cursor-pointer font-medium text-xs">
 													Component Stack
 												</summary>
-												<pre className="mt-1 p-2 bg-muted rounded text-xs overflow-auto max-h-32">
+												<pre className="mt-1 max-h-32 overflow-auto rounded bg-muted p-2 text-xs">
 													{this.state.errorInfo.componentStack}
 												</pre>
 											</details>
@@ -125,7 +125,7 @@ export class ErrorBoundary extends Component<Props, State> {
 								</details>
 							)}
 							{errorId && (
-								<p className="mt-4 text-xs text-muted-foreground">
+								<p className="mt-4 text-muted-foreground text-xs">
 									Error ID: {errorId}
 								</p>
 							)}

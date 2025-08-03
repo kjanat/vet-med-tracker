@@ -27,18 +27,18 @@ interface UserProfile {
 	};
 	onboarding: {
 		complete: boolean | null;
-		completedAt: Date | null;
+		completedAt: string | null;
 	};
 	availableHouseholds: Array<{
 		id: string;
 		name: string;
 		timezone: string;
-		createdAt: Date;
-		updatedAt: Date;
+		createdAt: string;
+		updatedAt: string;
 		membership: {
 			id: string;
-			createdAt: Date;
-			updatedAt: Date;
+			createdAt: string;
+			updatedAt: string;
 			householdId: string;
 			userId: string;
 			role: "OWNER" | "CAREGIVER" | "VETREADONLY";

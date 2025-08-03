@@ -106,8 +106,8 @@ export function NotificationsSidebarItem() {
 			<Separator />
 
 			{mockNotifications.length === 0 ? (
-				<div className="p-4 text-center text-sm text-muted-foreground">
-					<Bell className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+				<div className="p-4 text-center text-muted-foreground text-sm">
+					<Bell className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
 					<p>No notifications</p>
 					<p className="text-xs">You&apos;re all caught up!</p>
 				</div>
@@ -115,17 +115,17 @@ export function NotificationsSidebarItem() {
 				<div className="max-h-80 overflow-y-auto">
 					{mockNotifications.map((notification, index) => (
 						<div key={notification.id}>
-							<div className="p-4 hover:bg-muted/50 cursor-pointer">
+							<div className="cursor-pointer p-4 hover:bg-muted/50">
 								<div className="flex items-start gap-3">
 									{getIcon(notification.type)}
 									<div className="flex-1 space-y-1">
-										<p className="text-sm font-medium leading-none">
+										<p className="font-medium text-sm leading-none">
 											{notification.title}
 										</p>
-										<p className="text-xs text-muted-foreground">
+										<p className="text-muted-foreground text-xs">
 											{notification.message}
 										</p>
-										<p className="text-xs text-muted-foreground">
+										<p className="text-muted-foreground text-xs">
 											{formatRelativeTime(notification.timestamp)}
 										</p>
 									</div>
@@ -148,7 +148,7 @@ export function NotificationsSidebarItem() {
 				<Button
 					variant="ghost"
 					size="sm"
-					className="w-full text-xs cursor-pointer"
+					className="w-full cursor-pointer text-xs"
 					onClick={() => {
 						setIsOpen(false);
 						// In real app, navigate to /admin/record or similar
@@ -168,7 +168,7 @@ export function NotificationsSidebarItem() {
 			{unreadCount > 0 && (
 				<Badge
 					variant="destructive"
-					className="ml-auto h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+					className="ml-auto flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
 				>
 					{unreadCount > 9 ? "9+" : unreadCount}
 				</Badge>

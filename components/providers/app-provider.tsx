@@ -9,8 +9,11 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import type { vetmedUsers } from "@/db/schema";
+
+type User = typeof vetmedUsers.$inferSelect;
+
 import { getQueueSize } from "@/lib/offline/db";
-import type { User } from "@/server/db/schema/users";
 import { trpc } from "@/server/trpc/client";
 import { AnimalFormProvider } from "./animal-form-provider";
 import { InventoryFormProvider } from "./inventory-form-provider";
@@ -84,8 +87,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 				email: clerkUser.emailAddresses[0]?.emailAddress || "",
 				image: clerkUser.imageUrl || null,
 				emailVerified: null, // Clerk handles verification
-				createdAt: new Date(),
-				updatedAt: new Date(),
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
 				// Add required fields with defaults
 				clerkUserId: clerkUser.id,
 				preferredTimezone: null,
@@ -169,8 +172,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 	// Update pending sync count
 	const updatePendingSyncCount = useCallback(async () => {
-		const count = await getQueueSize(selectedHousehold?.id);
-		setPendingSyncCount(count);
+		try {
+			const count = await getQueueSize(selectedHousehold?.id);
+			setPendingSyncCount(count);
+		} catch (error) {
+			console.warn("Failed to get pending sync count:", error);
+			// Set to 0 as fallback - this prevents showing incorrect sync indicators
+			setPendingSyncCount(0);
+		}
 	}, [selectedHousehold?.id]);
 
 	useEffect(() => {

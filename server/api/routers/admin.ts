@@ -8,8 +8,8 @@ import {
 	inventoryItems,
 	type NewAdministration,
 	regimens,
-} from "../../db/schema";
-import { createAuditLog } from "../../db/schema/audit";
+} from "@/db/schema";
+import { createAuditLog } from "@/server/utils/audit-log";
 import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 
 // Input validation schema for recording administration
@@ -137,7 +137,7 @@ function calculateScheduledTimeAndStatus(
 
 // Helper function to verify animal ownership
 async function verifyAnimalOwnership(
-	db: typeof import("../../db").db,
+	db: typeof import("@/db/drizzle").db,
 	animalId: string,
 	householdId: string,
 ) {
@@ -160,7 +160,7 @@ async function verifyAnimalOwnership(
 
 // Helper function to verify regimen
 async function verifyActiveRegimen(
-	db: typeof import("../../db").db,
+	db: typeof import("@/db/drizzle").db,
 	regimenId: string,
 	animalId: string,
 ) {
@@ -189,7 +189,7 @@ async function verifyActiveRegimen(
 
 // Helper function to verify inventory item
 async function verifyInventoryItem(
-	db: typeof import("../../db").db,
+	db: typeof import("@/db/drizzle").db,
 	inventorySourceId: string,
 	householdId: string,
 	allowOverride: boolean,
@@ -230,7 +230,7 @@ async function verifyInventoryItem(
 
 // Helper function to check for duplicate
 async function checkDuplicateAdministration(
-	db: typeof import("../../db").db,
+	db: typeof import("@/db/drizzle").db,
 	idempotencyKey: string,
 ) {
 	const result = await db
@@ -245,7 +245,7 @@ async function checkDuplicateAdministration(
 
 // Helper function to create administration record
 async function createAdministrationRecord(
-	db: typeof import("../../db").db,
+	db: typeof import("@/db/drizzle").db,
 	userId: string,
 	input: z.infer<typeof recordAdministrationSchema>,
 	animal: {
@@ -278,8 +278,8 @@ async function createAdministrationRecord(
 		animalId: input.animalId,
 		householdId: input.householdId,
 		caregiverId: userId,
-		scheduledFor: scheduledFor || null,
-		recordedAt: administeredAt,
+		scheduledFor: scheduledFor?.toISOString() || null,
+		recordedAt: administeredAt.toISOString(),
 		status,
 		sourceItemId: input.inventorySourceId || null,
 		site: input.site || null,
@@ -382,13 +382,19 @@ export const adminRouter = createTRPCRouter({
 
 			if (input.startDate) {
 				conditions.push(
-					gte(administrations.recordedAt, new Date(input.startDate)),
+					gte(
+						administrations.recordedAt,
+						new Date(input.startDate).toISOString(),
+					),
 				);
 			}
 
 			if (input.endDate) {
 				conditions.push(
-					lte(administrations.recordedAt, new Date(input.endDate)),
+					lte(
+						administrations.recordedAt,
+						new Date(input.endDate).toISOString(),
+					),
 				);
 			}
 

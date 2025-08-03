@@ -1,91 +1,96 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createTRPCCaller } from "@/server/api/routers/_app";
-import { createTestContext } from "../helpers/test-context";
-
-// Helper function to mock update chain
-function mockUpdateChain(returnValue: any) {
-	const mockReturning = vi.fn().mockResolvedValue(returnValue);
-	const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-	const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-	return { set: mockSet } as any;
-}
-
-// Helper function to mock insert chain
-function mockInsertChain(returnValue: any) {
-	const mockReturning = vi.fn().mockResolvedValue(returnValue);
-	const mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
-	return { values: mockValues } as any;
-}
-
-// Helper function to mock select chain
-function mockSelectChain(returnValue: any) {
-	const mockOrderBy = vi.fn().mockResolvedValue(returnValue);
-	const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
-	const mockInnerJoin = vi.fn().mockReturnValue({ where: mockWhere });
-	const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin });
-	return { from: mockFrom } as any;
-}
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import * as schema from "@/db/schema";
+import { inventoryRouter } from "@/server/api/routers/inventory";
+import {
+	cleanupTestData,
+	createTestDatabase,
+	testFactories,
+} from "../helpers/test-db";
+import { createTestTRPCContext } from "../helpers/test-trpc-context";
 
 describe("Inventory CRUD Operations", () => {
-	let ctx: ReturnType<typeof createTestContext>;
-	let caller: ReturnType<typeof createTRPCCaller>;
+	const db = createTestDatabase();
+	let testData: {
+		user: typeof schema.users.$inferSelect;
+		household: typeof schema.households.$inferSelect;
+		medication: typeof schema.medicationCatalog.$inferSelect;
+	};
 
-	beforeEach(() => {
-		ctx = createTestContext();
-		caller = createTRPCCaller(ctx);
+	beforeEach(async () => {
+		// Create test data in real database
+		const userData = testFactories.user();
+		const householdData = testFactories.household();
+		const medicationData = testFactories.medication();
+
+		// Insert test data
+		const [user] = await db.insert(schema.users).values(userData).returning();
+		if (!user) throw new Error("Failed to create test user");
+
+		const [household] = await db
+			.insert(schema.households)
+			.values(householdData)
+			.returning();
+		if (!household) throw new Error("Failed to create test household");
+
+		await db.insert(schema.memberships).values({
+			userId: user.id,
+			householdId: household.id,
+			role: "OWNER",
+		});
+
+		const [medication] = await db
+			.insert(schema.medicationCatalog)
+			.values(medicationData)
+			.returning();
+		if (!medication) throw new Error("Failed to create test medication");
+
+		testData = { user, household, medication };
+	});
+
+	afterEach(async () => {
+		if (testData?.household) {
+			await cleanupTestData(db, testData.household.id);
+		}
 	});
 
 	describe("list", () => {
 		it("should list inventory items for a household", async () => {
-			const householdId = "test-household-id";
-			const medicationId = "test-med-id";
+			// Create inventory item in database
+			const expiryDate = new Date();
+			expiryDate.setMonth(expiryDate.getMonth() + 6);
 
-			// Mock medication catalog data
-			const mockMedication = {
-				id: medicationId,
-				genericName: "Amoxicillin",
-				brandName: "Amoxil",
-				strength: "500mg",
-				route: "ORAL",
-				form: "TABLET",
-			};
+			const [inventoryItem] = await db
+				.insert(schema.inventoryItems)
+				.values({
+					householdId: testData.household.id,
+					medicationId: testData.medication.id,
+					lot: "TEST123",
+					expiresOn: expiryDate.toISOString().split("T")[0] ?? "",
+					storage: "ROOM",
+					quantityUnits: 100,
+					unitsRemaining: 75,
+					unitType: "tablets",
+					inUse: true,
+				})
+				.returning();
 
-			// Mock inventory items
-			const mockInventoryItem = {
-				id: "item-1",
-				householdId,
-				medicationId,
-				lot: "TEST123",
-				expiresOn: "2024-12-31",
-				storage: "ROOM",
-				unitsTotal: 100,
-				unitsRemaining: 75,
-				inUse: true,
-				assignedAnimalId: null,
-				deletedAt: null,
-			};
+			// Create context and caller
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
 
-			// Setup mocks - the db.select is already mocked in test context
-			// We need to set up the chain properly
-			vi.mocked(ctx.db.select).mockReturnValue(
-				mockSelectChain([
-					{
-						item: mockInventoryItem,
-						medication: mockMedication,
-					},
-				]),
-			);
-
-			const result = await caller.inventory.list({
-				householdId,
+			const result = await caller.list({
+				householdId: testData.household.id,
 			});
 
 			expect(result).toHaveLength(1);
 			expect(result[0]).toMatchObject({
-				id: "item-1",
-				name: "Amoxil",
-				genericName: "Amoxicillin",
-				strength: "500mg",
+				id: inventoryItem?.id,
+				name: testData.medication.brandName || testData.medication.genericName,
+				genericName: testData.medication.genericName,
+				strength: testData.medication.strength,
 				lot: "TEST123",
 				unitsRemaining: 75,
 				inUse: true,
@@ -93,103 +98,120 @@ describe("Inventory CRUD Operations", () => {
 		});
 
 		it("should filter expired items when includeExpired is false", async () => {
-			const householdId = "test-household-id";
+			// Create expired inventory item
+			const expiredDate = new Date();
+			expiredDate.setMonth(expiredDate.getMonth() - 1);
 
-			// Setup empty result mock
-			vi.mocked(ctx.db.select).mockReturnValue(mockSelectChain([]));
+			await db.insert(schema.inventoryItems).values({
+				householdId: testData.household.id,
+				medicationId: testData.medication.id,
+				lot: "EXPIRED123",
+				expiresOn: expiredDate.toISOString().split("T")[0] ?? "",
+				storage: "ROOM",
+				quantityUnits: 50,
+				unitsRemaining: 25,
+				unitType: "tablets",
+			});
 
-			const result = await caller.inventory.list({
-				householdId,
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
+
+			const result = await caller.list({
+				householdId: testData.household.id,
 				includeExpired: false,
 			});
 
+			// Should not include expired item
 			expect(result).toHaveLength(0);
-			// Verify the query included expiration date filter
-			expect(ctx.db.select).toHaveBeenCalled();
 		});
 	});
 
 	describe("create", () => {
 		it("should create a new inventory item", async () => {
-			const householdId = "test-household-id";
-			const medicationId = "test-med-id";
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
 
-			const newItem = {
-				householdId,
-				medicationId,
+			const expiryDate = new Date();
+			expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+
+			const result = await caller.create({
+				householdId: testData.household.id,
+				medicationId: testData.medication.id,
 				lot: "NEW123",
-				expiresOn: new Date("2024-12-31"),
-				storage: "FRIDGE" as const,
+				expiresOn: expiryDate,
+				storage: "FRIDGE",
 				unitsTotal: 50,
 				unitType: "tablets",
-			};
-
-			const mockCreatedItem = {
-				id: "new-item-id",
-				...newItem,
-				expiresOn: "2024-12-31",
-				unitsRemaining: 50,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			};
-
-			// Mock the insert chain
-			vi.mocked(ctx.db.insert).mockReturnValue(
-				mockInsertChain([mockCreatedItem]),
-			);
-
-			const result = await caller.inventory.create(newItem);
-
-			expect(result).toMatchObject({
-				id: "new-item-id",
-				householdId,
-				medicationId,
-				lot: "NEW123",
-				unitsRemaining: 50,
 			});
+
+			expect(result).toBeDefined();
+			if (result) {
+				expect(result.householdId).toBe(testData.household.id);
+				expect(result.medicationId).toBe(testData.medication.id);
+				expect(result.lot).toBe("NEW123");
+				expect(result.unitsRemaining).toBe(50);
+				expect(result.storage).toBe("FRIDGE");
+			}
 		});
 	});
 
 	describe("update", () => {
 		it("should update an inventory item", async () => {
-			const itemId = "item-1";
-			const householdId = "test-household-id";
+			// Create an inventory item first
+			const expiryDate = new Date();
+			expiryDate.setMonth(expiryDate.getMonth() + 6);
 
-			const updateData = {
-				id: itemId,
-				householdId,
-				lot: "UPDATED123",
-				unitsRemaining: 25,
-				notes: "Updated notes",
-			};
+			const [item] = await db
+				.insert(schema.inventoryItems)
+				.values({
+					householdId: testData.household.id,
+					medicationId: testData.medication.id,
+					lot: "ORIGINAL123",
+					expiresOn: expiryDate.toISOString().split("T")[0] ?? "",
+					storage: "ROOM",
+					quantityUnits: 100,
+					unitsRemaining: 100,
+					unitType: "tablets",
+				})
+				.returning();
 
-			const mockUpdatedItem = {
-				...updateData,
-				id: itemId,
-				updatedAt: new Date(),
-			};
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
 
-			vi.mocked(ctx.db.update).mockReturnValue(
-				mockUpdateChain([mockUpdatedItem]),
-			);
-
-			const result = await caller.inventory.update(updateData);
-
-			expect(result).toMatchObject({
-				id: itemId,
+			const result = await caller.update({
+				id: item?.id ?? "",
+				householdId: testData.household.id,
 				lot: "UPDATED123",
 				unitsRemaining: 25,
 				notes: "Updated notes",
 			});
+
+			expect(result).toBeDefined();
+			expect(result.lot).toBe("UPDATED123");
+			expect(result.unitsRemaining).toBe(25);
+			expect(result.notes).toBe("Updated notes");
 		});
 
 		it("should throw error if item not found", async () => {
-			vi.mocked(ctx.db.update).mockReturnValue(mockUpdateChain([]));
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
 
 			await expect(
-				caller.inventory.update({
-					id: "non-existent",
-					householdId: "test-household-id",
+				caller.update({
+					id: crypto.randomUUID(),
+					householdId: testData.household.id,
 				}),
 			).rejects.toThrow("Inventory item not found or already deleted");
 		});
@@ -197,23 +219,34 @@ describe("Inventory CRUD Operations", () => {
 
 	describe("setInUse", () => {
 		it("should set in-use status to true", async () => {
-			const itemId = "item-1";
-			const householdId = "test-household-id";
+			// Create an inventory item first
+			const expiryDate = new Date();
+			expiryDate.setMonth(expiryDate.getMonth() + 6);
 
-			const mockUpdatedItem = {
-				id: itemId,
-				inUse: true,
-				openedOn: "2024-01-01",
-				updatedAt: new Date(),
-			};
+			const [item] = await db
+				.insert(schema.inventoryItems)
+				.values({
+					householdId: testData.household.id,
+					medicationId: testData.medication.id,
+					lot: "USE123",
+					expiresOn: expiryDate.toISOString().split("T")[0] ?? "",
+					storage: "ROOM",
+					quantityUnits: 100,
+					unitsRemaining: 100,
+					unitType: "tablets",
+					inUse: false,
+				})
+				.returning();
 
-			vi.mocked(ctx.db.update).mockReturnValue(
-				mockUpdateChain([mockUpdatedItem]),
-			);
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
 
-			const result = await caller.inventory.setInUse({
-				id: itemId,
-				householdId,
+			const result = await caller.setInUse({
+				id: item?.id ?? "",
+				householdId: testData.household.id,
 				inUse: true,
 			});
 
@@ -224,22 +257,33 @@ describe("Inventory CRUD Operations", () => {
 
 	describe("delete", () => {
 		it("should soft delete an inventory item", async () => {
-			const itemId = "item-1";
-			const householdId = "test-household-id";
+			// Create an inventory item first
+			const expiryDate = new Date();
+			expiryDate.setMonth(expiryDate.getMonth() + 6);
 
-			const mockDeletedItem = {
-				id: itemId,
-				deletedAt: new Date(),
-				updatedAt: new Date(),
-			};
+			const [item] = await db
+				.insert(schema.inventoryItems)
+				.values({
+					householdId: testData.household.id,
+					medicationId: testData.medication.id,
+					lot: "DELETE123",
+					expiresOn: expiryDate.toISOString().split("T")[0] ?? "",
+					storage: "ROOM",
+					quantityUnits: 100,
+					unitsRemaining: 100,
+					unitType: "tablets",
+				})
+				.returning();
 
-			vi.mocked(ctx.db.update).mockReturnValue(
-				mockUpdateChain([mockDeletedItem]),
-			);
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
 
-			const result = await caller.inventory.delete({
-				id: itemId,
-				householdId,
+			const result = await caller.delete({
+				id: item?.id ?? "",
+				householdId: testData.household.id,
 			});
 
 			expect(result.deletedAt).toBeDefined();
@@ -248,46 +292,86 @@ describe("Inventory CRUD Operations", () => {
 
 	describe("assignToAnimal", () => {
 		it("should assign item to an animal", async () => {
-			const itemId = "item-1";
-			const householdId = "test-household-id";
-			const animalId = "animal-1";
+			// Create test animal
+			const animalData = testFactories.animal({
+				householdId: testData.household.id,
+			});
+			const [animal] = await db
+				.insert(schema.animals)
+				.values(animalData)
+				.returning();
 
-			const mockUpdatedItem = {
-				id: itemId,
-				assignedAnimalId: animalId,
-				updatedAt: new Date(),
-			};
+			// Create inventory item
+			const expiryDate = new Date();
+			expiryDate.setMonth(expiryDate.getMonth() + 6);
 
-			vi.mocked(ctx.db.update).mockReturnValue(
-				mockUpdateChain([mockUpdatedItem]),
-			);
+			const [item] = await db
+				.insert(schema.inventoryItems)
+				.values({
+					householdId: testData.household.id,
+					medicationId: testData.medication.id,
+					lot: "ASSIGN123",
+					expiresOn: expiryDate.toISOString().split("T")[0] ?? "",
+					storage: "ROOM",
+					quantityUnits: 100,
+					unitsRemaining: 100,
+					unitType: "tablets",
+				})
+				.returning();
 
-			const result = await caller.inventory.assignToAnimal({
-				id: itemId,
-				householdId,
-				animalId,
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
+
+			const result = await caller.assignToAnimal({
+				id: item?.id ?? "",
+				householdId: testData.household.id,
+				animalId: animal?.id ?? "",
 			});
 
-			expect(result.assignedAnimalId).toBe(animalId);
+			expect(result.assignedAnimalId).toBe(animal?.id);
 		});
 
 		it("should unassign item when animalId is null", async () => {
-			const itemId = "item-1";
-			const householdId = "test-household-id";
+			// First create an animal to assign
+			const animalData = testFactories.animal({
+				householdId: testData.household.id,
+			});
+			const [animal] = await db
+				.insert(schema.animals)
+				.values(animalData)
+				.returning();
 
-			const mockUpdatedItem = {
-				id: itemId,
-				assignedAnimalId: null,
-				updatedAt: new Date(),
-			};
+			// Create inventory item assigned to the animal
+			const expiryDate = new Date();
+			expiryDate.setMonth(expiryDate.getMonth() + 6);
 
-			vi.mocked(ctx.db.update).mockReturnValue(
-				mockUpdateChain([mockUpdatedItem]),
-			);
+			const [item] = await db
+				.insert(schema.inventoryItems)
+				.values({
+					householdId: testData.household.id,
+					medicationId: testData.medication.id,
+					lot: "UNASSIGN123",
+					expiresOn: expiryDate.toISOString().split("T")[0] ?? "",
+					storage: "ROOM",
+					quantityUnits: 100,
+					unitsRemaining: 100,
+					unitType: "tablets",
+					assignedAnimalId: animal?.id ?? "", // Start with an assigned animal
+				})
+				.returning();
 
-			const result = await caller.inventory.assignToAnimal({
-				id: itemId,
-				householdId,
+			const ctx = createTestTRPCContext({
+				user: testData.user,
+				household: testData.household,
+			});
+			const caller = inventoryRouter.createCaller(ctx);
+
+			const result = await caller.assignToAnimal({
+				id: item?.id ?? "",
+				householdId: testData.household.id,
 				animalId: null,
 			});
 

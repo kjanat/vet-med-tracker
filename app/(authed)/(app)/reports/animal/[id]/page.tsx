@@ -90,9 +90,9 @@ export default function AnimalReportPage() {
 	return (
 		<div className="min-h-screen bg-white">
 			{/* Print Button - hidden when printing */}
-			<div className="no-print p-4 border-b">
-				<div className="flex items-center justify-between max-w-4xl mx-auto">
-					<h1 className="text-2xl font-bold">
+			<div className="no-print border-b p-4">
+				<div className="mx-auto flex max-w-4xl items-center justify-between">
+					<h1 className="font-bold text-2xl">
 						Compliance Report - {mockAnimal.name}
 					</h1>
 					<Button onClick={handlePrint} className="gap-2">
@@ -103,10 +103,10 @@ export default function AnimalReportPage() {
 			</div>
 
 			{/* Report Content */}
-			<div className="max-w-4xl mx-auto p-8 print:p-4">
+			<div className="mx-auto max-w-4xl p-8 print:p-4">
 				{/* Header */}
-				<div className="text-center mb-8">
-					<h1 className="text-3xl font-bold mb-2">
+				<div className="mb-8 text-center">
+					<h1 className="mb-2 font-bold text-3xl">
 						Medication Compliance Report
 					</h1>
 					<p className="text-lg text-muted-foreground">
@@ -132,19 +132,19 @@ export default function AnimalReportPage() {
 				</Card>
 
 				{/* Compliance Summary */}
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+				<div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
 					<Card>
 						<CardHeader className="pb-2">
-							<CardTitle className="text-sm font-medium flex items-center gap-2">
+							<CardTitle className="flex items-center gap-2 font-medium text-sm">
 								<TrendingUp className="h-4 w-4" />
 								Overall Adherence
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-3xl font-bold">
+							<div className="font-bold text-3xl">
 								{mockComplianceData.adherencePct}%
 							</div>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted-foreground text-sm">
 								{mockComplianceData.completed} of {mockComplianceData.scheduled}{" "}
 								doses
 							</p>
@@ -153,16 +153,16 @@ export default function AnimalReportPage() {
 
 					<Card>
 						<CardHeader className="pb-2">
-							<CardTitle className="text-sm font-medium flex items-center gap-2">
+							<CardTitle className="flex items-center gap-2 font-medium text-sm">
 								<Calendar className="h-4 w-4" />
 								Current Streak
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-3xl font-bold">
+							<div className="font-bold text-3xl">
 								{mockComplianceData.streak}
 							</div>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted-foreground text-sm">
 								days without missed doses
 							</p>
 						</CardContent>
@@ -170,13 +170,13 @@ export default function AnimalReportPage() {
 
 					<Card>
 						<CardHeader className="pb-2">
-							<CardTitle className="text-sm font-medium">Late Doses</CardTitle>
+							<CardTitle className="font-medium text-sm">Late Doses</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-3xl font-bold">
+							<div className="font-bold text-3xl">
 								{mockComplianceData.late}
 							</div>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted-foreground text-sm">
 								within cutoff window
 							</p>
 						</CardContent>
@@ -184,16 +184,16 @@ export default function AnimalReportPage() {
 
 					<Card>
 						<CardHeader className="pb-2">
-							<CardTitle className="text-sm font-medium flex items-center gap-2">
+							<CardTitle className="flex items-center gap-2 font-medium text-sm">
 								<AlertTriangle className="h-4 w-4" />
 								Missed Doses
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-3xl font-bold">
+							<div className="font-bold text-3xl">
 								{mockComplianceData.missed}
 							</div>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted-foreground text-sm">
 								beyond cutoff window
 							</p>
 						</CardContent>
@@ -213,7 +213,7 @@ export default function AnimalReportPage() {
 							{mockRegimens.map((regimen) => (
 								<div
 									key={regimen.id}
-									className="flex items-center justify-between p-4 border rounded-lg"
+									className="flex items-center justify-between rounded-lg border p-4"
 								>
 									<div className="flex-1">
 										<div className="font-medium text-lg">
@@ -223,17 +223,17 @@ export default function AnimalReportPage() {
 											{regimen.strength} • {regimen.route} • {regimen.schedule}
 										</div>
 										{regimen.notes && (
-											<div className="text-sm text-muted-foreground mt-1">
+											<div className="mt-1 text-muted-foreground text-sm">
 												<span className="font-medium">Notes:</span>{" "}
 												{regimen.notes}
 											</div>
 										)}
 									</div>
 									<div className="text-right">
-										<div className="text-2xl font-bold">
+										<div className="font-bold text-2xl">
 											{regimen.adherence}%
 										</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted-foreground text-sm">
 											adherence
 										</div>
 									</div>
@@ -251,14 +251,14 @@ export default function AnimalReportPage() {
 					<CardContent>
 						<div className="space-y-3">
 							{mockNotableEvents.map((event) => (
-								<div key={event.id} className="p-3 border rounded-lg">
-									<div className="flex items-center justify-between mb-2">
+								<div key={event.id} className="rounded-lg border p-3">
+									<div className="mb-2 flex items-center justify-between">
 										<div className="font-medium">{event.medication}</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted-foreground text-sm">
 											{format(event.date, "MMM d, yyyy")}
 										</div>
 									</div>
-									<div className="text-sm text-muted-foreground mb-2">
+									<div className="mb-2 text-muted-foreground text-sm">
 										{event.note}
 									</div>
 									<div className="flex gap-1">
@@ -275,7 +275,7 @@ export default function AnimalReportPage() {
 				</Card>
 
 				{/* Footer */}
-				<div className="text-center text-sm text-muted-foreground border-t pt-4">
+				<div className="border-t pt-4 text-center text-muted-foreground text-sm">
 					<p>
 						Report generated on {format(reportDate, "MMMM d, yyyy 'at' h:mm a")}
 					</p>

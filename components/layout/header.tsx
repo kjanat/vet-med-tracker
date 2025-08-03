@@ -24,7 +24,7 @@ export function Header() {
 
 					{/* Desktop: Show VetMed Tracker title */}
 					{!isMobile && (
-						<h1 className="text-lg font-semibold">VetMed Tracker</h1>
+						<h1 className="font-semibold text-lg">VetMed Tracker</h1>
 					)}
 
 					{/* Animal breadcrumb - integrated into main header row */}

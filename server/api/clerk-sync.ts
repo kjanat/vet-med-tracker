@@ -1,12 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
+import { dbPooled as db } from "@/db/drizzle";
+import { users } from "@/db/schema";
 import type {
 	HouseholdSettings,
 	VetMedPreferences,
 } from "@/hooks/use-user-preferences";
-import { db } from "../db";
-import { createAuditLog } from "../db/schema/audit";
-import { users } from "../db/schema/users";
+import { createAuditLog } from "@/server/utils/audit-log";
 
 export interface ClerkUserData {
 	userId: string;
@@ -73,9 +73,11 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 			// Onboarding status
 			...(onboardingComplete !== undefined && {
 				onboardingComplete,
-				...(onboardingComplete && { onboardingCompletedAt: new Date() }),
+				...(onboardingComplete && {
+					onboardingCompletedAt: new Date().toISOString(),
+				}),
 			}),
-			updatedAt: new Date(),
+			updatedAt: new Date().toISOString(),
 		};
 
 		// Use a transaction to ensure atomicity
@@ -89,6 +91,7 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 
 			if (
 				existingUserByEmail.length > 0 &&
+				existingUserByEmail[0] &&
 				!existingUserByEmail[0].clerkUserId
 			) {
 				// Migration case: update the existing user with the Clerk ID
@@ -115,7 +118,7 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 				.insert(users)
 				.values({
 					...userData,
-					createdAt: new Date(),
+					createdAt: new Date().toISOString(),
 				})
 				.onConflictDoUpdate({
 					target: users.clerkUserId,
@@ -335,7 +338,7 @@ export async function updateUserPreferences(
 		}
 
 		const updateData: Record<string, unknown> = {
-			updatedAt: new Date(),
+			updatedAt: new Date().toISOString(),
 		};
 
 		// Map VetMed preferences to database columns

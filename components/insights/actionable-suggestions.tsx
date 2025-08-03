@@ -195,9 +195,9 @@ export function ActionableSuggestions() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="text-center py-8">
-						<Lightbulb className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-						<h3 className="text-lg font-medium mb-2">All good!</h3>
+					<div className="py-8 text-center">
+						<Lightbulb className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
+						<h3 className="mb-2 font-medium text-lg">All good!</h3>
 						<p className="text-muted-foreground">
 							No suggestions at this time. Keep up the great work!
 						</p>
@@ -230,11 +230,11 @@ export function ActionableSuggestions() {
 						>
 							<CardContent className="p-4">
 								<div className="flex items-start gap-3">
-									<Icon className="h-5 w-5 mt-0.5 shrink-0" />
+									<Icon className="mt-0.5 h-5 w-5 shrink-0" />
 									<div className="flex-1 space-y-2">
 										<div>
 											<div className="font-medium">{suggestion.summary}</div>
-											<div className="text-sm text-muted-foreground">
+											<div className="text-muted-foreground text-sm">
 												{suggestion.rationale}
 											</div>
 										</div>

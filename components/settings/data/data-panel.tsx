@@ -137,7 +137,7 @@ export function DataPanel() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold">Data & Privacy</h2>
+				<h2 className="font-bold text-2xl">Data & Privacy</h2>
 				<p className="text-muted-foreground">
 					Export your data and manage privacy settings
 				</p>

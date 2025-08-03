@@ -72,8 +72,8 @@ export async function GET() {
 		}
 
 		// Check if user exists in database
-		const { db } = await import("@/server/db");
-		const { users } = await import("@/server/db/schema/users");
+		const { db } = await import("@/db/drizzle");
+		const { users } = await import("@/db/schema");
 		const { eq } = await import("drizzle-orm");
 
 		const existingUser = await db

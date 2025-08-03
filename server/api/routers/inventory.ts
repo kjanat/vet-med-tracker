@@ -1,6 +1,6 @@
 import { and, eq, gte, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { inventoryItems, medicationCatalog } from "../../db/schema";
+import { inventoryItems, medicationCatalog } from "@/db/schema";
 import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 
 export const inventoryRouter = createTRPCRouter({
@@ -269,7 +269,7 @@ export const inventoryRouter = createTRPCRouter({
 
 			const updates: Record<string, unknown> = {
 				...updateData,
-				updatedAt: new Date(),
+				updatedAt: new Date().toISOString(),
 			};
 
 			if (expiresOn) {
@@ -307,7 +307,7 @@ export const inventoryRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			const updates: Record<string, unknown> = {
 				inUse: input.inUse,
-				updatedAt: new Date(),
+				updatedAt: new Date().toISOString(),
 			};
 
 			if (input.inUse) {
@@ -345,8 +345,8 @@ export const inventoryRouter = createTRPCRouter({
 			const deleted = await ctx.db
 				.update(inventoryItems)
 				.set({
-					deletedAt: new Date(),
-					updatedAt: new Date(),
+					deletedAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
 				})
 				.where(
 					and(
@@ -378,7 +378,7 @@ export const inventoryRouter = createTRPCRouter({
 				.update(inventoryItems)
 				.set({
 					assignedAnimalId: input.animalId,
-					updatedAt: new Date(),
+					updatedAt: new Date().toISOString(),
 				})
 				.where(
 					and(
@@ -435,7 +435,7 @@ export const inventoryRouter = createTRPCRouter({
 				.update(inventoryItems)
 				.set({
 					unitsRemaining: newQuantity,
-					updatedAt: new Date(),
+					updatedAt: new Date().toISOString(),
 				})
 				.where(
 					and(
@@ -462,7 +462,7 @@ export const inventoryRouter = createTRPCRouter({
 			const updates: Record<string, unknown> = {
 				inUse: true,
 				openedOn: new Date().toISOString().split("T")[0],
-				updatedAt: new Date(),
+				updatedAt: new Date().toISOString(),
 			};
 
 			if (input.animalId) {

@@ -71,7 +71,7 @@ export function KeyboardShortcutsHelp() {
 
 			<DialogContent
 				ref={dialogRef}
-				className="max-w-2xl max-h-[80vh] overflow-y-auto"
+				className="max-h-[80vh] max-w-2xl overflow-y-auto"
 				aria-describedby="shortcuts-description"
 			>
 				<DialogHeader>
@@ -88,18 +88,18 @@ export function KeyboardShortcutsHelp() {
 				<div className="space-y-6">
 					{Object.entries(shortcutGroups).map(([groupName, shortcuts]) => (
 						<div key={groupName} className="space-y-3">
-							<h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+							<h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">
 								{groupName}
 							</h3>
 
 							<ul
-								className="grid gap-2 list-none"
+								className="grid list-none gap-2"
 								aria-label={`${groupName} shortcuts`}
 							>
 								{shortcuts.map((shortcut) => (
 									<li
 										key={shortcut}
-										className={`flex items-center justify-between py-2 px-3 rounded-md bg-muted/50 hover:bg-muted ${TRANSITIONS.interactive}`}
+										className={`flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 hover:bg-muted ${TRANSITIONS.interactive}`}
 									>
 										<span className="text-sm">
 											{
@@ -118,9 +118,9 @@ export function KeyboardShortcutsHelp() {
 					))}
 				</div>
 
-				<div className="flex justify-between items-center pt-4 border-t">
-					<p className="text-xs text-muted-foreground">
-						<HelpCircle className="h-3 w-3 inline mr-1" aria-hidden="true" />
+				<div className="flex items-center justify-between border-t pt-4">
+					<p className="text-muted-foreground text-xs">
+						<HelpCircle className="mr-1 inline h-3 w-3" aria-hidden="true" />
 						Tip: These shortcuts work from anywhere in the app
 					</p>
 
@@ -131,7 +131,7 @@ export function KeyboardShortcutsHelp() {
 						data-focus-initial
 						aria-label="Close keyboard shortcuts help"
 					>
-						<X className="h-4 w-4 mr-1" aria-hidden="true" />
+						<X className="mr-1 h-4 w-4" aria-hidden="true" />
 						Close
 					</Button>
 				</div>
@@ -148,7 +148,7 @@ export function KeyboardShortcutsHelp() {
  */
 export function FloatingKeyboardHelp() {
 	return (
-		<div className="fixed bottom-4 right-4 z-50">
+		<div className="fixed right-4 bottom-4 z-50">
 			<KeyboardShortcutsHelp />
 		</div>
 	);
@@ -168,11 +168,11 @@ export function ContextualShortcuts({
 }) {
 	return (
 		<section className={`space-y-2 ${className}`} aria-label={title}>
-			<h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+			<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
 				{title}
 			</h4>
 
-			<ul className="flex flex-wrap gap-2 list-none">
+			<ul className="flex list-none flex-wrap gap-2">
 				{shortcuts.map((shortcut) => (
 					<li key={shortcut} className="flex items-center gap-2 text-xs">
 						<Badge variant="outline" className="font-mono">

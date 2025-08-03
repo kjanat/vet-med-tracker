@@ -21,7 +21,8 @@
 			"!screenshots",
 			"!test-results",
 			"!.vercel",
-			"!.vscode"
+			"!.vscode",
+			"!drizzle"
 		]
 	},
 	"formatter": {
@@ -34,6 +35,15 @@
 			"recommended": true,
 			"complexity": {
 				"noExcessiveCognitiveComplexity": "on"
+			},
+			"nursery": {
+				"useSortedClasses": {
+					"level": "warn",
+					"fix": "safe",
+					"options": {
+						"functions": ["clsx", "cva", "cn"]
+					}
+				}
 			}
 		},
 		"domains": {
@@ -71,6 +81,26 @@
 					},
 					"style": {
 						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["db/drizzle.ts", "drizzle.config.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["lib/lazy-load.tsx", "lib/connection-middleware.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
 					}
 				}
 			}

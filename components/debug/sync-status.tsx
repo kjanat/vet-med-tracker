@@ -125,8 +125,8 @@ export function SyncStatus() {
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div>
-					<h4 className="font-medium mb-2">Clerk User</h4>
-					<div className="text-sm space-y-1 text-muted-foreground">
+					<h4 className="mb-2 font-medium">Clerk User</h4>
+					<div className="space-y-1 text-muted-foreground text-sm">
 						<p>ID: {syncStatus?.clerkUser?.id || "N/A"}</p>
 						<p>Email: {syncStatus?.clerkUser?.email || "N/A"}</p>
 						<p>Name: {syncStatus?.clerkUser?.name || "N/A"}</p>
@@ -134,8 +134,8 @@ export function SyncStatus() {
 				</div>
 
 				<div>
-					<h4 className="font-medium mb-2">Database User</h4>
-					<div className="text-sm space-y-1 text-muted-foreground">
+					<h4 className="mb-2 font-medium">Database User</h4>
+					<div className="space-y-1 text-muted-foreground text-sm">
 						{syncStatus?.dbUser ? (
 							<>
 								<p>ID: {syncStatus.dbUser.id}</p>

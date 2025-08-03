@@ -1,30 +1,16 @@
-import { loadEnvConfig } from "@next/env";
+// import "@/envConfig";
+import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
-// Load environment variables using Next.js env loader
-// This respects NODE_ENV and loads the appropriate .env files
-const projectDir = process.cwd();
-loadEnvConfig(projectDir);
-
-// Use unpooled connection for migrations if available, otherwise use regular DATABASE_URL
-const databaseUrl =
-	process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-	const env = process.env.NODE_ENV || "production";
-	throw new Error(
-		`DATABASE_URL is not set. Check your .env.${env} file.\n` +
-			`Current NODE_ENV: ${env}\n` +
-			`To use development database, run: NODE_ENV=development pnpm db:push`,
-	);
-}
+// console.log()
 
 export default defineConfig({
-	schema: "./server/db/schema/*.ts",
 	out: "./drizzle",
+	schema: "./db/schema.ts",
 	dialect: "postgresql",
 	dbCredentials: {
-		url: databaseUrl,
+		// Use unpooled connection for migrations and schema operations
+		url: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL!,
 	},
 	tablesFilter: ["vetmed_*"], // Prefix all tables with vetmed_
 	verbose: true,

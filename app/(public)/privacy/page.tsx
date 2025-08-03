@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function PrivacyPage() {
 	return (
-		<div className="container max-w-4xl mx-auto px-4 py-12">
+		<div className="container mx-auto max-w-4xl px-4 py-12">
 			<style jsx>{`
 				.legal-content {
 					font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
@@ -45,10 +45,10 @@ export default function PrivacyPage() {
 				}
 			`}</style>
 
-			<h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
+			<h1 className="mb-6 font-bold text-3xl">Privacy Policy</h1>
 
 			<div className="legal-content prose dark:prose-invert max-w-none">
-				<p className="text-muted-foreground mb-6">
+				<p className="mb-6 text-muted-foreground">
 					Last updated: {new Date().toLocaleDateString()}
 				</p>
 
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
 						<div>
 							<h3>Personal Information</h3>
 							<p className="mb-2">When you create an account, we collect:</p>
-							<ul className="list-disc pl-6 space-y-2">
+							<ul className="list-disc space-y-2 pl-6">
 								<li>Email address</li>
 								<li>Name (optional)</li>
 								<li>Profile picture (optional)</li>
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
 						<div>
 							<h3>Pet Health Information</h3>
 							<p className="mb-2">To provide our services, we collect:</p>
-							<ul className="list-disc pl-6 space-y-2">
+							<ul className="list-disc space-y-2 pl-6">
 								<li>Pet names, species, and basic information</li>
 								<li>Medication names, dosages, and schedules</li>
 								<li>Administration records and timestamps</li>
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
 						<div>
 							<h3>Usage Information</h3>
 							<p className="mb-2">We automatically collect:</p>
-							<ul className="list-disc pl-6 space-y-2">
+							<ul className="list-disc space-y-2 pl-6">
 								<li>Device information (type, operating system)</li>
 								<li>Browser type and version</li>
 								<li>IP address (anonymized)</li>
@@ -107,7 +107,7 @@ export default function PrivacyPage() {
 				<section className="mb-6">
 					<h2>How We Use Your Information</h2>
 					<p className="mb-4">We use the collected information to:</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>Provide and maintain the medication tracking service</li>
 						<li>Send medication reminders and notifications</li>
 						<li>Enable multi-household and caregiver features</li>
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
 						We implement industry-standard security measures to protect your
 						data:
 					</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>Encryption in transit (TLS/SSL) and at rest</li>
 						<li>Secure authentication through trusted OAuth providers</li>
 						<li>Regular security audits and updates</li>
@@ -143,7 +143,7 @@ export default function PrivacyPage() {
 					<p className="mb-4">
 						We do not sell your personal information. We may share data:
 					</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>
 							<strong>With your consent:</strong> When you explicitly authorize
 							sharing
@@ -170,7 +170,7 @@ export default function PrivacyPage() {
 				<section className="mb-6">
 					<h2>Your Rights and Choices</h2>
 					<p className="mb-4">You have the right to:</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>
 							<strong>Access:</strong> Request a copy of your personal data
 						</li>
@@ -227,7 +227,7 @@ export default function PrivacyPage() {
 				<section className="mb-6">
 					<h2>Third-Party Services</h2>
 					<p className="mb-4">Our Service integrates with:</p>
-					<ul className="list-disc pl-6 space-y-2 mb-4">
+					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>
 							<strong>Clerk:</strong> For authentication services
 						</li>
@@ -286,14 +286,14 @@ export default function PrivacyPage() {
 					</ul>
 				</section>
 
-				<div className="mt-12 pt-8 border-t">
+				<div className="mt-12 border-t pt-8">
 					<div className="flex items-center justify-between">
 						<Link href="/terms" className="text-primary hover:underline">
 							Terms of Service
 						</Link>
 						<Separator
 							orientation="vertical"
-							className="h-4 mx-4 hidden sm:block"
+							className="mx-4 hidden h-4 sm:block"
 						/>
 						<span className="text-muted-foreground sm:hidden">|</span>
 						<Link href="/cookies" className="text-primary hover:underline">

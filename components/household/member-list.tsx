@@ -202,7 +202,7 @@ export function MemberList() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold">Household & Roles</h2>
+					<h2 className="font-bold text-2xl">Household & Roles</h2>
 					<p className="text-muted-foreground">
 						Manage household members and their permissions
 					</p>
@@ -231,7 +231,7 @@ export function MemberList() {
 									</div>
 								</AccordionTrigger>
 								<AccordionContent>
-									<ul className="text-sm text-muted-foreground space-y-1 pl-6">
+									<ul className="space-y-1 pl-6 text-muted-foreground text-sm">
 										<li>• Full access to everything</li>
 										<li>• Manage members and roles</li>
 										<li>• Delete household data</li>
@@ -247,7 +247,7 @@ export function MemberList() {
 									</div>
 								</AccordionTrigger>
 								<AccordionContent>
-									<ul className="text-sm text-muted-foreground space-y-1 pl-6">
+									<ul className="space-y-1 pl-6 text-muted-foreground text-sm">
 										<li>• Record medications</li>
 										<li>• Edit own records (10min window)</li>
 										<li>• Manage inventory</li>
@@ -265,7 +265,7 @@ export function MemberList() {
 									</div>
 								</AccordionTrigger>
 								<AccordionContent>
-									<ul className="text-sm text-muted-foreground space-y-1 pl-6">
+									<ul className="space-y-1 pl-6 text-muted-foreground text-sm">
 										<li>• View history and insights</li>
 										<li>• Export data</li>
 										<li>• No write permissions</li>
@@ -280,7 +280,7 @@ export function MemberList() {
 									<Crown className="h-4 w-4 text-yellow-600" />
 									<span className="font-medium">Owner</span>
 								</div>
-								<ul className="text-sm text-muted-foreground space-y-1">
+								<ul className="space-y-1 text-muted-foreground text-sm">
 									<li>• Full access to everything</li>
 									<li>• Manage members and roles</li>
 									<li>• Delete household data</li>
@@ -292,7 +292,7 @@ export function MemberList() {
 									<Shield className="h-4 w-4 text-blue-600" />
 									<span className="font-medium">Caregiver</span>
 								</div>
-								<ul className="text-sm text-muted-foreground space-y-1">
+								<ul className="space-y-1 text-muted-foreground text-sm">
 									<li>• Record medications</li>
 									<li>• Edit own records (10min window)</li>
 									<li>• Manage inventory</li>
@@ -306,7 +306,7 @@ export function MemberList() {
 									<Eye className="h-4 w-4 text-gray-600" />
 									<span className="font-medium">Vet Read-Only</span>
 								</div>
-								<ul className="text-sm text-muted-foreground space-y-1">
+								<ul className="space-y-1 text-muted-foreground text-sm">
 									<li>• View history and insights</li>
 									<li>• Export data</li>
 									<li>• No write permissions</li>
@@ -327,15 +327,15 @@ export function MemberList() {
 						{members.map((member) => (
 							<div
 								key={member.id}
-								className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3"
+								className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
 							>
-								<div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+								<div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
 									<Avatar className="flex-shrink-0">
 										{member.avatar && <AvatarImage src={member.avatar} />}
 										<AvatarFallback
 											className={cn(
 												getAvatarColor(member.name || member.email),
-												"text-white font-medium text-sm",
+												"font-medium text-sm text-white",
 											)}
 										>
 											{(
@@ -347,13 +347,13 @@ export function MemberList() {
 									</Avatar>
 
 									<div className="min-w-0 flex-1">
-										<div className="font-medium truncate">
+										<div className="truncate font-medium">
 											{member.name || member.email}
 										</div>
-										<div className="text-sm text-muted-foreground truncate">
+										<div className="truncate text-muted-foreground text-sm">
 											{member.email}
 										</div>
-										<div className="text-xs text-muted-foreground">
+										<div className="text-muted-foreground text-xs">
 											<span className="block sm:inline">
 												Joined {member.joinedAt.toLocaleDateString()}
 											</span>
@@ -415,7 +415,7 @@ export function MemberList() {
 										>
 											{(() => {
 												const Icon = roleIcons[member.role];
-												return Icon ? <Icon className="h-3 w-3 mr-1" /> : null;
+												return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
 											})()}
 											<span className="hidden sm:inline">{member.role}</span>
 											<span className="sm:hidden">
@@ -443,16 +443,16 @@ export function MemberList() {
 							{pendingInvites.map((invite) => (
 								<div
 									key={invite.id}
-									className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg bg-muted/50 gap-3"
+									className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between"
 								>
-									<div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
-										<div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+									<div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+										<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted">
 											<Mail className="h-4 w-4 text-muted-foreground" />
 										</div>
 
 										<div className="min-w-0 flex-1">
-											<div className="font-medium truncate">{invite.email}</div>
-											<div className="text-sm text-muted-foreground">
+											<div className="truncate font-medium">{invite.email}</div>
+											<div className="text-muted-foreground text-sm">
 												<span className="block sm:inline">
 													Invited by {invite.invitedBy}
 												</span>
@@ -461,7 +461,7 @@ export function MemberList() {
 													{invite.invitedAt.toLocaleDateString()}
 												</span>
 											</div>
-											<div className="text-xs text-muted-foreground">
+											<div className="text-muted-foreground text-xs">
 												Expires {invite.expiresAt.toLocaleDateString()}
 											</div>
 										</div>
@@ -476,7 +476,7 @@ export function MemberList() {
 										>
 											{(() => {
 												const Icon = roleIcons[invite.role];
-												return Icon ? <Icon className="h-3 w-3 mr-1" /> : null;
+												return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
 											})()}
 											<span className="hidden sm:inline">{invite.role}</span>
 											<span className="sm:hidden">
@@ -497,14 +497,14 @@ export function MemberList() {
 													<DropdownMenuItem
 														onClick={() => handleResendInvite(invite.id)}
 													>
-														<Mail className="h-4 w-4 mr-2" />
+														<Mail className="mr-2 h-4 w-4" />
 														Resend Invite
 													</DropdownMenuItem>
 													<DropdownMenuItem
 														onClick={() => handleRevokeInvite(invite.id)}
 														className="text-destructive"
 													>
-														<Trash2 className="h-4 w-4 mr-2" />
+														<Trash2 className="mr-2 h-4 w-4" />
 														Revoke Invite
 													</DropdownMenuItem>
 												</DropdownMenuContent>

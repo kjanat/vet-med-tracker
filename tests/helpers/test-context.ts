@@ -23,8 +23,8 @@ export function createTestContext(): ClerkContext {
 		reminderLeadTimeMinutes: 15,
 		emergencyContactName: null,
 		emergencyContactPhone: null,
-		createdAt: new Date(),
-		updatedAt: new Date(),
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
 	};
 
 	const mockClerkUser = {
@@ -76,23 +76,23 @@ export function createTestContext(): ClerkContext {
 			userId: "test-user-id",
 			householdId: "test-household-id",
 			role: "OWNER" as const,
-			createdAt: new Date(),
-			updatedAt: new Date(),
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 		},
 		availableHouseholds: [
 			{
 				id: "test-household-id",
 				name: "Test Household",
 				timezone: "America/New_York",
-				createdAt: new Date(),
-				updatedAt: new Date(),
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
 				membership: {
 					id: "test-membership-id",
 					userId: "test-user-id",
 					householdId: "test-household-id",
 					role: "OWNER" as const,
-					createdAt: new Date(),
-					updatedAt: new Date(),
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
 				},
 			},
 		],

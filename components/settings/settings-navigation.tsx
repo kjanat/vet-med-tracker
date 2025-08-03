@@ -72,12 +72,12 @@ export function SettingsNavigation({
 
 	// Desktop: Tab list
 	return (
-		<TabsList className="w-full h-auto p-1 grid grid-cols-4 gap-1">
+		<TabsList className="grid h-auto w-full grid-cols-4 gap-1 p-1">
 			{tabs.map((tab) => (
 				<TabsTrigger
 					key={tab.value}
 					value={tab.value}
-					className="w-full justify-start min-h-[44px]"
+					className="min-h-[44px] w-full justify-start"
 				>
 					{tab.label}
 				</TabsTrigger>

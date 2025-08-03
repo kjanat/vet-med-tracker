@@ -102,7 +102,7 @@ export function ProgressiveAvatar({
 		return (
 			<div
 				className={cn(
-					"flex items-center justify-center rounded-full bg-muted text-muted-foreground font-medium",
+					"flex items-center justify-center rounded-full bg-muted font-medium text-muted-foreground",
 					className,
 				)}
 				style={{ width: size, height: size, fontSize: size * 0.4 }}
@@ -169,7 +169,7 @@ export function LazyImage({
 	return (
 		<div ref={setRef} className={cn("relative", className)}>
 			{!isInView ? (
-				<Skeleton className="w-full h-full" style={{ width, height }} />
+				<Skeleton className="h-full w-full" style={{ width, height }} />
 			) : (
 				<ProgressiveImage
 					src={src}

@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 import { eq, inArray } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/neon-http";
-import * as schema from "@/server/db/schema";
+import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
+import type { db } from "@/db/drizzle";
+import * as schema from "@/db/schema";
 
 // For integration tests, we'll use a test-specific schema or database
 // This requires a test database URL in your environment
-export function createTestDatabase() {
+export function createTestDatabase(): typeof db {
 	const testDatabaseUrl =
 		process.env.TEST_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
 
@@ -16,27 +17,34 @@ export function createTestDatabase() {
 		);
 	}
 
-	const sql = neon(testDatabaseUrl);
-	const db = drizzle(sql, {
+	// Always use Neon HTTP driver to match the main application database type
+	// This ensures type compatibility with ClerkContext
+	console.log(
+		"Using Neon HTTP driver for tests:",
+		testDatabaseUrl.split("@")[1]?.split("?")[0],
+	);
+	const sql = neon(testDatabaseUrl, {
+		disableWarningInBrowsers: true,
+	});
+	const testDb = drizzleHttp(sql, {
 		schema,
 		logger: false, // Disable logging in tests
 	});
 
-	return db;
+	// Type assertion to ensure compatibility with main db type
+	return testDb as typeof db;
 }
 
 // Test data factories
 export const testFactories = {
 	user: (overrides = {}) => ({
-		id: randomUUID(),
 		email: `test-${randomUUID()}@example.com`,
 		name: "Test User",
-		emailVerified: new Date(),
+		emailVerified: new Date().toISOString(),
 		...overrides,
 	}),
 
 	household: (overrides = {}) => ({
-		id: randomUUID(),
 		name: "Test Household",
 		...overrides,
 	}),
@@ -49,16 +57,14 @@ export const testFactories = {
 	}),
 
 	animal: (overrides = {}) => ({
-		id: randomUUID(),
 		name: "Test Pet",
 		species: "Dog",
-		householdId: randomUUID(),
+		householdId: randomUUID(), // This should be provided by the test
 		timezone: "America/New_York",
 		...overrides,
 	}),
 
 	medication: (overrides = {}) => ({
-		id: randomUUID(),
 		genericName: "Test Medication",
 		route: "ORAL" as const,
 		form: "TABLET" as const,
@@ -67,9 +73,8 @@ export const testFactories = {
 
 	regimen: (overrides = {}) => {
 		const defaults = {
-			id: randomUUID(),
-			animalId: randomUUID(),
-			medicationId: randomUUID(),
+			animalId: randomUUID(), // This should be provided by the test
+			medicationId: randomUUID(), // This should be provided by the test
 			active: true,
 			scheduleType: "FIXED" as const,
 			timesLocal: ["10:00", "22:00"],
@@ -81,14 +86,12 @@ export const testFactories = {
 	},
 
 	administration: (overrides = {}) => ({
-		id: randomUUID(),
-		regimenId: randomUUID(),
-		animalId: randomUUID(),
-		householdId: randomUUID(),
-		caregiverId: randomUUID(),
+		regimenId: randomUUID(), // This should be provided by the test
+		animalId: randomUUID(), // This should be provided by the test
+		householdId: randomUUID(), // This should be provided by the test
+		caregiverId: randomUUID(), // This should be provided by the test
 		status: "ON_TIME" as const,
-		recordedAt: new Date(),
-		administeredAt: new Date(),
+		recordedAt: new Date().toISOString(),
 		idempotencyKey: randomUUID(),
 		...overrides,
 	}),
@@ -100,6 +103,17 @@ export async function cleanupTestData(
 	householdId: string,
 ) {
 	// Delete in reverse order of foreign key dependencies
+
+	// First delete audit logs and notifications that reference this household
+	await db
+		.delete(schema.auditLog)
+		.where(eq(schema.auditLog.householdId, householdId));
+
+	await db
+		.delete(schema.notificationQueue)
+		.where(eq(schema.notificationQueue.householdId, householdId));
+
+	// Then delete administrations
 	await db
 		.delete(schema.administrations)
 		.where(eq(schema.administrations.householdId, householdId));
@@ -118,6 +132,11 @@ export async function cleanupTestData(
 			),
 		);
 	}
+
+	// Delete inventory items
+	await db
+		.delete(schema.inventoryItems)
+		.where(eq(schema.inventoryItems.householdId, householdId));
 
 	await db
 		.delete(schema.animals)

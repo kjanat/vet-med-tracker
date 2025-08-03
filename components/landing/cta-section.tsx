@@ -18,41 +18,41 @@ export function CtaSection() {
 
 	return (
 		<section className="py-20">
-			<div className="container max-w-4xl mx-auto px-4">
-				<div className="bg-primary/5 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
+			<div className="container mx-auto max-w-4xl px-4">
+				<div className="relative overflow-hidden rounded-3xl bg-primary/5 p-8 text-center md:p-12">
 					{/* Background decoration */}
-					<div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
-					<div className="absolute -bottom-20 -left-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+					<div className="-top-20 -right-20 absolute h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+					<div className="-bottom-20 -left-20 absolute h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
 
 					<div className="relative z-10">
 						{/* Heading */}
-						<h2 className="text-3xl md:text-4xl font-bold mb-4">
+						<h2 className="mb-4 font-bold text-3xl md:text-4xl">
 							Start Caring Smarter Today
 						</h2>
-						<p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+						<p className="mx-auto mb-8 max-w-2xl text-muted-foreground text-xl">
 							Join thousands of pet parents who never worry about missed
 							medications again.
 						</p>
 
 						{/* Benefits */}
-						<div className="flex flex-wrap justify-center gap-4 mb-8">
+						<div className="mb-8 flex flex-wrap justify-center gap-4">
 							{benefits.map((benefit) => (
 								<div
 									key={`benefit-${benefit.substring(0, 20).replace(/\s+/g, "-").toLowerCase()}`}
 									className="flex items-center gap-2"
 								>
-									<CheckCircle className="w-5 h-5 text-green-600" />
-									<span className="text-sm font-medium">{benefit}</span>
+									<CheckCircle className="h-5 w-5 text-green-600" />
+									<span className="font-medium text-sm">{benefit}</span>
 								</div>
 							))}
 						</div>
 
 						{/* CTA buttons */}
-						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+						<div className="flex flex-col justify-center gap-4 sm:flex-row">
 							{isLoaded && !user && (
 								<Button
 									size="lg"
-									className="text-lg px-8"
+									className="px-8 text-lg"
 									onClick={() => openSignIn()}
 								>
 									Get Started Free
@@ -60,7 +60,7 @@ export function CtaSection() {
 								</Button>
 							)}
 							{isLoaded && user && (
-								<Button size="lg" className="text-lg px-8" asChild>
+								<Button size="lg" className="px-8 text-lg" asChild>
 									<Link href="/dashboard">
 										Go to Dashboard
 										<ArrowRight className="ml-2 h-5 w-5" />
@@ -70,7 +70,7 @@ export function CtaSection() {
 							<Button
 								size="lg"
 								variant="outline"
-								className="text-lg px-8"
+								className="px-8 text-lg"
 								asChild
 							>
 								<Link href="/contact">Questions? Contact Us</Link>
@@ -78,7 +78,7 @@ export function CtaSection() {
 						</div>
 
 						{/* Trust text */}
-						<p className="text-sm text-muted-foreground mt-8">
+						<p className="mt-8 text-muted-foreground text-sm">
 							Trusted by veterinarians and pet parents worldwide
 						</p>
 					</div>

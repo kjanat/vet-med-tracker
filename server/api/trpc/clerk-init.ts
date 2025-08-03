@@ -3,8 +3,14 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { db } from "../../db";
-import type { households, memberships, users } from "../../db/schema";
+import { dbPooled as db } from "@/db/drizzle";
+import type { households, memberships, users } from "@/db/schema";
+import { createTRPCConnectionMiddleware } from "@/lib/connection-middleware";
+import {
+	createEnhancedError,
+	setupGlobalErrorHandling,
+	toUserFriendlyError,
+} from "@/lib/error-handling";
 import {
 	determineCurrentHousehold,
 	setupAuthenticatedUser,
@@ -15,7 +21,7 @@ export interface ClerkContext {
 	db: typeof db;
 	headers: Headers;
 	requestedHouseholdId: string | null;
-	auth: Awaited<ReturnType<typeof auth>>;
+	auth: Awaited<ReturnType<typeof auth>> | null;
 	clerkUser: Awaited<ReturnType<typeof currentUser>>;
 	dbUser: typeof users.$inferSelect | null;
 	currentHouseholdId: string | null;
@@ -104,16 +110,40 @@ export const createClerkTRPCContext = async (
 	}
 };
 
-// Initialize tRPC with Clerk context
+// Setup global error handling
+setupGlobalErrorHandling();
+
+// Initialize tRPC with Clerk context and enhanced error handling
 const t = initTRPC.context<ClerkContext>().create({
 	transformer: superjson,
-	errorFormatter({ shape, error }) {
+	errorFormatter({ shape, error, path }) {
+		// Create enhanced error for reporting
+		const enhancedError = createEnhancedError(error, {
+			endpoint: "trpc",
+			operation: path || "unknown",
+		});
+
+		// Report error for monitoring (ErrorReporter not implemented)
+		console.error("Error:", enhancedError);
+
+		// Convert to user-friendly error
+		const userFriendlyError = toUserFriendlyError(error);
+
 		return {
 			...shape,
 			data: {
 				...shape.data,
 				zodError:
 					error.cause instanceof ZodError ? error.cause.flatten() : null,
+				userFriendly: {
+					message: userFriendlyError.userMessage,
+					suggestedActions: userFriendlyError.suggestedActions,
+					retryable: userFriendlyError.retryable,
+					retryAfter: userFriendlyError.retryAfter,
+					degraded: userFriendlyError.degradedMode,
+					contactSupport: userFriendlyError.contactSupport,
+				},
+				errorId: enhancedError.id,
 			},
 		};
 	},
@@ -123,35 +153,40 @@ const t = initTRPC.context<ClerkContext>().create({
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 
+// Connection middleware for tRPC procedures
+const connectionMiddleware = createTRPCConnectionMiddleware();
+
 // Base procedures
-export const publicProcedure = t.procedure;
+export const publicProcedure = t.procedure.use(connectionMiddleware);
 
 // Protected procedure - requires Clerk authentication
-export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
-	if (!ctx.auth?.userId || !ctx.dbUser) {
-		throw new TRPCError({
-			code: "UNAUTHORIZED",
-			message: "You must be logged in to perform this action",
-		});
-	}
+export const protectedProcedure = t.procedure
+	.use(connectionMiddleware)
+	.use(async ({ ctx, next }) => {
+		if (!ctx.auth?.userId || !ctx.dbUser) {
+			throw new TRPCError({
+				code: "UNAUTHORIZED",
+				message: "You must be logged in to perform this action",
+			});
+		}
 
-	if (!ctx.clerkUser) {
-		throw new TRPCError({
-			code: "INTERNAL_SERVER_ERROR",
-			message: "Clerk user data is missing",
-		});
-	}
+		if (!ctx.clerkUser) {
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Clerk user data is missing",
+			});
+		}
 
-	return next({
-		ctx: {
-			...ctx,
-			// TypeScript now knows these are non-null
-			auth: ctx.auth,
-			clerkUser: ctx.clerkUser,
-			dbUser: ctx.dbUser,
-		},
+		return next({
+			ctx: {
+				...ctx,
+				// TypeScript now knows these are non-null
+				auth: ctx.auth,
+				clerkUser: ctx.clerkUser,
+				dbUser: ctx.dbUser,
+			},
+		});
 	});
-});
 
 // Household-scoped procedure - requires household membership
 export const householdProcedure = protectedProcedure.use(

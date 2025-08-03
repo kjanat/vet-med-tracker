@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { memberships } from "@/db/schema";
 import { protectedProcedure } from "../../api/trpc/clerk-init";
-import { memberships } from "../../db/schema";
 
 export type Role = "OWNER" | "CAREGIVER" | "VETREADONLY";
 
@@ -75,14 +75,14 @@ export const requireReadAccess = requireMembership([
 
 // Verify resource belongs to household
 export const verifyResourceAccess = async (
-	db: typeof import("../../db").db,
+	db: typeof import("@/db/drizzle").db,
 	householdId: string,
 	resourceType: "animal" | "regimen" | "inventory",
 	resourceId: string,
 ) => {
 	let belongsToHousehold = false;
 
-	const { animals, regimens, inventoryItems } = await import("../../db/schema");
+	const { animals, regimens, inventoryItems } = await import("@/db/schema");
 
 	switch (resourceType) {
 		case "animal": {
@@ -135,35 +135,4 @@ export const verifyResourceAccess = async (
 			message: `${resourceType} does not belong to this household`,
 		});
 	}
-};
-
-// Audit logging helper - TODO: Implement when audit_log table is added
-export const createAuditLog = async (
-	_db: typeof import("../../db").db,
-	{
-		userId,
-		householdId,
-		action,
-		resourceType,
-		resourceId,
-		details,
-	}: {
-		userId: string;
-		householdId: string;
-		action: string;
-		resourceType: string;
-		resourceId?: string;
-		details?: Record<string, unknown>;
-	},
-) => {
-	// TODO: Implement audit logging when audit_log table is added to schema
-	console.log("Audit log:", {
-		userId,
-		householdId,
-		action,
-		resourceType,
-		resourceId,
-		details,
-		timestamp: new Date(),
-	});
 };

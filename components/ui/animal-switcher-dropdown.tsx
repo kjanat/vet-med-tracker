@@ -57,7 +57,7 @@ export function AnimalSwitcherDropdown() {
 				value={selectedAnimal?.id || "all"}
 				onValueChange={handleAnimalChange}
 			>
-				<SelectTrigger className="w-full h-9 px-3">
+				<SelectTrigger className="h-9 w-full px-3">
 					<SelectValue>
 						{selectedAnimal ? (
 							<div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export function AnimalSwitcherDropdown() {
 								)}
 							</div>
 						) : (
-							<div className="flex items-center justify-between w-full">
+							<div className="flex w-full items-center justify-between">
 								<span>All Animals</span>
 								{totalPendingMeds > 0 && (
 									<Badge variant="secondary" className="h-5 px-1.5 text-xs">
@@ -86,7 +86,7 @@ export function AnimalSwitcherDropdown() {
 				</SelectTrigger>
 				<SelectContent>
 					<SelectItem value="all">
-						<div className="flex items-center justify-between w-full pr-2">
+						<div className="flex w-full items-center justify-between pr-2">
 							<span>All Animals</span>
 							{totalPendingMeds > 0 && (
 								<Badge variant="secondary" className="ml-4 h-5 px-1.5 text-xs">
@@ -97,9 +97,9 @@ export function AnimalSwitcherDropdown() {
 					</SelectItem>
 					{animals.map((animal) => (
 						<SelectItem key={animal.id} value={animal.id}>
-							<div className="flex items-center gap-2 w-full pr-2">
+							<div className="flex w-full items-center gap-2 pr-2">
 								<AnimalAvatar animal={animal} size="xs" />
-								<span className="truncate flex-1">{animal.name}</span>
+								<span className="flex-1 truncate">{animal.name}</span>
 								{animal.pendingMeds > 0 && (
 									<Badge
 										variant="destructive"

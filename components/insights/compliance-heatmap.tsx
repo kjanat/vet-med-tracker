@@ -154,7 +154,7 @@ export function ComplianceHeatmap({
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{/* Filters */}
-					<div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3">
+					<div className="flex flex-col flex-wrap items-start gap-3 sm:flex-row sm:items-center">
 						<Select
 							value={selectedAnimalId}
 							onValueChange={setSelectedAnimalId}
@@ -190,16 +190,16 @@ export function ComplianceHeatmap({
 							<PopoverTrigger asChild>
 								<Button
 									variant="outline"
-									className="gap-2 bg-transparent w-full sm:w-auto"
+									className="w-full gap-2 bg-transparent sm:w-auto"
 								>
 									<Calendar className="h-4 w-4" />
 									{format(range.from, "MMM d")} - {format(range.to, "MMM d")}
 								</Button>
 							</PopoverTrigger>
 							<PopoverContent className="w-auto p-0" align="start">
-								<div className="p-4 space-y-4">
+								<div className="space-y-4 p-4">
 									<div className="space-y-2">
-										<p className="text-sm font-medium">From</p>
+										<p className="font-medium text-sm">From</p>
 										<CalendarComponent
 											mode="single"
 											selected={range.from}
@@ -210,7 +210,7 @@ export function ComplianceHeatmap({
 										/>
 									</div>
 									<div className="space-y-2">
-										<p className="text-sm font-medium">To</p>
+										<p className="font-medium text-sm">To</p>
 										<CalendarComponent
 											mode="single"
 											selected={range.to}
@@ -226,7 +226,7 @@ export function ComplianceHeatmap({
 
 					{/* Heatmap Grid */}
 					<div className="overflow-x-auto">
-						<div className="space-y-2 min-w-[640px]">
+						<div className="min-w-[640px] space-y-2">
 							{/* Hour labels */}
 							<div className="grid grid-cols-[40px_repeat(24,_1fr)] gap-1 text-xs">
 								<div></div> {/* Empty corner */}
@@ -247,7 +247,7 @@ export function ComplianceHeatmap({
 									key={`day-${day}`}
 									className="grid grid-cols-[40px_repeat(24,_1fr)] gap-1"
 								>
-									<div className="text-xs font-medium text-muted-foreground py-1">
+									<div className="py-1 font-medium text-muted-foreground text-xs">
 										{day}
 									</div>
 									{hours.map((hour) => {
@@ -257,7 +257,7 @@ export function ComplianceHeatmap({
 												type="button"
 												key={hour}
 												className={cn(
-													"aspect-square rounded cursor-pointer transition-all hover:scale-110 hover:shadow-md w-full",
+													"aspect-square w-full cursor-pointer rounded transition-all hover:scale-110 hover:shadow-md",
 													getCellColor(bucket),
 													bucket && bucket.count > 0
 														? "hover:ring-2 hover:ring-primary"
@@ -281,22 +281,22 @@ export function ComplianceHeatmap({
 					</div>
 
 					{/* Legend */}
-					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-muted-foreground">
+					<div className="flex flex-col items-start justify-between gap-3 text-muted-foreground text-xs sm:flex-row sm:items-center">
 						<div className="flex flex-wrap items-center gap-3">
 							<div className="flex items-center gap-1">
-								<div className="w-3 h-3 bg-gray-100 rounded"></div>
+								<div className="h-3 w-3 rounded bg-gray-100"></div>
 								<span>No doses</span>
 							</div>
 							<div className="flex items-center gap-1">
-								<div className="w-3 h-3 bg-green-300 rounded"></div>
+								<div className="h-3 w-3 rounded bg-green-300"></div>
 								<span>On time</span>
 							</div>
 							<div className="flex items-center gap-1">
-								<div className="w-3 h-3 bg-orange-300 rounded"></div>
+								<div className="h-3 w-3 rounded bg-orange-300"></div>
 								<span>Some late</span>
 							</div>
 							<div className="flex items-center gap-1">
-								<div className="w-3 h-3 bg-red-300 rounded"></div>
+								<div className="h-3 w-3 rounded bg-red-300"></div>
 								<span>Many missed</span>
 							</div>
 						</div>
@@ -322,22 +322,22 @@ export function ComplianceHeatmap({
 						<div className="mt-6 space-y-4">
 							<div className="grid grid-cols-3 gap-4 text-center">
 								<div>
-									<div className="text-2xl font-bold">{selectedCell.count}</div>
-									<div className="text-sm text-muted-foreground">
+									<div className="font-bold text-2xl">{selectedCell.count}</div>
+									<div className="text-muted-foreground text-sm">
 										Total doses
 									</div>
 								</div>
 								<div>
-									<div className="text-2xl font-bold text-orange-600">
+									<div className="font-bold text-2xl text-orange-600">
 										{selectedCell.latePct}%
 									</div>
-									<div className="text-sm text-muted-foreground">Late</div>
+									<div className="text-muted-foreground text-sm">Late</div>
 								</div>
 								<div>
-									<div className="text-2xl font-bold text-red-600">
+									<div className="font-bold text-2xl text-red-600">
 										{selectedCell.missedPct}%
 									</div>
-									<div className="text-sm text-muted-foreground">Missed</div>
+									<div className="text-muted-foreground text-sm">Missed</div>
 								</div>
 							</div>
 
@@ -345,20 +345,20 @@ export function ComplianceHeatmap({
 								<h4 className="font-medium">Sample Events</h4>
 								{/* Mock sample events */}
 								<div className="space-y-2">
-									<div className="p-3 border rounded-lg">
+									<div className="rounded-lg border p-3">
 										<div className="font-medium">Buddy - Rimadyl 75mg</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted-foreground text-sm">
 											Recorded at 8:15 AM • 15 min late
 										</div>
 										<Badge variant="secondary" className="mt-1">
 											Late
 										</Badge>
 									</div>
-									<div className="p-3 border rounded-lg">
+									<div className="rounded-lg border p-3">
 										<div className="font-medium">
 											Whiskers - Insulin 2 units
 										</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted-foreground text-sm">
 											Recorded at 8:02 AM • On time
 										</div>
 										<Badge variant="default" className="mt-1">
@@ -369,7 +369,7 @@ export function ComplianceHeatmap({
 							</div>
 
 							<Button onClick={handleOpenInHistory} className="w-full">
-								<Filter className="h-4 w-4 mr-2" />
+								<Filter className="mr-2 h-4 w-4" />
 								Open in History
 							</Button>
 						</div>
