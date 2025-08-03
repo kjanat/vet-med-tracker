@@ -23,6 +23,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { BROWSER_ZONE } from "@/utils/timezone-helpers";
 
 interface HouseholdSettings {
 	primaryHouseholdName: string;
@@ -53,7 +54,7 @@ const defaultSettings: HouseholdSettings = {
 		city: "",
 		state: "",
 		zipCode: "",
-		timezone: "America/New_York",
+		timezone: BROWSER_ZONE || "America/New_York",
 	},
 	householdRoles: ["Owner", "Primary Caregiver"],
 	preferredVeterinarian: {

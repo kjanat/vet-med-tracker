@@ -3,12 +3,17 @@
 import type React from "react";
 import { createContext, useContext, useState } from "react";
 import { AnimalForm } from "@/components/settings/animals/animal-form";
+import { useToast } from "@/hooks/use-toast";
 import type { Animal } from "@/lib/types";
+import { trpc } from "@/server/trpc/client";
+import { BROWSER_ZONE } from "@/utils/timezone-helpers";
+import { useApp } from "./app-provider";
 
 interface AnimalFormContextValue {
 	openForm: (animal?: Animal | null) => void;
 	closeForm: () => void;
 	isOpen: boolean;
+	isLoading: boolean;
 }
 
 const AnimalFormContext = createContext<AnimalFormContextValue | undefined>(
@@ -30,6 +35,26 @@ interface AnimalFormProviderProps {
 export function AnimalFormProvider({ children }: AnimalFormProviderProps) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [editingAnimal, setEditingAnimal] = useState<Animal | null>(null);
+	const { selectedHousehold } = useApp();
+	const { toast } = useToast();
+	const utils = trpc.useUtils();
+
+	// tRPC mutations
+	const createAnimal = trpc.animal.create.useMutation({
+		onSuccess: () => {
+			// Invalidate queries to refresh data
+			utils.animal.list.invalidate();
+			utils.household.getAnimals.invalidate();
+		},
+	});
+
+	const updateAnimal = trpc.animal.update.useMutation({
+		onSuccess: () => {
+			// Invalidate queries to refresh data
+			utils.animal.list.invalidate();
+			utils.household.getAnimals.invalidate();
+		},
+	});
 
 	const openForm = (animal?: Animal | null) => {
 		setEditingAnimal(animal || null);
@@ -42,35 +67,90 @@ export function AnimalFormProvider({ children }: AnimalFormProviderProps) {
 	};
 
 	const handleSave = async (data: Partial<Animal>) => {
-		console.log("Saving animal:", data);
+		if (!selectedHousehold) {
+			toast({
+				title: "Error",
+				description: "No household selected",
+				variant: "destructive",
+			});
+			return;
+		}
 
-		// Fire instrumentation event
-		window.dispatchEvent(
-			new CustomEvent(
-				editingAnimal ? "settings_animals_update" : "settings_animals_create",
-				{
-					detail: { animalId: editingAnimal?.id, name: data.name },
-				},
-			),
-		);
+		// Validate required fields
+		if (!editingAnimal && (!data.name || !data.species)) {
+			toast({
+				title: "Error",
+				description: "Name and species are required",
+				variant: "destructive",
+			});
+			return;
+		}
 
-		// TODO: tRPC mutation
-		// if (editingAnimal) {
-		//   await updateAnimal.mutateAsync({ id: editingAnimal.id, ...data })
-		// } else {
-		//   await createAnimal.mutateAsync({ householdId, ...data })
-		// }
+		try {
+			// Fire instrumentation event
+			window.dispatchEvent(
+				new CustomEvent(
+					editingAnimal ? "settings_animals_update" : "settings_animals_create",
+					{
+						detail: { animalId: editingAnimal?.id, name: data.name },
+					},
+				),
+			);
 
-		closeForm();
+			if (editingAnimal) {
+				// Update existing animal
+				await updateAnimal.mutateAsync({
+					id: editingAnimal.id,
+					...data,
+					// Convert dates and numbers to proper format
+					dob: data.dob ? data.dob.toISOString() : undefined,
+					weightKg: data.weightKg,
+				});
 
-		// Show success toast
-		console.log(`${editingAnimal ? "Updated" : "Created"} ${data.name}`);
+				toast({
+					title: "Success",
+					description: `Updated ${data.name}`,
+				});
+			} else {
+				// Create new animal - safe to use non-null since we validated above
+				const name = data.name as string;
+				const species = data.species as string;
+
+				await createAnimal.mutateAsync({
+					...data,
+					name,
+					species,
+					// Convert dates and numbers to proper format
+					dob: data.dob ? data.dob.toISOString() : undefined,
+					weightKg: data.weightKg,
+					// Provide defaults for required fields
+					allergies: data.allergies || [],
+					conditions: data.conditions || [],
+					timezone: data.timezone || BROWSER_ZONE || "America/New_York",
+				});
+
+				toast({
+					title: "Success",
+					description: `Created ${name}`,
+				});
+			}
+
+			closeForm();
+		} catch (error) {
+			console.error("Error saving animal:", error);
+			toast({
+				title: "Error",
+				description: `Failed to ${editingAnimal ? "update" : "create"} ${data.name || "animal"}`,
+				variant: "destructive",
+			});
+		}
 	};
 
 	const contextValue: AnimalFormContextValue = {
 		openForm,
 		closeForm,
 		isOpen,
+		isLoading: createAnimal.isPending || updateAnimal.isPending,
 	};
 
 	return (
