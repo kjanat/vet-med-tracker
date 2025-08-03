@@ -96,7 +96,7 @@ export async function withDatabaseTimeout<T>(
 }
 
 // Initialize monitoring lazy to avoid circular dependency
-let monitor: {
+const monitor: {
 	startMonitoring(
 		interval: number,
 		onAlert: (violations: string[], metrics: unknown) => void,
@@ -338,24 +338,24 @@ export const timedOperations = {
 };
 
 // Initialize monitoring in production - only in Node.js runtime, not Edge Runtime
-if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
-	// Lazy load DatabaseMonitor to avoid circular dependency
-	import("@/lib/db-monitoring").then(({ DatabaseMonitor }) => {
-		monitor = new DatabaseMonitor();
-		monitor.startMonitoring(60000, (violations: string[], metrics: unknown) => {
-			const metricsTyped = metrics as ConnectionMetrics;
-			console.error("Database health alert:", {
-				violations,
-				metrics: {
-					responseTime: metricsTyped.responseTime,
-					usagePercentage: metricsTyped.usagePercentage,
-					connectionCount: metricsTyped.connectionCount,
-					isHealthy: metricsTyped.isHealthy,
-				},
-			});
-		});
-	});
-}
+// if (typeof process !== "undefined" && process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === 'production') {
+// 	// Lazy load DatabaseMonitor to avoid circular dependency
+// 	import("@/lib/db-monitoring").then(({ DatabaseMonitor }) => {
+// 		monitor = new DatabaseMonitor();
+// 		monitor.startMonitoring(60000, (violations: string[], metrics: unknown) => {
+// 			const metricsTyped = metrics as ConnectionMetrics;
+// 			console.error("Database health alert:", {
+// 				violations,
+// 				metrics: {
+// 					responseTime: metricsTyped.responseTime,
+// 					usagePercentage: metricsTyped.usagePercentage,
+// 					connectionCount: metricsTyped.connectionCount,
+// 					isHealthy: metricsTyped.isHealthy,
+// 				},
+// 			});
+// 		});
+// 	});
+// }
 
 // Graceful shutdown handling - only in Node.js runtime, not Edge Runtime
 if (typeof process !== "undefined" && process.on) {

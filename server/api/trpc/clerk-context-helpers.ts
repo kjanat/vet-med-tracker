@@ -1,7 +1,7 @@
 import type { User as ClerkUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { dbPooled as db } from "@/db/drizzle";
-import { households, memberships, type users } from "@/db/schema";
+import { households, memberships, users } from "@/db/schema";
 import { type ClerkUserData, syncUserToDatabase } from "../clerk-sync";
 
 interface HouseholdWithMembership {
