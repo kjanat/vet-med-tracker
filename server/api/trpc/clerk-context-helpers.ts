@@ -168,9 +168,16 @@ export async function setupAuthenticatedUser(
 	currentMembership: typeof memberships.$inferSelect | null;
 	availableHouseholds: HouseholdWithMembership[];
 }> {
-	// Sync user to database
-	const clerkUserData = buildClerkUserData(userId, clerkUser);
-	const dbUser = await syncUserToDatabase(clerkUserData);
+	// Check if user exists in the database
+	let dbUser = await db.query.users.findFirst({
+		where: eq(users.clerkUserId, userId),
+	});
+
+	// If user doesn't exist, sync them from Clerk
+	if (!dbUser) {
+		const clerkUserData = buildClerkUserData(userId, clerkUser);
+		dbUser = await syncUserToDatabase(clerkUserData);
+	}
 
 	// Get user's household memberships
 	let availableHouseholds = await getUserHouseholds(dbUser.id);
