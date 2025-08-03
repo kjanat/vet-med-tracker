@@ -117,7 +117,7 @@ export function labelFor(
 /** Search zones with ranking */
 export function searchZones(query: string): IanaZone[] {
 	const q = query.trim().toLowerCase();
-	if (!q) return IANA_TIMEZONES;
+	if (!q) return IANA_TIMEZONES as IanaZone[];
 
 	// Expand alias first
 	const alias = TZ_ALIASES[q.toUpperCase() as TzAlias];

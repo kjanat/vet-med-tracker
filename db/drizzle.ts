@@ -2,7 +2,6 @@
 import { neon, Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
-import type { ConnectionMetrics } from "@/lib/db-monitoring";
 import * as schema from "./schema";
 
 // Timeout configurations for different operation types

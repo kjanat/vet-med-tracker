@@ -66,83 +66,113 @@ export function AnimalFormProvider({ children }: AnimalFormProviderProps) {
 		setEditingAnimal(null);
 	};
 
-	const handleSave = async (data: Partial<Animal>) => {
+	// Helper function to validate form data
+	const validateFormData = (data: Partial<Animal>): boolean => {
 		if (!selectedHousehold) {
 			toast({
 				title: "Error",
 				description: "No household selected",
 				variant: "destructive",
 			});
-			return;
+			return false;
 		}
 
-		// Validate required fields
 		if (!editingAnimal && (!data.name || !data.species)) {
 			toast({
 				title: "Error",
 				description: "Name and species are required",
 				variant: "destructive",
 			});
+			return false;
+		}
+
+		return true;
+	};
+
+	// Helper function to fire instrumentation events
+	const fireInstrumentationEvent = (data: Partial<Animal>) => {
+		const eventType = editingAnimal
+			? "settings_animals_update"
+			: "settings_animals_create";
+		window.dispatchEvent(
+			new CustomEvent(eventType, {
+				detail: { animalId: editingAnimal?.id, name: data.name },
+			}),
+		);
+	};
+
+	// Helper function to transform data for API calls
+	const transformAnimalData = (data: Partial<Animal>) => {
+		return {
+			...data,
+			dob: data.dob ? data.dob.toISOString() : undefined,
+			weightKg: data.weightKg,
+		};
+	};
+
+	// Helper function to handle animal updates
+	const handleUpdateAnimal = async (data: Partial<Animal>) => {
+		if (!editingAnimal) return;
+
+		await updateAnimal.mutateAsync({
+			id: editingAnimal.id,
+			...transformAnimalData(data),
+		});
+
+		toast({
+			title: "Success",
+			description: `Updated ${data.name}`,
+		});
+	};
+
+	// Helper function to handle animal creation
+	const handleCreateAnimal = async (data: Partial<Animal>) => {
+		const name = data.name as string;
+		const species = data.species as string;
+
+		await createAnimal.mutateAsync({
+			...transformAnimalData(data),
+			name,
+			species,
+			allergies: data.allergies || [],
+			conditions: data.conditions || [],
+			timezone: data.timezone || BROWSER_ZONE || "America/New_York",
+		});
+
+		toast({
+			title: "Success",
+			description: `Created ${name}`,
+		});
+	};
+
+	// Helper function to handle save errors
+	const handleSaveError = (error: unknown, data: Partial<Animal>) => {
+		console.error("Error saving animal:", error);
+		const action = editingAnimal ? "update" : "create";
+		toast({
+			title: "Error",
+			description: `Failed to ${action} ${data.name || "animal"}`,
+			variant: "destructive",
+		});
+	};
+
+	const handleSave = async (data: Partial<Animal>) => {
+		if (!validateFormData(data)) {
 			return;
 		}
 
 		try {
-			// Fire instrumentation event
-			window.dispatchEvent(
-				new CustomEvent(
-					editingAnimal ? "settings_animals_update" : "settings_animals_create",
-					{
-						detail: { animalId: editingAnimal?.id, name: data.name },
-					},
-				),
-			);
+			fireInstrumentationEvent(data);
 
 			if (editingAnimal) {
-				// Update existing animal
-				await updateAnimal.mutateAsync({
-					id: editingAnimal.id,
-					...data,
-					// Convert dates and numbers to proper format
-					dob: data.dob ? data.dob.toISOString() : undefined,
-					weightKg: data.weightKg,
-				});
-
-				toast({
-					title: "Success",
-					description: `Updated ${data.name}`,
-				});
+				await handleUpdateAnimal(data);
 			} else {
-				// Create new animal - safe to use non-null since we validated above
-				const name = data.name as string;
-				const species = data.species as string;
-
-				await createAnimal.mutateAsync({
-					...data,
-					name,
-					species,
-					// Convert dates and numbers to proper format
-					dob: data.dob ? data.dob.toISOString() : undefined,
-					weightKg: data.weightKg,
-					// Provide defaults for required fields
-					allergies: data.allergies || [],
-					conditions: data.conditions || [],
-					timezone: data.timezone || BROWSER_ZONE || "America/New_York",
-				});
-
-				toast({
-					title: "Success",
-					description: `Created ${name}`,
-				});
+				await handleCreateAnimal(data);
 			}
 
 			closeForm();
 		} catch (error) {
-			console.error("Error saving animal:", error);
-			toast({
-				title: "Error",
-				description: `Failed to ${editingAnimal ? "update" : "create"} ${data.name || "animal"}`,
-				variant: "destructive",
-			});
+			handleSaveError(error, data);
 		}
 	};
 

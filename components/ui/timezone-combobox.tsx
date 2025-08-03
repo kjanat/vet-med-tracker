@@ -113,6 +113,7 @@ export function TimezoneCombobox({
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
+				{/* biome-ignore lint/a11y/useSemanticElements: This is correct for shadcn/ui Command pattern */}
 				<Button
 					variant="outline"
 					role="combobox"
@@ -133,9 +134,9 @@ export function TimezoneCombobox({
 							<>
 								<span className="font-medium">
 									{currentDisplay.zone
-										.split("/")
+										?.split("/")
 										.slice(-1)[0]
-										.replace(/_/g, " ")}
+										?.replace(/_/g, " ")}
 								</span>
 								<span className="ml-2 hidden text-muted-foreground sm:inline">
 									({currentDisplay.offset}, {currentDisplay.time})
@@ -201,7 +202,7 @@ export function TimezoneCombobox({
 											/>
 											<div className="flex flex-col">
 												<span className="font-medium">
-													{zone.split("/").slice(-1)[0].replace(/_/g, " ")}
+													{zone?.split("/").slice(-1)[0]?.replace(/_/g, " ")}
 												</span>
 												<span className="text-muted-foreground text-sm">
 													{zone}
@@ -238,7 +239,7 @@ export function TimezoneCombobox({
 									/>
 									<div className="flex flex-col">
 										<span className="font-medium">
-											{zone.split("/").slice(-1)[0].replace(/_/g, " ")}
+											{zone?.split("/").slice(-1)[0]?.replace(/_/g, " ")}
 										</span>
 										<span className="text-muted-foreground text-sm">
 											{zone}

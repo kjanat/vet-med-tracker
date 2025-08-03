@@ -187,13 +187,12 @@ export const householdRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			// Helper function to convert time string to minutes since midnight
+			// Helper functions for time and date calculations
 			const timeToMinutes = (timeStr: string): number => {
 				const [hours, minutes] = timeStr.split(":").map(Number);
 				return (hours ?? 0) * 60 + (minutes ?? 0);
 			};
 
-			// Helper function to get local date/time for timezone
 			const getLocalDateTime = (timezone: string, date = new Date()) => {
 				const localDateStr = date.toLocaleDateString("en-CA", {
 					timeZone: timezone,
@@ -211,11 +210,125 @@ export const householdRouter = createTRPCRouter({
 				};
 			};
 
-			// Get current timestamp for calculations
+			// Helper function to check if a regimen should be skipped
+			const shouldSkipRegimen = (
+				regimen: {
+					scheduleType: string;
+					endDate: string | null;
+					timesLocal: string[] | null;
+				},
+				currentDateStr: string,
+			): boolean => {
+				return (
+					regimen.scheduleType === "PRN" ||
+					(regimen.endDate && regimen.endDate < currentDateStr) ||
+					!regimen.timesLocal ||
+					regimen.timesLocal.length === 0
+				);
+			};
+
+			// Helper function to check if a dose is pending
+			const isDosePending = (
+				localMinutes: number,
+				scheduledMinutes: number,
+				cutoffMinutes: number,
+			): boolean => {
+				const minutesPastScheduled = localMinutes - scheduledMinutes;
+				return (
+					minutesPastScheduled > 0 && minutesPastScheduled <= cutoffMinutes
+				);
+			};
+
+			// Helper function to get UTC day boundaries for a scheduled time
+			const getUTCDayBoundaries = (
+				localDateStr: string,
+				scheduledTime: string,
+			) => {
+				const scheduledDateTime = new Date(
+					`${localDateStr}T${scheduledTime}:00`,
+				);
+				const scheduledUTC = new Date(
+					scheduledDateTime.toLocaleString("en-US", { timeZone: "UTC" }),
+				);
+				const startOfDayUTC = new Date(scheduledUTC);
+				startOfDayUTC.setHours(0, 0, 0, 0);
+				const endOfDayUTC = new Date(scheduledUTC);
+				endOfDayUTC.setHours(23, 59, 59, 999);
+				return { startOfDayUTC, endOfDayUTC };
+			};
+
+			// Helper function to check if administration exists for a time slot
+			const hasExistingAdministration = async (
+				regimenId: string,
+				animalId: string,
+				startOfDayUTC: Date,
+				endOfDayUTC: Date,
+			): Promise<boolean> => {
+				const existingAdmin = await ctx.db
+					.select()
+					.from(administrations)
+					.where(
+						and(
+							eq(administrations.regimenId, regimenId),
+							eq(administrations.animalId, animalId),
+							gte(administrations.recordedAt, startOfDayUTC.toISOString()),
+							lte(administrations.recordedAt, endOfDayUTC.toISOString()),
+						),
+					)
+					.limit(1);
+				return existingAdmin.length > 0;
+			};
+
+			// Helper function to process scheduled times for a regimen
+			const processScheduledTimes = async (
+				regimen: {
+					id: string;
+					timesLocal: string[] | null;
+					cutoffMinutes: number;
+				},
+				animal: { id: string },
+				localDateStr: string,
+				localMinutes: number,
+			): Promise<number> => {
+				let pendingCount = 0;
+
+				// Check if timesLocal is null or empty
+				if (!regimen.timesLocal || regimen.timesLocal.length === 0) {
+					return 0;
+				}
+
+				for (const scheduledTime of regimen.timesLocal) {
+					const scheduledMinutes = timeToMinutes(scheduledTime);
+					const cutoffMinutes = regimen.cutoffMinutes;
+
+					if (!isDosePending(localMinutes, scheduledMinutes, cutoffMinutes)) {
+						continue;
+					}
+
+					const { startOfDayUTC, endOfDayUTC } = getUTCDayBoundaries(
+						localDateStr,
+						scheduledTime,
+					);
+					const hasAdmin = await hasExistingAdministration(
+						regimen.id,
+						animal.id,
+						startOfDayUTC,
+						endOfDayUTC,
+					);
+
+					if (!hasAdmin) {
+						pendingCount++;
+					}
+				}
+
+				return pendingCount;
+			};
+
+			// Main logic starts here
 			const now = new Date();
 			const currentDateStr = now.toISOString().split("T")[0] as string;
 
-			// Build conditions for animals
+			// Build animal query conditions
 			const animalConditions = [
 				eq(animals.householdId, input.householdId),
 				isNull(animals.deletedAt),
@@ -225,7 +338,7 @@ export const householdRouter = createTRPCRouter({
 				animalConditions.push(eq(animals.id, input.animalId));
 			}
 
-			// Get active regimens for animals in household
+			// Fetch active regimens
 			const activeRegimens = await ctx.db
 				.select({
 					regimen: regimens,
@@ -244,29 +357,16 @@ export const householdRouter = createTRPCRouter({
 						eq(regimens.active, true),
 						isNull(regimens.deletedAt),
 						isNull(regimens.pausedAt),
-						// Regimen must have started
 						lte(regimens.startDate, currentDateStr),
-						// And not ended (if endDate is set)
 					),
 				);
 
-			// If requesting all animals, create a map for efficient counting
+			// Process regimens and count pending doses
 			const pendingByAnimal = new Map<string, number>();
 			let totalPendingCount = 0;
 
 			for (const { regimen, animal } of activeRegimens) {
-				// Skip PRN regimens as they don't have scheduled times
-				if (regimen.scheduleType === "PRN") {
-					continue;
-				}
-
-				// Check if regimen has ended
-				if (regimen.endDate && regimen.endDate < currentDateStr) {
-					continue;
-				}
-
-				// Skip regimens without scheduled times
-				if (!regimen.timesLocal || regimen.timesLocal.length === 0) {
+				if (shouldSkipRegimen(regimen, currentDateStr)) {
 					continue;
 				}
 
@@ -274,63 +374,23 @@ export const householdRouter = createTRPCRouter({
 					animal.timezone,
 					now,
 				);
+				const pendingForRegimen = await processScheduledTimes(
+					regimen,
+					animal,
+					localDateStr,
+					localMinutes,
+				);
 
-				// For each scheduled time today, check if it's due or late
-				for (const scheduledTime of regimen.timesLocal) {
-					const scheduledMinutes = timeToMinutes(scheduledTime);
-					const cutoffMinutes = regimen.cutoffMinutes;
-
-					// Calculate if this dose should be considered "pending"
-					// Pending = past scheduled time but within cutoff window
-					const minutesPastScheduled = localMinutes - scheduledMinutes;
-
-					// Only consider doses that are past their scheduled time but not yet at cutoff
-					if (
-						minutesPastScheduled > 0 &&
-						minutesPastScheduled <= cutoffMinutes
-					) {
-						// Check if this dose has already been administered today
-						const scheduledDateTime = new Date(
-							`${localDateStr}T${scheduledTime}:00`,
-						);
-
-						// Convert back to UTC for database comparison
-						const scheduledUTC = new Date(
-							scheduledDateTime.toLocaleString("en-US", { timeZone: "UTC" }),
-						);
-						const startOfDayUTC = new Date(scheduledUTC);
-						startOfDayUTC.setHours(0, 0, 0, 0);
-						const endOfDayUTC = new Date(scheduledUTC);
-						endOfDayUTC.setHours(23, 59, 59, 999);
-
-						// Check for existing administration for this time slot today
-						const existingAdmin = await ctx.db
-							.select()
-							.from(administrations)
-							.where(
-								and(
-									eq(administrations.regimenId, regimen.id),
-									eq(administrations.animalId, animal.id),
-									gte(administrations.recordedAt, startOfDayUTC.toISOString()),
-									lte(administrations.recordedAt, endOfDayUTC.toISOString()),
-								),
-							)
-							.limit(1);
-
-						// If no administration found for this time slot, it's pending
-						if (existingAdmin.length === 0) {
-							totalPendingCount++;
-							// Track per animal if not querying for specific animal
-							if (!input.animalId) {
-								const currentCount = pendingByAnimal.get(animal.id) || 0;
-								pendingByAnimal.set(animal.id, currentCount + 1);
-							}
-						}
+				if (pendingForRegimen > 0) {
+					totalPendingCount += pendingForRegimen;
+					if (!input.animalId) {
+						const currentCount = pendingByAnimal.get(animal.id) || 0;
+						pendingByAnimal.set(animal.id, currentCount + pendingForRegimen);
 					}
 				}
 			}
 
-			// Return different structures based on whether a specific animal was requested
+			// Return results based on query type
 			if (input.animalId) {
 				return { pendingCount: totalPendingCount };
 			} else {
@@ -505,7 +565,7 @@ export const householdRouter = createTRPCRouter({
 						),
 					);
 
-				if (ownerCount[0]?.count <= 1) {
+				if (!ownerCount[0] || ownerCount[0].count <= 1) {
 					throw new TRPCError({
 						code: "BAD_REQUEST",
 						message: "Cannot remove the last owner from the household",
@@ -600,7 +660,7 @@ export const householdRouter = createTRPCRouter({
 						),
 					);
 
-				if (ownerCount[0]?.count <= 1) {
+				if (!ownerCount[0] || ownerCount[0].count <= 1) {
 					throw new TRPCError({
 						code: "BAD_REQUEST",
 						message: "Cannot remove the last owner from the household",

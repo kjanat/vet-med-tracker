@@ -87,15 +87,35 @@ function calculateComplianceStats(
 	return { latePct, missedPct };
 }
 
-// Generate suggestions based on patterns in administration data
-async function generateSuggestions(
+// Helper function to format hour as 12-hour time string
+function formatHourAs12Hour(hour: number): string {
+	if (hour === 0) return "12:00 AM";
+	if (hour < 12) return `${hour}:00 AM`;
+	if (hour === 12) return "12:00 PM";
+	return `${hour - 12}:00 PM`;
+}
+
+// Helper function to get day name from day of week number
+function getDayName(dow: number): string {
+	const dayNames = [
+		"Sunday",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+	];
+	return dayNames[dow] || "Unknown";
+}
+
+// Generate reminder suggestions based on compliance patterns
+async function generateReminderSuggestions(
 	db: typeof import("@/db/drizzle").db,
 	householdId: string,
-	limit: number,
 ): Promise<Suggestion[]> {
 	const suggestions: Suggestion[] = [];
 
-	// Get patterns for missed/late doses by day of week and time
 	const complianceQuery = sql`
 		SELECT 
 			r.id as regimen_id,
@@ -125,7 +145,6 @@ async function generateSuggestions(
 		"compliance-patterns-analysis",
 	);
 
-	// Generate reminder suggestions for problematic time slots
 	for (const row of complianceResults.rows.slice(0, 3)) {
 		const problemRate =
 			((Number(row.late_doses) + Number(row.missed_doses)) /
@@ -133,25 +152,9 @@ async function generateSuggestions(
 			100;
 
 		if (problemRate >= 25) {
-			const dayNames = [
-				"Sunday",
-				"Monday",
-				"Tuesday",
-				"Wednesday",
-				"Thursday",
-				"Friday",
-				"Saturday",
-			];
-			const dayName = dayNames[Number(row.dow)] || "Unknown";
+			const dayName = getDayName(Number(row.dow));
 			const hour = Number(row.hour);
-			const timeStr =
-				hour === 0
-					? "12:00 AM"
-					: hour < 12
-						? `${hour}:00 AM`
-						: hour === 12
-							? "12:00 PM"
-							: `${hour - 12}:00 PM`;
+			const timeStr = formatHourAs12Hour(hour);
 
 			suggestions.push({
 				id: `add-reminder-${row.regimen_id}-${row.dow}-${row.hour}`,
@@ -171,7 +174,16 @@ async function generateSuggestions(
 		}
 	}
 
-	// Check for low inventory items
+	return suggestions;
+}
+
+// Generate low inventory suggestions
+async function generateLowInventorySuggestions(
+	db: typeof import("@/db/drizzle").db,
+	householdId: string,
+): Promise<Suggestion[]> {
+	const suggestions: Suggestion[] = [];
+
 	const lowInventoryQuery = db
 		.select({
 			id: inventoryItems.id,
@@ -228,7 +240,16 @@ async function generateSuggestions(
 		});
 	}
 
-	// Check for regimens requiring co-sign due to overlapping administrations
+	return suggestions;
+}
+
+// Generate co-sign suggestions based on overlapping administrations
+async function generateCoSignSuggestions(
+	db: typeof import("@/db/drizzle").db,
+	householdId: string,
+): Promise<Suggestion[]> {
+	const suggestions: Suggestion[] = [];
+
 	const overlapQuery = sql`
 		SELECT 
 			r.id as regimen_id,
@@ -271,13 +292,37 @@ async function generateSuggestions(
 		});
 	}
 
-	// Return only the requested number of suggestions, prioritized by severity
-	return suggestions
-		.sort((a, b) => {
-			const priorityOrder = { high: 3, medium: 2, low: 1 };
-			return priorityOrder[b.priority] - priorityOrder[a.priority];
-		})
-		.slice(0, limit);
+	return suggestions;
+}
+
+// Helper function to sort suggestions by priority
+function sortSuggestionsByPriority(suggestions: Suggestion[]): Suggestion[] {
+	const priorityOrder = { high: 3, medium: 2, low: 1 };
+	return suggestions.sort((a, b) => {
+		return priorityOrder[b.priority] - priorityOrder[a.priority];
+	});
+}
+
+// Generate suggestions based on patterns in administration data
+async function generateSuggestions(
+	db: typeof import("@/db/drizzle").db,
+	householdId: string,
+	limit: number,
+): Promise<Suggestion[]> {
+	const [reminderSuggestions, inventorySuggestions, coSignSuggestions] =
+		await Promise.all([
+			generateReminderSuggestions(db, householdId),
+			generateLowInventorySuggestions(db, householdId),
+			generateCoSignSuggestions(db, householdId),
+		]);
+
+	const allSuggestions = [
+		...reminderSuggestions,
+		...inventorySuggestions,
+		...coSignSuggestions,
+	];
+
+	return sortSuggestionsByPriority(allSuggestions).slice(0, limit);
 }
 
 // Generate compliance heatmap data

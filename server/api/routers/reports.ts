@@ -4,10 +4,8 @@ import { z } from "zod";
 import {
 	administrations,
 	animals,
-	inventoryItems,
 	medicationCatalog,
 	regimens,
-	users,
 } from "@/db/schema";
 import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 

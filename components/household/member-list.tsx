@@ -62,6 +62,12 @@ export interface PendingInvite {
 	expiresAt: Date;
 }
 
+export interface MemberListProps {
+	members: Member[];
+	pendingInvites?: PendingInvite[];
+	userRole?: "OWNER" | "CAREGIVER" | "VETREADONLY";
+}
+
 const roleIcons = {
 	OWNER: Crown,
 	CAREGIVER: Shield,
@@ -69,96 +75,260 @@ const roleIcons = {
 };
 
 const roleColors = {
-	OWNER: "bg-yellow-100 text-yellow-800 border-yellow-200",
-	CAREGIVER: "bg-blue-100 text-blue-800 border-blue-200",
-	VETREADONLY: "bg-gray-100 text-gray-800 border-gray-200",
+	OWNER:
+		"bg-purple-100 text-purple-900 dark:bg-purple-900/20 dark:text-purple-400",
+	CAREGIVER: "bg-blue-100 text-blue-900 dark:bg-blue-900/20 dark:text-blue-400",
+	VETREADONLY:
+		"bg-gray-100 text-gray-900 dark:bg-gray-900/20 dark:text-gray-400",
 };
 
-export function MemberList() {
-	const [inviteFormOpen, setInviteFormOpen] = useState(false);
-	const { selectedHousehold } = useApp();
-	const { user: clerkUser } = useUser();
-	const { toast } = useToast();
-	const isMobile = useMediaQuery("(max-width: 768px)");
-	const utils = trpc.useUtils();
-
-	// Get household members
-	const { data: membersData = [], isLoading: membersLoading } =
-		trpc.household.getMembers.useQuery(
-			{ householdId: selectedHousehold?.id ?? "" },
-			{ enabled: !!selectedHousehold?.id },
-		);
-
-	// Transform data to match UI expectations
-	const members = membersData.map((member) => ({
-		id: member.id,
-		userId: member.userId,
-		email: member.user.email,
-		name: member.user.name,
-		avatar: member.user.image,
-		role: member.role,
-		joinedAt: new Date(member.createdAt),
-		lastActiveAt: new Date(member.updatedAt),
-	}));
-
-	// For now, use empty array for pending invites since we don't have a full invitation system
-	const pendingInvites: PendingInvite[] = [];
-
-	// Check if current user can manage roles (must be OWNER)
-	const currentUserMembership = membersData.find(
-		(m) => m.user.email === clerkUser?.emailAddresses[0]?.emailAddress,
+// Extracted component for Member Avatar
+function MemberAvatar({ member }: { member: Member }) {
+	return (
+		<Avatar className="flex-shrink-0">
+			{member.avatar && <AvatarImage src={member.avatar} />}
+			<AvatarFallback
+				className={cn(
+					getAvatarColor(member.name || member.email),
+					"font-medium text-sm text-white",
+				)}
+			>
+				{(member.name?.[0] || member.email?.[0] || "?").toUpperCase()}
+			</AvatarFallback>
+		</Avatar>
 	);
-	const canManageRoles = currentUserMembership?.role === "OWNER";
+}
+
+// Extracted component for Member Info
+function MemberInfo({ member }: { member: Member }) {
+	return (
+		<div className="min-w-0 flex-1">
+			<div className="truncate font-medium">{member.name || member.email}</div>
+			<div className="truncate text-muted-foreground text-sm">
+				{member.email}
+			</div>
+			<div className="text-muted-foreground text-xs">
+				<span className="block sm:inline">
+					Joined {member.joinedAt.toLocaleDateString()}
+				</span>
+				{member.lastActiveAt && (
+					<span className="block sm:inline">
+						<span className="hidden sm:inline"> • </span>
+						<span className="sm:hidden">Last active </span>
+						<span className="hidden sm:inline">Last active </span>
+						{member.lastActiveAt.toLocaleString()}
+					</span>
+				)}
+			</div>
+		</div>
+	);
+}
+
+// Extracted component for Role Badge
+function RoleBadge({ role }: { role: Member["role"] }) {
+	const Icon = roleIcons[role];
+	const roleLabels = {
+		OWNER: { full: "Owner", short: "Own" },
+		CAREGIVER: { full: "Caregiver", short: "Care" },
+		VETREADONLY: { full: "Vet Read-Only", short: "Vet" },
+	};
+
+	return (
+		<Badge className={cn(roleColors[role], "text-xs sm:text-sm")}>
+			{Icon && <Icon className="mr-1 h-3 w-3" />}
+			<span className="hidden sm:inline">{roleLabels[role].full}</span>
+			<span className="sm:hidden">{roleLabels[role].short}</span>
+		</Badge>
+	);
+}
+
+// Extracted component for Role Selector
+function RoleSelector({
+	currentRole,
+	onRoleChange,
+	disabled,
+}: {
+	currentRole: Member["role"];
+	onRoleChange: (role: Member["role"]) => void;
+	disabled: boolean;
+}) {
+	return (
+		<Select
+			value={currentRole}
+			onValueChange={(value) => onRoleChange(value as Member["role"])}
+			disabled={disabled}
+		>
+			<SelectTrigger className="w-[110px] sm:w-[140px]">
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="OWNER">
+					<div className="flex items-center gap-2">
+						<Crown className="h-4 w-4" />
+						<span className="hidden sm:inline">Owner</span>
+						<span className="sm:hidden">Own</span>
+					</div>
+				</SelectItem>
+				<SelectItem value="CAREGIVER">
+					<div className="flex items-center gap-2">
+						<Shield className="h-4 w-4" />
+						<span className="hidden sm:inline">Caregiver</span>
+						<span className="sm:hidden">Care</span>
+					</div>
+				</SelectItem>
+				<SelectItem value="VETREADONLY">
+					<div className="flex items-center gap-2">
+						<Eye className="h-4 w-4" />
+						<span className="hidden sm:inline">Vet Read-Only</span>
+						<span className="sm:hidden">Vet</span>
+					</div>
+				</SelectItem>
+			</SelectContent>
+		</Select>
+	);
+}
+
+// Extracted component for Member Item
+function MemberItem({
+	member,
+	canManageRoles,
+	currentUserId,
+	onRoleChange,
+	isUpdating,
+}: {
+	member: Member;
+	canManageRoles: boolean;
+	currentUserId?: string;
+	onRoleChange: (memberId: string, role: Member["role"]) => void;
+	isUpdating: boolean;
+}) {
+	return (
+		<div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+			<div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+				<MemberAvatar member={member} />
+				<MemberInfo member={member} />
+			</div>
+
+			<div className="flex items-center gap-3 self-end sm:self-center">
+				{canManageRoles && member.userId !== currentUserId ? (
+					<RoleSelector
+						currentRole={member.role}
+						onRoleChange={(role) => onRoleChange(member.id, role)}
+						disabled={isUpdating}
+					/>
+				) : (
+					<RoleBadge role={member.role} />
+				)}
+			</div>
+		</div>
+	);
+}
+
+// Extracted component for Pending Invite Item
+function PendingInviteItem({
+	invite,
+	onResend,
+	onRevoke,
+	isExpired,
+}: {
+	invite: PendingInvite;
+	onResend: (inviteId: string) => void;
+	onRevoke: (inviteId: string) => void;
+	isExpired: boolean;
+}) {
+	return (
+		<div className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+			<div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+				<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted">
+					<Mail className="h-4 w-4 text-muted-foreground" />
+				</div>
+
+				<div className="min-w-0 flex-1">
+					<div className="truncate font-medium">{invite.email}</div>
+					<div className="text-muted-foreground text-sm">
+						<span className="block sm:inline">
+							Invited by {invite.invitedBy}
+						</span>
+						<span className="block sm:inline">
+							<span className="hidden sm:inline"> • </span>
+							<span className="sm:hidden">Expires </span>
+							<span className="hidden sm:inline">Expires </span>
+							{invite.expiresAt.toLocaleDateString()}
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<div className="flex items-center gap-3 self-end sm:self-center">
+				<RoleBadge role={invite.role} />
+
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button size="icon" variant="ghost">
+							<MoreHorizontal className="h-4 w-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						{!isExpired && (
+							<DropdownMenuItem onClick={() => onResend(invite.id)}>
+								Resend Invite
+							</DropdownMenuItem>
+						)}
+						<DropdownMenuItem
+							onClick={() => onRevoke(invite.id)}
+							className="text-destructive"
+						>
+							<Trash2 className="mr-2 h-4 w-4" />
+							Revoke Invite
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
+		</div>
+	);
+}
+
+export function MemberList({
+	members,
+	pendingInvites = [],
+	userRole = "CAREGIVER",
+}: MemberListProps) {
+	const { user: clerkUser } = useUser();
+	const { selectedHousehold } = useApp();
+	const { toast } = useToast();
+	const isMobile = useMediaQuery("(max-width: 640px)");
+	const [isInviteFormOpen, setIsInviteFormOpen] = useState(false);
+
+	// Check if current user can manage roles
+	const canManageRoles = userRole === "OWNER";
 
 	// Mutations
-	const inviteMemberMutation = trpc.household.inviteMember.useMutation({
-		onSuccess: (data) => {
-			toast({
-				title: "Success",
-				description: data.message,
-				variant: "default",
-			});
-			utils.household.getMembers.invalidate();
-		},
-		onError: (error) => {
-			toast({
-				title: "Error",
-				description: error.message,
-				variant: "destructive",
-			});
-		},
-	});
-
 	const updateRoleMutation = trpc.household.updateMemberRole.useMutation({
 		onSuccess: (data) => {
 			toast({
-				title: "Success",
+				title: "Role updated",
 				description: data.message,
-				variant: "default",
 			});
-			utils.household.getMembers.invalidate();
 		},
 		onError: (error) => {
 			toast({
-				title: "Error",
+				title: "Failed to update role",
 				description: error.message,
 				variant: "destructive",
 			});
 		},
 	});
 
-	const removeMemberMutation = trpc.household.removeMember.useMutation({
+	const _removeMemberMutation = trpc.household.removeMember.useMutation({
 		onSuccess: (data) => {
 			toast({
-				title: "Success",
+				title: "Member removed",
 				description: data.message,
-				variant: "default",
 			});
-			utils.household.getMembers.invalidate();
 		},
 		onError: (error) => {
 			toast({
-				title: "Error",
+				title: "Failed to remove member",
 				description: error.message,
 				variant: "destructive",
 			});
@@ -168,14 +338,13 @@ export function MemberList() {
 	const resendInviteMutation = trpc.household.resendInvite.useMutation({
 		onSuccess: (data) => {
 			toast({
-				title: "Success",
+				title: "Invite resent",
 				description: data.message,
-				variant: "default",
 			});
 		},
 		onError: (error) => {
 			toast({
-				title: "Error",
+				title: "Failed to resend invite",
 				description: error.message,
 				variant: "destructive",
 			});
@@ -185,349 +354,99 @@ export function MemberList() {
 	const revokeInviteMutation = trpc.household.revokeInvite.useMutation({
 		onSuccess: (data) => {
 			toast({
-				title: "Success",
+				title: "Invite revoked",
 				description: data.message,
-				variant: "default",
 			});
 		},
 		onError: (error) => {
 			toast({
-				title: "Error",
+				title: "Failed to revoke invite",
 				description: error.message,
 				variant: "destructive",
 			});
 		},
 	});
 
-	if (membersLoading) {
-		return <div>Loading members...</div>;
-	}
-
-	if (!selectedHousehold) {
-		return <div>Please select a household</div>;
-	}
-
-	const handleInvite = async (
-		email: string,
-		role: "OWNER" | "CAREGIVER" | "VETREADONLY",
-	) => {
-		if (!selectedHousehold?.id) return;
-
-		// Fire instrumentation event
-		window.dispatchEvent(
-			new CustomEvent("settings_household_invite", {
-				detail: { email, role },
-			}),
-		);
-
-		try {
-			await inviteMemberMutation.mutateAsync({
-				householdId: selectedHousehold.id,
-				email,
-				role,
-			});
-			setInviteFormOpen(false);
-		} catch (error) {
-			// Error handled by mutation onError
-			console.error("Failed to invite member:", error);
-		}
+	const handleRoleChange = (membershipId: string, newRole: Member["role"]) => {
+		if (!selectedHousehold) return;
+		updateRoleMutation.mutate({
+			householdId: selectedHousehold.id,
+			membershipId,
+			newRole,
+		});
 	};
 
-	const handleRoleChange = async (
-		memberId: string,
-		newRole: "OWNER" | "CAREGIVER" | "VETREADONLY",
-	) => {
-		if (!canManageRoles || !selectedHousehold?.id) return;
-
-		// Fire instrumentation event
-		window.dispatchEvent(
-			new CustomEvent("settings_household_role_change", {
-				detail: { memberId, newRole },
-			}),
-		);
-
-		try {
-			await updateRoleMutation.mutateAsync({
-				householdId: selectedHousehold.id,
-				membershipId: memberId,
-				newRole,
-			});
-		} catch (error) {
-			// Error handled by mutation onError
-			console.error("Failed to update role:", error);
-		}
+	const handleResendInvite = (inviteId: string) => {
+		if (!selectedHousehold) return;
+		resendInviteMutation.mutate({
+			householdId: selectedHousehold.id,
+			inviteId,
+		});
 	};
 
-	const handleRevokeInvite = async (inviteId: string) => {
-		if (!selectedHousehold?.id) return;
-
-		try {
-			await revokeInviteMutation.mutateAsync({
-				householdId: selectedHousehold.id,
-				inviteId,
-			});
-		} catch (error) {
-			// Error handled by mutation onError
-			console.error("Failed to revoke invite:", error);
-		}
-	};
-
-	const handleResendInvite = async (inviteId: string) => {
-		if (!selectedHousehold?.id) return;
-
-		try {
-			await resendInviteMutation.mutateAsync({
-				householdId: selectedHousehold.id,
-				inviteId,
-			});
-		} catch (error) {
-			// Error handled by mutation onError
-			console.error("Failed to resend invite:", error);
-		}
+	const handleRevokeInvite = (inviteId: string) => {
+		if (!selectedHousehold) return;
+		revokeInviteMutation.mutate({
+			householdId: selectedHousehold.id,
+			inviteId,
+		});
 	};
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h2 className="font-bold text-2xl">Household & Roles</h2>
-					<p className="text-muted-foreground">
-						Manage household members and their permissions
-					</p>
-				</div>
-				{canManageRoles && (
-					<Button
-						onClick={() => setInviteFormOpen(true)}
-						className="gap-2"
-						disabled={inviteMemberMutation.isPending}
-					>
-						<Plus className="h-4 w-4" />
-						Invite Member
-					</Button>
-				)}
-			</div>
-
-			{/* Permission Matrix Info */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-lg">Role Permissions</CardTitle>
-				</CardHeader>
-				<CardContent>
-					{isMobile ? (
-						<Accordion type="single" collapsible className="w-full">
-							<AccordionItem value="owner">
-								<AccordionTrigger className="text-left">
-									<div className="flex items-center gap-2">
-										<Crown className="h-4 w-4 text-yellow-600" />
-										<span className="font-medium">Owner</span>
-									</div>
-								</AccordionTrigger>
-								<AccordionContent>
-									<ul className="space-y-1 pl-6 text-muted-foreground text-sm">
-										<li>• Full access to everything</li>
-										<li>• Manage members and roles</li>
-										<li>• Delete household data</li>
-									</ul>
-								</AccordionContent>
-							</AccordionItem>
-
-							<AccordionItem value="caregiver">
-								<AccordionTrigger className="text-left">
-									<div className="flex items-center gap-2">
-										<Shield className="h-4 w-4 text-blue-600" />
-										<span className="font-medium">Caregiver</span>
-									</div>
-								</AccordionTrigger>
-								<AccordionContent>
-									<ul className="space-y-1 pl-6 text-muted-foreground text-sm">
-										<li>• Record medications</li>
-										<li>• Edit own records (10min window)</li>
-										<li>• Manage inventory</li>
-										<li>• Create non-high-risk regimens</li>
-										<li>• Co-sign medications</li>
-									</ul>
-								</AccordionContent>
-							</AccordionItem>
-
-							<AccordionItem value="vet">
-								<AccordionTrigger className="text-left">
-									<div className="flex items-center gap-2">
-										<Eye className="h-4 w-4 text-gray-600" />
-										<span className="font-medium">Vet Read-Only</span>
-									</div>
-								</AccordionTrigger>
-								<AccordionContent>
-									<ul className="space-y-1 pl-6 text-muted-foreground text-sm">
-										<li>• View history and insights</li>
-										<li>• Export data</li>
-										<li>• No write permissions</li>
-									</ul>
-								</AccordionContent>
-							</AccordionItem>
-						</Accordion>
-					) : (
-						<div className="grid gap-4 md:grid-cols-3">
-							<div className="space-y-2">
-								<div className="flex items-center gap-2">
-									<Crown className="h-4 w-4 text-yellow-600" />
-									<span className="font-medium">Owner</span>
-								</div>
-								<ul className="space-y-1 text-muted-foreground text-sm">
-									<li>• Full access to everything</li>
-									<li>• Manage members and roles</li>
-									<li>• Delete household data</li>
-								</ul>
+			{/* Invite Member Accordion */}
+			{canManageRoles && (
+				<Accordion
+					type="single"
+					collapsible
+					value={isInviteFormOpen ? "invite" : ""}
+					onValueChange={(value) => setIsInviteFormOpen(value === "invite")}
+				>
+					<AccordionItem value="invite" className="rounded-lg border">
+						<AccordionTrigger className="px-4 hover:no-underline">
+							<div className="flex items-center gap-3">
+								<Plus className="h-4 w-4" />
+								<span>Invite New Member</span>
 							</div>
-
-							<div className="space-y-2">
-								<div className="flex items-center gap-2">
-									<Shield className="h-4 w-4 text-blue-600" />
-									<span className="font-medium">Caregiver</span>
-								</div>
-								<ul className="space-y-1 text-muted-foreground text-sm">
-									<li>• Record medications</li>
-									<li>• Edit own records (10min window)</li>
-									<li>• Manage inventory</li>
-									<li>• Create non-high-risk regimens</li>
-									<li>• Co-sign medications</li>
-								</ul>
-							</div>
-
-							<div className="space-y-2">
-								<div className="flex items-center gap-2">
-									<Eye className="h-4 w-4 text-gray-600" />
-									<span className="font-medium">Vet Read-Only</span>
-								</div>
-								<ul className="space-y-1 text-muted-foreground text-sm">
-									<li>• View history and insights</li>
-									<li>• Export data</li>
-									<li>• No write permissions</li>
-								</ul>
-							</div>
-						</div>
-					)}
-				</CardContent>
-			</Card>
+						</AccordionTrigger>
+						<AccordionContent className="px-4 pb-4">
+							<InviteForm
+								open={isInviteFormOpen}
+								onOpenChange={setIsInviteFormOpen}
+								onInvite={async (email, role) => {
+									// TODO: Implement invite functionality
+									console.log("Inviting:", email, "as", role);
+									setIsInviteFormOpen(false);
+								}}
+							/>
+						</AccordionContent>
+					</AccordionItem>
+				</Accordion>
+			)}
 
 			{/* Current Members */}
 			<Card>
 				<CardHeader>
-					<CardTitle>Members ({members.length})</CardTitle>
+					<CardTitle>
+						Current Members ({members.length})
+						{!canManageRoles && isMobile && (
+							<span className="ml-2 font-normal text-muted-foreground text-sm">
+								(View only)
+							</span>
+						)}
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-4">
 						{members.map((member) => (
-							<div
+							<MemberItem
 								key={member.id}
-								className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
-							>
-								<div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-									<Avatar className="flex-shrink-0">
-										{member.avatar && <AvatarImage src={member.avatar} />}
-										<AvatarFallback
-											className={cn(
-												getAvatarColor(member.name || member.email),
-												"font-medium text-sm text-white",
-											)}
-										>
-											{(
-												member.name?.[0] ||
-												member.email?.[0] ||
-												"?"
-											).toUpperCase()}
-										</AvatarFallback>
-									</Avatar>
-
-									<div className="min-w-0 flex-1">
-										<div className="truncate font-medium">
-											{member.name || member.email}
-										</div>
-										<div className="truncate text-muted-foreground text-sm">
-											{member.email}
-										</div>
-										<div className="text-muted-foreground text-xs">
-											<span className="block sm:inline">
-												Joined {member.joinedAt.toLocaleDateString()}
-											</span>
-											{member.lastActiveAt && (
-												<span className="block sm:inline">
-													<span className="hidden sm:inline"> • </span>
-													<span className="sm:hidden">Last active </span>
-													<span className="hidden sm:inline">Last active </span>
-													{member.lastActiveAt.toLocaleString()}
-												</span>
-											)}
-										</div>
-									</div>
-								</div>
-
-								<div className="flex items-center gap-3 self-end sm:self-center">
-									{canManageRoles && member.userId !== clerkUser?.id ? (
-										<Select
-											value={member.role}
-											onValueChange={(value) =>
-												handleRoleChange(member.id, value as typeof member.role)
-											}
-											disabled={updateRoleMutation.isPending}
-										>
-											<SelectTrigger className="w-[110px] sm:w-[140px]">
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="OWNER">
-													<div className="flex items-center gap-2">
-														<Crown className="h-4 w-4" />
-														<span className="hidden sm:inline">Owner</span>
-														<span className="sm:hidden">Own</span>
-													</div>
-												</SelectItem>
-												<SelectItem value="CAREGIVER">
-													<div className="flex items-center gap-2">
-														<Shield className="h-4 w-4" />
-														<span className="hidden sm:inline">Caregiver</span>
-														<span className="sm:hidden">Care</span>
-													</div>
-												</SelectItem>
-												<SelectItem value="VETREADONLY">
-													<div className="flex items-center gap-2">
-														<Eye className="h-4 w-4" />
-														<span className="hidden sm:inline">
-															Vet Read-Only
-														</span>
-														<span className="sm:hidden">Vet</span>
-													</div>
-												</SelectItem>
-											</SelectContent>
-										</Select>
-									) : (
-										<Badge
-											className={cn(
-												roleColors[member.role],
-												"text-xs sm:text-sm",
-											)}
-										>
-											{(() => {
-												const Icon = roleIcons[member.role];
-												return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
-											})()}
-											<span className="hidden sm:inline">
-												{member.role === "OWNER"
-													? "Owner"
-													: member.role === "CAREGIVER"
-														? "Caregiver"
-														: "Vet Read-Only"}
-											</span>
-											<span className="sm:hidden">
-												{member.role === "VETREADONLY"
-													? "Vet"
-													: member.role === "OWNER"
-														? "Own"
-														: "Care"}
-											</span>
-										</Badge>
-									)}
-								</div>
-							</div>
+								member={member}
+								canManageRoles={canManageRoles}
+								currentUserId={clerkUser?.id}
+								onRoleChange={handleRoleChange}
+								isUpdating={updateRoleMutation.isPending}
+							/>
 						))}
 					</div>
 				</CardContent>
@@ -542,106 +461,18 @@ export function MemberList() {
 					<CardContent>
 						<div className="space-y-4">
 							{pendingInvites.map((invite) => (
-								<div
+								<PendingInviteItem
 									key={invite.id}
-									className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between"
-								>
-									<div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-										<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted">
-											<Mail className="h-4 w-4 text-muted-foreground" />
-										</div>
-
-										<div className="min-w-0 flex-1">
-											<div className="truncate font-medium">{invite.email}</div>
-											<div className="text-muted-foreground text-sm">
-												<span className="block sm:inline">
-													Invited by {invite.invitedBy}
-												</span>
-												<span className="hidden sm:inline"> • </span>
-												<span className="block sm:inline">
-													{invite.invitedAt.toLocaleDateString()}
-												</span>
-											</div>
-											<div className="text-muted-foreground text-xs">
-												Expires {invite.expiresAt.toLocaleDateString()}
-											</div>
-										</div>
-									</div>
-
-									<div className="flex items-center gap-3 self-end sm:self-center">
-										<Badge
-											className={cn(
-												roleColors[invite.role],
-												"text-xs sm:text-sm",
-											)}
-										>
-											{(() => {
-												const Icon = roleIcons[invite.role];
-												return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
-											})()}
-											<span className="hidden sm:inline">
-												{invite.role === "OWNER"
-													? "Owner"
-													: invite.role === "CAREGIVER"
-														? "Caregiver"
-														: "Vet Read-Only"}
-											</span>
-											<span className="sm:hidden">
-												{invite.role === "VETREADONLY"
-													? "Vet"
-													: invite.role === "OWNER"
-														? "Own"
-														: "Care"}
-											</span>
-										</Badge>
-
-										{canManageRoles && (
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button
-														variant="ghost"
-														size="icon"
-														disabled={
-															resendInviteMutation.isPending ||
-															revokeInviteMutation.isPending
-														}
-													>
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<DropdownMenuItem
-														onClick={() => handleResendInvite(invite.id)}
-														disabled={resendInviteMutation.isPending}
-													>
-														<Mail className="mr-2 h-4 w-4" />
-														Resend Invite
-													</DropdownMenuItem>
-													<DropdownMenuItem
-														onClick={() => handleRevokeInvite(invite.id)}
-														className="text-destructive"
-														disabled={revokeInviteMutation.isPending}
-													>
-														<Trash2 className="mr-2 h-4 w-4" />
-														Revoke Invite
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										)}
-									</div>
-								</div>
+									invite={invite}
+									onResend={handleResendInvite}
+									onRevoke={handleRevokeInvite}
+									isExpired={new Date() > invite.expiresAt}
+								/>
 							))}
 						</div>
 					</CardContent>
 				</Card>
 			)}
-
-			{/* Invite Form */}
-			<InviteForm
-				open={inviteFormOpen}
-				onOpenChange={setInviteFormOpen}
-				onInvite={handleInvite}
-			/>
 		</div>
 	);
 }
