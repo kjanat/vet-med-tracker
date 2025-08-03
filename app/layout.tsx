@@ -50,7 +50,6 @@ export default function RootLayout({
 											<GlobalLayout>{children}</GlobalLayout>
 										</KeyboardShortcutsProvider>
 									</GlobalScreenReaderProvider>
-									{/* {process.env.NODE_ENV === "development" && <DebugHouseholdState />} */}
 								</AppProvider>
 							</AuthProvider>
 						</TRPCProvider>

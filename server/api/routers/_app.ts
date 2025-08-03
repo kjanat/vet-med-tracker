@@ -1,4 +1,4 @@
-import { createCallerFactory, createTRPCRouter } from "../trpc/clerk-init";
+import { createCallerFactory, createTRPCRouter } from "../trpc";
 import { adminRouter } from "./admin";
 import { animalRouter } from "./animals";
 import { householdRouter } from "./households";
