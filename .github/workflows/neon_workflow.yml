@@ -31,7 +31,7 @@ jobs:
     name: Create Neon Branch
     outputs:
       db_url: ${{ steps.create_neon_branch.outputs.db_url }}
-      db_url_with_pooler: ${{ steps.create_neon_branch.outputs.db_url_pooled }}
+      db_url_pooled: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
     needs: setup
     if: |
       github.event_name == 'pull_request' && (
@@ -79,24 +79,43 @@ jobs:
 
       - name: Verify database connectivity
         run: |
+          # Debug: Show the full DATABASE_URL (masking password)
+          echo "🔍 Raw DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url_pooled }}"
+          DB_URL_DEBUG=$(echo '${{ needs.create_neon_branch.outputs.db_url_pooled }}' | sed 's/:\/\/[^:]*:[^@]*@/:\/\/***:***@/')
+          echo "🔍 Masked DATABASE_URL: $DB_URL_DEBUG"
+          
           # Extract host from DATABASE_URL for connectivity check
-          DB_HOST=$(echo '${{ needs.create_neon_branch.outputs.db_url_with_pooler }}' | sed -n 's/.*@\([^/]*\).*/\1/p')
+          DB_HOST=$(echo '${{ needs.create_neon_branch.outputs.db_url_pooled }}' | sed -n 's/.*@\([^:/]*\).*/\1/p')
+          echo "🔍 Extracted DB_HOST: '$DB_HOST'"
+          
+          # Verify we have a host before proceeding
+          if [[ -z "$DB_HOST" ]]; then
+            echo "❌ Failed to extract database host from URL"
+            echo "DATABASE_URL was: '${{ needs.create_neon_branch.outputs.db_url_pooled }}'"
+            exit 1
+          fi
+          
           echo "🔍 Testing connectivity to: $DB_HOST"
           
           # Simple connectivity test (timeout after 30 seconds)
           timeout 30 bash -c "until pg_isready -h $DB_HOST; do sleep 1; done"
           echo "✅ Database connectivity verified"
         env:
-          DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
+          DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url_pooled }}
 
       - name: Run migrations
         run: |
+          # Debug: Show environment variables (masking passwords)
+          echo "🔍 Environment check:"
+          echo "DATABASE_URL set: $(if [[ -n "$DATABASE_URL" ]]; then echo "✅ Yes"; else echo "❌ No"; fi)"
+          echo "DATABASE_URL_UNPOOLED set: $(if [[ -n "$DATABASE_URL_UNPOOLED" ]]; then echo "✅ Yes"; else echo "❌ No"; fi)"
+          
           # Run migrations on the PR branch database
           echo "🚀 Running database migrations..."
           pnpm db:migrate
           echo "✅ Migrations completed successfully"
         env:
-          DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
+          DATABASE_URL: ${{ needs.create_neon_branch.outputs.db_url_pooled }}
           DATABASE_URL_UNPOOLED: ${{ needs.create_neon_branch.outputs.db_url }}
 
   test_pr_branch:
@@ -109,7 +128,7 @@ jobs:
       || github.event.action == 'reopened')
     uses: ./.github/workflows/test.yml
     with:
-      database_url: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
+      database_url: ${{ needs.create_neon_branch.outputs.db_url_pooled }}
       database_url_unpooled: ${{ needs.create_neon_branch.outputs.db_url }}
 
   schema_diff:
