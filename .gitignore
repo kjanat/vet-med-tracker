@@ -309,3 +309,5 @@ logs_result.json
 
 test-results/
 playwright-report/
+
+.neon
