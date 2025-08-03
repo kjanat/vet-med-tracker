@@ -2,6 +2,7 @@
 
 import { useClerk, useUser } from "@clerk/nextjs";
 import { ArrowRight, CheckCircle } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -73,7 +74,7 @@ export function CtaSection() {
 								className="px-8 text-lg"
 								asChild
 							>
-								<Link href="/contact">Questions? Contact Us</Link>
+								<Link href={"/help" as Route}>Questions? Contact Us</Link>
 							</Button>
 						</div>
 

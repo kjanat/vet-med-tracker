@@ -1,29 +1,30 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 
 const footerLinks = {
 	product: [
-		{ name: "Features", href: "#features" },
-		{ name: "How It Works", href: "#demo" },
-		{ name: "Pricing", href: "#pricing" },
-		{ name: "Security", href: "/security" },
+		{ name: "Features", href: "/#features" as Route },
+		{ name: "How It Works", href: "/#demo" as Route },
+		{ name: "Pricing", href: "/#pricing" as Route },
+		{ name: "Security", href: "/security" as Route },
 	],
 	company: [
-		{ name: "About", href: "/about" },
-		{ name: "Blog", href: "/blog" },
-		{ name: "Contact", href: "/contact" },
-		{ name: "Careers", href: "/careers" },
+		{ name: "About", href: "/about" as Route },
+		{ name: "Blog", href: "/blog" as Route },
+		{ name: "Contact", href: "/contact" as Route },
+		{ name: "Careers", href: "/careers" as Route },
 	],
 	legal: [
-		{ name: "Privacy Policy", href: "/privacy" },
-		{ name: "Terms of Service", href: "/terms" },
-		{ name: "Cookie Policy", href: "/cookies" },
+		{ name: "Privacy Policy", href: "/privacy" as Route },
+		{ name: "Terms of Service", href: "/terms" as Route },
+		{ name: "Cookie Policy", href: "/cookies" as Route },
 	],
 	support: [
-		{ name: "Help Center", href: "/help" },
-		{ name: "FAQ", href: "/faq" },
-		{ name: "Status", href: "/status" },
-		{ name: "API Docs", href: "/docs" },
+		{ name: "Help Center", href: "/help" as Route },
+		{ name: "FAQ", href: "/faq" as Route },
+		{ name: "Status", href: "/status" as Route },
+		{ name: "API Docs", href: "/docs" as Route },
 	],
 };
 

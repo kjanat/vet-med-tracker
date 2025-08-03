@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
 	experimental: {
 		// ppr: "incremental",
 		// reactCompiler: true,
-		// typedRoutes: true,
+		typedRoutes: true,
 		// useCache: true,
 	},
 	images: {

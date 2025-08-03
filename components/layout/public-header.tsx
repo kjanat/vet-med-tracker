@@ -2,6 +2,7 @@
 
 import { useClerk, useUser } from "@clerk/nextjs";
 import { Menu } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ export function PublicHeader() {
 					{navigation.map((item) => (
 						<Link
 							key={item.name}
-							href={item.href}
+							href={item.href as Route}
 							className="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
 						>
 							{item.name}
@@ -80,7 +81,7 @@ export function PublicHeader() {
 							{navigation.map((item) => (
 								<Link
 									key={item.name}
-									href={item.href}
+									href={item.href as Route}
 									onClick={() => setIsOpen(false)}
 									className="font-medium text-lg transition-colors hover:text-primary"
 								>

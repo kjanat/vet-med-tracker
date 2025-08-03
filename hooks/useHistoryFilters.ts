@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 
@@ -48,7 +49,9 @@ export function useHistoryFilters() {
 			}
 
 			// Use shallow routing to avoid full reload
-			router.push(`/history?${params.toString()}`, { scroll: false });
+			router.push(`/dashboard/history?${params.toString()}` as Route, {
+				scroll: false,
+			});
 
 			// Fire instrumentation event
 			if (typeof window !== "undefined") {
@@ -74,7 +77,9 @@ export function useHistoryFilters() {
 				}
 			});
 
-			router.push(`/history?${params.toString()}`, { scroll: false });
+			router.push(`/dashboard/history?${params.toString()}` as Route, {
+				scroll: false,
+			});
 		},
 		[router, searchParams],
 	);
@@ -93,7 +98,9 @@ export function useHistoryFilters() {
 			if (!searchParams.get("to")) {
 				params.set("to", now.toISOString().split("T")[0] || "");
 			}
-			router.replace(`/history?${params.toString()}`, { scroll: false });
+			router.replace(`/dashboard/history?${params.toString()}` as Route, {
+				scroll: false,
+			});
 		}
 	}, [router, searchParams]);
 

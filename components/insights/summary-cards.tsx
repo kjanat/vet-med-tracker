@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, Award, Target, TrendingUp } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useApp } from "@/components/providers/app-provider";
@@ -46,7 +47,7 @@ function buildHistoryUrl(
 		}
 	});
 
-	return `/history?${params.toString()}`;
+	return `/dashboard/history?${params.toString()}`;
 }
 
 // Loading state component
@@ -336,7 +337,7 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
 	const handleCardClick = useCallback(
 		(filter: string) => {
-			router.push(buildHistoryUrl(range, filter));
+			router.push(buildHistoryUrl(range, filter) as Route);
 		},
 		[range, router],
 	);

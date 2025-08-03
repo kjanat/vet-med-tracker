@@ -8,6 +8,7 @@ import {
 	useUser,
 } from "@clerk/nextjs";
 import { Heart, Home, Settings, User } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,9 +65,7 @@ export function ClerkNavUser() {
 										Configure your medication tracking preferences, timezones,
 										and notification settings.
 									</p>
-									<Button
-										onClick={() => router.push("/profile/vetmed-preferences")}
-									>
+									<Button onClick={() => router.push("/profile" as Route)}>
 										Go to Full Settings
 									</Button>
 								</div>
@@ -85,9 +84,7 @@ export function ClerkNavUser() {
 										Manage your household information, locations, and veterinary
 										contacts.
 									</p>
-									<Button
-										onClick={() => router.push("/profile/household-settings")}
-									>
+									<Button onClick={() => router.push("/profile" as Route)}>
 										Go to Full Settings
 									</Button>
 								</div>

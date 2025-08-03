@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { Calendar, Filter } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/providers/app-provider";
@@ -136,7 +137,7 @@ export function ComplianceHeatmap({
 		}
 		// Add hour/dow filters when History supports them
 
-		router.push(`/history?${params.toString()}`);
+		router.push(`/dashboard/history?${params.toString()}` as Route);
 		setSheetOpen(false);
 	};
 

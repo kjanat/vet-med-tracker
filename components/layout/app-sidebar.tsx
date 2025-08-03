@@ -10,6 +10,7 @@ import {
 	Settings,
 	Stethoscope,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type * as React from "react";
@@ -212,7 +213,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							{data.navSecondary.map((item) => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton asChild size="sm">
-										<Link href={item.url} className="cursor-pointer">
+										<Link href={item.url as Route} className="cursor-pointer">
 											<item.icon />
 											<span>{item.title}</span>
 										</Link>

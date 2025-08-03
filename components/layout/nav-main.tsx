@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronRight, type LucideIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -112,7 +113,7 @@ export function NavMain({
 									>
 										<Link
 											ref={isFirstItem ? firstMenuItemRef : undefined}
-											href={item.url}
+											href={item.url as Route}
 											aria-label={`Navigate to ${item.title}`}
 										>
 											<item.icon aria-hidden="true" />
@@ -140,7 +141,7 @@ export function NavMain({
 															</button>
 														) : (
 															<Link
-																href={subItem.url || "#"}
+																href={(subItem.url || "#") as Route}
 																className="cursor-pointer"
 																aria-label={`Navigate to ${subItem.title}`}
 															>

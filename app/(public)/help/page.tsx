@@ -12,6 +12,7 @@ import {
 	Smartphone,
 	Users,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -163,7 +164,7 @@ export default function HelpPage() {
 									{category.links.map((link) => (
 										<li key={link.label}>
 											<Link
-												href={link.href}
+												href={link.href as Route}
 												className="text-primary transition-colors hover:text-primary/80 hover:underline"
 											>
 												{link.label}
@@ -229,7 +230,7 @@ export default function HelpPage() {
 										{method.description}
 									</p>
 									<Button asChild variant="outline" className="w-full">
-										<Link href={method.href}>{method.action}</Link>
+										<Link href={method.href as Route}>{method.action}</Link>
 									</Button>
 								</CardContent>
 							</Card>
