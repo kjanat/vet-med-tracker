@@ -32,7 +32,7 @@ export async function POST() {
 			householdSettings: clerkUser.unsafeMetadata?.householdSettings as
 				| HouseholdSettings
 				| undefined,
-			onboardingComplete: clerkUser.unsafeMetadata
+			onboardingComplete: clerkUser.publicMetadata
 				?.onboardingComplete as boolean,
 		};
 

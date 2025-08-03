@@ -32,7 +32,7 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 		onboardingComplete,
 	} = clerkUserData;
 
-	console.log("Syncing user to database:", { clerkUserId, email, name });
+	console.log("Syncing user to database:", { clerkUserId, name });
 
 	// Validate required fields
 	if (!clerkUserId) {
