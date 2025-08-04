@@ -251,7 +251,10 @@ export function RegimenList() {
 	};
 
 	const buildUpdateData = (data: Partial<Regimen>, householdId: string) => {
-		const updateData = {
+		if (!editingRegimen) {
+			throw new Error("No regimen selected for editing");
+		}
+		const updateData: any = {
 			id: editingRegimen.id,
 			householdId,
 			name: data.medicationName,
@@ -277,7 +280,7 @@ export function RegimenList() {
 	};
 
 	const buildCreateData = (data: Partial<Regimen>, householdId: string) => {
-		const createData = {
+		const createData: any = {
 			householdId,
 			animalId: data.animalId || "",
 			medicationId: data.medicationId || "",

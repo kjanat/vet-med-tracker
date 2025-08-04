@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EmergencyAnimal, EmergencyRegimen } from "@/lib/types";
+import { trpc } from "@/server/trpc/client";
 
 // Helper components to reduce cognitive complexity
 const EmptyState = ({ message }: { message: string }) => (
@@ -247,12 +248,36 @@ const calculateAge = (dob: Date | string | null) => {
 
 export default function EmergencyCardPage() {
 	const params = useParams();
-	const _animalId = params.id as string;
+	const animalId = params.id as string;
 	const { selectedHousehold } = useApp();
 
-	// TODO: Fetch animal data once tRPC endpoint exists
-	const animalData: EmergencyAnimal | null = null;
-	const animalLoading = false;
+	// Fetch animal data
+	const { data: animalResponse, isLoading: animalLoading } =
+		trpc.animal.getById.useQuery(
+			{
+				id: animalId,
+				householdId: selectedHousehold?.id || "",
+			},
+			{
+				enabled: !!selectedHousehold?.id && !!animalId,
+			},
+		);
+
+	// Map the API response to EmergencyAnimal type
+	const animalData: EmergencyAnimal | undefined = animalResponse
+		? ({
+				...animalResponse,
+				photo: animalResponse.photoUrl || null,
+				photoUrl: animalResponse.photoUrl || null,
+				pendingMeds: 0, // TODO: Calculate from active regimens
+				dob: animalResponse.dob ? new Date(animalResponse.dob) : null,
+				weightKg: animalResponse.weightKg
+					? Number(animalResponse.weightKg)
+					: null,
+			} as EmergencyAnimal)
+		: undefined;
+
+	// TODO: Fetch regimens once tRPC endpoint exists
 	const regimens: EmergencyRegimen[] = [];
 	const regimensLoading = false;
 
@@ -276,7 +301,7 @@ export default function EmergencyCardPage() {
 		);
 	}
 
-	const age = calculateAge(animalData.dob);
+	const age = animalData.dob ? calculateAge(animalData.dob) : null;
 
 	return (
 		<div className="min-h-screen bg-background">

@@ -359,6 +359,8 @@ export const reportsRouter = createTRPCRouter({
 					weightKg: animals.weightKg,
 					photoUrl: animals.photoUrl,
 					timezone: animals.timezone,
+					allergies: animals.allergies,
+					conditions: animals.conditions,
 				})
 				.from(animals)
 				.where(
@@ -411,6 +413,11 @@ export const reportsRouter = createTRPCRouter({
 			return {
 				animal: {
 					...animal[0],
+					// Convert null to undefined for optional fields
+					breed: animal[0].breed || undefined,
+					weightKg: animal[0].weightKg ? Number(animal[0].weightKg) : undefined,
+					allergies: animal[0].allergies || [],
+					conditions: animal[0].conditions || [],
 					// Calculate pending meds (due/overdue count)
 					pendingMeds: regimens.filter((r) => r.adherence < 90).length,
 				},

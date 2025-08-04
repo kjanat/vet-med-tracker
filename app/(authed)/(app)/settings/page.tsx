@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
 			<div className="grid gap-4 md:grid-cols-2">
 				{settingsCards.map((card) => (
-					<Link key={card.href} href={card.href}>
+					<Link key={card.href} href={card.href as any}>
 						<Card className="h-full transition-colors hover:bg-accent">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">

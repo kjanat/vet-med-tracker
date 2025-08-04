@@ -73,7 +73,7 @@ const NoHouseholdState = () => (
 	</div>
 );
 
-const ErrorState = ({ error }: { error?: Error | null }) => (
+const ErrorState = ({ error }: { error?: any }) => (
 	<div className="min-h-screen bg-background">
 		<div className="no-print border-b p-4">
 			<div className="mx-auto flex max-w-4xl items-center justify-between">
@@ -111,6 +111,9 @@ const generateMockReportData = (animalId: string): ReportData => ({
 		weightKg: 30,
 		photoUrl: null,
 		pendingMeds: 0,
+		timezone: "America/New_York",
+		allergies: [],
+		conditions: [],
 	},
 	compliance: {
 		adherencePct: 92,
