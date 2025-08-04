@@ -62,10 +62,13 @@ jobs:
       # It's important you don't log the DATABASE_URL as output as it contains a username and
       # password for your database.
       # For example, you can uncomment the lines below to run a database migration command:
-      - name: Run Migrations
+      - name: Install dependencies
         run: |
           corepack enable
-          pnpm run db:migrate
+          pnpm install
+
+      - name: Run Migrations
+        run: pnpm run db:migrate
         env:
           # to use pooled connection
           DATABASE_URL: "${{ steps.create_neon_branch.outputs.db_url_pooled }}"
