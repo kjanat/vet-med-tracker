@@ -86,11 +86,94 @@ type ComponentHealthValue =
 const startTime = Date.now();
 
 /**
+ * Simple in-memory cache for health check results
+ */
+interface CachedHealthCheck {
+	data: ConnectionMetrics;
+	timestamp: number;
+}
+
+let healthCheckCache: CachedHealthCheck | null = null;
+const CACHE_TTL = 10000; // 10 seconds cache TTL
+
+/**
+ * Simple rate limiting for health check endpoint
+ */
+const requestTimestamps = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute window
+const MAX_REQUESTS_PER_WINDOW = 30; // 30 requests per minute
+const CLEANUP_INTERVAL = 300000; // 5 minutes
+
+// Periodically clean up old entries to prevent memory leaks
+if (typeof setInterval !== "undefined") {
+	setInterval(() => {
+		const now = Date.now();
+		for (const [clientId, timestamps] of requestTimestamps.entries()) {
+			const recentTimestamps = timestamps.filter(
+				(timestamp) => now - timestamp < RATE_LIMIT_WINDOW,
+			);
+			if (recentTimestamps.length === 0) {
+				requestTimestamps.delete(clientId);
+			} else {
+				requestTimestamps.set(clientId, recentTimestamps);
+			}
+		}
+	}, CLEANUP_INTERVAL);
+}
+
+function isRateLimited(clientId: string): boolean {
+	const now = Date.now();
+	const timestamps = requestTimestamps.get(clientId) || [];
+
+	// Clean up old timestamps
+	const recentTimestamps = timestamps.filter(
+		(timestamp) => now - timestamp < RATE_LIMIT_WINDOW,
+	);
+
+	// Check if rate limit exceeded
+	if (recentTimestamps.length >= MAX_REQUESTS_PER_WINDOW) {
+		requestTimestamps.set(clientId, recentTimestamps);
+		return true;
+	}
+
+	// Add current timestamp
+	recentTimestamps.push(now);
+	requestTimestamps.set(clientId, recentTimestamps);
+
+	return false;
+}
+
+/**
  * Health check endpoint
  * GET /api/health - Basic health check
  * GET /api/health?detailed=true - Detailed health information
  */
 export async function GET(request: Request) {
+	// Extract client identifier (IP or user agent for simplicity)
+	const clientId =
+		request.headers.get("x-forwarded-for") ||
+		request.headers.get("x-real-ip") ||
+		"anonymous";
+
+	// Check rate limit
+	if (isRateLimited(clientId)) {
+		return NextResponse.json(
+			{
+				status: "rate_limited",
+				message: "Too many requests. Please try again later.",
+				retryAfter: 60,
+			},
+			{
+				status: 429,
+				headers: {
+					"Retry-After": "60",
+					"X-RateLimit-Limit": MAX_REQUESTS_PER_WINDOW.toString(),
+					"X-RateLimit-Window": (RATE_LIMIT_WINDOW / 1000).toString(),
+				},
+			},
+		);
+	}
+
 	const url = new URL(request.url);
 	const detailed = url.searchParams.get("detailed") === "true";
 	const checkStart = Date.now();
@@ -239,8 +322,25 @@ export async function GET(request: Request) {
  * Safe wrapper functions to handle errors gracefully
  */
 async function checkDatabaseHealthSafe(): Promise<ConnectionMetrics> {
+	// Check if we have a valid cached result
+	if (healthCheckCache && Date.now() - healthCheckCache.timestamp < CACHE_TTL) {
+		// Return cached data with updated lastChecked time
+		return {
+			...healthCheckCache.data,
+			lastChecked: new Date(),
+		};
+	}
+
 	try {
-		return await comprehensiveHealthCheck();
+		const result = await comprehensiveHealthCheck();
+
+		// Cache the successful result
+		healthCheckCache = {
+			data: result,
+			timestamp: Date.now(),
+		};
+
+		return result;
 	} catch (error) {
 		return {
 			isHealthy: false,
