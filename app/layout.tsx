@@ -9,6 +9,7 @@ import { GlobalLayout } from "@/components/layout/global-layout";
 import { AppProvider } from "@/components/providers/app-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import {
 	GlobalScreenReaderProvider,
 	SkipNavigation,
@@ -28,33 +29,44 @@ export default function RootLayout({
 }) {
 	return (
 		<ClerkProvider>
-			<html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+			<html
+				lang="en"
+				className={`${inter.variable} ${jetbrainsMono.variable}`}
+				suppressHydrationWarning
+			>
 				<head>
 					{/* <script src="http://localhost:8097"></script> */}
 					<meta name="apple-mobile-web-app-title" content="KJANAT" />
 				</head>
-				<body className={inter.className}>
-					<SkipNavigation
-						links={[
-							{ href: "#main-content", label: "Skip to main content" },
-							{ href: "#main-navigation", label: "Skip to navigation" },
-							{ href: "#search", label: "Skip to search" },
-						]}
-					/>
-					<ErrorBoundary errorBoundaryId="root">
-						<TRPCProvider>
-							<AuthProvider>
-								<AppProvider>
-									<GlobalScreenReaderProvider>
-										<KeyboardShortcutsProvider>
-											<GlobalLayout>{children}</GlobalLayout>
-										</KeyboardShortcutsProvider>
-									</GlobalScreenReaderProvider>
-								</AppProvider>
-							</AuthProvider>
-						</TRPCProvider>
-					</ErrorBoundary>
-					<Analytics />
+				<body className={inter.className} suppressHydrationWarning>
+					<ThemeProvider
+						attribute="class"
+						defaultTheme="system"
+						enableSystem
+						disableTransitionOnChange
+					>
+						<SkipNavigation
+							links={[
+								{ href: "#main-content", label: "Skip to main content" },
+								{ href: "#main-navigation", label: "Skip to navigation" },
+								{ href: "#search", label: "Skip to search" },
+							]}
+						/>
+						<ErrorBoundary errorBoundaryId="root">
+							<TRPCProvider>
+								<AuthProvider>
+									<AppProvider>
+										<GlobalScreenReaderProvider>
+											<KeyboardShortcutsProvider>
+												<GlobalLayout>{children}</GlobalLayout>
+											</KeyboardShortcutsProvider>
+										</GlobalScreenReaderProvider>
+									</AppProvider>
+								</AuthProvider>
+							</TRPCProvider>
+						</ErrorBoundary>
+						<Analytics />
+					</ThemeProvider>
 				</body>
 			</html>
 		</ClerkProvider>

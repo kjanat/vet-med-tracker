@@ -1,239 +1,177 @@
 "use client";
 
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import type React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import {
-	type ColorScheme,
-	DEFAULT_VIEWPORT_STATE,
-	DEVICES_API_URL,
-	type DeviceItem,
-	type DeviceType,
-	type ViewportState,
-	withSchemeParam,
-} from "./viewport/constants";
+import { calculateScrollAreaHeight, VIEWPORT_CONFIG } from "./viewport/config";
+import { withSchemeParam } from "./viewport/constants";
 import { DeviceCard } from "./viewport/device-card";
+import {
+	useDeviceData,
+	useDeviceFilters,
+	useViewportState,
+	useWindowDimensions,
+} from "./viewport/hooks";
+import { MobileDeviceSelector } from "./viewport/mobile-device-selector";
+import { MobileToolbar } from "./viewport/mobile-toolbar";
+import { MobileViewportPreview } from "./viewport/mobile-viewport-preview";
+import { useMobileDetection } from "./viewport/use-mobile-detection";
+import { useViewportShortcuts } from "./viewport/use-viewport-shortcuts";
 import { ViewportPreview } from "./viewport/viewport-preview";
 import { ViewportToolbar } from "./viewport/viewport-toolbar";
 
-// Helper function to sort devices
-function sortDevices(a: DeviceItem, b: DeviceItem): number {
-	const dateA = a.properties.releaseDate
-		? new Date(a.properties.releaseDate).getTime()
-		: 0;
-	const dateB = b.properties.releaseDate
-		? new Date(b.properties.releaseDate).getTime()
-		: 0;
-
-	// If both have dates, sort by date (descending)
-	if (dateA && dateB) {
-		return dateB - dateA;
-	}
-
-	// If only one has a date, put the one with date first
-	if (dateA && !dateB) return -1;
-	if (!dateA && dateB) return 1;
-
-	// If neither has a date, fall back to ranking
-	return a.attributes.ranking.amongAll - b.attributes.ranking.amongAll;
-}
+// Memoized device card component for better performance
+const MemoizedDeviceCard = memo(DeviceCard);
 
 const MobileResponsiveTester: React.FC = () => {
-	const [devices, setDevices] = useState<DeviceItem[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	// Custom hooks for cleaner organization
+	const { devices, loading, error, retry } = useDeviceData();
+	const windowDimensions = useWindowDimensions();
+	const {
+		brands,
+		deviceTypes,
+		availableDeviceTypes,
+		brandFilter,
+		deviceTypeFilter,
+		filteredDevices,
+		setBrandFilter,
+		setDeviceTypeFilter,
+		resetFilters,
+	} = useDeviceFilters(devices);
+	const {
+		state,
+		urlInput,
+		setDevice,
+		rotate,
+		reset: resetViewport,
+		applyUrl,
+		setUrlInput,
+		handleColorSchemeChange,
+	} = useViewportState(devices);
 
-	const [state, setState] = useState<ViewportState>(DEFAULT_VIEWPORT_STATE);
-	const [brandFilter, setBrandFilter] = useState<string>("All");
-	const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>("All");
-	const [urlInput, setUrlInput] = useState(state.baseUrl);
-	const [windowHeight, setWindowHeight] = useState(
-		typeof window !== "undefined" ? window.innerHeight : 800,
+	// Local state
+	const [layoutMode, setLayoutMode] = useState<"sidebar" | "topbar">(
+		VIEWPORT_CONFIG.defaults.layoutMode,
 	);
-	const [layoutMode, setLayoutMode] = useState<"sidebar" | "topbar">("sidebar");
+	const [showMobileDeviceSelector, setShowMobileDeviceSelector] =
+		useState(false);
 	const sidebarRef = useRef<HTMLDivElement>(null);
 
-	// Track window resize
-	useEffect(() => {
-		const handleResize = () => {
-			setWindowHeight(window.innerHeight);
-		};
+	// Mobile detection
+	const { isMobile } = useMobileDetection();
 
-		handleResize(); // Set initial height
-		window.addEventListener("resize", handleResize);
-		return () => window.removeEventListener("resize", handleResize);
-	}, []);
+	// Combined reset handler
+	const handleFullReset = () => {
+		resetViewport();
+		resetFilters();
+	};
 
-	// Fetch devices on mount
-	useEffect(() => {
-		const fetchDevices = async () => {
-			try {
-				const response = await fetch(DEVICES_API_URL);
-				if (!response.ok) throw new Error("Failed to fetch device data");
-				const data: DeviceItem[] = await response.json();
-				setDevices(data.filter((d) => d.active));
-				setLoading(false);
-			} catch (err) {
-				setError(err instanceof Error ? err.message : "Failed to load devices");
-				setLoading(false);
-			}
-		};
+	// Open in new tab handler
+	const handleOpenInNewTab = useCallback(() => {
+		window.open(state.baseUrl, "_blank");
+	}, [state.baseUrl]);
 
-		fetchDevices();
-	}, []);
+	// Find current device
+	const currentDevice = filteredDevices.find(
+		(device) =>
+			device.labels.primary === state.name &&
+			(device.properties.brand || "Unknown") === state.brand,
+	);
 
-	// Compute unique brands and device types
-	const brands = useMemo(() => {
-		const uniqueBrands = Array.from(
-			new Set(devices.map((d) => d.properties.brand).filter(Boolean)),
-		) as string[];
-		return ["All", ...uniqueBrands.sort()];
-	}, [devices]);
-
-	const deviceTypes = useMemo(() => {
-		const types = Array.from(
-			new Set(devices.map((d) => d.properties.deviceType)),
-		);
-		return ["All", ...types.sort()];
-	}, [devices]);
-
-	// Compute available device types for the selected brand
-	const availableDeviceTypes = useMemo(() => {
-		if (brandFilter === "All") {
-			return new Set(devices.map((d) => d.properties.deviceType));
-		}
-		return new Set(
-			devices
-				.filter((d) => (d.properties.brand || "Unknown") === brandFilter)
-				.map((d) => d.properties.deviceType),
-		);
-	}, [devices, brandFilter]);
-
-	// Reset device type filter if it's not available for the selected brand
-	useEffect(() => {
-		if (
-			deviceTypeFilter !== "All" &&
-			!availableDeviceTypes.has(deviceTypeFilter as DeviceType)
-		) {
-			setDeviceTypeFilter("All");
-		}
-	}, [availableDeviceTypes, deviceTypeFilter]);
-
-	// Filter devices based on current filters
-	const filteredDevices = useMemo(() => {
-		return devices
-			.filter((device) => {
-				const brandMatch =
-					brandFilter === "All" ||
-					(device.properties.brand || "Unknown") === brandFilter;
-				const typeMatch =
-					deviceTypeFilter === "All" ||
-					device.properties.deviceType === deviceTypeFilter;
-				return brandMatch && typeMatch;
-			})
-			.sort(sortDevices);
-	}, [devices, brandFilter, deviceTypeFilter]);
-
-	// Device selection handler
-	const setDevice = useCallback((device: DeviceItem) => {
-		const { width, height } = device.attributes;
-		setState((prev) => ({
-			...prev,
-			width,
-			height,
-			brand: device.properties.brand || "Unknown",
-			name: device.labels.primary,
-			orientation: width >= height ? "landscape" : "portrait",
-			deviceType: device.properties.deviceType,
-		}));
-	}, []);
-
-	// Rotate device handler
-	const rotate = useCallback(() => {
-		setState((prev) => ({
-			...prev,
-			width: prev.height,
-			height: prev.width,
-			orientation: prev.orientation === "portrait" ? "landscape" : "portrait",
-		}));
-	}, []);
-
-	// Reset to defaults handler
-	const reset = useCallback(() => {
-		const defaultDevice =
-			devices.find((d) => d.slug === "iphone-se") || devices[0];
-		if (defaultDevice) {
-			setDevice(defaultDevice);
-		}
-		setState((prev) => ({
-			...prev,
-			scheme: "system",
-			baseUrl: "http://localhost:3000/",
-		}));
-		setUrlInput("http://localhost:3000/");
-		setBrandFilter("All");
-		setDeviceTypeFilter("All");
-	}, [devices, setDevice]);
-
-	// Reset filters only
-	const resetFilters = useCallback(() => {
-		setBrandFilter("All");
-		setDeviceTypeFilter("All");
-	}, []);
-
-	// Apply URL handler
-	const applyUrl = useCallback(() => {
-		setState((prev) => ({ ...prev, baseUrl: urlInput }));
-	}, [urlInput]);
-
-	// Color scheme change handler
-	const handleColorSchemeChange = useCallback((scheme: ColorScheme) => {
-		setState((prev) => ({ ...prev, scheme }));
-	}, []);
-
-	// Compute iframe source with scheme parameter
+	// Compute iframe source
 	const iframeSrc = withSchemeParam(state.baseUrl);
+
+	// Keyboard shortcuts
+	useViewportShortcuts({
+		onRotate: rotate,
+		onReset: handleFullReset,
+		onOpenDeviceSelector: isMobile
+			? () => setShowMobileDeviceSelector(true)
+			: undefined,
+	});
 
 	// Loading state
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center">
+			<div className="flex min-h-screen items-center justify-center bg-background">
 				<div className="text-center">
-					<Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin" />
-					<p>Loading device data...</p>
+					<Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-primary" />
+					<p className="text-muted-foreground">Loading device data...</p>
+					<p className="mt-2 text-muted-foreground text-sm">
+						Fetching viewport configurations...
+					</p>
 				</div>
 			</div>
 		);
 	}
 
-	// Error state
+	// Error state with retry
 	if (error) {
 		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center">
-					<AlertCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
-					<p className="text-destructive">{error}</p>
+			<div className="flex min-h-screen items-center justify-center bg-background">
+				<div className="flex max-w-md flex-col items-center text-center">
+					<AlertCircle className="mb-4 h-12 w-12 text-destructive" />
+					<h2 className="mb-2 font-semibold text-lg">Failed to Load Devices</h2>
+					<p className="mb-4 text-muted-foreground text-sm">{error}</p>
+					<Button
+						onClick={retry}
+						variant="outline"
+						className="flex items-center gap-2"
+					>
+						<RefreshCw className="h-4 w-4" />
+						Try Again
+					</Button>
 				</div>
 			</div>
 		);
 	}
 
 	// Main render
-	const useSidebar = layoutMode === "sidebar";
+	const useSidebar = layoutMode === "sidebar" && !isMobile;
 
-	// Calculate dynamic height for ScrollArea based on viewport
-	// For sidebar mode, make the sidebar height responsive to iframe size
-	// but constrained by available window height
+	// Calculate dynamic height for ScrollArea
 	const scrollAreaStyle = {
 		height: useSidebar
-			? `${Math.min(
-					state.height + 120, // Add some padding around iframe height
-					windowHeight - 200, // Leave room for toolbar and margins
-				)}px`
+			? `${calculateScrollAreaHeight(state.height, windowDimensions.height)}px`
 			: undefined,
-		maxHeight: "calc(100vh - 8rem)", // Safety max-height
+		maxHeight: "calc(100vh - 8rem)",
+		transition: `height ${VIEWPORT_CONFIG.transitions.layoutChange}ms ease-in-out`,
 	};
+
+	// Mobile layout
+	if (isMobile) {
+		return (
+			<>
+				<div className="fixed inset-0 flex flex-col bg-background">
+					<MobileToolbar
+						state={state}
+						deviceCount={filteredDevices.length}
+						onRotate={rotate}
+						onColorSchemeChange={handleColorSchemeChange}
+						onOpenDeviceSelector={() => setShowMobileDeviceSelector(true)}
+						onOpenInNewTab={handleOpenInNewTab}
+					/>
+
+					{/* Mobile Preview - use remaining height */}
+					<div className="relative min-h-0 flex-1">
+						<MobileViewportPreview src={iframeSrc} state={state} />
+					</div>
+				</div>
+
+				{/* Mobile Device Selector Modal */}
+				{showMobileDeviceSelector && (
+					<MobileDeviceSelector
+						devices={filteredDevices}
+						selectedDevice={currentDevice || null}
+						onSelectDevice={setDevice}
+						onClose={() => setShowMobileDeviceSelector(false)}
+					/>
+				)}
+			</>
+		);
+	}
 
 	return (
 		<div className="flex min-h-screen flex-col bg-background">
@@ -255,7 +193,7 @@ const MobileResponsiveTester: React.FC = () => {
 				onUrlInputChange={setUrlInput}
 				onApplyUrl={applyUrl}
 				onRotate={rotate}
-				onReset={reset}
+				onReset={handleFullReset}
 				onResetFilters={resetFilters}
 				onLayoutModeChange={setLayoutMode}
 			/>
@@ -269,7 +207,7 @@ const MobileResponsiveTester: React.FC = () => {
 							<ScrollArea style={scrollAreaStyle} className="flex-1">
 								<div className="grid gap-2 p-4">
 									{filteredDevices.map((device) => (
-										<DeviceCard
+										<MemoizedDeviceCard
 											key={device.id}
 											device={device}
 											isSelected={
@@ -285,7 +223,10 @@ const MobileResponsiveTester: React.FC = () => {
 						</div>
 
 						{/* Preview area */}
-						<div className="flex flex-1 items-center justify-center p-8">
+						<div
+							className="flex flex-1 items-center justify-center bg-muted/5"
+							style={{ padding: `${VIEWPORT_CONFIG.preview.padding}px` }}
+						>
 							<ViewportPreview src={iframeSrc} state={state} />
 						</div>
 					</>
@@ -294,12 +235,24 @@ const MobileResponsiveTester: React.FC = () => {
 					<div className="flex-1 overflow-auto p-8">
 						{/* Device grid above preview */}
 						<div className="mx-auto mb-8 max-w-7xl">
-							<div className="rounded-lg border">
+							<div className="rounded-lg border bg-card">
 								<ScrollArea className="w-full">
-									<div className="flex gap-2 p-4">
+									<div
+										className="flex"
+										style={{
+											gap: `${VIEWPORT_CONFIG.deviceGrid.gap}px`,
+											padding: `${VIEWPORT_CONFIG.deviceGrid.padding}px`,
+										}}
+									>
 										{filteredDevices.map((device) => (
-											<div key={device.id} className="w-48 flex-shrink-0">
-												<DeviceCard
+											<div
+												key={device.id}
+												style={{
+													width: `${VIEWPORT_CONFIG.deviceGrid.cardWidth}px`,
+												}}
+												className="flex-shrink-0"
+											>
+												<MemoizedDeviceCard
 													device={device}
 													isSelected={
 														device.labels.primary === state.name &&
@@ -317,9 +270,12 @@ const MobileResponsiveTester: React.FC = () => {
 						</div>
 
 						{/* Preview with max width constraint */}
-						<div className="flex justify-center">
+						<div className="flex justify-center bg-muted/5 px-8">
 							<div
-								style={{ maxWidth: "90vw", maxHeight: "calc(100vh - 400px)" }}
+								style={{
+									maxWidth: `${VIEWPORT_CONFIG.preview.maxWidthPercent}vw`,
+									maxHeight: `calc(100vh - ${VIEWPORT_CONFIG.preview.topbarMaxHeight}px)`,
+								}}
 							>
 								<ViewportPreview src={iframeSrc} state={state} />
 							</div>
