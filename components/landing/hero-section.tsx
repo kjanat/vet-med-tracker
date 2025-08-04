@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { AnimalSilhouettes } from "./animal-silhouettes";
 
 export function HeroSection() {
 	const { openSignIn } = useClerk();
@@ -109,6 +110,8 @@ export function HeroSection() {
 						<span className="font-medium text-sm">Smart Reminders</span>
 					</div>
 				</div>
+				{/* Decorative pet silhouettes */}
+				<AnimalSilhouettes />
 			</div>
 		</section>
 	);
