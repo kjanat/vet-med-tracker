@@ -1,8 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { buttonPatterns, cn } from "@/components/ui/class-variants";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
@@ -15,10 +18,18 @@ import { useNavigationGuard } from "@/hooks/use-navigation-guard";
  * - useNavigationGuard hook for browser navigation
  * - LoadingIndicator with useLinkStatus
  */
+const formSchema = z.object({
+	name: z.string().min(1, "Name is required").max(100, "Name too long"),
+	email: z.string().email("Invalid email address"),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
 export function FormWithNavigationGuard() {
 	const [isSaved, setIsSaved] = useState(true);
 
-	const form = useForm({
+	const form = useForm<FormData>({
+		resolver: zodResolver(formSchema),
 		defaultValues: {
 			name: "",
 			email: "",
@@ -33,7 +44,7 @@ export function FormWithNavigationGuard() {
 		message: "You have unsaved form data. Do you want to leave without saving?",
 	});
 
-	const handleSave = async (data: { name: string; email: string }) => {
+	const handleSave = async (data: FormData) => {
 		// Simulate saving
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		setIsSaved(true);
@@ -53,6 +64,11 @@ export function FormWithNavigationGuard() {
 						})}
 						placeholder="Enter your name"
 					/>
+					{form.formState.errors.name && (
+						<p className="mt-1 text-red-600 text-sm">
+							{form.formState.errors.name.message}
+						</p>
+					)}
 				</div>
 
 				<div>
@@ -65,6 +81,11 @@ export function FormWithNavigationGuard() {
 						})}
 						placeholder="Enter your email"
 					/>
+					{form.formState.errors.email && (
+						<p className="mt-1 text-red-600 text-sm">
+							{form.formState.errors.email.message}
+						</p>
+					)}
 				</div>
 
 				<div className="flex gap-4">
@@ -76,7 +97,10 @@ export function FormWithNavigationGuard() {
 					<NavigationGuardLink
 						href="/dashboard"
 						hasUnsavedChanges={isDirty && !isSaved}
-						className="inline-flex h-10 items-center justify-center rounded-md bg-secondary px-4 py-2 font-medium text-secondary-foreground text-sm ring-offset-background transition-colors hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+						className={cn(
+							buttonPatterns.baseButton,
+							buttonPatterns.secondaryButton,
+						)}
 					>
 						Cancel
 						<LoadingIndicator />

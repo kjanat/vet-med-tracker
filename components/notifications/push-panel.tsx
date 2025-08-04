@@ -11,6 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { cardPatterns } from "@/components/ui/class-variants";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 // Custom hook to manage push notification state
@@ -149,7 +150,7 @@ export function PushPanel() {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
+				<CardTitle className={cardPatterns.cardTitle}>
 					<Bell className="h-5 w-5" />
 					Push Notifications
 				</CardTitle>
@@ -192,7 +193,7 @@ function UnsupportedBrowser() {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
+				<CardTitle className={cardPatterns.cardTitle}>
 					<BellOff className="h-5 w-5" />
 					Push Notifications
 				</CardTitle>

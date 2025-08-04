@@ -413,9 +413,8 @@ export function MemberList({
 							<InviteForm
 								open={isInviteFormOpen}
 								onOpenChange={setIsInviteFormOpen}
-								onInvite={async (email, role) => {
+								onInvite={async (_email, _role) => {
 									// TODO: Implement invite functionality
-									console.log("Inviting:", email, "as", role);
 									setIsInviteFormOpen(false);
 								}}
 							/>

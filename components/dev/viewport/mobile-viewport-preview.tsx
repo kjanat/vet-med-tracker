@@ -94,128 +94,169 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 		}
 	}, [scale, calculateFitScale]);
 
-	// Combined touch handler
+	// Helper functions to reduce cognitive complexity
+	const handlePinchStart = useCallback(
+		(e: TouchEvent, touches: TouchList) => {
+			e.preventDefault(); // Prevent default only for pinch
+			setIsPinching(true);
+			setIsDragging(false);
+
+			const touch0 = touches[0];
+			const touch1 = touches[1];
+			if (touch0 && touch1) {
+				const dx = touch0.clientX - touch1.clientX;
+				const dy = touch0.clientY - touch1.clientY;
+				touchStateRef.current.initialDistance = Math.sqrt(dx * dx + dy * dy);
+				touchStateRef.current.initialScale = scale;
+			}
+		},
+		[scale],
+	);
+
+	const handlePinchMove = useCallback(
+		(e: TouchEvent, touches: TouchList) => {
+			e.preventDefault();
+
+			const touch0 = touches[0];
+			const touch1 = touches[1];
+			if (!touch0 || !touch1) return;
+
+			const dx = touch0.clientX - touch1.clientX;
+			const dy = touch0.clientY - touch1.clientY;
+			const distance = Math.sqrt(dx * dx + dy * dy);
+
+			const scaleFactor = distance / touchStateRef.current.initialDistance;
+			const currentFitScale = calculateFitScale();
+			const minScale = Math.min(
+				currentFitScale,
+				VIEWPORT_CONFIG.mobile.pinchScaleMin,
+			);
+			const newScale = Math.max(
+				minScale,
+				Math.min(
+					VIEWPORT_CONFIG.mobile.pinchScaleMax,
+					touchStateRef.current.initialScale * scaleFactor,
+				),
+			);
+
+			setScale(newScale);
+		},
+		[calculateFitScale],
+	);
+
+	const handlePanMove = useCallback(
+		(e: TouchEvent, touch: Touch) => {
+			const deltaX = touch.clientX - touchStateRef.current.startX;
+			const deltaY = touch.clientY - touchStateRef.current.startY;
+
+			// Only pan if we've moved more than the touch threshold
+			if (
+				Math.abs(deltaX) > VIEWPORT_CONFIG.mobile.touchThreshold ||
+				Math.abs(deltaY) > VIEWPORT_CONFIG.mobile.touchThreshold
+			) {
+				e.preventDefault();
+
+				// Start dragging if not already
+				if (!isDragging) {
+					setIsDragging(true);
+				}
+
+				setPosition({
+					x: touchStateRef.current.initialX + deltaX,
+					y: touchStateRef.current.initialY + deltaY,
+				});
+			}
+		},
+		[isDragging],
+	);
+
+	const handleDoubleTapDetection = useCallback(
+		(e: TouchEvent) => {
+			e.preventDefault();
+			handleDoubleTap();
+			lastTapRef.current = 0;
+			if (tapTimeoutRef.current) {
+				clearTimeout(tapTimeoutRef.current);
+				tapTimeoutRef.current = null;
+			}
+		},
+		[handleDoubleTap],
+	);
+
+	const handleSingleTapStart = useCallback(
+		(touches: TouchList) => {
+			const currentTime = Date.now();
+			lastTapRef.current = currentTime;
+
+			// Clear any existing timeout
+			if (tapTimeoutRef.current) {
+				clearTimeout(tapTimeoutRef.current);
+			}
+
+			// Set timeout to clear tap state
+			tapTimeoutRef.current = setTimeout(() => {
+				lastTapRef.current = 0;
+			}, 300);
+
+			// Start tracking for potential pan
+			if (scale > 1) {
+				const touch = touches[0];
+				if (touch) {
+					touchStateRef.current.startX = touch.clientX;
+					touchStateRef.current.startY = touch.clientY;
+					touchStateRef.current.initialX = position.x;
+					touchStateRef.current.initialY = position.y;
+				}
+			}
+		},
+		[scale, position],
+	);
+
+	// Combined touch handler - now simplified
 	const handleTouchStart = useCallback(
 		(e: TouchEvent) => {
 			const touches = e.touches;
 
 			if (touches.length === 2) {
-				// Pinch zoom start
-				e.preventDefault(); // Prevent default only for pinch
-				setIsPinching(true);
-				setIsDragging(false);
-
-				const touch0 = touches[0];
-				const touch1 = touches[1];
-				if (touch0 && touch1) {
-					const dx = touch0.clientX - touch1.clientX;
-					const dy = touch0.clientY - touch1.clientY;
-					touchStateRef.current.initialDistance = Math.sqrt(dx * dx + dy * dy);
-					touchStateRef.current.initialScale = scale;
-				}
+				handlePinchStart(e, touches);
 			} else if (touches.length === 1 && !isPinching) {
-				// Single touch - check for double tap
 				const currentTime = Date.now();
 				const tapGap = currentTime - lastTapRef.current;
 
 				if (tapGap < 300 && tapGap > 0) {
 					// Double tap detected
-					e.preventDefault();
-					handleDoubleTap();
-					lastTapRef.current = 0;
-					if (tapTimeoutRef.current) {
-						clearTimeout(tapTimeoutRef.current);
-						tapTimeoutRef.current = null;
-					}
+					handleDoubleTapDetection(e);
 				} else {
 					// Single tap - might be start of pan or just a tap
-					lastTapRef.current = currentTime;
-
-					// Clear any existing timeout
-					if (tapTimeoutRef.current) {
-						clearTimeout(tapTimeoutRef.current);
-					}
-
-					// Set timeout to clear tap state
-					tapTimeoutRef.current = setTimeout(() => {
-						lastTapRef.current = 0;
-					}, 300);
-
-					// Start tracking for potential pan
-					if (scale > 1) {
-						const touch = touches[0];
-						if (touch) {
-							touchStateRef.current.startX = touch.clientX;
-							touchStateRef.current.startY = touch.clientY;
-							touchStateRef.current.initialX = position.x;
-							touchStateRef.current.initialY = position.y;
-						}
-					}
+					handleSingleTapStart(touches);
 				}
 			}
 		},
-		[scale, position, isPinching, handleDoubleTap],
+		[
+			isPinching,
+			handlePinchStart,
+			handleDoubleTapDetection,
+			handleSingleTapStart,
+		],
 	);
 
+	// Simplified handleTouchMove - now under complexity limit
 	const handleTouchMove = useCallback(
 		(e: TouchEvent) => {
 			const touches = e.touches;
 
 			if (touches.length === 2 && isPinching) {
 				// Pinch zoom
-				e.preventDefault();
-
-				const touch0 = touches[0];
-				const touch1 = touches[1];
-				if (!touch0 || !touch1) return;
-
-				const dx = touch0.clientX - touch1.clientX;
-				const dy = touch0.clientY - touch1.clientY;
-				const distance = Math.sqrt(dx * dx + dy * dy);
-
-				const scaleFactor = distance / touchStateRef.current.initialDistance;
-				const currentFitScale = calculateFitScale();
-				const minScale = Math.min(
-					currentFitScale,
-					VIEWPORT_CONFIG.mobile.pinchScaleMin,
-				);
-				const newScale = Math.max(
-					minScale,
-					Math.min(
-						VIEWPORT_CONFIG.mobile.pinchScaleMax,
-						touchStateRef.current.initialScale * scaleFactor,
-					),
-				);
-
-				setScale(newScale);
+				handlePinchMove(e, touches);
 			} else if (touches.length === 1 && isDragging && !isPinching) {
 				// Pan
 				const touch = touches[0];
-				if (!touch) return;
-
-				const deltaX = touch.clientX - touchStateRef.current.startX;
-				const deltaY = touch.clientY - touchStateRef.current.startY;
-
-				// Only pan if we've moved more than the touch threshold
-				if (
-					Math.abs(deltaX) > VIEWPORT_CONFIG.mobile.touchThreshold ||
-					Math.abs(deltaY) > VIEWPORT_CONFIG.mobile.touchThreshold
-				) {
-					e.preventDefault();
-
-					// Start dragging if not already
-					if (!isDragging) {
-						setIsDragging(true);
-					}
-
-					setPosition({
-						x: touchStateRef.current.initialX + deltaX,
-						y: touchStateRef.current.initialY + deltaY,
-					});
+				if (touch) {
+					handlePanMove(e, touch);
 				}
 			}
 		},
-		[isDragging, isPinching, calculateFitScale],
+		[isDragging, isPinching, handlePinchMove, handlePanMove],
 	);
 
 	const handleTouchEnd = useCallback(
@@ -362,12 +403,22 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 				setTimeout(() => {
 					try {
 						if (iframe.contentWindow) {
+							// Extract specific origin from iframe src for security
+							const targetOrigin = (() => {
+								try {
+									return new URL(src).origin;
+								} catch {
+									// Fallback to current origin for same-origin iframes
+									return window.location.origin;
+								}
+							})();
+
 							iframe.contentWindow.postMessage(
 								{
 									type: "theme-change",
 									theme: state.scheme,
 								},
-								"*", // In production, use specific origin
+								targetOrigin,
 							);
 						}
 					} catch (error) {
@@ -398,7 +449,7 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 		return () => {
 			iframe.removeEventListener("load", handleLoad);
 		};
-	}, [state.scheme]);
+	}, [state.scheme, src]);
 
 	// Inject theme listener script into iframe
 	useEffect(() => {

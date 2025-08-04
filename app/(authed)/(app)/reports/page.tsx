@@ -53,14 +53,6 @@ export default function AnimalReportsPage() {
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<div className="mx-auto max-w-4xl">
-				{/* Header */}
-				<div className="mb-8">
-					<h1 className="mb-2 font-bold text-3xl">Animal Reports</h1>
-					<p className="text-lg text-muted-foreground">
-						Select an animal to view their medication compliance report
-					</p>
-				</div>
-
 				{/* Animal Grid */}
 				{animals.length === 0 ? (
 					<Card>

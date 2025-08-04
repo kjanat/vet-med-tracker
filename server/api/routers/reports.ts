@@ -7,7 +7,10 @@ import {
 	medicationCatalog,
 	regimens,
 } from "@/db/schema";
-import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
+import {
+	createTRPCRouter,
+	householdProcedure,
+} from "@/server/api/trpc/clerk-init";
 
 // Types for report data
 interface ComplianceData {
@@ -91,16 +94,24 @@ async function calculateComplianceData(
 	const completed = onTime + late + veryLate;
 	const adherencePct = total > 0 ? Math.round((completed / total) * 100) : 100;
 
+	// Get animal's timezone for safe parameterization
+	const animalData = await db
+		.select({ timezone: animals.timezone })
+		.from(animals)
+		.where(and(eq(animals.id, animalId), eq(animals.householdId, householdId)))
+		.limit(1);
+
+	const animalTimezone = animalData[0]?.timezone || "UTC";
+
 	// Calculate streak (consecutive days without missed doses)
-	// This is a simplified calculation - group by date and check for missed doses
+	// Optimized with parameterized timezone to prevent SQL injection
 	const streakQuery = sql`
 		WITH daily_stats AS (
 			SELECT 
-				DATE(recorded_at AT TIME ZONE a.timezone) as dose_date,
+				DATE(recorded_at AT TIME ZONE ${animalTimezone}) as dose_date,
 				COUNT(*) as total_doses,
 				COUNT(CASE WHEN admin.status = 'MISSED' THEN 1 END) as missed_doses
 			FROM ${administrations} admin
-			JOIN ${animals} a ON admin.animal_id = a.id
 			WHERE admin.animal_id = ${animalId}
 				AND admin.household_id = ${householdId}
 				AND admin.recorded_at >= ${startDate.toISOString()}::timestamp - INTERVAL '30 days'

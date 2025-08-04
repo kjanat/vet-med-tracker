@@ -79,13 +79,6 @@ export function PrefsPanel() {
 
 	return (
 		<div className="space-y-6">
-			<div>
-				<h2 className="font-bold text-2xl">Preferences</h2>
-				<p className="text-muted-foreground">
-					Customize your experience and default settings
-				</p>
-			</div>
-
 			{/* Appearance */}
 			<Card>
 				<CardHeader>

@@ -99,12 +99,9 @@ export default function HouseholdDetailsPage() {
 					>
 						<ArrowLeft className="h-4 w-4" />
 					</Button>
-					<div>
-						<h1 className="font-bold text-3xl">Household Details</h1>
-						<p className="text-muted-foreground">
-							View {household.name} information
-						</p>
-					</div>
+					<p className="text-muted-foreground">
+						View {household.name} information
+					</p>
 				</div>
 			</div>
 

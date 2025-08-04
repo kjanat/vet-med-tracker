@@ -9,4 +9,4 @@ export {
 	ownerProcedure,
 	protectedProcedure,
 	publicProcedure,
-} from "./trpc/clerk-init";
+} from "@/server/api/trpc/clerk-init";

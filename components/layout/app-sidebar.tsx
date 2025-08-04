@@ -3,7 +3,6 @@
 import {
 	Bell,
 	Clock,
-	FileChartColumn,
 	HelpCircle,
 	History,
 	Home,
@@ -43,16 +42,6 @@ const data = {
 			url: "/dashboard",
 			icon: Home,
 			isActive: true,
-			items: [
-				{
-					title: "Overview",
-					url: "/dashboard",
-				},
-				{
-					title: "History",
-					url: "/dashboard/history",
-				},
-			],
 		},
 		{
 			title: "Manage",
@@ -94,14 +83,14 @@ const data = {
 			title: "Insights",
 			url: "/insights",
 			icon: TrendingUp,
-		},
-		{
-			title: "Reports",
-			icon: FileChartColumn,
 			items: [
 				{
+					title: "History",
+					url: "/dashboard/history",
+				},
+				{
 					title: "Animal Reports",
-					url: "/reports/animal",
+					url: "/reports",
 				},
 			],
 		},
@@ -111,24 +100,20 @@ const data = {
 			icon: Settings,
 			items: [
 				{
-					title: "General",
-					url: "/settings?tab=household",
-				},
-				{
 					title: "Data & Privacy",
-					url: "/settings?tab=data",
+					url: "/settings/data-privacy",
 				},
 				{
 					title: "Preferences",
-					url: "/settings?tab=preferences",
+					url: "/settings/preferences",
 				},
 				{
 					title: "Notifications",
-					url: "/settings?tab=notifications",
+					url: "/settings/notifications",
 				},
 				{
-					title: "Audit Log",
-					url: "/audit",
+					title: "Household",
+					url: "/settings/household",
 				},
 			],
 		},

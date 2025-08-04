@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
 import { Logo } from "@/components/ui/logo";
 import { Separator } from "@/components/ui/separator";
@@ -7,7 +8,9 @@ interface PageHeaderProps {
 	className?: string;
 }
 
-export function PageHeader({ className }: PageHeaderProps) {
+export const PageHeader = memo(function PageHeader({
+	className,
+}: PageHeaderProps) {
 	return (
 		<header
 			className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 ${className || ""}`}
@@ -22,4 +25,4 @@ export function PageHeader({ className }: PageHeaderProps) {
 			</div>
 		</header>
 	);
-}
+});

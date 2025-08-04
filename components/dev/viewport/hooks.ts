@@ -147,30 +147,47 @@ export function useDeviceFilters(devices: DeviceItem[]) {
 
 	// Filter devices
 	const filteredDevices = useMemo(() => {
-		return devices
-			.filter((device) => {
-				const brandMatch =
-					brandFilter === "All" ||
-					(device.properties.brand || "Unknown") === brandFilter;
-				const typeMatch =
-					deviceTypeFilter === "All" ||
-					device.properties.deviceType === deviceTypeFilter;
-				return brandMatch && typeMatch;
-			})
-			.sort((a, b) => {
-				const dateA = a.properties.releaseDate
-					? new Date(a.properties.releaseDate).getTime()
-					: 0;
-				const dateB = b.properties.releaseDate
-					? new Date(b.properties.releaseDate).getTime()
-					: 0;
+		// Helper functions to reduce sort complexity
+		const getDeviceReleaseDate = (device: DeviceItem) => {
+			return device.properties.releaseDate
+				? new Date(device.properties.releaseDate).getTime()
+				: 0;
+		};
 
-				if (dateA && dateB) return dateB - dateA;
-				if (dateA && !dateB) return -1;
-				if (!dateA && dateB) return 1;
+		const compareDevices = (a: DeviceItem, b: DeviceItem) => {
+			const dateA = getDeviceReleaseDate(a);
+			const dateB = getDeviceReleaseDate(b);
 
-				return a.attributes.ranking.amongAll - b.attributes.ranking.amongAll;
-			});
+			// Both have dates - sort by newest first
+			if (dateA && dateB) {
+				return dateB - dateA;
+			}
+
+			// Only A has date - A comes first
+			if (dateA && !dateB) {
+				return -1;
+			}
+
+			// Only B has date - B comes first
+			if (!dateA && dateB) {
+				return 1;
+			}
+
+			// Neither has date - sort by ranking
+			return a.attributes.ranking.amongAll - b.attributes.ranking.amongAll;
+		};
+
+		const deviceMatches = (device: DeviceItem) => {
+			const brandMatch =
+				brandFilter === "All" ||
+				(device.properties.brand || "Unknown") === brandFilter;
+			const typeMatch =
+				deviceTypeFilter === "All" ||
+				device.properties.deviceType === deviceTypeFilter;
+			return brandMatch && typeMatch;
+		};
+
+		return devices.filter(deviceMatches).sort(compareDevices);
 	}, [devices, brandFilter, deviceTypeFilter]);
 
 	const resetFilters = useCallback(() => {

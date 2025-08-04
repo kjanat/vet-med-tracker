@@ -27,8 +27,6 @@ export function ExportPanel() {
 	const handleExportCSV = async () => {
 		setIsExporting(true);
 		try {
-			console.log("Exporting compliance CSV");
-
 			// Fire instrumentation event
 			window.dispatchEvent(
 				new CustomEvent("insights_export_csv", {
@@ -59,8 +57,6 @@ export function ExportPanel() {
 			a.download = `compliance-report-${new Date().toISOString().split("T")[0]}.csv`;
 			a.click();
 			URL.revokeObjectURL(url);
-
-			console.log("CSV exported successfully");
 		} catch (error) {
 			console.error("Failed to export CSV:", error);
 		} finally {

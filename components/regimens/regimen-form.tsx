@@ -132,8 +132,8 @@ export function RegimenForm({
 
 		try {
 			await onSave(formData);
-		} catch (error) {
-			console.error("Failed to save regimen:", error);
+		} catch {
+			// Failed to save regimen
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -204,71 +204,21 @@ export function RegimenForm({
 					/>
 
 					{/* Medication Selection */}
-					<div className="space-y-2">
-						<Label>Medication *</Label>
-						<Popover open={medicationOpen} onOpenChange={setMedicationOpen}>
-							<PopoverTrigger asChild>
-								<Button
-									variant="outline"
-									className="w-full justify-between bg-transparent"
-								>
-									{formData.medicationName || "Select medication"}
-									<Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent className="w-full p-0">
-								<Command>
-									<CommandInput
-										placeholder="Search medications..."
-										value={medicationSearch}
-										onValueChange={setMedicationSearch}
-									/>
-									<CommandList>
-										<CommandEmpty>
-											{searchLoading ? (
-												<div className="p-4 text-center">
-													<p className="text-muted-foreground text-sm">
-														Searching medications...
-													</p>
-												</div>
-											) : medicationSearch.length === 0 ? (
-												<div className="p-4 text-center">
-													<p className="text-muted-foreground text-sm">
-														Start typing to search medications
-													</p>
-												</div>
-											) : (
-												<div className="p-4 text-center">
-													<p className="mb-2 text-muted-foreground text-sm">
-														No medication found
-													</p>
-													<p className="text-muted-foreground text-xs">
-														Contact admin to add "{medicationSearch}" to the
-														catalog
-													</p>
-												</div>
-											)}
-										</CommandEmpty>
-										<CommandGroup>
-											{medicationOptions.map((medication) => (
-												<MedicationItem
-													key={medication.id}
-													medication={medication}
-													onSelect={handleMedicationSelect}
-												/>
-											))}
-										</CommandGroup>
-									</CommandList>
-								</Command>
-							</PopoverContent>
-						</Popover>
-
-						{formData.medicationName && (
-							<div className="text-muted-foreground text-sm">
-								{formData.strength} • {formData.route} • {formData.form}
-							</div>
-						)}
-					</div>
+					<MedicationSelector
+						medicationName={formData.medicationName}
+						medicationDetails={{
+							strength: formData.strength,
+							route: formData.route,
+							form: formData.form,
+						}}
+						medicationOpen={medicationOpen}
+						setMedicationOpen={setMedicationOpen}
+						medicationSearch={medicationSearch}
+						setMedicationSearch={setMedicationSearch}
+						searchLoading={searchLoading}
+						medicationOptions={medicationOptions}
+						onSelect={handleMedicationSelect}
+					/>
 
 					{/* Schedule Type */}
 					<ScheduleTypeSelector
@@ -290,49 +240,16 @@ export function RegimenForm({
 					)}
 
 					{/* Course Dates */}
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="startDate">Start Date</Label>
-							<Input
-								id="startDate"
-								type="date"
-								value={
-									formData.startDate
-										? formData.startDate.toISOString().split("T")[0]
-										: ""
-								}
-								onChange={(e) =>
-									setFormData((prev) => ({
-										...prev,
-										startDate: e.target.value
-											? new Date(e.target.value)
-											: undefined,
-									}))
-								}
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="endDate">End Date</Label>
-							<Input
-								id="endDate"
-								type="date"
-								value={
-									formData.endDate
-										? formData.endDate.toISOString().split("T")[0]
-										: ""
-								}
-								onChange={(e) =>
-									setFormData((prev) => ({
-										...prev,
-										endDate: e.target.value
-											? new Date(e.target.value)
-											: undefined,
-									}))
-								}
-							/>
-						</div>
-					</div>
+					<CourseDatesSelector
+						startDate={formData.startDate}
+						endDate={formData.endDate}
+						onStartDateChange={(date) =>
+							setFormData((prev) => ({ ...prev, startDate: date }))
+						}
+						onEndDateChange={(date) =>
+							setFormData((prev) => ({ ...prev, endDate: date }))
+						}
+					/>
 
 					{/* Settings */}
 					<div className="space-y-4">
@@ -435,6 +352,159 @@ function MedicationItem({
 				</div>
 			</div>
 		</CommandItem>
+	);
+}
+
+// New component to reduce complexity
+interface MedicationSelectorProps {
+	medicationName?: string;
+	medicationDetails: {
+		strength?: string;
+		route?: string;
+		form?: string;
+	};
+	medicationOpen: boolean;
+	setMedicationOpen: (open: boolean) => void;
+	medicationSearch: string;
+	setMedicationSearch: (search: string) => void;
+	searchLoading: boolean;
+	medicationOptions: MedicationOption[];
+	onSelect: (medication: MedicationOption) => void;
+}
+
+function MedicationSelector({
+	medicationName,
+	medicationDetails,
+	medicationOpen,
+	setMedicationOpen,
+	medicationSearch,
+	setMedicationSearch,
+	searchLoading,
+	medicationOptions,
+	onSelect,
+}: MedicationSelectorProps) {
+	const renderSearchEmpty = () => {
+		if (searchLoading) {
+			return (
+				<div className="p-4 text-center">
+					<p className="text-muted-foreground text-sm">
+						Searching medications...
+					</p>
+				</div>
+			);
+		}
+
+		if (medicationSearch.length === 0) {
+			return (
+				<div className="p-4 text-center">
+					<p className="text-muted-foreground text-sm">
+						Start typing to search medications
+					</p>
+				</div>
+			);
+		}
+
+		return (
+			<div className="p-4 text-center">
+				<p className="mb-2 text-muted-foreground text-sm">
+					No medication found
+				</p>
+				<p className="text-muted-foreground text-xs">
+					Contact admin to add "{medicationSearch}" to the catalog
+				</p>
+			</div>
+		);
+	};
+
+	return (
+		<div className="space-y-2">
+			<Label>Medication *</Label>
+			<Popover open={medicationOpen} onOpenChange={setMedicationOpen}>
+				<PopoverTrigger asChild>
+					<Button
+						variant="outline"
+						className="w-full justify-between bg-transparent"
+					>
+						{medicationName || "Select medication"}
+						<Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-full p-0">
+					<Command>
+						<CommandInput
+							placeholder="Search medications..."
+							value={medicationSearch}
+							onValueChange={setMedicationSearch}
+						/>
+						<CommandList>
+							<CommandEmpty>{renderSearchEmpty()}</CommandEmpty>
+							<CommandGroup>
+								{medicationOptions.map((medication) => (
+									<MedicationItem
+										key={medication.id}
+										medication={medication}
+										onSelect={onSelect}
+									/>
+								))}
+							</CommandGroup>
+						</CommandList>
+					</Command>
+				</PopoverContent>
+			</Popover>
+
+			{medicationName && (
+				<div className="text-muted-foreground text-sm">
+					{medicationDetails.strength} • {medicationDetails.route} •{" "}
+					{medicationDetails.form}
+				</div>
+			)}
+		</div>
+	);
+}
+
+interface CourseDatesSelectorProps {
+	startDate?: Date;
+	endDate?: Date;
+	onStartDateChange: (date?: Date) => void;
+	onEndDateChange: (date?: Date) => void;
+}
+
+function CourseDatesSelector({
+	startDate,
+	endDate,
+	onStartDateChange,
+	onEndDateChange,
+}: CourseDatesSelectorProps) {
+	return (
+		<div className="grid grid-cols-2 gap-4">
+			<div className="space-y-2">
+				<Label htmlFor="startDate">Start Date</Label>
+				<Input
+					id="startDate"
+					type="date"
+					value={startDate ? startDate.toISOString().split("T")[0] : ""}
+					onChange={(e) =>
+						onStartDateChange(
+							e.target.value ? new Date(e.target.value) : undefined,
+						)
+					}
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="endDate">End Date</Label>
+				<Input
+					id="endDate"
+					type="date"
+					value={endDate ? endDate.toISOString().split("T")[0] : ""}
+					onChange={(e) =>
+						onEndDateChange(
+							e.target.value ? new Date(e.target.value) : undefined,
+						)
+					}
+				/>
+			</div>
+		</div>
 	);
 }
 

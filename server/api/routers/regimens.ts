@@ -9,12 +9,12 @@ import {
 	regimens,
 	scheduleTypeEnum,
 } from "@/db/schema";
-import { createAuditLog } from "@/server/utils/audit-log";
 import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
-} from "../trpc/clerk-init";
+} from "@/server/api/trpc/clerk-init";
+import { createAuditLog } from "@/server/utils/audit-log";
 
 // Types for regimen processing
 interface ProcessedRegimen {

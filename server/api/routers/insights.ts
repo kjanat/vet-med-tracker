@@ -8,7 +8,10 @@ import {
 	medicationCatalog,
 	regimens,
 } from "@/db/schema";
-import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
+import {
+	createTRPCRouter,
+	householdProcedure,
+} from "@/server/api/trpc/clerk-init";
 
 // Types matching the existing mock data structure
 export interface Suggestion {
@@ -133,6 +136,7 @@ async function generateReminderSuggestions(
 		JOIN ${administrations} a2 ON r.id = a2.regimen_id
 		WHERE a.household_id = ${householdId}
 			AND r.active = true
+			AND r.schedule_type != 'PRN'
 			AND a2.scheduled_for IS NOT NULL
 			AND a2.recorded_at > NOW() - INTERVAL '30 days'
 		GROUP BY r.id, a.id, a.name, mc.generic_name, dow, hour
@@ -351,6 +355,7 @@ async function generateComplianceHeatmap(
 	}
 
 	// Query to get compliance data grouped by day of week and hour
+	// Exclude PRN regimens from compliance calculations
 	const heatmapQuery = sql`
 		SELECT 
 			EXTRACT(dow FROM a.scheduled_for AT TIME ZONE an.timezone) as dow,
@@ -362,7 +367,9 @@ async function generateComplianceHeatmap(
 			COUNT(CASE WHEN a.status = 'MISSED' THEN 1 END) as missed_count
 		FROM ${administrations} a
 		JOIN ${animals} an ON a.animal_id = an.id
+		JOIN ${regimens} r ON a.regimen_id = r.id
 		WHERE ${and(...conditions)}
+			AND r.schedule_type != 'PRN'
 			AND a.scheduled_for IS NOT NULL
 		GROUP BY dow, hour
 		ORDER BY dow, hour

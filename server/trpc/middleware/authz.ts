@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { memberships } from "@/db/schema";
-import { protectedProcedure } from "../../api/trpc/clerk-init";
+import { protectedProcedure } from "@/server/api/trpc/clerk-init";
 
 export type Role = "OWNER" | "CAREGIVER" | "VETREADONLY";
 

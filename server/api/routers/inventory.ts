@@ -1,4 +1,4 @@
-import { and, count, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, count, eq, gte, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
 import {
 	administrations,
@@ -7,7 +7,10 @@ import {
 	medicationCatalog,
 	regimens,
 } from "@/db/schema";
-import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
+import {
+	createTRPCRouter,
+	householdProcedure,
+} from "@/server/api/trpc/clerk-init";
 
 export const inventoryRouter = createTRPCRouter({
 	// List inventory items for a household
@@ -513,10 +516,8 @@ export const inventoryRouter = createTRPCRouter({
 				gte(inventoryItems.unitsRemaining, 1), // Only items with remaining units
 			];
 
-			if (input.itemIds && input.itemIds.length > 0) {
-				inventoryConditions.push(
-					sql`${inventoryItems.id} = ANY(${input.itemIds})`,
-				);
+			if (input.itemIds?.length) {
+				inventoryConditions.push(inArray(inventoryItems.id, input.itemIds));
 			}
 
 			const inventoryResult = await ctx.db

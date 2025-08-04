@@ -95,7 +95,8 @@ export function PageHeaderEnhanced({ className }: PageHeaderProps) {
 		},
 		reports: {
 			title: "Reports",
-			description: "View detailed medication reports",
+			description:
+				"Select an animal to view their medication compliance report",
 			actions: (
 				<Button variant="outline" size="sm">
 					<FileText className="mr-2 h-4 w-4" />
@@ -111,7 +112,23 @@ export function PageHeaderEnhanced({ className }: PageHeaderProps) {
 			title: "Settings",
 			description: "Manage your account and preferences",
 		},
-		audit: {
+		"settings/data-privacy": {
+			title: "Data & Privacy",
+			description: "Export your data and manage privacy settings",
+		},
+		"settings/preferences": {
+			title: "Preferences",
+			description: "Customize your app experience and display settings",
+		},
+		"settings/notifications": {
+			title: "Notifications",
+			description: "Configure alerts and notification preferences",
+		},
+		"settings/household": {
+			title: "Household Settings",
+			description: "Manage household members and permissions",
+		},
+		"settings/data-privacy/audit": {
 			title: "Audit Log",
 			description: "View system activity and changes",
 		},

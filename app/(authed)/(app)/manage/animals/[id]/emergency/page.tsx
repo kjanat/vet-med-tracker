@@ -7,6 +7,243 @@ import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { EmergencyAnimal, EmergencyRegimen } from "@/lib/types";
+
+// Helper components to reduce cognitive complexity
+const EmptyState = ({ message }: { message: string }) => (
+	<div className="flex min-h-screen items-center justify-center bg-background">
+		<Card className="max-w-md">
+			<CardContent className="pt-6">
+				<p className="text-center text-muted-foreground">{message}</p>
+			</CardContent>
+		</Card>
+	</div>
+);
+
+const LoadingState = () => (
+	<div className="flex min-h-screen items-center justify-center bg-background">
+		<div className="flex items-center gap-2">
+			<Loader2 className="h-6 w-6 animate-spin" />
+			<span className="text-lg">Loading emergency card...</span>
+		</div>
+	</div>
+);
+
+const AnimalInfoCard = ({
+	animalData,
+	age,
+}: {
+	animalData: EmergencyAnimal;
+	age: number | null;
+}) => (
+	<Card className="mb-6">
+		<CardHeader>
+			<CardTitle className="flex items-center gap-3">
+				<AnimalAvatar
+					animal={{
+						...animalData,
+						avatar: animalData.photoUrl || animalData.photo || undefined,
+						pendingMeds: animalData.pendingMeds || 0,
+					}}
+					size="lg"
+				/>
+				<div>
+					<div className="text-xl sm:text-2xl">{animalData.name}</div>
+					<div className="text-base text-muted-foreground sm:text-lg">
+						{animalData.breed && `${animalData.breed} `}
+						{animalData.species}
+					</div>
+				</div>
+			</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<div className="grid grid-cols-2 gap-3 text-sm">
+				{animalData.sex && (
+					<div>
+						<span className="font-medium">Sex:</span> {animalData.sex}
+						{animalData.neutered && " (Neutered)"}
+					</div>
+				)}
+				{animalData.weightKg && (
+					<div>
+						<span className="font-medium">Weight:</span> {animalData.weightKg}kg
+					</div>
+				)}
+				{age !== null && (
+					<div>
+						<span className="font-medium">Age:</span> {age} year
+						{age !== 1 ? "s" : ""}
+					</div>
+				)}
+				{animalData.color && (
+					<div>
+						<span className="font-medium">Color:</span> {animalData.color}
+					</div>
+				)}
+				{animalData.microchipId && (
+					<div className="col-span-2">
+						<span className="font-medium">Microchip:</span>{" "}
+						{animalData.microchipId}
+					</div>
+				)}
+			</div>
+		</CardContent>
+	</Card>
+);
+
+const EmergencyContactsCard = ({
+	animalData,
+}: {
+	animalData: EmergencyAnimal;
+}) => (
+	<Card className="mb-6">
+		<CardHeader>
+			<CardTitle className="flex items-center gap-2">
+				<Phone className="h-5 w-5" />
+				Emergency Contacts
+			</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+				<div className="rounded-lg border p-3 sm:p-4">
+					<div className="font-medium text-base sm:text-lg">
+						Primary Veterinarian
+					</div>
+					<div className="font-bold text-lg sm:text-xl">
+						{animalData.vetName || "Not specified"}
+					</div>
+					<div className="text-base sm:text-lg">
+						{animalData.vetPhone || "Not specified"}
+					</div>
+				</div>
+				<div className="rounded-lg border p-3 sm:p-4">
+					<div className="font-medium text-base sm:text-lg">Owner</div>
+					<div className="font-bold text-lg sm:text-xl">John Smith</div>
+					<div className="text-base sm:text-lg">(555) 123-4567</div>
+				</div>
+			</div>
+		</CardContent>
+	</Card>
+);
+
+const MedicalAlertsCard = ({ animalData }: { animalData: EmergencyAnimal }) => {
+	const hasAlerts =
+		(animalData.allergies && animalData.allergies.length > 0) ||
+		(animalData.conditions && animalData.conditions.length > 0);
+
+	if (!hasAlerts) return null;
+
+	return (
+		<Card className="mb-6 border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/20 print:bg-gray-100">
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400 print:text-black">
+					<AlertTriangle className="h-5 w-5" />
+					Medical Alerts
+				</CardTitle>
+			</CardHeader>
+			<CardContent>
+				{animalData.allergies && animalData.allergies.length > 0 && (
+					<div className="mb-4">
+						<div className="mb-2 font-medium text-red-700 dark:text-red-400 print:text-black">
+							ALLERGIES:
+						</div>
+						<div className="flex flex-wrap gap-2">
+							{animalData.allergies.map((allergy) => (
+								<Badge
+									key={allergy}
+									variant="destructive"
+									className="text-sm print:bg-gray-300 print:text-black"
+								>
+									{allergy}
+								</Badge>
+							))}
+						</div>
+					</div>
+				)}
+				{animalData.conditions && animalData.conditions.length > 0 && (
+					<div>
+						<div className="mb-2 font-medium text-red-700 dark:text-red-400 print:text-black">
+							CONDITIONS:
+						</div>
+						<div className="flex flex-wrap gap-2">
+							{animalData.conditions.map((condition) => (
+								<Badge
+									key={condition}
+									variant="secondary"
+									className="text-sm print:bg-gray-300 print:text-black"
+								>
+									{condition}
+								</Badge>
+							))}
+						</div>
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
+};
+
+const MedicationsCard = ({ regimens }: { regimens: EmergencyRegimen[] }) => (
+	<Card className="mb-6">
+		<CardHeader>
+			<CardTitle className="flex items-center gap-2">
+				<Pill className="h-5 w-5" />
+				Current Medications
+			</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<div className="space-y-4">
+				{regimens.length === 0 ? (
+					<p className="py-4 text-center text-muted-foreground">
+						No active medications
+					</p>
+				) : (
+					regimens.map((regimen) => {
+						return (
+							<div key={regimen.id} className="rounded-lg border p-3 sm:p-4">
+								<div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+									<div>
+										<div className="font-medium text-base sm:text-lg">
+											{regimen.medication?.genericName ||
+												regimen.medication?.brandName ||
+												regimen.name}
+										</div>
+										<div className="text-muted-foreground">
+											{regimen.medication?.strength &&
+												`${regimen.medication.strength} • `}
+											{regimen.route || regimen.medication?.route || "Oral"}
+										</div>
+									</div>
+									<Badge variant="outline">
+										{regimen.scheduleType === "PRN"
+											? `PRN - ${regimen.prnReason || "As needed"}`
+											: regimen.timesLocal?.join(", ") || "See instructions"}
+									</Badge>
+								</div>
+								{regimen.instructions && (
+									<div className="text-muted-foreground text-sm">
+										<span className="font-medium">Instructions:</span>{" "}
+										{regimen.instructions}
+									</div>
+								)}
+							</div>
+						);
+					})
+				)}
+			</div>
+		</CardContent>
+	</Card>
+);
+
+// Helper function to calculate age
+const calculateAge = (dob: Date | string | null) => {
+	if (!dob) return null;
+	const birthDate = new Date(dob);
+	const age = Math.floor(
+		(Date.now() - birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
+	);
+	return age;
+};
 
 export default function EmergencyCardPage() {
 	const params = useParams();
@@ -14,80 +251,30 @@ export default function EmergencyCardPage() {
 	const { selectedHousehold } = useApp();
 
 	// TODO: Fetch animal data once tRPC endpoint exists
-	// const { data: animalData, isLoading: animalLoading } =
-	//   trpc.animal.getById.useQuery(
-	//     { id: animalId, householdId: selectedHousehold?.id || "" },
-	//     { enabled: !!animalId && !!selectedHousehold?.id }
-	//   );
-	const animalData = null;
+	const animalData: EmergencyAnimal | null = null;
 	const animalLoading = false;
-
-	// TODO: Fetch active regimens once tRPC endpoint exists
-	// const { data: regimens = [], isLoading: regimensLoading } =
-	//   trpc.regimen.getByAnimal.useQuery(
-	//     { animalId, householdId: selectedHousehold?.id || "" },
-	//     { enabled: !!animalId && !!selectedHousehold?.id }
-	//   );
-	const regimens: unknown[] = [];
+	const regimens: EmergencyRegimen[] = [];
 	const regimensLoading = false;
 
-	const handlePrint = () => {
-		window.print();
-	};
-
+	const handlePrint = () => window.print();
 	const isLoading = animalLoading || regimensLoading;
 
-	// No household selected
+	// Early returns for different states
 	if (!selectedHousehold) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background">
-				<Card className="max-w-md">
-					<CardContent className="pt-6">
-						<p className="text-center text-muted-foreground">
-							Please select a household to view this emergency card.
-						</p>
-					</CardContent>
-				</Card>
-			</div>
+			<EmptyState message="Please select a household to view this emergency card." />
 		);
 	}
 
-	// Loading state
 	if (isLoading) {
-		return (
-			<div className="flex min-h-screen items-center justify-center bg-background">
-				<div className="flex items-center gap-2">
-					<Loader2 className="h-6 w-6 animate-spin" />
-					<span className="text-lg">Loading emergency card...</span>
-				</div>
-			</div>
-		);
+		return <LoadingState />;
 	}
 
-	// No data state
 	if (!animalData) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background">
-				<Card className="max-w-md">
-					<CardContent className="pt-6">
-						<p className="text-center text-muted-foreground">
-							Animal not found or you don't have access to this animal.
-						</p>
-					</CardContent>
-				</Card>
-			</div>
+			<EmptyState message="Animal not found or you don't have access to this animal." />
 		);
 	}
-
-	// Calculate age from DOB
-	const calculateAge = (dob: Date | string | null) => {
-		if (!dob) return null;
-		const birthDate = new Date(dob);
-		const age = Math.floor(
-			(Date.now() - birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
-		);
-		return age;
-	};
 
 	const age = calculateAge(animalData.dob);
 
@@ -116,203 +303,10 @@ export default function EmergencyCardPage() {
 						</p>
 					</div>
 
-					{/* Animal Info */}
-					<Card className="mb-6">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-3">
-								<AnimalAvatar
-									animal={{
-										...animalData,
-										avatar: animalData.photoUrl || undefined,
-										pendingMeds: 0,
-									}}
-									size="lg"
-								/>
-								<div>
-									<div className="text-xl sm:text-2xl">{animalData.name}</div>
-									<div className="text-base text-muted-foreground sm:text-lg">
-										{animalData.breed && `${animalData.breed} `}
-										{animalData.species}
-									</div>
-								</div>
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-2 gap-3 text-sm">
-								{animalData.sex && (
-									<div>
-										<span className="font-medium">Sex:</span> {animalData.sex}
-										{animalData.neutered && " (Neutered)"}
-									</div>
-								)}
-								{animalData.weightKg && (
-									<div>
-										<span className="font-medium">Weight:</span>{" "}
-										{animalData.weightKg}kg
-									</div>
-								)}
-								{age !== null && (
-									<div>
-										<span className="font-medium">Age:</span> {age} year
-										{age !== 1 ? "s" : ""}
-									</div>
-								)}
-								{animalData.color && (
-									<div>
-										<span className="font-medium">Color:</span>{" "}
-										{animalData.color}
-									</div>
-								)}
-								{animalData.microchipId && (
-									<div className="col-span-2">
-										<span className="font-medium">Microchip:</span>{" "}
-										{animalData.microchipId}
-									</div>
-								)}
-							</div>
-						</CardContent>
-					</Card>
-
-					{/* Emergency Contacts */}
-					<Card className="mb-6">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Phone className="h-5 w-5" />
-								Emergency Contacts
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-								<div className="rounded-lg border p-3 sm:p-4">
-									<div className="font-medium text-base sm:text-lg">
-										Primary Veterinarian
-									</div>
-									<div className="font-bold text-lg sm:text-xl">
-										{animalData.vetName || "Not specified"}
-									</div>
-									<div className="text-base sm:text-lg">
-										{animalData.vetPhone || "Not specified"}
-									</div>
-								</div>
-								<div className="rounded-lg border p-3 sm:p-4">
-									<div className="font-medium text-base sm:text-lg">Owner</div>
-									<div className="font-bold text-lg sm:text-xl">John Smith</div>
-									<div className="text-base sm:text-lg">(555) 123-4567</div>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-
-					{/* Medical Alerts */}
-					{((animalData.allergies && animalData.allergies.length > 0) ||
-						(animalData.conditions && animalData.conditions.length > 0)) && (
-						<Card className="mb-6 border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/20 print:bg-gray-100">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400 print:text-black">
-									<AlertTriangle className="h-5 w-5" />
-									Medical Alerts
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								{animalData.allergies && animalData.allergies.length > 0 && (
-									<div className="mb-4">
-										<div className="mb-2 font-medium text-red-700 dark:text-red-400 print:text-black">
-											ALLERGIES:
-										</div>
-										<div className="flex flex-wrap gap-2">
-											{animalData.allergies.map((allergy: string) => (
-												<Badge
-													key={allergy}
-													variant="destructive"
-													className="text-sm print:bg-gray-300 print:text-black"
-												>
-													{allergy}
-												</Badge>
-											))}
-										</div>
-									</div>
-								)}
-
-								{animalData.conditions && animalData.conditions.length > 0 && (
-									<div>
-										<div className="mb-2 font-medium text-red-700 dark:text-red-400 print:text-black">
-											CONDITIONS:
-										</div>
-										<div className="flex flex-wrap gap-2">
-											{animalData.conditions.map((condition: string) => (
-												<Badge
-													key={condition}
-													variant="secondary"
-													className="text-sm print:bg-gray-300 print:text-black"
-												>
-													{condition}
-												</Badge>
-											))}
-										</div>
-									</div>
-								)}
-							</CardContent>
-						</Card>
-					)}
-
-					{/* Current Medications */}
-					<Card className="mb-6">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Pill className="h-5 w-5" />
-								Current Medications
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
-								{regimens.length === 0 ? (
-									<p className="py-4 text-center text-muted-foreground">
-										No active medications
-									</p>
-								) : (
-									regimens.map((regimenData: unknown) => {
-										// eslint-disable-next-line @typescript-eslint/no-explicit-any
-										const regimen = regimenData as any;
-										return (
-											<div
-												key={regimen.id}
-												className="rounded-lg border p-3 sm:p-4"
-											>
-												<div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-													<div>
-														<div className="font-medium text-base sm:text-lg">
-															{regimen.medication?.genericName ||
-																regimen.medication?.brandName ||
-																regimen.name}
-														</div>
-														<div className="text-muted-foreground">
-															{regimen.medication?.strength &&
-																`${regimen.medication.strength} • `}
-															{regimen.route ||
-																regimen.medication?.route ||
-																"Oral"}
-														</div>
-													</div>
-													<Badge variant="outline">
-														{regimen.scheduleType === "PRN"
-															? `PRN - ${regimen.prnReason || "As needed"}`
-															: regimen.timesLocal?.join(", ") ||
-																"See instructions"}
-													</Badge>
-												</div>
-												{regimen.instructions && (
-													<div className="text-muted-foreground text-sm">
-														<span className="font-medium">Instructions:</span>{" "}
-														{regimen.instructions}
-													</div>
-												)}
-											</div>
-										);
-									})
-								)}
-							</div>
-						</CardContent>
-					</Card>
+					<AnimalInfoCard animalData={animalData} age={age} />
+					<EmergencyContactsCard animalData={animalData} />
+					<MedicalAlertsCard animalData={animalData} />
+					<MedicationsCard regimens={regimens} />
 
 					{/* Footer */}
 					<div className="border-t pt-4 text-center text-muted-foreground text-sm">

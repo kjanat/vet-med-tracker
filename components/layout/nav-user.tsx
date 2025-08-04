@@ -94,9 +94,7 @@ export function NavUser() {
 								Settings
 							</DropdownMenuItem>
 							<DropdownMenuItem
-								onClick={() =>
-									router.push("/settings?tab=notifications" as Route)
-								}
+								onClick={() => router.push("/settings/notifications" as Route)}
 							>
 								<Bell />
 								Notifications

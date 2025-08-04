@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { inventoryItems, medicationCatalog } from "@/db/schema";
 import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
-} from "../trpc/clerk-init";
+} from "@/server/api/trpc/clerk-init";
 
 export const medicationRouter = createTRPCRouter({
 	search: protectedProcedure
@@ -100,7 +100,7 @@ export const medicationRouter = createTRPCRouter({
 			const medications = await ctx.db
 				.select()
 				.from(medicationCatalog)
-				.where(sql`${medicationCatalog.id} = ANY(${medicationIds})`);
+				.where(inArray(medicationCatalog.id, medicationIds));
 
 			// Sort by usage count
 			const medicationMap = new Map(medications.map((med) => [med.id, med]));

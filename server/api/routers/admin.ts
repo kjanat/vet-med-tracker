@@ -11,8 +11,11 @@ import {
 	regimens,
 	users,
 } from "@/db/schema";
+import {
+	createTRPCRouter,
+	householdProcedure,
+} from "@/server/api/trpc/clerk-init";
 import { createAuditLog } from "@/server/utils/audit-log";
-import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
 
 // Input validation schema for recording administration
 const recordAdministrationSchema = z.object({

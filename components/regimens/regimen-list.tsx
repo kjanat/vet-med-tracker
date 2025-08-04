@@ -245,6 +245,82 @@ export function RegimenList() {
 		},
 	});
 
+	// Helper functions to reduce cognitive complexity
+	const formatDateForAPI = (date?: Date) => {
+		return date?.toISOString().split("T")[0];
+	};
+
+	const buildUpdateData = (data: Partial<Regimen>, householdId: string) => {
+		const updateData = {
+			id: editingRegimen.id,
+			householdId,
+			name: data.medicationName,
+			instructions: data.medicationName, // TODO: Get actual instructions from form
+			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
+			timesLocal: data.timesLocal,
+			cutoffMinutes: data.cutoffMins,
+			highRisk: data.highRisk,
+			requiresCoSign: data.highRisk, // High risk medications require co-sign
+			dose: data.medicationName, // TODO: Get actual dose from form
+			route: data.route,
+		};
+
+		// Only add dates if they exist
+		if (data.startDate) {
+			updateData.startDate = formatDateForAPI(data.startDate);
+		}
+		if (data.endDate) {
+			updateData.endDate = formatDateForAPI(data.endDate);
+		}
+
+		return updateData;
+	};
+
+	const buildCreateData = (data: Partial<Regimen>, householdId: string) => {
+		const createData = {
+			householdId,
+			animalId: data.animalId || "",
+			medicationId: data.medicationId || "",
+			name: data.medicationName,
+			instructions: data.medicationName, // TODO: Get actual instructions from form
+			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
+			timesLocal: data.timesLocal,
+			startDate:
+				formatDateForAPI(data.startDate) || formatDateForAPI(new Date()),
+			cutoffMinutes: data.cutoffMins || 240,
+			highRisk: data.highRisk || false,
+			requiresCoSign: data.highRisk || false, // High risk medications require co-sign
+			dose: data.medicationName, // TODO: Get actual dose from form
+			route: data.route,
+		};
+
+		// Only add endDate if it exists
+		if (data.endDate) {
+			createData.endDate = formatDateForAPI(data.endDate);
+		}
+
+		return createData;
+	};
+
+	const fireInstrumentationEvent = (data: Partial<Regimen>) => {
+		window.dispatchEvent(
+			new CustomEvent(
+				editingRegimen
+					? "settings_regimens_update"
+					: "settings_regimens_create",
+				{
+					detail: {
+						regimenId: editingRegimen?.id,
+						animalId: data.animalId,
+						medicationName: data.medicationName,
+						scheduleType: data.scheduleType,
+					},
+				},
+			),
+		);
+	};
+
+	// Simplified main handler
 	const handleSave = async (data: Partial<Regimen>) => {
 		if (!selectedHousehold?.id) {
 			console.error("No household selected");
@@ -253,83 +329,14 @@ export function RegimenList() {
 
 		try {
 			if (editingRegimen) {
-				// Update existing regimen
-				const updateData = {
-					id: editingRegimen.id,
-					householdId: selectedHousehold.id,
-					name: data.medicationName,
-					instructions: data.medicationName, // TODO: Get actual instructions from form
-					scheduleType: data.scheduleType as
-						| "FIXED"
-						| "PRN"
-						| "INTERVAL"
-						| "TAPER",
-					timesLocal: data.timesLocal,
-					cutoffMinutes: data.cutoffMins,
-					highRisk: data.highRisk,
-					requiresCoSign: data.highRisk, // High risk medications require co-sign
-					dose: data.medicationName, // TODO: Get actual dose from form
-					route: data.route,
-				};
-
-				// Only add dates if they exist
-				if (data.startDate) {
-					updateData.startDate = data.startDate.toISOString().split("T")[0];
-				}
-				if (data.endDate) {
-					updateData.endDate = data.endDate.toISOString().split("T")[0];
-				}
-
+				const updateData = buildUpdateData(data, selectedHousehold.id);
 				await updateRegimen.mutateAsync(updateData);
 			} else {
-				// Create new regimen
-				const createData = {
-					householdId: selectedHousehold.id,
-					animalId: data.animalId || "",
-					medicationId: data.medicationId || "",
-					name: data.medicationName,
-					instructions: data.medicationName, // TODO: Get actual instructions from form
-					scheduleType: data.scheduleType as
-						| "FIXED"
-						| "PRN"
-						| "INTERVAL"
-						| "TAPER",
-					timesLocal: data.timesLocal,
-					startDate:
-						data.startDate?.toISOString().split("T")[0] ||
-						new Date().toISOString().split("T")[0],
-					cutoffMinutes: data.cutoffMins || 240,
-					highRisk: data.highRisk || false,
-					requiresCoSign: data.highRisk || false, // High risk medications require co-sign
-					dose: data.medicationName, // TODO: Get actual dose from form
-					route: data.route,
-				};
-
-				// Only add endDate if it exists
-				if (data.endDate) {
-					createData.endDate = data.endDate.toISOString().split("T")[0];
-				}
-
+				const createData = buildCreateData(data, selectedHousehold.id);
 				await createRegimen.mutateAsync(createData);
 			}
 
-			// Fire instrumentation event
-			window.dispatchEvent(
-				new CustomEvent(
-					editingRegimen
-						? "settings_regimens_update"
-						: "settings_regimens_create",
-					{
-						detail: {
-							regimenId: editingRegimen?.id,
-							animalId: data.animalId,
-							medicationName: data.medicationName,
-							scheduleType: data.scheduleType,
-						},
-					},
-				),
-			);
-
+			fireInstrumentationEvent(data);
 			setIsFormOpen(false);
 			setEditingRegimen(null);
 

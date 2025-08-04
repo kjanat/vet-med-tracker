@@ -372,13 +372,6 @@ function HistoryContent() {
 
 	return (
 		<div className="space-y-6">
-			<div>
-				<h1 className="font-bold text-3xl">History</h1>
-				<p className="text-muted-foreground">
-					View past medication administrations and compliance
-				</p>
-			</div>
-
 			<FilterBar />
 
 			<div>

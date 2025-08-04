@@ -336,12 +336,7 @@ function InventoryContent() {
 		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Inventory</h1>
-					<p className="text-muted-foreground">
-						Manage medications and supplies
-					</p>
-				</div>
+				<p className="text-muted-foreground">Manage medications and supplies</p>
 				<AddItemButton />
 			</div>
 

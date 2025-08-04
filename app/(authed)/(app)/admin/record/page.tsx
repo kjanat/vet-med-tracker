@@ -230,14 +230,11 @@ function SelectionStep({
 	return (
 		<div className="mx-auto max-w-4xl space-y-6">
 			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Record Medication</h1>
-					<p className="text-muted-foreground">
-						{state.selectedAnimalId
-							? `Recording for ${animals.find((a) => a.id === state.selectedAnimalId)?.name}`
-							: "Select a medication to record"}
-					</p>
-				</div>
+				<p className="text-muted-foreground">
+					{state.selectedAnimalId
+						? `Recording for ${animals.find((a) => a.id === state.selectedAnimalId)?.name}`
+						: "Select a medication to record"}
+				</p>
 				{searchParams.get("from") === "home" && (
 					<Button variant="ghost" onClick={() => router.push("/")}>
 						<ArrowLeft className="mr-2 h-4 w-4" />
