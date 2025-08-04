@@ -96,6 +96,18 @@ export interface ViewportState {
 	deviceType: DeviceType;
 }
 
+// Dynamically detect the current host, port, and scheme
+function getDefaultBaseUrl(): string {
+	if (typeof window === "undefined") {
+		// Server-side fallback
+		return "http://localhost:3000/";
+	}
+
+	const { protocol, hostname, port } = window.location;
+	const portSuffix = port ? `:${port}` : "";
+	return `${protocol}//${hostname}${portSuffix}/`;
+}
+
 export const DEFAULT_VIEWPORT_STATE: ViewportState = {
 	width: 375,
 	height: 667,
@@ -103,7 +115,7 @@ export const DEFAULT_VIEWPORT_STATE: ViewportState = {
 	name: "iPhone SE",
 	orientation: "portrait",
 	scheme: "system",
-	baseUrl: "http://localhost:3000/",
+	baseUrl: getDefaultBaseUrl(),
 	deviceType: "phone",
 };
 

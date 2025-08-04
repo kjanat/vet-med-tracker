@@ -74,19 +74,16 @@ function AnimalList({
 	};
 
 	const handleEmergencyCard = (animalId: string) => {
-		window.open(`/animals/${animalId}/emergency`, "_blank");
+		window.open(`/manage/animals/${animalId}/emergency`, "_blank");
 	};
 
 	return (
 		<div className="space-y-6">
-			{/* Header with Add button */}
+			{/* Add button */}
 			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Animals</h1>
-					<p className="text-muted-foreground">
-						Manage animal profiles and medical information
-					</p>
-				</div>
+				<p className="text-muted-foreground">
+					Manage animal profiles and medical information
+				</p>
 				<Button onClick={() => openForm()} className="gap-2">
 					<Plus className="h-4 w-4" />
 					Add Animal

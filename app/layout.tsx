@@ -9,6 +9,7 @@ import { GlobalLayout } from "@/components/layout/global-layout";
 import { AppProvider } from "@/components/providers/app-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import {
 	GlobalScreenReaderProvider,
 	SkipNavigation,
@@ -17,8 +18,41 @@ import { TRPCProvider } from "@/server/trpc/client";
 import { inter, jetbrainsMono } from "./fonts";
 
 export const metadata: Metadata = {
-	title: "VetMed Tracker",
-	description: "Veterinary medication management system",
+	title: "VetMed Tracker - Pet Medication Management Made Simple",
+	description:
+		"Track pet medications, set reminders, and manage veterinary prescriptions with ease. Never miss a dose with our intuitive medication tracking app.",
+	keywords: [
+		"pet medication tracker",
+		"veterinary medicine management",
+		"pet health app",
+		"medication reminders",
+		"animal prescription tracker",
+	],
+	openGraph: {
+		title: "VetMed Tracker - Pet Medication Management",
+		description:
+			"Never miss a pet medication dose. Track prescriptions, set reminders, and manage your pet's health with confidence.",
+		type: "website",
+		locale: "en_US",
+		siteName: "VetMed Tracker",
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "VetMed Tracker - Pet Medication Management",
+		description:
+			"Track pet medications and never miss a dose. Simple, reliable medication management for your furry friends.",
+	},
+	robots: {
+		index: true,
+		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			"max-video-preview": -1,
+			"max-image-preview": "large",
+			"max-snippet": -1,
+		},
+	},
 };
 
 export default function RootLayout({
@@ -28,34 +62,44 @@ export default function RootLayout({
 }) {
 	return (
 		<ClerkProvider>
-			<html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+			<html
+				lang="en"
+				className={`${inter.variable} ${jetbrainsMono.variable}`}
+				suppressHydrationWarning
+			>
 				<head>
 					{/* <script src="http://localhost:8097"></script> */}
-					<meta name="apple-mobile-web-app-title" content="KJANAT" />
+					<meta name="apple-mobile-web-app-title" content="VetMed Tracker" />
 				</head>
-				<body className={inter.className}>
-					<SkipNavigation
-						links={[
-							{ href: "#main-content", label: "Skip to main content" },
-							{ href: "#main-navigation", label: "Skip to navigation" },
-							{ href: "#search", label: "Skip to search" },
-						]}
-					/>
-					<ErrorBoundary errorBoundaryId="root">
-						<TRPCProvider>
-							<AuthProvider>
-								<AppProvider>
-									<GlobalScreenReaderProvider>
-										<KeyboardShortcutsProvider>
-											<GlobalLayout>{children}</GlobalLayout>
-										</KeyboardShortcutsProvider>
-									</GlobalScreenReaderProvider>
-									{/* {process.env.NODE_ENV === "development" && <DebugHouseholdState />} */}
-								</AppProvider>
-							</AuthProvider>
-						</TRPCProvider>
-					</ErrorBoundary>
-					<Analytics />
+				<body className={inter.className} suppressHydrationWarning>
+					<ThemeProvider
+						attribute="class"
+						defaultTheme="system"
+						enableSystem
+						disableTransitionOnChange
+					>
+						<SkipNavigation
+							links={[
+								{ href: "#main-content", label: "Skip to main content" },
+								{ href: "#main-navigation", label: "Skip to navigation" },
+								{ href: "#search", label: "Skip to search" },
+							]}
+						/>
+						<ErrorBoundary errorBoundaryId="root">
+							<TRPCProvider>
+								<AuthProvider>
+									<AppProvider>
+										<GlobalScreenReaderProvider>
+											<KeyboardShortcutsProvider>
+												<GlobalLayout>{children}</GlobalLayout>
+											</KeyboardShortcutsProvider>
+										</GlobalScreenReaderProvider>
+									</AppProvider>
+								</AuthProvider>
+							</TRPCProvider>
+						</ErrorBoundary>
+						<Analytics />
+					</ThemeProvider>
 				</body>
 			</html>
 		</ClerkProvider>

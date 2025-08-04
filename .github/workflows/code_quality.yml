@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,11 +24,3 @@ jobs:
 
       - name: Run Biome CI Check
         run: biome ci . --reporter=github
-
-      # Add reviewdog for PR comments on pull requests
-      - name: Run Biome with reviewdog
-        if: github.event_name == 'pull_request'
-        uses: mongolyy/reviewdog-action-biome@v1
-        with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useScreenReaderAnnouncements } from "@/components/ui/screen-reader-announcer";
 import { useKeyboardShortcuts } from "@/lib/keyboard-shortcuts";
@@ -23,23 +24,23 @@ export function KeyboardShortcutsProvider({
 	useKeyboardShortcuts({
 		// Navigation shortcuts
 		"Ctrl+R": () => {
-			router.push("/admin/record");
+			router.push("/admin/record" as Route);
 			announce("Navigating to record medication page", "polite");
 		},
 		"Ctrl+I": () => {
-			router.push("/inventory");
+			router.push("/medications/inventory" as Route);
 			announce("Navigating to inventory page", "polite");
 		},
 		"Ctrl+H": () => {
-			router.push("/history");
+			router.push("/dashboard/history" as Route);
 			announce("Navigating to history page", "polite");
 		},
 		"Ctrl+N": () => {
-			router.push("/animals/new");
-			announce("Navigating to add new animal page", "polite");
+			router.push("/manage/animals" as Route);
+			announce("Navigating to manage animals page", "polite");
 		},
 		"Ctrl+S": () => {
-			router.push("/settings");
+			router.push("/settings" as Route);
 			announce("Navigating to settings page", "polite");
 		},
 
@@ -52,15 +53,15 @@ export function KeyboardShortcutsProvider({
 
 		// Quick actions
 		"Ctrl+Shift+A": () => {
-			router.push("/admin/record");
+			router.push("/admin/record" as Route);
 			announce("Quick action: record medication", "polite");
 		},
 		"Ctrl+Shift+I": () => {
-			router.push("/inventory/add");
+			router.push("/medications/inventory" as Route);
 			announce("Quick action: add inventory item", "polite");
 		},
 		"Ctrl+Shift+R": () => {
-			router.push("/regimens/new");
+			router.push("/medications/regimens" as Route);
 			announce("Quick action: create new regimen", "polite");
 		},
 

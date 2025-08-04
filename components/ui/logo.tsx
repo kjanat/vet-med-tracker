@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -5,7 +6,7 @@ interface LogoProps {
 	size?: "sm" | "md" | "lg";
 }
 
-export function Logo({ className, size = "md" }: LogoProps) {
+export const Logo = memo(function Logo({ className, size = "md" }: LogoProps) {
 	const sizeClasses = {
 		sm: "h-8 w-8",
 		md: "h-10 w-10",
@@ -42,4 +43,4 @@ export function Logo({ className, size = "md" }: LogoProps) {
 			</svg>
 		</div>
 	);
-}
+});

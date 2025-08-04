@@ -89,10 +89,7 @@ export default function DashboardPage() {
 	if ((isLoading && !dueRegimens) || householdsLoading) {
 		return (
 			<div className="space-y-6">
-				<div>
-					<h1 className="font-bold text-3xl">Dashboard</h1>
-					<p className="text-muted-foreground">Loading...</p>
-				</div>
+				<p className="text-muted-foreground">Loading...</p>
 			</div>
 		);
 	}
@@ -101,12 +98,9 @@ export default function DashboardPage() {
 	if (!selectedHousehold && households.length > 0) {
 		return (
 			<div className="space-y-6">
-				<div>
-					<h1 className="font-bold text-3xl">Dashboard</h1>
-					<p className="text-muted-foreground">
-						Please select a household to view your dashboard
-					</p>
-				</div>
+				<p className="text-muted-foreground">
+					Please select a household to view your dashboard
+				</p>
 			</div>
 		);
 	}
@@ -151,12 +145,9 @@ export default function DashboardPage() {
 		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Dashboard</h1>
-					<p className="text-muted-foreground">
-						Managing {animals.length} animals across all households
-					</p>
-				</div>
+				<p className="text-muted-foreground">
+					Managing {animals.length} animals across all households
+				</p>
 				<RecordButton prefilled className="w-full sm:w-auto" />
 			</div>
 
@@ -283,7 +274,6 @@ function SingleAnimalView({ animal }: { animal: Animal }) {
 			<div className="flex items-center gap-4">
 				<AnimalAvatar animal={animal} size="lg" showBadge />
 				<div>
-					<h1 className="font-bold text-3xl">{animal.name}</h1>
 					<p className="text-muted-foreground">{animal.species}</p>
 				</div>
 			</div>

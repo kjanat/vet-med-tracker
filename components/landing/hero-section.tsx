@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { AnimalSilhouettes } from "./animal-silhouettes";
 
 export function HeroSection() {
 	const { openSignIn } = useClerk();
@@ -19,8 +20,9 @@ export function HeroSection() {
 		<section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
 			{/* Animated background elements */}
 			<div className="absolute inset-0 overflow-hidden">
-				<div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-primary/10 blur-3xl" />
-				<div className="-bottom-40 -left-40 absolute h-80 w-80 animate-pulse rounded-full bg-primary/10 blur-3xl delay-1000" />
+				<div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-primary/20 blur-3xl" />
+				<div className="-bottom-40 -left-40 absolute h-80 w-80 animate-pulse rounded-full bg-primary/20 blur-3xl [animation-delay:1000ms]" />
+				<div className="absolute top-1/2 left-1/3 h-96 w-96 animate-pulse rounded-full bg-primary/10 blur-3xl [animation-delay:500ms]" />
 			</div>
 
 			{/* Hero content */}
@@ -108,52 +110,9 @@ export function HeroSection() {
 						<span className="font-medium text-sm">Smart Reminders</span>
 					</div>
 				</div>
-
-				{/* Pet silhouettes animation */}
-				<div className="absolute right-0 bottom-0 left-0 h-32 overflow-hidden opacity-10">
-					<div className="flex animate-scroll gap-8">
-						{[
-							"dog",
-							"cat",
-							"rabbit",
-							"dog",
-							"cat",
-							"rabbit",
-							"dog",
-							"cat",
-							"rabbit",
-							"dog",
-						].map((type, i) => (
-							<PetSilhouette
-								key={`pet-silhouette-${type}-${Math.floor(i / 3)}`}
-								type={type as "dog" | "cat" | "rabbit"}
-							/>
-						))}
-					</div>
-				</div>
+				{/* Decorative pet silhouettes */}
+				<AnimalSilhouettes />
 			</div>
 		</section>
-	);
-}
-
-function PetSilhouette({ type }: { type: "dog" | "cat" | "rabbit" }) {
-	const paths = {
-		dog: "M10 20c0-4 2-6 2-10s-2-6-2-6-2 2-2 6 2 6 2 10z",
-		cat: "M12 2c-2 0-3 1-3 3s1 3 3 3 3-1 3-3-1-3-3-3z",
-		rabbit: "M12 8c-1 0-2 1-2 2s1 2 2 2 2-1 2-2-1-2-2-2z",
-	};
-
-	return (
-		<svg
-			width="60"
-			height="60"
-			viewBox="0 0 24 24"
-			fill="currentColor"
-			className="flex-shrink-0"
-			aria-label={`${type} silhouette`}
-		>
-			<title>{`${type} silhouette`}</title>
-			<path d={paths[type]} />
-		</svg>
 	);
 }

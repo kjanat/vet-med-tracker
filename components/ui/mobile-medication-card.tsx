@@ -1,12 +1,14 @@
 "use client";
 
 import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { useMemo } from "react";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getCardAnimation, PRIORITY_ANIMATIONS } from "@/lib/animation-config";
 import { getMedicationStatus, getStatusConfig } from "@/lib/status-config";
 import { formatTimeLocal } from "@/utils/tz";
+import { layoutPatterns, textPatterns } from "./class-variants";
 
 interface MobileMedicationCardProps {
 	regimen: {
@@ -51,7 +53,7 @@ export function MobileMedicationCard({
 	onClick,
 	isSelected = false,
 }: MobileMedicationCardProps) {
-	const getStatusInfo = () => {
+	const statusInfo = useMemo(() => {
 		const statusType = getMedicationStatus(regimen);
 		const config = getStatusConfig(statusType);
 
@@ -88,12 +90,10 @@ export function MobileMedicationCard({
 			label: "Later",
 			priority: "normal" as const,
 		};
-	};
-
-	const statusInfo = getStatusInfo();
+	}, [regimen]);
 	const StatusIcon = statusInfo.icon;
 
-	const getTimeDisplay = () => {
+	const timeDisplay = useMemo(() => {
 		if (regimen.isPRN) {
 			return "As needed";
 		}
@@ -114,7 +114,13 @@ export function MobileMedicationCard({
 		}
 
 		return "No time set";
-	};
+	}, [
+		regimen.isPRN,
+		regimen.targetTime,
+		regimen.isOverdue,
+		regimen.minutesUntilDue,
+		regimen.section,
+	]);
 
 	return (
 		<Card
@@ -152,8 +158,8 @@ export function MobileMedicationCard({
 					{/* Main content */}
 					<div className="min-w-0 flex-1">
 						{/* Status and time */}
-						<div className="mb-2 flex items-center justify-between">
-							<div className="flex items-center gap-2">
+						<div className={`mb-2 ${layoutPatterns.flexBetween}`}>
+							<div className={layoutPatterns.flexCenterGap2}>
 								<StatusIcon
 									className={`h-4 w-4 ${statusInfo.config.icon}`}
 									aria-hidden="true"
@@ -175,9 +181,7 @@ export function MobileMedicationCard({
 								</Badge>
 							</div>
 
-							<div className="font-mono text-muted-foreground text-sm">
-								{getTimeDisplay()}
-							</div>
+							<div className={textPatterns.monoSmall}>{timeDisplay}</div>
 						</div>
 
 						{/* Animal name */}
@@ -204,7 +208,7 @@ export function MobileMedicationCard({
 						</div>
 
 						{/* Special indicators */}
-						<div className="mt-2 flex items-center gap-2">
+						<div className={`mt-2 ${layoutPatterns.flexCenterGap2}`}>
 							{regimen.isHighRisk && (
 								<Badge variant="destructive" className="text-xs">
 									High Risk
@@ -253,7 +257,7 @@ export function MobileSectionHeader({
 }) {
 	return (
 		<div className={`border-y bg-muted/30 px-4 py-3 ${className}`}>
-			<div className="flex items-center justify-between">
+			<div className={layoutPatterns.flexBetween}>
 				<div>
 					<h2 className="font-semibold text-lg">
 						{title}

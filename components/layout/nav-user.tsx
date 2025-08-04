@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -93,7 +94,7 @@ export function NavUser() {
 								Settings
 							</DropdownMenuItem>
 							<DropdownMenuItem
-								onClick={() => router.push("/settings?tab=notifications")}
+								onClick={() => router.push("/settings/notifications" as Route)}
 							>
 								<Bell />
 								Notifications

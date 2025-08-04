@@ -1,5 +1,3 @@
-"use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -30,6 +28,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
 import { type AnimalFormData, animalFormSchema } from "@/lib/schemas/animal";
 import type { Animal } from "@/lib/types";
 
@@ -39,16 +38,6 @@ interface AnimalFormProps {
 	onOpenChange: (open: boolean) => void;
 	onSave: (data: Partial<Animal>) => Promise<void>;
 }
-
-const timezones = [
-	{ value: "America/New_York", label: "Eastern Time" },
-	{ value: "America/Chicago", label: "Central Time" },
-	{ value: "America/Denver", label: "Mountain Time" },
-	{ value: "America/Los_Angeles", label: "Pacific Time" },
-	{ value: "America/Phoenix", label: "Arizona Time" },
-	{ value: "America/Anchorage", label: "Alaska Time" },
-	{ value: "Pacific/Honolulu", label: "Hawaii Time" },
-];
 
 export function AnimalForm({
 	animal,
@@ -364,23 +353,14 @@ export function AnimalForm({
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>Timezone *</FormLabel>
-											<Select
-												onValueChange={field.onChange}
-												value={field.value}
-											>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													{timezones.map((tz) => (
-														<SelectItem key={tz.value} value={tz.value}>
-															{tz.label}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
+											<FormControl>
+												<TimezoneCombobox
+													value={field.value}
+													onChange={field.onChange}
+													placeholder="Select timezone"
+													required
+												/>
+											</FormControl>
 											<FormMessage />
 										</FormItem>
 									)}

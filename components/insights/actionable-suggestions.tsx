@@ -107,7 +107,7 @@ export function ActionableSuggestions() {
 
 	const handleApplySuggestion = async (suggestion: Suggestion) => {
 		try {
-			console.log("Applying suggestion:", suggestion);
+			// TODO: Implement suggestion actions
 
 			// Fire instrumentation event
 			window.dispatchEvent(

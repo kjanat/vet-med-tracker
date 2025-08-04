@@ -8,6 +8,7 @@ import {
 	Home,
 	RotateCcw,
 } from "lucide-react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTimeLocal } from "@/utils/tz";
@@ -21,7 +22,7 @@ interface TabletSuccessLayoutProps {
 	medicationName?: string;
 }
 
-export function TabletSuccessLayout({
+export const TabletSuccessLayout = memo(function TabletSuccessLayout({
 	isOnline,
 	onReturnHome,
 	onRecordAnother,
@@ -114,7 +115,6 @@ export function TabletSuccessLayout({
 						<Button
 							onClick={() => {
 								// TODO: Open reminder adjustment sheet
-								console.log("Adjust reminder");
 							}}
 							className="h-12 w-full justify-start text-base"
 							variant="ghost"
@@ -139,7 +139,6 @@ export function TabletSuccessLayout({
 									className="h-8 w-full justify-start text-sm"
 									onClick={() => {
 										// TODO: Navigate to history
-										console.log("View history");
 									}}
 								>
 									<Calendar className="mr-2 h-4 w-4" />
@@ -151,7 +150,6 @@ export function TabletSuccessLayout({
 									className="h-8 w-full justify-start text-sm"
 									onClick={() => {
 										// TODO: Navigate to insights
-										console.log("View insights");
 									}}
 								>
 									📊 View Insights
@@ -168,4 +166,4 @@ export function TabletSuccessLayout({
 			</div>
 		</div>
 	);
-}
+});

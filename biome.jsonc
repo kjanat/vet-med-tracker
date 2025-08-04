@@ -44,7 +44,8 @@
 						"functions": ["clsx", "cva", "cn"]
 					}
 				}
-			}
+			},
+			"suspicious": { "noGlobalIsNan": { "level": "warn", "fix": "safe" } }
 		},
 		"domains": {
 			"next": "all",

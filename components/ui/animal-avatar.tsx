@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAvatarColor } from "@/lib/avatar-utils";
@@ -20,7 +21,7 @@ interface AnimalAvatarProps {
 	className?: string;
 }
 
-export function AnimalAvatar({
+export const AnimalAvatar = memo(function AnimalAvatar({
 	animal,
 	size = "md",
 	showBadge = false,
@@ -68,4 +69,4 @@ export function AnimalAvatar({
 			)}
 		</div>
 	);
-}
+});

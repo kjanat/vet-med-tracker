@@ -1,4 +1,4 @@
-name: PR Database Environment
+name: Create/Delete Branch for Pull Request
 
 on:
   pull_request:
@@ -10,7 +10,6 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -27,72 +26,11 @@ jobs:
         id: branch_name
         uses: tj-actions/branch-names@v8
 
-  reset_neon_branch:
-    name: Reset Neon Branch
-    needs: setup
-    if: |
-      contains(github.event.pull_request.labels.*.name, 'Reset Neon Branch') &&
-      github.event_name == 'pull_request' &&
-      (github.event.action == 'synchronize' ||
-       github.event.action == 'opened' ||
-       github.event.action == 'reopened' ||
-       github.event.action == 'labeled')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Reset Neon Branch
-        uses: neondatabase/reset-branch-action@v1
-        with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          parent: true
-          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-
-      - name: Setup environment
-        uses: ./.github/actions/setup-environment
-
-  # The step above creates a new Neon branch.
-  # You may want to do something with the new branch, such as run migrations, run tests
-  # on it, or send the connection details to a hosting platform environment.
-  # The branch DATABASE_URL is available to you via:
-  # "${{ steps.create_neon_branch.outputs.db_url_with_pooler }}".
-  # It's important you don't log the DATABASE_URL as output as it contains a username and
-  # password for your database.
-  #
-  # For example, you can uncomment the lines below to run a database migration command:
-      - name: Run Migrations
-        run: |
-          pnpm run db:generate
-          pnpm run db:migrate || pnpm run db:push:force
-        env:
-          DATABASE_URL: "${{ steps.create_neon_branch.outputs.db_url_with_pooler }}"
-
-  # You can also add a Schema Diff action to compare the database schema on the new
-  # branch with the base branch. This action automatically writes the schema differences
-  # as a comment on your GitHub pull request, making it easy to review changes.
-  # Following the step above, which runs database migrations, you may want to check
-  # for schema changes in your database. We recommend using the following action to
-  # post a comment to your pull request with the schema diff. For this action to work,
-  # you also need to give permissions to the workflow job to be able to post comments
-  # and read your repository contents. Add the following permissions to the workflow job:
-  #
-  # You can also check out https://github.com/neondatabase/schema-diff-action for more
-  # information on how to use the schema diff action.
-  # You can uncomment the lines below to enable the schema diff action.
-      - name: Post Schema Diff Comment to PR
-        uses: neondatabase/schema-diff-action@v1
-        with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-
   create_neon_branch:
     name: Create Neon Branch
     outputs:
-      db_url: ${{ steps.create_neon_branch_encode.outputs.db_url }}
-      db_url_with_pooler: ${{ steps.create_neon_branch_encode.outputs.db_url_with_pooler }}
+      db_url: ${{ steps.create_neon_branch.outputs.db_url }}
+      db_url_pooled: ${{ steps.create_neon_branch.outputs.db_url_pooled }}
     needs: setup
     if: |
       github.event_name == 'pull_request' && (
@@ -101,99 +39,57 @@ jobs:
       || github.event.action == 'reopened')
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Create Neon Branch
         id: create_neon_branch
-        uses: neondatabase/create-branch-action@v5
+        uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
+      # Avoid echoing raw DB URLs – they contain credentials
+      - run: echo host ${{ steps.create_neon_branch.outputs.host }}
+      - run: echo branch_id ${{ steps.create_neon_branch.outputs.branch_id }}
+      - run: psql ${{ steps.create_neon_branch.outputs.db_url }} -c "SELECT * FROM NOW();"
 
-      - name: Setup environment
-        uses: ./.github/actions/setup-environment
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  # The step above creates a new Neon branch.
-  # You may want to do something with the new branch, such as run migrations, run tests
-  # on it, or send the connection details to a hosting platform environment.
-  # The branch DATABASE_URL is available to you via:
-  # "${{ steps.create_neon_branch.outputs.db_url_with_pooler }}".
-  # It's important you don't log the DATABASE_URL as output as it contains a username and
-  # password for your database.
-  #
-  # For example, you can uncomment the lines below to run a database migration command:
+      # The step above creates a new Neon branch.
+      # You may want to do something with the new branch, such as run migrations, run tests
+      # on it, or send the connection details to a hosting platform environment.
+      # The branch DATABASE_URL is available to you via:
+      # "${{ steps.create_neon_branch.outputs.db_url_pooled }}".
+      # It's important you don't log the DATABASE_URL as output as it contains a username and
+      # password for your database.
+      # For example, you can uncomment the lines below to run a database migration command:
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm install
+
       - name: Run Migrations
         run: |
           pnpm run db:generate
-          pnpm run db:migrate || pnpm run db:push:force
+          pnpm run db:migrate
         env:
-          DATABASE_URL: "${{ steps.create_neon_branch.outputs.db_url_with_pooler }}"
+          # to use pooled connection
+          DATABASE_URL: "${{ steps.create_neon_branch.outputs.db_url_pooled }}"
+          # OR to use unpooled connection
+          # DATABASE_URL: "${{ steps.create_neon_branch.outputs.db_url }}"
 
-  # You can also add a Schema Diff action to compare the database schema on the new
-  # branch with the base branch. This action automatically writes the schema differences
-  # as a comment on your GitHub pull request, making it easy to review changes.
-  # Following the step above, which runs database migrations, you may want to check
-  # for schema changes in your database. We recommend using the following action to
-  # post a comment to your pull request with the schema diff. For this action to work,
-  # you also need to give permissions to the workflow job to be able to post comments
-  # and read your repository contents. Add the following permissions to the workflow job:
-  #
-  # You can also check out https://github.com/neondatabase/schema-diff-action for more
-  # information on how to use the schema diff action.
-  # You can uncomment the lines below to enable the schema diff action.
+      # Following the step above, which runs database migrations, you may want to check
+      # for schema changes in your database. We recommend using the following action to
+      # post a comment to your pull request with the schema diff.
+      #
+      # You can also check out https://github.com/neondatabase/schema-diff-action for more
+      # information on how to use the schema diff action.
+      # You can uncomment the lines below to enable the schema diff action.
       - name: Post Schema Diff Comment to PR
         uses: neondatabase/schema-diff-action@v1
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
-
-#  test_pr_branch:
-#    name: Test Against PR Database
-#    needs: [create_neon_branch, migrate_database]
-#    if: |
-#      github.event_name == 'pull_request' && (
-#      github.event.action == 'synchronize'
-#      || github.event.action == 'opened'
-#      || github.event.action == 'reopened')
-#    uses: ./.github/workflows/test.yml
-#    with:
-#      database_url: ${{ needs.create_neon_branch.outputs.db_url_with_pooler }}
-#      database_url_unpooled: ${{ needs.create_neon_branch.outputs.db_url }}
-
-#  schema_diff:
-#    name: Post Schema Diff Comment
-#    runs-on: ubuntu-latest
-#    needs: [setup, migrate_database]
-#    if: |
-#      github.event_name == 'pull_request' && (
-#      github.event.action == 'synchronize'
-#      || github.event.action == 'opened'
-#      || github.event.action == 'reopened')
-#    steps:
-#      - name: Post Schema Diff Comment to PR
-#        uses: neondatabase/schema-diff-action@v1
-#        with:
-#          project_id: ${{ vars.NEON_PROJECT_ID }}
-#          compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
-#          base_branch: production
-#          api_key: ${{ secrets.NEON_API_KEY }}
-
-#  cleanup_on_failure:
-#    name: Emergency Cleanup
-#    runs-on: ubuntu-latest
-#    needs: [setup, create_neon_branch]
-#    if: always() && (failure() || cancelled()) && needs.create_neon_branch.result == 'success'
-#    steps:
-#      - name: Delete orphaned branch
-#        uses: neondatabase/delete-branch-action@v3
-#        continue-on-error: true
-#        with:
-#          project_id: ${{ vars.NEON_PROJECT_ID }}
-#          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
-#          api_key: ${{ secrets.NEON_API_KEY }}
 
   delete_neon_branch:
     name: Delete Neon Branch

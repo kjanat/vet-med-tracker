@@ -130,7 +130,7 @@ const middlewareConfig: ConnectionMiddlewareConfig = {
 	enableRateLimit: true,
 	enableQueue: true,
 	enableCircuitBreaker: true,
-	enableAdaptiveThrottling: true,
+	enableAdaptiveThrottling: false, // Disable to prevent health check query spam
 	healthCheckInterval: 30000, // 30 seconds
 };
 

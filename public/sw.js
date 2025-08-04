@@ -1,7 +1,21 @@
+/// <reference lib="webworker" />
+
+/**
+ * @fileoverview Service Worker for VetMed Tracker PWA
+ * Handles offline caching, background sync, and push notifications for medication tracking
+ */
+
+// @ts-check
+
+/** @type {string} Cache name for dynamic content */
 const CACHE_NAME = "vet-med-tracker-v1";
+/** @type {string} Cache name for static app shell files */
 const STATIC_CACHE = "static-v1";
 
-// App shell files to cache
+/**
+ * App shell files to cache for offline functionality
+ * @type {string[]}
+ */
 const APP_SHELL = [
 	"/",
 	"/history",
@@ -12,7 +26,10 @@ const APP_SHELL = [
 	"/manifest.json",
 ];
 
-// Install event - cache app shell
+/**
+ * Install event handler - caches app shell files
+ * @param {ExtendableEvent} event - Service worker install event
+ */
 self.addEventListener("install", (event) => {
 	event.waitUntil(
 		caches
@@ -22,7 +39,10 @@ self.addEventListener("install", (event) => {
 	);
 });
 
-// Activate event - clean up old caches
+/**
+ * Activate event handler - cleans up old caches and claims clients
+ * @param {ExtendableEvent} event - Service worker activate event
+ */
 self.addEventListener("activate", (event) => {
 	event.waitUntil(
 		caches
@@ -40,7 +60,10 @@ self.addEventListener("activate", (event) => {
 	);
 });
 
-// Fetch event - serve from cache, fallback to network
+/**
+ * Fetch event handler - implements cache-first strategy with network fallback
+ * @param {FetchEvent} event - Service worker fetch event
+ */
 self.addEventListener("fetch", (event) => {
 	// Skip non-GET requests
 	if (event.request.method !== "GET") {
@@ -79,10 +102,17 @@ self.addEventListener("fetch", (event) => {
 	);
 });
 
-// Background sync event
+/**
+ * Background sync event handler - processes offline queue when connectivity returns
+ * @param {SyncEvent} event - Service worker background sync event
+ */
 self.addEventListener("sync", (event) => {
 	const tag = event.tag;
 
+	/**
+	 * Handles background sync operations
+	 * @returns {Promise<void>}
+	 */
 	const syncHandler = async () => {
 		try {
 			// Get all clients (open tabs)
@@ -107,13 +137,17 @@ self.addEventListener("sync", (event) => {
 	event.waitUntil(syncHandler());
 });
 
-// Push notification event
+/**
+ * Push notification event handler - displays medication reminders
+ * @param {PushEvent} event - Service worker push event
+ */
 self.addEventListener("push", (event) => {
 	if (!event.data) {
 		return;
 	}
 
 	const data = event.data.json();
+	/** @type {NotificationOptions} */
 	const options = {
 		body: data.body,
 		icon: "/icon-192x192.png",
@@ -142,7 +176,10 @@ self.addEventListener("push", (event) => {
 	event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-// Notification click event
+/**
+ * Notification click event handler - handles user interaction with medication reminders
+ * @param {NotificationEvent} event - Service worker notification click event
+ */
 self.addEventListener("notificationclick", (event) => {
 	event.notification.close();
 

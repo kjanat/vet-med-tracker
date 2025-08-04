@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { AlertTriangle, Archive, Clock, Plus } from "lucide-react";
+import { AlertTriangle, Archive, Clock, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/providers/app-provider";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
@@ -15,8 +15,98 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { trpc } from "@/lib/trpc/client";
 import { RegimenForm } from "./regimen-form";
 
+// Type for regimen data from tRPC - matches actual schema
+type RegimenWithDetails = {
+	regimen: {
+		id: string;
+		animalId: string;
+		medicationId: string;
+		name: string | null;
+		instructions: string | null;
+		scheduleType: "FIXED" | "PRN" | "INTERVAL" | "TAPER";
+		timesLocal: string[] | null;
+		intervalHours: number | null;
+		startDate: string;
+		endDate: string | null;
+		prnReason: string | null;
+		maxDailyDoses: number | null;
+		cutoffMinutes: number;
+		highRisk: boolean;
+		requiresCoSign: boolean;
+		active: boolean;
+		pausedAt: string | null;
+		pauseReason: string | null;
+		dose: string | null;
+		route: string | null;
+		createdAt: string;
+		updatedAt: string;
+		deletedAt: string | null;
+	};
+	animal: {
+		id: string;
+		householdId: string;
+		name: string;
+		species: string;
+		breed: string | null;
+		sex: string | null;
+		neutered: boolean;
+		dob: string | null;
+		weightKg: string | null;
+		microchipId: string | null;
+		color: string | null;
+		photoUrl: string | null;
+		timezone: string;
+		vetName: string | null;
+		vetPhone: string | null;
+		vetEmail: string | null;
+		clinicName: string | null;
+		allergies: string[] | null;
+		conditions: string[] | null;
+		notes: string | null;
+		createdAt: string;
+		updatedAt: string;
+		deletedAt: string | null;
+	};
+	medication: {
+		id: string;
+		genericName: string;
+		brandName: string | null;
+		strength: string | null;
+		route:
+			| "ORAL"
+			| "SC"
+			| "IM"
+			| "IV"
+			| "TOPICAL"
+			| "OTIC"
+			| "OPHTHALMIC"
+			| "INHALED"
+			| "RECTAL"
+			| "OTHER";
+		form:
+			| "TABLET"
+			| "CAPSULE"
+			| "LIQUID"
+			| "INJECTION"
+			| "CREAM"
+			| "OINTMENT"
+			| "DROPS"
+			| "SPRAY"
+			| "POWDER"
+			| "PATCH"
+			| "OTHER";
+		controlledSubstance: boolean;
+		commonDosing: string | null;
+		warnings: string | null;
+		createdAt: string;
+		updatedAt: string;
+	};
+};
+
+// Interface for display
 export interface Regimen {
 	id: string;
 	animalId: string;
@@ -27,77 +117,90 @@ export interface Regimen {
 	form: string;
 	strength?: string;
 	scheduleType: "FIXED" | "PRN";
-	timesLocal?: string[]; // ["08:00", "20:00"]
+	timesLocal?: string[];
 	startDate?: Date;
 	endDate?: Date;
 	cutoffMins: number;
 	highRisk: boolean;
 	isActive: boolean;
 	createdAt: Date;
+	status: "active" | "ended" | "paused";
 }
 
-// Mock data - replace with tRPC
-const mockRegimens: Regimen[] = [
-	{
-		id: "1",
-		animalId: "1",
-		animalName: "Buddy",
-		medicationName: "Rimadyl",
-		medicationId: "rimadyl-75mg",
-		route: "Oral",
-		form: "Tablet",
-		strength: "75mg",
-		scheduleType: "FIXED",
-		timesLocal: ["08:00", "20:00"],
-		startDate: new Date("2024-01-01"),
-		endDate: new Date("2024-02-01"),
-		cutoffMins: 60,
-		highRisk: false,
-		isActive: true,
-		createdAt: new Date("2024-01-01"),
-	},
-	{
-		id: "2",
-		animalId: "2",
-		animalName: "Whiskers",
-		medicationName: "Insulin",
-		medicationId: "insulin-40iu",
-		route: "Subcutaneous",
-		form: "Injection",
-		strength: "2 units",
-		scheduleType: "FIXED",
-		timesLocal: ["07:00", "19:00"],
-		cutoffMins: 30,
-		highRisk: true,
-		isActive: true,
-		createdAt: new Date("2024-01-01"),
-	},
-	{
-		id: "3",
-		animalId: "1",
-		animalName: "Buddy",
-		medicationName: "Pain Relief",
-		medicationId: "pain-relief-5ml",
-		route: "Oral",
-		form: "Liquid",
-		strength: "5ml",
-		scheduleType: "PRN",
-		cutoffMins: 240,
-		highRisk: false,
-		isActive: true,
-		createdAt: new Date("2024-01-01"),
-	},
-];
+// Helper function to transform tRPC data to display format
+function transformRegimenData(data: RegimenWithDetails[]): Regimen[] {
+	const now = new Date();
+
+	return data.map((item) => {
+		const { regimen, animal, medication } = item;
+
+		// Calculate status based on dates and pause state
+		let status: "active" | "ended" | "paused" = "active";
+		if (!regimen.active || regimen.pausedAt) {
+			status = "paused";
+		} else if (regimen.endDate && new Date(regimen.endDate) < now) {
+			status = "ended";
+		}
+
+		return {
+			id: regimen.id,
+			animalId: animal.id,
+			animalName: animal.name,
+			medicationName:
+				medication.genericName ||
+				medication.brandName ||
+				regimen.name ||
+				"Unknown Medication",
+			medicationId: medication.id,
+			route: regimen.route || medication.route,
+			form: medication.form,
+			strength: medication.strength || undefined,
+			scheduleType: regimen.scheduleType as "FIXED" | "PRN",
+			timesLocal: regimen.timesLocal || undefined,
+			startDate: new Date(regimen.startDate),
+			endDate: regimen.endDate ? new Date(regimen.endDate) : undefined,
+			cutoffMins: regimen.cutoffMinutes,
+			highRisk: regimen.highRisk,
+			isActive: regimen.active,
+			createdAt: new Date(regimen.createdAt),
+			status,
+		};
+	});
+}
 
 export function RegimenList() {
 	const [selectedAnimalId, setSelectedAnimalId] = useState<string>("all");
 	const [editingRegimen, setEditingRegimen] = useState<Regimen | null>(null);
 	const [isFormOpen, setIsFormOpen] = useState(false);
-	const { animals } = useApp();
+	const { animals, selectedHousehold } = useApp();
 
-	const filteredRegimens = mockRegimens.filter((regimen) => {
-		if (selectedAnimalId === "all") return regimen.isActive;
-		return regimen.animalId === selectedAnimalId && regimen.isActive;
+	// Fetch regimens using tRPC
+	const {
+		data: regimenData,
+		isLoading,
+		error,
+		refetch,
+	} = trpc.regimen.list.useQuery(
+		{
+			householdId: selectedHousehold?.id || "",
+			animalId: selectedAnimalId === "all" ? undefined : selectedAnimalId,
+			activeOnly: true,
+		},
+		{
+			enabled: !!selectedHousehold?.id,
+		},
+	);
+
+	// Transform and filter regimens
+	const regimens = regimenData ? transformRegimenData(regimenData) : [];
+	const filteredRegimens = regimens.filter((regimen) => {
+		if (selectedAnimalId === "all")
+			return regimen.isActive && regimen.status !== "ended";
+		return (
+			regimen.animalId === selectedAnimalId &&
+			regimen.isActive &&
+			regimen.status !== "ended"
+		);
 	});
 
 	// Group by animal
@@ -123,10 +226,86 @@ export function RegimenList() {
 		setIsFormOpen(true);
 	};
 
-	const handleSave = async (data: Partial<Regimen>) => {
-		console.log("Saving regimen:", data);
+	// tRPC mutations
+	const createRegimen = trpc.regimen.create.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to create regimen:", error);
+		},
+	});
 
-		// Fire instrumentation event
+	const updateRegimen = trpc.regimen.update.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to update regimen:", error);
+		},
+	});
+
+	// Helper functions to reduce cognitive complexity
+	const formatDateForAPI = (date?: Date) => {
+		return date?.toISOString().split("T")[0];
+	};
+
+	const buildUpdateData = (data: Partial<Regimen>, householdId: string) => {
+		if (!editingRegimen) {
+			throw new Error("No regimen selected for editing");
+		}
+		const updateData: any = {
+			id: editingRegimen.id,
+			householdId,
+			name: data.medicationName,
+			instructions: data.medicationName, // TODO: Get actual instructions from form
+			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
+			timesLocal: data.timesLocal,
+			cutoffMinutes: data.cutoffMins,
+			highRisk: data.highRisk,
+			requiresCoSign: data.highRisk, // High risk medications require co-sign
+			dose: data.medicationName, // TODO: Get actual dose from form
+			route: data.route,
+		};
+
+		// Only add dates if they exist
+		if (data.startDate) {
+			updateData.startDate = formatDateForAPI(data.startDate);
+		}
+		if (data.endDate) {
+			updateData.endDate = formatDateForAPI(data.endDate);
+		}
+
+		return updateData;
+	};
+
+	const buildCreateData = (data: Partial<Regimen>, householdId: string) => {
+		const createData: any = {
+			householdId,
+			animalId: data.animalId || "",
+			medicationId: data.medicationId || "",
+			name: data.medicationName,
+			instructions: data.medicationName, // TODO: Get actual instructions from form
+			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
+			timesLocal: data.timesLocal,
+			startDate:
+				formatDateForAPI(data.startDate) || formatDateForAPI(new Date()),
+			cutoffMinutes: data.cutoffMins || 240,
+			highRisk: data.highRisk || false,
+			requiresCoSign: data.highRisk || false, // High risk medications require co-sign
+			dose: data.medicationName, // TODO: Get actual dose from form
+			route: data.route,
+		};
+
+		// Only add endDate if it exists
+		if (data.endDate) {
+			createData.endDate = formatDateForAPI(data.endDate);
+		}
+
+		return createData;
+	};
+
+	const fireInstrumentationEvent = (data: Partial<Regimen>) => {
 		window.dispatchEvent(
 			new CustomEvent(
 				editingRegimen
@@ -142,38 +321,152 @@ export function RegimenList() {
 				},
 			),
 		);
-
-		// TODO: tRPC mutation
-		// if (editingRegimen) {
-		//   await updateRegimen.mutateAsync({ id: editingRegimen.id, ...data })
-		// } else {
-		//   await createRegimen.mutateAsync(data)
-		// }
-
-		setIsFormOpen(false);
-		setEditingRegimen(null);
-
-		// Show success toast
-		console.log(
-			`${editingRegimen ? "Updated" : "Created"} regimen for ${data.medicationName}`,
-		);
 	};
+
+	// Simplified main handler
+	const handleSave = async (data: Partial<Regimen>) => {
+		if (!selectedHousehold?.id) {
+			console.error("No household selected");
+			return;
+		}
+
+		try {
+			if (editingRegimen) {
+				const updateData = buildUpdateData(data, selectedHousehold.id);
+				await updateRegimen.mutateAsync(updateData);
+			} else {
+				const createData = buildCreateData(data, selectedHousehold.id);
+				await createRegimen.mutateAsync(createData);
+			}
+
+			fireInstrumentationEvent(data);
+			setIsFormOpen(false);
+			setEditingRegimen(null);
+
+			// Show success toast
+			console.log(
+				`${editingRegimen ? "Updated" : "Created"} regimen for ${data.medicationName}`,
+			);
+		} catch (error) {
+			console.error("Failed to save regimen:", error);
+		}
+	};
+
+	const deleteRegimen = trpc.regimen.delete.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to delete regimen:", error);
+		},
+	});
 
 	const handleArchive = async (regimenId: string) => {
-		console.log("Archiving regimen:", regimenId);
+		if (!selectedHousehold?.id) {
+			console.error("No household selected");
+			return;
+		}
 
-		// Fire instrumentation event
-		window.dispatchEvent(
-			new CustomEvent("settings_regimens_archive", {
-				detail: { regimenId },
-			}),
-		);
+		try {
+			await deleteRegimen.mutateAsync({
+				id: regimenId,
+				householdId: selectedHousehold.id,
+			});
 
-		// TODO: tRPC mutation
-		// await archiveRegimen.mutateAsync({ id: regimenId })
+			// Fire instrumentation event
+			window.dispatchEvent(
+				new CustomEvent("settings_regimens_archive", {
+					detail: { regimenId },
+				}),
+			);
 
-		console.log("Regimen archived");
+			console.log("Regimen archived successfully");
+		} catch (error) {
+			console.error("Failed to archive regimen:", error);
+		}
 	};
+
+	const pauseRegimen = trpc.regimen.pause.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to pause regimen:", error);
+		},
+	});
+
+	const resumeRegimen = trpc.regimen.resume.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to resume regimen:", error);
+		},
+	});
+
+	// Handle pause/resume regimen
+	const handleTogglePause = async (
+		regimenId: string,
+		currentlyActive: boolean,
+	) => {
+		if (!selectedHousehold?.id) {
+			console.error("No household selected");
+			return;
+		}
+
+		try {
+			if (currentlyActive) {
+				// Pause the regimen
+				await pauseRegimen.mutateAsync({
+					id: regimenId,
+					householdId: selectedHousehold.id,
+					reason: "Paused by user", // Default reason, could be made configurable
+				});
+			} else {
+				// Resume the regimen
+				await resumeRegimen.mutateAsync({
+					id: regimenId,
+					householdId: selectedHousehold.id,
+				});
+			}
+
+			// Fire instrumentation event
+			window.dispatchEvent(
+				new CustomEvent(
+					currentlyActive
+						? "settings_regimens_pause"
+						: "settings_regimens_resume",
+					{
+						detail: { regimenId },
+					},
+				),
+			);
+
+			console.log(
+				`Regimen ${currentlyActive ? "paused" : "resumed"} successfully`,
+			);
+		} catch (error) {
+			console.error(
+				`Failed to ${currentlyActive ? "pause" : "resume"} regimen:`,
+				error,
+			);
+		}
+	};
+
+	// Show loading state if no household selected
+	if (!selectedHousehold) {
+		return (
+			<div className="flex items-center justify-center py-12">
+				<div className="text-center">
+					<Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
+					<h3 className="mb-2 font-medium text-lg">No Household Selected</h3>
+					<p className="text-muted-foreground">
+						Please select a household to view regimens
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-6">
@@ -184,15 +477,19 @@ export function RegimenList() {
 						Manage medication schedules and treatment plans
 					</p>
 				</div>
-				<Button onClick={handleCreate} className="gap-2">
+				<Button onClick={handleCreate} className="gap-2" disabled={isLoading}>
 					<Plus className="h-4 w-4" />
 					Add Regimen
 				</Button>
 			</div>
 
-			{/* Animal Filter */}
-			<div className="flex items-center gap-4">
-				<Select value={selectedAnimalId} onValueChange={setSelectedAnimalId}>
+			{/* Animal Filter and Status */}
+			<div className="flex items-center justify-between gap-4">
+				<Select
+					value={selectedAnimalId}
+					onValueChange={setSelectedAnimalId}
+					disabled={isLoading}
+				>
 					<SelectTrigger className="w-[200px]">
 						<SelectValue />
 					</SelectTrigger>
@@ -205,52 +502,81 @@ export function RegimenList() {
 						))}
 					</SelectContent>
 				</Select>
-			</div>
 
-			{/* Regimens by Animal */}
-			<div className="space-y-6">
-				{Object.entries(groupedRegimens).map(([animalId, regimens]) => {
-					const animal = animals.find((a) => a.id === animalId);
-					if (!animal) return null;
-
-					return (
-						<div key={animalId} className="space-y-3">
-							<div className="flex items-center gap-3">
-								<AnimalAvatar animal={animal} size="md" />
-								<div>
-									<h3 className="font-semibold text-lg">{animal.name}</h3>
-									<p className="text-muted-foreground text-sm">
-										{regimens.length} active regimens
-									</p>
-								</div>
-							</div>
-
-							<div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-								{regimens.map((regimen) => (
-									<RegimenCard
-										key={regimen.id}
-										regimen={regimen}
-										onEdit={() => handleEdit(regimen)}
-										onArchive={() => handleArchive(regimen.id)}
-									/>
-								))}
-							</div>
-						</div>
-					);
-				})}
-
-				{Object.keys(groupedRegimens).length === 0 && (
-					<div className="py-12 text-center">
-						<Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
-						<h3 className="mb-2 font-medium text-lg">No regimens found</h3>
-						<p className="text-muted-foreground">
-							{selectedAnimalId === "all"
-								? "Create your first medication regimen to get started"
-								: `No regimens for ${animals.find((a) => a.id === selectedAnimalId)?.name}`}
-						</p>
+				{error && (
+					<div className="flex items-center gap-2 text-destructive text-sm">
+						<AlertTriangle className="h-4 w-4" />
+						Failed to load regimens
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => refetch()}
+							disabled={isLoading}
+						>
+							Retry
+						</Button>
 					</div>
 				)}
 			</div>
+
+			{/* Loading State */}
+			{isLoading && (
+				<div className="flex items-center justify-center py-12">
+					<Loader2 className="h-6 w-6 animate-spin" />
+					<span className="ml-2">Loading regimens...</span>
+				</div>
+			)}
+
+			{/* Regimens by Animal */}
+			{!isLoading && (
+				<div className="space-y-6">
+					{Object.entries(groupedRegimens).map(([animalId, regimens]) => {
+						const animal = animals.find((a) => a.id === animalId);
+						if (!animal) return null;
+
+						return (
+							<div key={animalId} className="space-y-3">
+								<div className="flex items-center gap-3">
+									<AnimalAvatar animal={animal} size="md" />
+									<div>
+										<h3 className="font-semibold text-lg">{animal.name}</h3>
+										<p className="text-muted-foreground text-sm">
+											{regimens.length} active regimen
+											{regimens.length !== 1 ? "s" : ""}
+										</p>
+									</div>
+								</div>
+
+								<div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+									{regimens.map((regimen) => (
+										<RegimenCard
+											key={regimen.id}
+											regimen={regimen}
+											onEdit={() => handleEdit(regimen)}
+											onArchive={() => handleArchive(regimen.id)}
+											onTogglePause={() =>
+												handleTogglePause(regimen.id, regimen.isActive)
+											}
+										/>
+									))}
+								</div>
+							</div>
+						);
+					})}
+
+					{Object.keys(groupedRegimens).length === 0 && !error && (
+						<div className="py-12 text-center">
+							<Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
+							<h3 className="mb-2 font-medium text-lg">No regimens found</h3>
+							<p className="text-muted-foreground">
+								{selectedAnimalId === "all"
+									? "Create your first medication regimen to get started"
+									: `No regimens for ${animals.find((a) => a.id === selectedAnimalId)?.name}`}
+							</p>
+						</div>
+					)}
+				</div>
+			)}
 
 			{/* Regimen Form */}
 			<RegimenForm
@@ -267,10 +593,12 @@ function RegimenCard({
 	regimen,
 	onEdit,
 	onArchive,
+	onTogglePause,
 }: {
 	regimen: Regimen;
 	onEdit: () => void;
 	onArchive: () => void;
+	onTogglePause: () => void;
 }) {
 	return (
 		<Card className="transition-shadow hover:shadow-md">
@@ -302,6 +630,16 @@ function RegimenCard({
 						>
 							{regimen.scheduleType}
 						</Badge>
+						{regimen.status === "paused" && (
+							<Badge variant="outline" className="whitespace-nowrap text-xs">
+								Paused
+							</Badge>
+						)}
+						{regimen.status === "ended" && (
+							<Badge variant="secondary" className="whitespace-nowrap text-xs">
+								Ended
+							</Badge>
+						)}
 					</div>
 				</div>
 			</CardHeader>
@@ -343,8 +681,18 @@ function RegimenCard({
 					<Button
 						variant="outline"
 						size="sm"
+						onClick={onTogglePause}
+						className="gap-1 bg-transparent"
+						title={regimen.isActive ? "Pause regimen" : "Resume regimen"}
+					>
+						{regimen.isActive ? "Pause" : "Resume"}
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
 						onClick={onArchive}
 						className="gap-1 bg-transparent"
+						title="Archive regimen"
 					>
 						<Archive className="h-3 w-3" />
 						Archive

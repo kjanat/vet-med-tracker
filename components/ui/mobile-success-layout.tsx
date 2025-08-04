@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, CheckCircle, Clock, Home } from "lucide-react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTimeLocal } from "@/utils/tz";
@@ -14,7 +15,7 @@ interface MobileSuccessLayoutProps {
 	medicationName?: string;
 }
 
-export function MobileSuccessLayout({
+export const MobileSuccessLayout = memo(function MobileSuccessLayout({
 	isOnline,
 	onReturnHome,
 	onRecordAnother,
@@ -77,7 +78,6 @@ export function MobileSuccessLayout({
 				<Button
 					onClick={() => {
 						// TODO: Open reminder adjustment sheet
-						console.log("Adjust reminder");
 					}}
 					className="h-12 w-full text-base"
 					variant="ghost"
@@ -101,4 +101,4 @@ export function MobileSuccessLayout({
 			</Card>
 		</div>
 	);
-}
+});

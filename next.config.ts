@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
 	devIndicators: false,
 	experimental: {
 		// ppr: "incremental",
-		// reactCompiler: true,
-		// typedRoutes: true,
+		reactCompiler: true,
+		typedRoutes: true,
 		// useCache: true,
 	},
 	images: {

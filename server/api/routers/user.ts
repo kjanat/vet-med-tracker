@@ -2,8 +2,11 @@ import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { animals, households, memberships } from "@/db/schema";
 import type { VetMedPreferences } from "@/hooks/use-user-preferences";
+import {
+	createTRPCRouter,
+	protectedProcedure,
+} from "@/server/api/trpc/clerk-init";
 import { updateUserPreferences } from "../clerk-sync";
-import { createTRPCRouter, protectedProcedure } from "../trpc/clerk-init";
 
 export const userRouter = createTRPCRouter({
 	// Get current user's memberships

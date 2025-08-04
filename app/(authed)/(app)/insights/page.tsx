@@ -44,25 +44,15 @@ function InsightsContent() {
 	if (!selectedRange) {
 		return (
 			<div className="space-y-6">
-				<div>
-					<h1 className="font-bold text-2xl md:text-3xl">Insights</h1>
-					<p className="text-muted-foreground text-sm md:text-base">
-						Loading compliance analytics...
-					</p>
-				</div>
+				<p className="text-muted-foreground text-sm md:text-base">
+					Loading compliance analytics...
+				</p>
 			</div>
 		);
 	}
 
 	return (
 		<div className="space-y-6">
-			<div>
-				<h1 className="font-bold text-2xl md:text-3xl">Insights</h1>
-				<p className="text-muted-foreground text-sm md:text-base">
-					Compliance analytics and actionable recommendations
-				</p>
-			</div>
-
 			{/* Above the fold - Summary Cards */}
 			<SummaryCards range={selectedRange} />
 

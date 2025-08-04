@@ -1,6 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 
 import {
@@ -31,7 +32,7 @@ export function NavDashboard({
 					{items.map((item) => (
 						<SidebarMenuItem key={item.name}>
 							<SidebarMenuButton asChild size="sm">
-								<Link href={item.url} className="cursor-pointer">
+								<Link href={item.url as Route} className="cursor-pointer">
 									<item.icon />
 									<span>{item.name}</span>
 								</Link>

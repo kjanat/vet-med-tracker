@@ -46,12 +46,9 @@ export default function UsersPage() {
 	if (!selectedHousehold) {
 		return (
 			<div className="space-y-6">
-				<div>
-					<h1 className="font-bold text-3xl">Manage Users</h1>
-					<p className="text-muted-foreground">
-						Please select a household to manage users
-					</p>
-				</div>
+				<p className="text-muted-foreground">
+					Please select a household to manage users
+				</p>
 			</div>
 		);
 	}
@@ -59,10 +56,7 @@ export default function UsersPage() {
 	if (isLoading) {
 		return (
 			<div className="space-y-6">
-				<div>
-					<h1 className="font-bold text-3xl">Manage Users</h1>
-					<p className="text-muted-foreground">Loading...</p>
-				</div>
+				<p className="text-muted-foreground">Loading...</p>
 			</div>
 		);
 	}
@@ -71,12 +65,9 @@ export default function UsersPage() {
 		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Manage Users</h1>
-					<p className="text-muted-foreground">
-						Members of {selectedHousehold.name}
-					</p>
-				</div>
+				<p className="text-muted-foreground">
+					Members of {selectedHousehold.name}
+				</p>
 				{canManageUsers && (
 					<Button onClick={() => setInvitingUser(true)}>
 						<UserPlus className="mr-2 h-4 w-4" />

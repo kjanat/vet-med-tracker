@@ -13,6 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { cardPatterns, layoutPatterns } from "@/components/ui/class-variants";
 import {
 	errorReporter,
 	extractErrorContext,
@@ -85,10 +86,12 @@ export class ErrorBoundary extends Component<Props, State> {
 			const isDevelopment = process.env.NODE_ENV === "development";
 
 			return (
-				<div className="flex min-h-screen items-center justify-center bg-background p-4">
-					<Card className="w-full max-w-lg">
+				<div
+					className={`${layoutPatterns.flexCenter} min-h-screen bg-background p-4`}
+				>
+					<Card className={cardPatterns.fullCard}>
 						<CardHeader>
-							<div className="flex items-center gap-2">
+							<div className={layoutPatterns.flexCenterGap2}>
 								<AlertTriangle className="h-5 w-5 text-destructive" />
 								<CardTitle>Something went wrong</CardTitle>
 							</div>

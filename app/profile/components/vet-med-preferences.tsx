@@ -14,15 +14,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
+import { BROWSER_ZONE } from "@/utils/timezone-helpers";
 
 interface VetMedPreferences {
 	defaultTimezone: string;
@@ -43,7 +38,7 @@ interface VetMedPreferences {
 }
 
 const defaultPreferences: VetMedPreferences = {
-	defaultTimezone: "America/New_York",
+	defaultTimezone: BROWSER_ZONE || "America/New_York",
 	preferredPhoneNumber: "",
 	emergencyContactName: "",
 	emergencyContactPhone: "",
@@ -59,20 +54,6 @@ const defaultPreferences: VetMedPreferences = {
 		weightUnit: "lbs",
 	},
 };
-
-const timezones = [
-	{ value: "America/New_York", label: "Eastern Time (EST/EDT)" },
-	{ value: "America/Chicago", label: "Central Time (CST/CDT)" },
-	{ value: "America/Denver", label: "Mountain Time (MST/MDT)" },
-	{ value: "America/Los_Angeles", label: "Pacific Time (PST/PDT)" },
-	{ value: "America/Anchorage", label: "Alaska Time (AKST/AKDT)" },
-	{ value: "Pacific/Honolulu", label: "Hawaii Time (HST)" },
-	{ value: "Europe/London", label: "Greenwich Mean Time (GMT)" },
-	{ value: "Europe/Paris", label: "Central European Time (CET)" },
-	{ value: "Europe/Amsterdam", label: "Central European Time (CET)" },
-	{ value: "Asia/Tokyo", label: "Japan Standard Time (JST)" },
-	{ value: "Australia/Sydney", label: "Australian Eastern Time (AEST)" },
-];
 
 export default function VetMedPreferencesPage() {
 	const { user, isLoaded } = useUser();
@@ -163,23 +144,13 @@ export default function VetMedPreferencesPage() {
 				<CardContent className="space-y-4">
 					<div className="space-y-2">
 						<Label htmlFor="timezone">Default Timezone</Label>
-						<Select
+						<TimezoneCombobox
 							value={preferences.defaultTimezone}
-							onValueChange={(value) =>
+							onChange={(value) =>
 								updatePreferences({ defaultTimezone: value })
 							}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Select timezone" />
-							</SelectTrigger>
-							<SelectContent>
-								{timezones.map((tz) => (
-									<SelectItem key={tz.value} value={tz.value}>
-										{tz.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+							placeholder="Select timezone"
+						/>
 					</div>
 
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -196,38 +167,34 @@ export default function VetMedPreferencesPage() {
 
 						<div className="space-y-2">
 							<Label>Temperature Unit</Label>
-							<Select
+							<select
+								className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								value={preferences.displayPreferences.temperatureUnit}
-								onValueChange={(value: "celsius" | "fahrenheit") =>
-									updateDisplayPreferences({ temperatureUnit: value })
+								onChange={(e) =>
+									updateDisplayPreferences({
+										temperatureUnit: e.target.value as "celsius" | "fahrenheit",
+									})
 								}
 							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="fahrenheit">Fahrenheit (°F)</SelectItem>
-									<SelectItem value="celsius">Celsius (°C)</SelectItem>
-								</SelectContent>
-							</Select>
+								<option value="fahrenheit">Fahrenheit (°F)</option>
+								<option value="celsius">Celsius (°C)</option>
+							</select>
 						</div>
 
 						<div className="space-y-2">
 							<Label>Weight Unit</Label>
-							<Select
+							<select
+								className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								value={preferences.displayPreferences.weightUnit}
-								onValueChange={(value: "kg" | "lbs") =>
-									updateDisplayPreferences({ weightUnit: value })
+								onChange={(e) =>
+									updateDisplayPreferences({
+										weightUnit: e.target.value as "kg" | "lbs",
+									})
 								}
 							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="lbs">Pounds (lbs)</SelectItem>
-									<SelectItem value="kg">Kilograms (kg)</SelectItem>
-								</SelectContent>
-							</Select>
+								<option value="lbs">Pounds (lbs)</option>
+								<option value="kg">Kilograms (kg)</option>
+							</select>
 						</div>
 					</div>
 				</CardContent>
@@ -354,25 +321,22 @@ export default function VetMedPreferencesPage() {
 
 						<div className="space-y-2">
 							<Label htmlFor="lead-time">Reminder Lead Time (minutes)</Label>
-							<Select
+							<select
+								id="lead-time"
+								className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								value={preferences.notificationPreferences.reminderLeadTime.toString()}
-								onValueChange={(value) =>
+								onChange={(e) =>
 									updateNotificationPreferences({
-										reminderLeadTime: parseInt(value),
+										reminderLeadTime: parseInt(e.target.value),
 									})
 								}
 							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="5">5 minutes before</SelectItem>
-									<SelectItem value="15">15 minutes before</SelectItem>
-									<SelectItem value="30">30 minutes before</SelectItem>
-									<SelectItem value="60">1 hour before</SelectItem>
-									<SelectItem value="120">2 hours before</SelectItem>
-								</SelectContent>
-							</Select>
+								<option value="5">5 minutes before</option>
+								<option value="15">15 minutes before</option>
+								<option value="30">30 minutes before</option>
+								<option value="60">1 hour before</option>
+								<option value="120">2 hours before</option>
+							</select>
 						</div>
 					</div>
 				</CardContent>

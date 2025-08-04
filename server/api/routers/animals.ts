@@ -2,15 +2,17 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { animals, type NewAnimal } from "@/db/schema";
-import { createTRPCRouter, householdProcedure } from "../trpc/clerk-init";
+import {
+	createTRPCRouter,
+	householdProcedure,
+} from "@/server/api/trpc/clerk-init";
 
 // Input validation schemas
 const createAnimalSchema = z.object({
-	householdId: z.string().uuid(),
 	name: z.string().min(1).max(100),
 	species: z.string().min(1).max(50),
 	breed: z.string().optional(),
-	sex: z.enum(["male", "female"]).optional(),
+	sex: z.enum(["Male", "Female"]).optional(),
 	neutered: z.boolean().default(false),
 	dob: z.string().optional(), // Date as string
 	weightKg: z.number().positive().optional(),
@@ -92,6 +94,7 @@ export const animalRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			const newAnimal: NewAnimal = {
 				...input,
+				householdId: ctx.householdId, // Use householdId from context
 				dob: input.dob,
 				weightKg: input.weightKg?.toString(),
 			};
@@ -150,7 +153,6 @@ export const animalRouter = createTRPCRouter({
 		.input(
 			z.object({
 				id: z.string().uuid(),
-				householdId: z.string().uuid(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -161,7 +163,7 @@ export const animalRouter = createTRPCRouter({
 				.where(
 					and(
 						eq(animals.id, input.id),
-						eq(animals.householdId, input.householdId),
+						eq(animals.householdId, ctx.householdId),
 						isNull(animals.deletedAt),
 					),
 				)

@@ -1,8 +1,5 @@
-// import "@/envConfig";
-import "dotenv/config";
+import "./envConfig.ts";
 import { defineConfig } from "drizzle-kit";
-
-// console.log()
 
 export default defineConfig({
 	out: "./drizzle",

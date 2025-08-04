@@ -311,3 +311,6 @@ test-results/
 playwright-report/
 
 .neon
+
+public/silhouettes/*.json
+!public/silhouettes/index.json

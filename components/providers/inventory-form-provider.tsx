@@ -63,12 +63,6 @@ export function InventoryFormProvider({
 			return;
 		}
 
-		console.log("Adding item with household:", {
-			id: selectedHousehold.id,
-			name: selectedHousehold.name,
-			data: data,
-		});
-
 		if (!data.medicationId) {
 			console.error("No medication selected!");
 			throw new Error("Please select a medication");
@@ -100,8 +94,7 @@ export function InventoryFormProvider({
 				});
 			}
 
-			// Show success toast
-			console.log(`Added ${data.name} (expires ${data.expiresOn})`);
+			// TODO: Show success toast
 		} catch (error) {
 			// TODO: Implement inventory.create mutation for offline queue
 			console.error("Failed to add item:", error);

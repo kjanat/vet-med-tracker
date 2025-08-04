@@ -15,26 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-
-const TIMEZONES = [
-	{ value: "America/New_York", label: "Eastern Time (EST/EDT)" },
-	{ value: "America/Chicago", label: "Central Time (CST/CDT)" },
-	{ value: "America/Denver", label: "Mountain Time (MST/MDT)" },
-	{ value: "America/Los_Angeles", label: "Pacific Time (PST/PDT)" },
-	{ value: "America/Anchorage", label: "Alaska Time (AKST/AKDT)" },
-	{ value: "Pacific/Honolulu", label: "Hawaii Time (HST)" },
-	{ value: "Europe/London", label: "Greenwich Mean Time (GMT)" },
-	{ value: "Europe/Paris", label: "Central European Time (CET)" },
-	{ value: "Asia/Tokyo", label: "Japan Standard Time (JST)" },
-	{ value: "Australia/Sydney", label: "Australian Eastern Time (AEST)" },
-];
+import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
+import { BROWSER_ZONE } from "@/utils/timezone-helpers";
 
 interface OnboardingData {
 	householdName: string;
@@ -48,7 +30,7 @@ interface OnboardingData {
 
 const initialData: OnboardingData = {
 	householdName: "",
-	timezone: "America/New_York",
+	timezone: BROWSER_ZONE || "America/New_York",
 	preferredPhoneNumber: "",
 	veterinarianName: "",
 	veterinarianPhone: "",
@@ -195,21 +177,12 @@ export function WelcomeFlow() {
 						<CardContent className="space-y-4">
 							<div className="space-y-2">
 								<Label htmlFor="timezone">Your Timezone</Label>
-								<Select
+								<TimezoneCombobox
 									value={data.timezone}
-									onValueChange={(value) => updateData({ timezone: value })}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder="Select your timezone" />
-									</SelectTrigger>
-									<SelectContent>
-										{TIMEZONES.map((tz) => (
-											<SelectItem key={tz.value} value={tz.value}>
-												{tz.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+									onChange={(value) => updateData({ timezone: value })}
+									placeholder="Select your timezone"
+									required
+								/>
 							</div>
 
 							<div className="space-y-2">
@@ -300,9 +273,7 @@ export function WelcomeFlow() {
 								</div>
 								<div className="flex justify-between">
 									<span className="font-medium">Timezone:</span>
-									<span>
-										{TIMEZONES.find((tz) => tz.value === data.timezone)?.label}
-									</span>
+									<span>{data.timezone}</span>
 								</div>
 								<div className="flex justify-between">
 									<span className="font-medium">Phone:</span>

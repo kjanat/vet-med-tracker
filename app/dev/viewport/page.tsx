@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import MobileResponsiveTester from "@/components/dev/viewport-tester";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
 	title: "Viewport Tester | VetMed Tracker Dev Tools",
@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 		"Test your application across different device viewports and screen sizes",
 };
 
+// Redirect to the improved version in (dev) directory
 export default function ViewportTesterPage() {
-	return <MobileResponsiveTester />;
+	redirect("/viewport");
 }

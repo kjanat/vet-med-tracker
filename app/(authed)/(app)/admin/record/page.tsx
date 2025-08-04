@@ -115,6 +115,7 @@ function useRecordState() {
 function useRecordData(
 	state: ReturnType<typeof useRecordState>,
 	selectedHousehold: { id: string } | null,
+	refreshPendingMeds: () => void,
 ) {
 	const utils = trpc.useUtils();
 
@@ -140,6 +141,8 @@ function useRecordData(
 		onSuccess: () => {
 			// Invalidate due regimens to refresh the list
 			utils.regimen.listDue.invalidate();
+			// Refresh pending medication counts in app provider
+			refreshPendingMeds();
 			state.setStep("success");
 		},
 		onError: (error) => {
@@ -227,14 +230,11 @@ function SelectionStep({
 	return (
 		<div className="mx-auto max-w-4xl space-y-6">
 			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Record Medication</h1>
-					<p className="text-muted-foreground">
-						{state.selectedAnimalId
-							? `Recording for ${animals.find((a) => a.id === state.selectedAnimalId)?.name}`
-							: "Select a medication to record"}
-					</p>
-				</div>
+				<p className="text-muted-foreground">
+					{state.selectedAnimalId
+						? `Recording for ${animals.find((a) => a.id === state.selectedAnimalId)?.name}`
+						: "Select a medication to record"}
+				</p>
 				{searchParams.get("from") === "home" && (
 					<Button variant="ghost" onClick={() => router.push("/")}>
 						<ArrowLeft className="mr-2 h-4 w-4" />
@@ -481,7 +481,7 @@ function resetRecordState(state: RecordState) {
 function RecordContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const { animals, selectedHousehold } = useApp();
+	const { animals, selectedHousehold, refreshPendingMeds } = useApp();
 	const { isOnline, enqueue } = useOfflineQueue();
 	const state = useRecordState();
 	const isMobile = useMediaQuery("(max-width: 768px)");
@@ -495,7 +495,7 @@ function RecordContent() {
 		updateInventoryMutation,
 		inventorySources,
 		inventoryLoading,
-	} = useRecordData(state, selectedHousehold);
+	} = useRecordData(state, selectedHousehold, refreshPendingMeds);
 
 	// Handle URL params for pre-filling
 	useURLParams(state, dueRegimens);

@@ -111,7 +111,6 @@ export function NotificationDropdown({
 
 	const handleNotificationClick = (notification: Notification) => {
 		// TODO: Mark as read via tRPC mutation
-		console.log("Marking as read:", notification.id);
 
 		if (notification.actionUrl) {
 			window.location.href = notification.actionUrl;
@@ -121,7 +120,6 @@ export function NotificationDropdown({
 
 	const handleMarkAllAsRead = () => {
 		// TODO: Mark all as read via tRPC mutation
-		console.log("Marking all as read");
 	};
 
 	return (

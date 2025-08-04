@@ -136,13 +136,6 @@ export function DataPanel() {
 
 	return (
 		<div className="space-y-6">
-			<div>
-				<h2 className="font-bold text-2xl">Data & Privacy</h2>
-				<p className="text-muted-foreground">
-					Export your data and manage privacy settings
-				</p>
-			</div>
-
 			{/* Export Data */}
 			<Card>
 				<CardHeader>
@@ -314,7 +307,7 @@ export function DataPanel() {
 					<CardContent>
 						<Button
 							onClick={() => {
-								window.location.href = "/settings/audit-log";
+								window.location.href = "/settings/data-privacy/audit";
 							}}
 							className="gap-2"
 						>

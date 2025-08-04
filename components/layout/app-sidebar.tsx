@@ -1,17 +1,18 @@
 "use client";
 
 import {
-	Activity,
-	BarChart3,
 	Bell,
+	Clock,
 	HelpCircle,
 	History,
 	Home,
+	Pill,
 	Settings,
-	Stethoscope,
+	TrendingUp,
+	Users,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type * as React from "react";
 import { NotificationsSidebarItem } from "@/components/notifications/notifications-sidebar-item";
 import { useAnimalForm } from "@/components/providers/animal-form-provider";
@@ -41,21 +42,10 @@ const data = {
 			url: "/dashboard",
 			icon: Home,
 			isActive: true,
-			items: [
-				{
-					title: "Overview",
-					url: "/dashboard",
-				},
-				{
-					title: "History",
-					url: "/dashboard/history",
-				},
-			],
 		},
 		{
 			title: "Manage",
-			url: "/manage",
-			icon: Stethoscope,
+			icon: Users,
 			items: [
 				{
 					title: "Animals",
@@ -73,8 +63,7 @@ const data = {
 		},
 		{
 			title: "Medications",
-			url: "/medications",
-			icon: Activity,
+			icon: Pill,
 			items: [
 				{
 					title: "Record Dose",
@@ -93,16 +82,15 @@ const data = {
 		{
 			title: "Insights",
 			url: "/insights",
-			icon: BarChart3,
-		},
-		{
-			title: "Reports",
-			url: "/reports",
-			icon: BarChart3,
+			icon: TrendingUp,
 			items: [
 				{
+					title: "History",
+					url: "/dashboard/history",
+				},
+				{
 					title: "Animal Reports",
-					url: "/reports/animal",
+					url: "/reports",
 				},
 			],
 		},
@@ -112,24 +100,20 @@ const data = {
 			icon: Settings,
 			items: [
 				{
-					title: "General",
-					url: "/settings",
-				},
-				{
 					title: "Data & Privacy",
-					url: "/settings?tab=data",
+					url: "/settings/data-privacy",
 				},
 				{
 					title: "Preferences",
-					url: "/settings?tab=preferences",
+					url: "/settings/preferences",
 				},
 				{
 					title: "Notifications",
-					url: "/settings?tab=notifications",
+					url: "/settings/notifications",
 				},
 				{
-					title: "Audit Log",
-					url: "/audit",
+					title: "Household",
+					url: "/settings/household",
 				},
 			],
 		},
@@ -145,7 +129,7 @@ const data = {
 		{
 			name: "Today's Doses",
 			url: "/dashboard",
-			icon: Activity,
+			icon: Clock,
 		},
 		{
 			name: "Overdue",
@@ -161,14 +145,12 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const pathname = usePathname();
 	const { openForm } = useAnimalForm();
 	const { openForm: openInventoryForm } = useInventoryForm();
 
-	// Update active state and add click handlers based on current path
-	const navMainWithActive = data.navMain.map((item) => ({
+	// Add click handlers for dialog-based actions
+	const navMainWithHandlers = data.navMain.map((item) => ({
 		...item,
-		isActive: pathname === item.url || pathname.startsWith(`${item.url}/`),
 		items: item.items?.map((subItem) => {
 			// Convert "Add Animal" links to use the dialog
 			if (subItem.title === "Add Animal") {
@@ -197,7 +179,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			</SidebarHeader>
 			<SidebarContent>
 				<NavDashboard items={data.dashboard} />
-				<NavMain items={navMainWithActive} />
+				<NavMain items={navMainWithHandlers} />
 
 				{/* Custom secondary navigation with notifications popover */}
 				<SidebarGroup className="mt-auto">
@@ -212,7 +194,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							{data.navSecondary.map((item) => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton asChild size="sm">
-										<Link href={item.url} className="cursor-pointer">
+										<Link href={item.url as Route} className="cursor-pointer">
 											<item.icon />
 											<span>{item.title}</span>
 										</Link>

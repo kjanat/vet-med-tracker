@@ -1,16 +1,17 @@
 "use client";
 
 import { BarChart3, History, Home, Package, Settings } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-	{ name: "Home", href: "/", icon: Home },
-	{ name: "History", href: "/history", icon: History },
-	{ name: "Inventory", href: "/inventory", icon: Package },
-	{ name: "Insights", href: "/insights", icon: BarChart3 },
-	{ name: "Settings", href: "/settings", icon: Settings },
+	{ name: "Home", href: "/" as Route, icon: Home },
+	{ name: "History", href: "/dashboard/history" as Route, icon: History },
+	{ name: "Inventory", href: "/medications/inventory" as Route, icon: Package },
+	{ name: "Insights", href: "/insights" as Route, icon: BarChart3 },
+	{ name: "Settings", href: "/settings" as Route, icon: Settings },
 ];
 
 export function LeftRail() {

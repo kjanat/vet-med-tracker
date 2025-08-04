@@ -29,13 +29,7 @@ import { useDaysOfSupply } from "@/hooks/useDaysOfSupply";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { trpc } from "@/server/trpc/client";
 
-// Mock days of supply until we implement usage tracking
-const mockDaysOfSupply = [
-	{ itemId: "1", daysLeft: 6 },
-	{ itemId: "2", daysLeft: 3 },
-	{ itemId: "3", daysLeft: 15 },
-	{ itemId: "4", daysLeft: null },
-];
+// Remove mock data - now using real calculations
 
 export default function InventoryPage() {
 	return (
@@ -88,6 +82,17 @@ function InventoryContent() {
 		},
 	);
 
+	// Fetch days of supply data
+	const { data: daysOfSupplyData = [] } =
+		trpc.inventory.getDaysOfSupply.useQuery(
+			{
+				householdId: selectedHousehold?.id || "",
+			},
+			{
+				enabled: !!selectedHousehold?.id && items.length > 0,
+			},
+		);
+
 	// Transform the data to match the InventoryItem interface
 	const inventoryItems: InventoryItem[] = useMemo(() => {
 		return items.map((item) => ({
@@ -107,11 +112,12 @@ function InventoryContent() {
 			inUse: item.inUse,
 			assignedAnimalId: item.assignedAnimalId || undefined,
 			catalogId: item.medicationId,
+			assignedAnimalName: item.assignedAnimalName || undefined,
 		}));
 	}, [items]);
 
-	// TODO: Replace with actual usage data from tRPC
-	const daysLeftMap = useDaysOfSupply(inventoryItems, mockDaysOfSupply);
+	// Use real days of supply data from tRPC
+	const daysLeftMap = useDaysOfSupply(inventoryItems, daysOfSupplyData);
 
 	// Generate alerts
 	const alerts = useMemo(() => {
@@ -330,12 +336,7 @@ function InventoryContent() {
 		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Inventory</h1>
-					<p className="text-muted-foreground">
-						Manage medications and supplies
-					</p>
-				</div>
+				<p className="text-muted-foreground">Manage medications and supplies</p>
 				<AddItemButton />
 			</div>
 
@@ -528,10 +529,12 @@ function generateInventoryAlerts(
 
 		// Low stock alerts
 		if (daysLeft !== undefined && daysLeft !== null && daysLeft <= 7) {
-			const animalName = item.assignedAnimalId ? "Buddy" : ""; // Mock animal name
+			const animalName =
+				item.assignedAnimalName || (item.assignedAnimalId ? "Assigned" : "");
+			const displayName = animalName || "Unassigned";
 			lowStock.push({
 				id: item.id,
-				message: `${item.name}${animalName ? ` (${animalName})` : ""} ~${daysLeft} days left`,
+				message: `${item.name}${displayName !== "Unassigned" ? ` (${displayName})` : ` (${displayName})`} ~${daysLeft} days left`,
 				type: "low-stock",
 			});
 		}

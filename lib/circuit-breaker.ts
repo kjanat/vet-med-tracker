@@ -382,10 +382,24 @@ export async function checkDatabaseHealthWithCircuitBreaker(): Promise<{
 }
 
 /**
+ * Flag to track if circuit breaker logging has been set up
+ */
+let circuitBreakerLoggingSetup = false;
+
+/**
  * Setup circuit breaker event logging
  */
 export function setupCircuitBreakerLogging(): void {
+	// Prevent multiple setup calls
+	if (circuitBreakerLoggingSetup) {
+		return;
+	}
+	circuitBreakerLoggingSetup = true;
+
 	const logCircuitEvent = (name: string, breaker: CircuitBreaker) => {
+		// Increase max listeners to prevent warnings (3 listeners per breaker)
+		breaker.setMaxListeners(10);
+
 		breaker.on("stateChange", (state, metrics) => {
 			console.log(`🔄 Circuit breaker [${name}] state changed to ${state}`, {
 				failureRate: `${metrics.failureRate.toFixed(2)}%`,
