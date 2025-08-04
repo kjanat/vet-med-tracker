@@ -65,17 +65,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
 	const utils = trpc.useUtils();
 
 	// Wrapper to update both state and localStorage
-	const setSelectedHousehold = useCallback((household: Household | null) => {
-		setSelectedHouseholdState(household);
+	const setSelectedHousehold = useCallback(
+		(household: Household | null) => {
+			setSelectedHouseholdState(household);
+			if (typeof window !== "undefined") {
+				if (household?.id) {
+					localStorage.setItem("selectedHouseholdId", household.id);
+				} else {
+					localStorage.removeItem("selectedHouseholdId");
+				}
+			}
+			// Clear selected animal when changing households
+			if (household?.id !== selectedHousehold?.id) {
+				setSelectedAnimalState(null);
+				if (typeof window !== "undefined") {
+					localStorage.removeItem("selectedAnimalId");
+				}
+			}
+		},
+		[selectedHousehold?.id],
+	);
+	const [selectedAnimal, setSelectedAnimalState] = useState<Animal | null>(
+		null,
+	);
+
+	// Wrapper to update both state and localStorage
+	const setSelectedAnimal = useCallback((animal: Animal | null) => {
+		setSelectedAnimalState(animal);
 		if (typeof window !== "undefined") {
-			if (household?.id) {
-				localStorage.setItem("selectedHouseholdId", household.id);
+			if (animal?.id) {
+				localStorage.setItem("selectedAnimalId", animal.id);
 			} else {
-				localStorage.removeItem("selectedHouseholdId");
+				localStorage.removeItem("selectedAnimalId");
 			}
 		}
 	}, []);
-	const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
 	const [isOffline, setIsOffline] = useState(false);
 	const [pendingSyncCount, setPendingSyncCount] = useState(0);
 	const [households, setHouseholds] = useState<Household[]>([]);
@@ -137,6 +161,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
 			}
 
 			return savedHousehold || null;
+		},
+		[],
+	);
+
+	// Helper function to restore animal from localStorage
+	const restoreAnimalFromStorage = useCallback(
+		(availableAnimals: Animal[]): Animal | null => {
+			if (typeof window === "undefined") return null;
+
+			const savedAnimalId = localStorage.getItem("selectedAnimalId");
+			if (!savedAnimalId) return null;
+
+			const savedAnimal = availableAnimals.find((a) => a.id === savedAnimalId);
+
+			if (!savedAnimal) {
+				console.warn(
+					`Animal ID ${savedAnimalId} not found in household's animals. Clearing localStorage.`,
+				);
+				localStorage.removeItem("selectedAnimalId");
+			}
+
+			return savedAnimal || null;
 		},
 		[],
 	);
@@ -248,6 +294,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
 			pendingMeds: pendingByAnimal[animal.id] || 0,
 		}));
 	}, [animalData, pendingMedsData]);
+
+	// Restore selected animal when animals change
+	useEffect(() => {
+		if (animals.length === 0) return;
+
+		// If no animal is selected, try to restore from localStorage
+		if (!selectedAnimal) {
+			const restoredAnimal = restoreAnimalFromStorage(animals);
+			if (restoredAnimal) {
+				setSelectedAnimal(restoredAnimal);
+			}
+		} else {
+			// Verify the selected animal still exists in the current household
+			const stillExists = animals.some((a) => a.id === selectedAnimal.id);
+			if (!stillExists) {
+				console.warn(
+					`Selected animal ${selectedAnimal.name} no longer exists in household. Clearing selection.`,
+				);
+				setSelectedAnimal(null);
+			}
+		}
+	}, [animals, selectedAnimal, restoreAnimalFromStorage, setSelectedAnimal]);
 
 	return (
 		<AppContext.Provider

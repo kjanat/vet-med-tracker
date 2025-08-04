@@ -14,6 +14,7 @@
 		"db:push": "drizzle-kit push --config=drizzle.config.ts",
 		"db:push:force": "drizzle-kit push --config=drizzle.config.ts --force",
 		"db:seed": "tsx scripts/seed.ts",
+		"db:seed:medications": "tsx scripts/seed-medications-fixed.ts",
 		"db:studio": "drizzle-kit studio --config=drizzle.config.ts",
 		"dev": "next dev",
 		"dev:turbo": "next dev --turbopack",

@@ -74,7 +74,7 @@ function AnimalList({
 	};
 
 	const handleEmergencyCard = (animalId: string) => {
-		window.open(`/animals/${animalId}/emergency`, "_blank");
+		window.open(`/manage/animals/${animalId}/emergency`, "_blank");
 	};
 
 	return (

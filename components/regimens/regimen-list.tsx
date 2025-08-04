@@ -226,91 +226,221 @@ export function RegimenList() {
 		setIsFormOpen(true);
 	};
 
+	// tRPC mutations
+	const createRegimen = trpc.regimen.create.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to create regimen:", error);
+		},
+	});
+
+	const updateRegimen = trpc.regimen.update.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to update regimen:", error);
+		},
+	});
+
 	const handleSave = async (data: Partial<Regimen>) => {
-		console.log("Saving regimen:", data);
-		console.log(
-			"NOTE: Create/Update mutations not yet implemented in regimen router",
-		);
+		if (!selectedHousehold?.id) {
+			console.error("No household selected");
+			return;
+		}
 
-		// Fire instrumentation event
-		window.dispatchEvent(
-			new CustomEvent(
-				editingRegimen
-					? "settings_regimens_update"
-					: "settings_regimens_create",
-				{
-					detail: {
-						regimenId: editingRegimen?.id,
-						animalId: data.animalId,
-						medicationName: data.medicationName,
-						scheduleType: data.scheduleType,
+		try {
+			if (editingRegimen) {
+				// Update existing regimen
+				const updateData = {
+					id: editingRegimen.id,
+					householdId: selectedHousehold.id,
+					name: data.medicationName,
+					instructions: data.medicationName, // TODO: Get actual instructions from form
+					scheduleType: data.scheduleType as
+						| "FIXED"
+						| "PRN"
+						| "INTERVAL"
+						| "TAPER",
+					timesLocal: data.timesLocal,
+					cutoffMinutes: data.cutoffMins,
+					highRisk: data.highRisk,
+					requiresCoSign: data.highRisk, // High risk medications require co-sign
+					dose: data.medicationName, // TODO: Get actual dose from form
+					route: data.route,
+				};
+
+				// Only add dates if they exist
+				if (data.startDate) {
+					updateData.startDate = data.startDate.toISOString().split("T")[0];
+				}
+				if (data.endDate) {
+					updateData.endDate = data.endDate.toISOString().split("T")[0];
+				}
+
+				await updateRegimen.mutateAsync(updateData);
+			} else {
+				// Create new regimen
+				const createData = {
+					householdId: selectedHousehold.id,
+					animalId: data.animalId || "",
+					medicationId: data.medicationId || "",
+					name: data.medicationName,
+					instructions: data.medicationName, // TODO: Get actual instructions from form
+					scheduleType: data.scheduleType as
+						| "FIXED"
+						| "PRN"
+						| "INTERVAL"
+						| "TAPER",
+					timesLocal: data.timesLocal,
+					startDate:
+						data.startDate?.toISOString().split("T")[0] ||
+						new Date().toISOString().split("T")[0],
+					cutoffMinutes: data.cutoffMins || 240,
+					highRisk: data.highRisk || false,
+					requiresCoSign: data.highRisk || false, // High risk medications require co-sign
+					dose: data.medicationName, // TODO: Get actual dose from form
+					route: data.route,
+				};
+
+				// Only add endDate if it exists
+				if (data.endDate) {
+					createData.endDate = data.endDate.toISOString().split("T")[0];
+				}
+
+				await createRegimen.mutateAsync(createData);
+			}
+
+			// Fire instrumentation event
+			window.dispatchEvent(
+				new CustomEvent(
+					editingRegimen
+						? "settings_regimens_update"
+						: "settings_regimens_create",
+					{
+						detail: {
+							regimenId: editingRegimen?.id,
+							animalId: data.animalId,
+							medicationName: data.medicationName,
+							scheduleType: data.scheduleType,
+						},
 					},
-				},
-			),
-		);
+				),
+			);
 
-		// TODO: Implement tRPC mutations in regimen router
-		// if (editingRegimen) {
-		//   await updateRegimen.mutateAsync({ id: editingRegimen.id, ...data })
-		// } else {
-		//   await createRegimen.mutateAsync(data)
-		// }
+			setIsFormOpen(false);
+			setEditingRegimen(null);
 
-		setIsFormOpen(false);
-		setEditingRegimen(null);
-
-		// Show success toast
-		console.log(
-			`${editingRegimen ? "Updated" : "Created"} regimen for ${data.medicationName}`,
-		);
+			// Show success toast
+			console.log(
+				`${editingRegimen ? "Updated" : "Created"} regimen for ${data.medicationName}`,
+			);
+		} catch (error) {
+			console.error("Failed to save regimen:", error);
+		}
 	};
+
+	const deleteRegimen = trpc.regimen.delete.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to delete regimen:", error);
+		},
+	});
 
 	const handleArchive = async (regimenId: string) => {
-		console.log("Archiving regimen:", regimenId);
-		console.log("NOTE: Archive mutation not yet implemented in regimen router");
+		if (!selectedHousehold?.id) {
+			console.error("No household selected");
+			return;
+		}
 
-		// Fire instrumentation event
-		window.dispatchEvent(
-			new CustomEvent("settings_regimens_archive", {
-				detail: { regimenId },
-			}),
-		);
+		try {
+			await deleteRegimen.mutateAsync({
+				id: regimenId,
+				householdId: selectedHousehold.id,
+			});
 
-		// TODO: Implement archive mutation in regimen router
-		// await archiveRegimen.mutateAsync({ id: regimenId })
+			// Fire instrumentation event
+			window.dispatchEvent(
+				new CustomEvent("settings_regimens_archive", {
+					detail: { regimenId },
+				}),
+			);
 
-		console.log("Regimen would be archived");
+			console.log("Regimen archived successfully");
+		} catch (error) {
+			console.error("Failed to archive regimen:", error);
+		}
 	};
+
+	const pauseRegimen = trpc.regimen.pause.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to pause regimen:", error);
+		},
+	});
+
+	const resumeRegimen = trpc.regimen.resume.useMutation({
+		onSuccess: () => {
+			refetch(); // Refresh the list
+		},
+		onError: (error) => {
+			console.error("Failed to resume regimen:", error);
+		},
+	});
 
 	// Handle pause/resume regimen
 	const handleTogglePause = async (
 		regimenId: string,
 		currentlyActive: boolean,
 	) => {
-		console.log(
-			`${currentlyActive ? "Pausing" : "Resuming"} regimen:`,
-			regimenId,
-		);
-		console.log(
-			"NOTE: Pause/Resume mutations not yet implemented in regimen router",
-		);
+		if (!selectedHousehold?.id) {
+			console.error("No household selected");
+			return;
+		}
 
-		// Fire instrumentation event
-		window.dispatchEvent(
-			new CustomEvent(
-				currentlyActive
-					? "settings_regimens_pause"
-					: "settings_regimens_resume",
-				{
-					detail: { regimenId },
-				},
-			),
-		);
+		try {
+			if (currentlyActive) {
+				// Pause the regimen
+				await pauseRegimen.mutateAsync({
+					id: regimenId,
+					householdId: selectedHousehold.id,
+					reason: "Paused by user", // Default reason, could be made configurable
+				});
+			} else {
+				// Resume the regimen
+				await resumeRegimen.mutateAsync({
+					id: regimenId,
+					householdId: selectedHousehold.id,
+				});
+			}
 
-		// TODO: Implement pause/resume mutations in regimen router
-		// await (currentlyActive ? pauseRegimen : resumeRegimen).mutateAsync({ id: regimenId })
+			// Fire instrumentation event
+			window.dispatchEvent(
+				new CustomEvent(
+					currentlyActive
+						? "settings_regimens_pause"
+						: "settings_regimens_resume",
+					{
+						detail: { regimenId },
+					},
+				),
+			);
 
-		console.log(`Regimen would be ${currentlyActive ? "paused" : "resumed"}`);
+			console.log(
+				`Regimen ${currentlyActive ? "paused" : "resumed"} successfully`,
+			);
+		} catch (error) {
+			console.error(
+				`Failed to ${currentlyActive ? "pause" : "resume"} regimen:`,
+				error,
+			);
+		}
 	};
 
 	// Show loading state if no household selected

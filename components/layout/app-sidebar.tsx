@@ -1,14 +1,16 @@
 "use client";
 
 import {
-	Activity,
-	BarChart3,
 	Bell,
+	Clock,
+	FileChartColumn,
 	HelpCircle,
 	History,
 	Home,
+	Pill,
 	Settings,
-	Stethoscope,
+	TrendingUp,
+	Users,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -54,8 +56,7 @@ const data = {
 		},
 		{
 			title: "Manage",
-			url: "/manage",
-			icon: Stethoscope,
+			icon: Users,
 			items: [
 				{
 					title: "Animals",
@@ -73,8 +74,7 @@ const data = {
 		},
 		{
 			title: "Medications",
-			url: "/medications",
-			icon: Activity,
+			icon: Pill,
 			items: [
 				{
 					title: "Record Dose",
@@ -93,12 +93,11 @@ const data = {
 		{
 			title: "Insights",
 			url: "/insights",
-			icon: BarChart3,
+			icon: TrendingUp,
 		},
 		{
 			title: "Reports",
-			url: "/reports",
-			icon: BarChart3,
+			icon: FileChartColumn,
 			items: [
 				{
 					title: "Animal Reports",
@@ -113,7 +112,7 @@ const data = {
 			items: [
 				{
 					title: "General",
-					url: "/settings",
+					url: "/settings?tab=household",
 				},
 				{
 					title: "Data & Privacy",
@@ -145,7 +144,7 @@ const data = {
 		{
 			name: "Today's Doses",
 			url: "/dashboard",
-			icon: Activity,
+			icon: Clock,
 		},
 		{
 			name: "Overdue",

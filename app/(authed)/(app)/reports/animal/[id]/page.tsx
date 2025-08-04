@@ -11,15 +11,76 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc/client";
 
+// Mock data for demo purposes
+const generateMockReportData = (animalId: string) => ({
+	animal: {
+		id: animalId,
+		name: "Demo Pet",
+		species: "Dog",
+		breed: "Golden Retriever",
+		weightKg: 30,
+		photoUrl: null,
+		pendingMeds: 0,
+	},
+	compliance: {
+		adherencePct: 92,
+		scheduled: 60,
+		completed: 55,
+		missed: 3,
+		late: 2,
+		veryLate: 0,
+		streak: 7,
+	},
+	regimens: [
+		{
+			id: "demo-1",
+			medicationName: "Amoxicillin",
+			strength: "250mg",
+			route: "Oral",
+			schedule: "8:00 AM, 8:00 PM",
+			adherence: 95,
+			notes: "Give with food",
+		},
+		{
+			id: "demo-2",
+			medicationName: "Gabapentin",
+			strength: "100mg",
+			route: "Oral",
+			schedule: "Every 8 hours",
+			adherence: 88,
+			notes: null,
+		},
+	],
+	notableEvents: [
+		{
+			id: "event-1",
+			date: subDays(new Date(), 2),
+			medication: "Amoxicillin",
+			note: "Gave dose 30 minutes late due to vet appointment",
+			tags: ["Late"],
+		},
+		{
+			id: "event-2",
+			date: subDays(new Date(), 5),
+			medication: "Gabapentin",
+			note: "Missed morning dose - pet was at groomer",
+			tags: ["Missed Dose"],
+		},
+	],
+});
+
 export default function AnimalReportPage() {
 	const params = useParams();
 	const animalId = params.id as string;
+	const [useDemoMode, _setUseDemoMode] = useState(false);
+	const [hasErrored, _setHasErrored] = useState(false);
 
 	// Get selected household from localStorage (this would typically come from context)
 	const selectedHouseholdId =
@@ -27,37 +88,62 @@ export default function AnimalReportPage() {
 			? localStorage.getItem("selectedHouseholdId") || ""
 			: "";
 
-	const reportDate = new Date();
-	const reportPeriod = {
-		from: subDays(reportDate, 30),
-		to: reportDate,
-	};
+	// Memoize the report dates to prevent continuous re-renders
+	const reportPeriod = useMemo(() => {
+		const reportDate = new Date();
+		return {
+			from: subDays(reportDate, 30),
+			to: reportDate,
+		};
+	}, []); // Empty deps means this only runs once on mount
 
-	// Query the report data
+	// Memoize the ISO strings to prevent query key changes
+	const queryDates = useMemo(
+		() => ({
+			startDate: reportPeriod.from.toISOString(),
+			endDate: reportPeriod.to.toISOString(),
+		}),
+		[reportPeriod],
+	);
+
+	// Query the report data with retry and staleTime settings
 	const {
 		data: reportData,
 		isLoading,
 		error,
+		isError,
 	} = trpc.reports.animalReport.useQuery(
 		{
 			animalId,
 			householdId: selectedHouseholdId,
-			startDate: reportPeriod.from.toISOString(),
-			endDate: reportPeriod.to.toISOString(),
+			startDate: queryDates.startDate,
+			endDate: queryDates.endDate,
 		},
 		{
-			enabled: !!animalId && !!selectedHouseholdId,
+			enabled:
+				!!animalId && !!selectedHouseholdId && !useDemoMode && !hasErrored,
+			retry: 1, // Only retry once
+			retryDelay: 1000,
+			staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
+			refetchInterval: false, // Disable automatic refetching
+			refetchOnWindowFocus: false, // Disable refetch on window focus
+			refetchOnMount: false, // Disable refetch on mount after initial load
 		},
 	);
+
+	// Use mock data in demo mode
+	const displayData = useDemoMode
+		? generateMockReportData(animalId)
+		: reportData;
 
 	const handlePrint = () => {
 		window.print();
 	};
 
 	// Loading state
-	if (isLoading) {
+	if (isLoading && !useDemoMode) {
 		return (
-			<div className="min-h-screen bg-white">
+			<div className="min-h-screen bg-background">
 				<div className="no-print border-b p-4">
 					<div className="mx-auto flex max-w-4xl items-center justify-between">
 						<h1 className="font-bold text-2xl">Loading Report...</h1>
@@ -75,27 +161,28 @@ export default function AnimalReportPage() {
 		);
 	}
 
-	// Error state
-	if (error || !reportData) {
+	// Error state or no household selected
+	if (!selectedHouseholdId) {
 		return (
-			<div className="min-h-screen bg-white">
+			<div className="min-h-screen bg-background">
 				<div className="no-print border-b p-4">
 					<div className="mx-auto flex max-w-4xl items-center justify-between">
-						<h1 className="font-bold text-2xl">Report Error</h1>
+						<h1 className="font-bold text-2xl">Select Household</h1>
 					</div>
 				</div>
 				<div className="mx-auto max-w-4xl p-8">
 					<div className="flex items-center justify-center py-12">
 						<Card className="w-full max-w-md">
 							<CardContent className="pt-6">
-								<div className="flex items-center gap-3 text-center">
-									<AlertCircle className="h-8 w-8 text-destructive" />
+								<div className="flex flex-col items-center gap-3 text-center">
+									<AlertCircle className="h-8 w-8 text-muted-foreground" />
 									<div>
 										<h3 className="font-semibold text-lg">
-											Unable to Load Report
+											No Household Selected
 										</h3>
 										<p className="text-muted-foreground text-sm">
-											{error?.message || "Animal not found or access denied"}
+											Please select a household from the dropdown above to view
+											reports.
 										</p>
 									</div>
 								</div>
@@ -107,20 +194,65 @@ export default function AnimalReportPage() {
 		);
 	}
 
-	const { animal, compliance, regimens, notableEvents } = reportData;
+	// Error state - only show if not in demo mode and no data
+	if (!useDemoMode && isError && !displayData) {
+		return (
+			<div className="min-h-screen bg-background">
+				<div className="no-print border-b p-4">
+					<div className="mx-auto flex max-w-4xl items-center justify-between">
+						<h1 className="font-bold text-2xl">Report Unavailable</h1>
+					</div>
+				</div>
+				<div className="mx-auto max-w-4xl p-8">
+					<div className="flex items-center justify-center py-12">
+						<Card className="w-full max-w-md">
+							<CardContent className="pt-6">
+								<div className="flex flex-col items-center gap-3 text-center">
+									<AlertCircle className="h-8 w-8 text-muted-foreground" />
+									<div>
+										<h3 className="font-semibold text-lg">
+											Unable to Load Report
+										</h3>
+										<p className="text-muted-foreground text-sm">
+											{error?.message ||
+												"Animal not found or no data available for this period."}
+										</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// If we don't have data at this point, something went wrong
+	if (!displayData) {
+		return null;
+	}
+
+	const { animal, compliance, regimens, notableEvents } = displayData;
 
 	return (
-		<div className="min-h-screen bg-white">
+		<div className="min-h-screen bg-background">
 			{/* Print Button - hidden when printing */}
 			<div className="no-print border-b p-4">
 				<div className="mx-auto flex max-w-4xl items-center justify-between">
 					<h1 className="font-bold text-2xl">
 						Compliance Report - {animal.name}
 					</h1>
-					<Button onClick={handlePrint} className="gap-2">
-						<Printer className="h-4 w-4" />
-						Print Report
-					</Button>
+					<div className="flex items-center gap-3">
+						{useDemoMode && (
+							<Badge variant="secondary" className="text-xs">
+								Demo Mode
+							</Badge>
+						)}
+						<Button onClick={handlePrint} className="gap-2">
+							<Printer className="h-4 w-4" />
+							Print Report
+						</Button>
+					</div>
 				</div>
 			</div>
 
@@ -135,6 +267,11 @@ export default function AnimalReportPage() {
 						{format(reportPeriod.from, "MMMM d")} -{" "}
 						{format(reportPeriod.to, "MMMM d, yyyy")}
 					</p>
+					{useDemoMode && (
+						<p className="mt-2 text-muted-foreground text-sm">
+							This is sample data for demonstration purposes
+						</p>
+					)}
 				</div>
 
 				{/* Animal Info */}
@@ -317,7 +454,7 @@ export default function AnimalReportPage() {
 				{/* Footer */}
 				<div className="border-t pt-4 text-center text-muted-foreground text-sm">
 					<p>
-						Report generated on {format(reportDate, "MMMM d, yyyy 'at' h:mm a")}
+						Report generated on {format(new Date(), "MMMM d, yyyy 'at' h:mm a")}
 					</p>
 					<p className="mt-2">
 						This report covers the period from{" "}
@@ -336,10 +473,29 @@ export default function AnimalReportPage() {
           body {
             -webkit-print-color-adjust: exact;
             color-adjust: exact;
+            background: white !important;
+            color: black !important;
           }
           
           @page {
             margin: 0.5in;
+          }
+          
+          /* Force light theme colors for print */
+          .bg-background {
+            background-color: white !important;
+          }
+          
+          .text-muted-foreground {
+            color: #6b7280 !important;
+          }
+          
+          .border, .border-b, .border-t {
+            border-color: #e5e7eb !important;
+          }
+          
+          .bg-muted {
+            background-color: #f3f4f6 !important;
           }
         }
       `}</style>

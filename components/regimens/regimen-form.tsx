@@ -44,6 +44,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { trpc } from "@/lib/trpc/client";
 import type { Regimen } from "./regimen-list";
 
 interface RegimenFormProps {
@@ -62,7 +63,6 @@ interface MedicationOption {
 	strength?: string;
 }
 
-// Mock medication catalog - replace with tRPC
 // Helper functions
 function getInitialFormData(): Partial<Regimen> {
 	return {
@@ -82,7 +82,11 @@ function getInitialFormData(): Partial<Regimen> {
 }
 
 function checkFormValidity(formData: Partial<Regimen>): boolean {
-	const hasBasicInfo = !!(formData.animalId && formData.medicationName);
+	const hasBasicInfo = !!(
+		formData.animalId &&
+		formData.medicationId &&
+		formData.medicationName
+	);
 	const hasValidSchedule =
 		formData.scheduleType === "PRN" ||
 		(formData.scheduleType === "FIXED" &&
@@ -91,39 +95,6 @@ function checkFormValidity(formData: Partial<Regimen>): boolean {
 
 	return !!(hasBasicInfo && hasValidSchedule);
 }
-
-const mockMedications: MedicationOption[] = [
-	{
-		id: "rimadyl-75mg",
-		generic: "Carprofen",
-		brand: "Rimadyl",
-		route: "Oral",
-		form: "Tablet",
-		strength: "75mg",
-	},
-	{
-		id: "insulin-40iu",
-		generic: "Insulin",
-		brand: "Vetsulin",
-		route: "Subcutaneous",
-		form: "Injection",
-		strength: "40 IU/ml",
-	},
-	{
-		id: "amoxicillin-250mg",
-		generic: "Amoxicillin",
-		route: "Oral",
-		form: "Capsule",
-		strength: "250mg",
-	},
-	{
-		id: "pain-relief-5ml",
-		generic: "Tramadol",
-		route: "Oral",
-		form: "Liquid",
-		strength: "5ml",
-	},
-];
 
 export function RegimenForm({
 	regimen,
@@ -140,6 +111,16 @@ export function RegimenForm({
 	);
 
 	const { animals } = useApp();
+
+	// Search medications from the database when user types
+	const { data: searchResults = [], isLoading: searchLoading } =
+		trpc.medication.search.useQuery(
+			{ query: medicationSearch, limit: 20 },
+			{
+				enabled: medicationSearch.length > 0,
+				staleTime: 30000, // Cache for 30 seconds
+			},
+		);
 
 	useEffect(() => {
 		setFormData(regimen ? { ...regimen } : getInitialFormData());
@@ -168,6 +149,7 @@ export function RegimenForm({
 			strength: medication.strength,
 		}));
 		setMedicationOpen(false);
+		setMedicationSearch(""); // Clear search
 	};
 
 	const addTime = () => {
@@ -187,26 +169,15 @@ export function RegimenForm({
 		}));
 	};
 
-	const filteredMedications = mockMedications.filter(
-		(med) =>
-			med.generic.toLowerCase().includes(medicationSearch.toLowerCase()) ||
-			med.brand?.toLowerCase().includes(medicationSearch.toLowerCase()),
-	);
-
-	const handleCreateCustomMedication = () => {
-		const customName = medicationSearch.trim();
-		if (customName) {
-			setFormData((prev) => ({
-				...prev,
-				medicationId: `custom-${Date.now()}`,
-				medicationName: customName,
-				route: "",
-				form: "",
-				strength: "",
-			}));
-			setMedicationOpen(false);
-		}
-	};
+	// Transform search results to MedicationOption format
+	const medicationOptions: MedicationOption[] = searchResults.map((med) => ({
+		id: med.id,
+		generic: med.genericName,
+		brand: med.brandName || undefined,
+		route: med.route,
+		form: med.form,
+		strength: med.strength || undefined,
+	}));
 
 	const isFormValid = checkFormValidity(formData);
 
@@ -254,13 +225,32 @@ export function RegimenForm({
 									/>
 									<CommandList>
 										<CommandEmpty>
-											<MedicationEmpty
-												medicationSearch={medicationSearch}
-												onCreateCustom={handleCreateCustomMedication}
-											/>
+											{searchLoading ? (
+												<div className="p-4 text-center">
+													<p className="text-muted-foreground text-sm">
+														Searching medications...
+													</p>
+												</div>
+											) : medicationSearch.length === 0 ? (
+												<div className="p-4 text-center">
+													<p className="text-muted-foreground text-sm">
+														Start typing to search medications
+													</p>
+												</div>
+											) : (
+												<div className="p-4 text-center">
+													<p className="mb-2 text-muted-foreground text-sm">
+														No medication found
+													</p>
+													<p className="text-muted-foreground text-xs">
+														Contact admin to add "{medicationSearch}" to the
+														catalog
+													</p>
+												</div>
+											)}
 										</CommandEmpty>
 										<CommandGroup>
-											{filteredMedications.map((medication) => (
+											{medicationOptions.map((medication) => (
 												<MedicationItem
 													key={medication.id}
 													medication={medication}
@@ -421,23 +411,6 @@ export function RegimenForm({
 }
 
 // Helper components
-function MedicationEmpty({
-	medicationSearch,
-	onCreateCustom,
-}: {
-	medicationSearch: string;
-	onCreateCustom: () => void;
-}) {
-	return (
-		<div className="p-4 text-center">
-			<p className="mb-2 text-muted-foreground text-sm">No medication found</p>
-			<Button size="sm" onClick={onCreateCustom}>
-				Create &quot;{medicationSearch}&quot;
-			</Button>
-		</div>
-	);
-}
-
 function MedicationItem({
 	medication,
 	onSelect,
