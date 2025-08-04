@@ -68,7 +68,9 @@ jobs:
           pnpm install
 
       - name: Run Migrations
-        run: pnpm run db:migrate
+        run: |
+          pnpm run db:generate
+          pnpm run db:migrate --force
         env:
           # to use pooled connection
           DATABASE_URL: "${{ steps.create_neon_branch.outputs.db_url_pooled }}"
