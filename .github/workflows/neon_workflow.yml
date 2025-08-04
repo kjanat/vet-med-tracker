@@ -51,6 +51,9 @@ jobs:
       - run: echo branch_id ${{ steps.create_neon_branch.outputs.branch_id }}
       - run: psql ${{ steps.create_neon_branch.outputs.db_url }} -c "SELECT * FROM NOW();"
 
+     - name: Chekout
+       uses: actions/checkout@v4
+
       # The step above creates a new Neon branch.
       # You may want to do something with the new branch, such as run migrations, run tests
       # on it, or send the connection details to a hosting platform environment.
