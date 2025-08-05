@@ -41,6 +41,7 @@ function MobileUserMenu() {
 					variant="ghost"
 					className="relative h-9 w-9 rounded-full"
 					disabled={isLoading}
+					aria-label={`User menu for ${user.name || user.email || "User"}`}
 				>
 					<Avatar className="h-9 w-9">
 						<AvatarImage

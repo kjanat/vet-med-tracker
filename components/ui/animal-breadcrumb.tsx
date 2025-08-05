@@ -64,7 +64,10 @@ export function AnimalBreadcrumb() {
 				<BreadcrumbItem>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<BreadcrumbPage className="cursor-pointer transition-colors hover:text-muted-foreground">
+							<BreadcrumbPage
+								className="cursor-pointer transition-colors hover:text-muted-foreground"
+								aria-label={`Switch animal. Current: ${selectedAnimal ? selectedAnimal.name : "All animals"}`}
+							>
 								{selectedAnimal ? (
 									<span className="flex items-center gap-1.5">
 										<AnimalAvatar animal={selectedAnimal} size="xs" />

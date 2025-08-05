@@ -69,7 +69,7 @@ export function PublicHeader() {
 				{/* Mobile Menu */}
 				<Sheet open={isOpen} onOpenChange={setIsOpen}>
 					<SheetTrigger asChild className="ml-auto md:hidden">
-						<Button variant="ghost" size="icon">
+						<Button variant="ghost" size="icon" aria-label="Open menu">
 							<Menu className="h-5 w-5" />
 						</Button>
 					</SheetTrigger>
