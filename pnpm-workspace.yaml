@@ -1,0 +1,5 @@
+engineStrict: false
+packageManagerStrict: false
+# nodeOptions: "${NODE_OPTIONS:- } --max-old-space-size=8192"
+# childConcurrency: 1
+# networkConcurrency: 4
