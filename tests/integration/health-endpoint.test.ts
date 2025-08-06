@@ -560,10 +560,10 @@ describe("Health Check API Integration Tests", () => {
 			// Check rate limited response format
 			if (rateLimitedResponses.length > 0) {
 				const rateLimitedResponse = rateLimitedResponses[0];
-				const data = await rateLimitedResponse.json();
+				const data = await rateLimitedResponse?.json();
 				expect(data.status).toBe("rate_limited");
 				expect(data.retryAfter).toBeDefined();
-				expect(rateLimitedResponse.headers.get("Retry-After")).toBeDefined();
+				expect(rateLimitedResponse?.headers.get("Retry-After")).toBeDefined();
 			}
 		}, 30000); // Increase timeout for this test
 	});

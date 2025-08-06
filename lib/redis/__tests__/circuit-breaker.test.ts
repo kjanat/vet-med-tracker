@@ -43,10 +43,13 @@ import {
 	CircuitBreaker,
 	type CircuitBreakerConfig,
 	CircuitBreakerDefaults,
-	CircuitBreakerFactory,
 	CircuitBreakerState,
 	checkAllCircuitBreakers,
 	circuitBreakerRegistry,
+	createCustomBreaker,
+	createDatabaseBreaker,
+	createExternalApiBreaker,
+	createInternalServiceBreaker,
 	getCircuitBreaker,
 	withCircuitBreaker,
 } from "../circuit-breaker";
@@ -541,24 +544,22 @@ describe("CircuitBreaker", () => {
 	});
 });
 
-describe("CircuitBreakerFactory", () => {
+describe("Circuit Breaker Factory Functions", () => {
 	it("should create database circuit breaker with correct defaults", () => {
-		const breaker = CircuitBreakerFactory.createDatabaseBreaker("test-db");
+		const breaker = createDatabaseBreaker("test-db");
 
 		expect(breaker).toBeInstanceOf(CircuitBreaker);
 		// Factory methods are tested through their actual usage since config is private
 	});
 
 	it("should create external API circuit breaker with correct defaults", () => {
-		const breaker =
-			CircuitBreakerFactory.createExternalApiBreaker("payment-api");
+		const breaker = createExternalApiBreaker("payment-api");
 
 		expect(breaker).toBeInstanceOf(CircuitBreaker);
 	});
 
 	it("should create internal service circuit breaker with correct defaults", () => {
-		const breaker =
-			CircuitBreakerFactory.createInternalServiceBreaker("auth-service");
+		const breaker = createInternalServiceBreaker("auth-service");
 
 		expect(breaker).toBeInstanceOf(CircuitBreaker);
 	});
@@ -573,7 +574,7 @@ describe("CircuitBreakerFactory", () => {
 			enableMonitoring: false,
 		};
 
-		const breaker = CircuitBreakerFactory.createCustomBreaker(customConfig);
+		const breaker = createCustomBreaker(customConfig);
 
 		expect(breaker).toBeInstanceOf(CircuitBreaker);
 	});
@@ -589,8 +590,7 @@ describe("CircuitBreakerRegistry", () => {
 	});
 
 	it("should register and retrieve circuit breakers", () => {
-		const breaker =
-			CircuitBreakerFactory.createDatabaseBreaker("test-registry");
+		const breaker = createDatabaseBreaker("test-registry");
 
 		circuitBreakerRegistry.register("test-registry", breaker);
 		const retrieved = circuitBreakerRegistry.get("test-registry");
@@ -643,8 +643,8 @@ describe("CircuitBreakerRegistry", () => {
 	});
 
 	it("should get all registered circuit breakers", () => {
-		const breaker1 = CircuitBreakerFactory.createDatabaseBreaker("db1");
-		const breaker2 = CircuitBreakerFactory.createExternalApiBreaker("api1");
+		const breaker1 = createDatabaseBreaker("db1");
+		const breaker2 = createExternalApiBreaker("api1");
 
 		circuitBreakerRegistry.register("db1", breaker1);
 		circuitBreakerRegistry.register("api1", breaker2);
@@ -657,9 +657,8 @@ describe("CircuitBreakerRegistry", () => {
 	});
 
 	it("should get stats for all registered circuit breakers", async () => {
-		const breaker1 = CircuitBreakerFactory.createDatabaseBreaker("stats-db");
-		const breaker2 =
-			CircuitBreakerFactory.createExternalApiBreaker("stats-api");
+		const breaker1 = createDatabaseBreaker("stats-db");
+		const breaker2 = createExternalApiBreaker("stats-api");
 
 		circuitBreakerRegistry.register("stats-db", breaker1);
 		circuitBreakerRegistry.register("stats-api", breaker2);
@@ -675,13 +674,12 @@ describe("CircuitBreakerRegistry", () => {
 
 		expect(stats).toHaveProperty("stats-db");
 		expect(stats).toHaveProperty("stats-api");
-		expect(stats["stats-db"].uptime).toBe(80); // (10-2)/10*100
+		expect(stats["stats-db"]?.uptime).toBe(80); // (10-2)/10*100
 	});
 
 	it("should reset all circuit breakers", async () => {
-		const breaker1 = CircuitBreakerFactory.createDatabaseBreaker("reset-db");
-		const breaker2 =
-			CircuitBreakerFactory.createExternalApiBreaker("reset-api");
+		const breaker1 = createDatabaseBreaker("reset-db");
+		const breaker2 = createExternalApiBreaker("reset-api");
 
 		circuitBreakerRegistry.register("reset-db", breaker1);
 		circuitBreakerRegistry.register("reset-api", breaker2);
@@ -829,9 +827,8 @@ describe("checkAllCircuitBreakers utility", () => {
 	});
 
 	it("should report all circuit breakers as healthy when none are open", async () => {
-		const breaker1 = CircuitBreakerFactory.createDatabaseBreaker("healthy-db");
-		const breaker2 =
-			CircuitBreakerFactory.createExternalApiBreaker("healthy-api");
+		const breaker1 = createDatabaseBreaker("healthy-db");
+		const breaker2 = createExternalApiBreaker("healthy-api");
 
 		circuitBreakerRegistry.register("healthy-db", breaker1);
 		circuitBreakerRegistry.register("healthy-api", breaker2);
@@ -851,10 +848,8 @@ describe("checkAllCircuitBreakers utility", () => {
 	});
 
 	it("should report unhealthy circuit breakers when some are open", async () => {
-		const breaker1 =
-			CircuitBreakerFactory.createDatabaseBreaker("unhealthy-db");
-		const breaker2 =
-			CircuitBreakerFactory.createExternalApiBreaker("healthy-api");
+		const breaker1 = createDatabaseBreaker("unhealthy-db");
+		const breaker2 = createExternalApiBreaker("healthy-api");
 
 		circuitBreakerRegistry.register("unhealthy-db", breaker1);
 		circuitBreakerRegistry.register("healthy-api", breaker2);
@@ -873,8 +868,8 @@ describe("checkAllCircuitBreakers utility", () => {
 
 		expect(health.healthy).toBe(false);
 		expect(health.unhealthy).toEqual(["unhealthy-db"]);
-		expect(health.stats["unhealthy-db"].state).toBe(CircuitBreakerState.OPEN);
-		expect(health.stats["healthy-api"].state).toBe(CircuitBreakerState.CLOSED);
+		expect(health.stats["unhealthy-db"]?.state).toBe(CircuitBreakerState.OPEN);
+		expect(health.stats["healthy-api"]?.state).toBe(CircuitBreakerState.CLOSED);
 	});
 
 	it("should handle empty registry gracefully", async () => {
@@ -1004,8 +999,7 @@ describe("Error handling and edge cases", () => {
 
 describe("Real-world integration scenarios", () => {
 	it("should handle database failure scenario with fallback", async () => {
-		const databaseBreaker =
-			CircuitBreakerFactory.createDatabaseBreaker("user-db");
+		const databaseBreaker = createDatabaseBreaker("user-db");
 
 		// Simulate database operation that fails
 		const databaseOperation = vi
@@ -1027,13 +1021,12 @@ describe("Real-world integration scenarios", () => {
 
 		expect(result.success).toBe(true);
 		expect(result.fromFallback).toBe(true);
-		expect(result.data.source).toBe("cache");
+		expect((result.data as any).source).toBe("cache");
 		expect(result.error).toBeInstanceOf(Error);
 	});
 
 	it("should handle API failure scenario with circuit opening", async () => {
-		const apiBreaker =
-			CircuitBreakerFactory.createExternalApiBreaker("payment");
+		const apiBreaker = createExternalApiBreaker("payment");
 
 		// Simulate API operation that consistently fails
 		const paymentOperation = vi
@@ -1055,8 +1048,7 @@ describe("Real-world integration scenarios", () => {
 	});
 
 	it("should handle recovery scenario from HALF_OPEN to CLOSED", async () => {
-		const serviceBreaker =
-			CircuitBreakerFactory.createInternalServiceBreaker("auth");
+		const serviceBreaker = createInternalServiceBreaker("auth");
 
 		// Start in HALF_OPEN state
 		mockRedisClient.get.mockResolvedValue(CircuitBreakerState.HALF_OPEN);
@@ -1070,7 +1062,7 @@ describe("Real-world integration scenarios", () => {
 		const result = await serviceBreaker.execute(authOperation);
 
 		expect(result.success).toBe(true);
-		expect(result.data.valid).toBe(true);
+		expect((result.data as any).valid).toBe(true);
 
 		// Circuit should close after meeting success threshold
 		expect(mockPipeline.set).toHaveBeenCalledWith(
@@ -1080,8 +1072,7 @@ describe("Real-world integration scenarios", () => {
 	});
 
 	it("should handle multiple concurrent operations correctly", async () => {
-		const concurrentBreaker =
-			CircuitBreakerFactory.createInternalServiceBreaker("concurrent");
+		const concurrentBreaker = createInternalServiceBreaker("concurrent");
 
 		mockRedisClient.get.mockResolvedValue(CircuitBreakerState.CLOSED);
 
@@ -1093,7 +1084,7 @@ describe("Real-world integration scenarios", () => {
 		const results = await Promise.all(promises);
 
 		// All operations should succeed
-		results.forEach((result, index) => {
+		results.forEach((result: any, index: number) => {
 			expect(result.success).toBe(true);
 			expect(result.data).toBe(`result-${index}`);
 		});

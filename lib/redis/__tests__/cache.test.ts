@@ -991,7 +991,7 @@ describe("Cache Performance", () => {
 		const setResult = await service.set("large-object", largeObject);
 		expect(setResult).toBe(true);
 
-		const serializedData = mockRedisClient.setex.mock.calls[0][2];
+		const serializedData = mockRedisClient.setex.mock.calls[0]?.[2];
 		expect(serializedData).toBe(JSON.stringify(largeObject));
 	});
 
@@ -1010,7 +1010,7 @@ describe("Cache Performance", () => {
 
 		expect(mockRedisClient.setex).toHaveBeenCalledTimes(specialKeys.length);
 		specialKeys.forEach((key, index) => {
-			expect(mockRedisClient.setex.mock.calls[index][0]).toBe(`cache:${key}`);
+			expect(mockRedisClient.setex.mock.calls[index]?.[0]).toBe(`cache:${key}`);
 		});
 	});
 
@@ -1027,12 +1027,12 @@ describe("Cache Performance", () => {
 		];
 
 		for (const [key, value] of testCases) {
-			await service.set(key, value);
+			await service.set(key as string, value);
 		}
 
 		expect(mockRedisClient.setex).toHaveBeenCalledTimes(testCases.length);
 		testCases.forEach(([_key, value], index) => {
-			expect(mockRedisClient.setex.mock.calls[index][2]).toBe(
+			expect(mockRedisClient.setex.mock.calls[index]?.[2]).toBe(
 				JSON.stringify(value),
 			);
 		});

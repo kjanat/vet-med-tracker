@@ -102,7 +102,6 @@ export class CircuitBreaker<T = unknown> {
 		this.config = config;
 		this.stateKey = RedisKeys.circuitBreaker.service(`${config.name}:state`);
 		this.statsKey = RedisKeys.circuitBreaker.service(`${config.name}:stats`);
-		this.lockKey = RedisKeys.circuitBreaker.service(`${config.name}:lock`);
 	}
 
 	/**

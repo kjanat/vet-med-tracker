@@ -46,8 +46,9 @@ vi.mock("@upstash/ratelimit", () => ({
 }));
 
 // Augment the mock with the static method after import
-const { Ratelimit } = await import("@upstash/ratelimit");
-(Ratelimit as unknown).slidingWindow = vi.fn().mockReturnValue({});
+import("@upstash/ratelimit").then(({ Ratelimit }) => {
+	(Ratelimit as any).slidingWindow = vi.fn().mockReturnValue({});
+});
 
 // Helper to create mock rate limit result
 const createMockResult = (

@@ -233,7 +233,7 @@ async function createAdministrationRecord(
 async function handleAdministrationSuccess(
 	ctx: EnhancedTRPCContext,
 	input: z.infer<typeof RecordAdministrationInput>,
-	animal: Animal,
+	animal: typeof animals.$inferSelect,
 	sanitizedInput: ReturnType<typeof sanitizeAdministrationInput>,
 	administration: unknown,
 ) {
@@ -568,7 +568,9 @@ export const enhancedExampleRouter = createTRPCRouter({
 							"select",
 							"animals",
 							async () => {
-								type AnimalWithAge = Animal & { age: number | null };
+								type AnimalWithAge = typeof animals.$inferSelect & {
+									age: number | null;
+								};
 								const baseData: AnimalWithAge = {
 									...animal,
 									// Add computed fields
@@ -620,7 +622,7 @@ export const enhancedExampleRouter = createTRPCRouter({
 							input.animalId,
 						);
 
-						type FallbackAnimal = Animal & {
+						type FallbackAnimal = typeof animals.$inferSelect & {
 							age: number | null;
 							_fallback: boolean;
 							_message: string;
@@ -656,7 +658,8 @@ export const enhancedExampleRouter = createTRPCRouter({
 						includeHistory: input.includeHistory,
 						duration: performance.duration,
 						fromCache: false, // This would be set by the caching middleware
-						fallback: !!animalDetails._fallback,
+						fallback:
+							"_fallback" in animalDetails ? !!animalDetails._fallback : false,
 					},
 					ctx.correlationId,
 				);
@@ -666,7 +669,8 @@ export const enhancedExampleRouter = createTRPCRouter({
 					data: animalDetails,
 					_meta: {
 						cached: false, // Set by caching middleware
-						fallback: !!animalDetails._fallback,
+						fallback:
+							"_fallback" in animalDetails ? !!animalDetails._fallback : false,
 						performance: {
 							duration: performance.duration,
 							memoryUsed: performance.memoryUsage,

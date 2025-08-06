@@ -3,45 +3,46 @@
  */
 
 import type { Redis } from "@upstash/redis";
+import type { Mock } from "vitest";
 
 /**
  * Mock Redis client interface for testing
  */
 export interface MockRedisClient extends Partial<Redis> {
-	get: jest.Mock;
-	set: jest.Mock;
-	del: jest.Mock;
-	expire: jest.Mock;
-	exists: jest.Mock;
-	pipeline: jest.Mock;
-	multi: jest.Mock;
-	setex: jest.Mock;
-	hset: jest.Mock;
-	hget: jest.Mock;
-	hdel: jest.Mock;
-	hgetall: jest.Mock;
-	incr: jest.Mock;
-	decr: jest.Mock;
-	zadd: jest.Mock;
-	zrange: jest.Mock;
-	zrem: jest.Mock;
-	zcard: jest.Mock;
+	get: Mock;
+	set: Mock;
+	del: Mock;
+	expire: Mock;
+	exists: Mock;
+	pipeline: Mock;
+	multi: Mock;
+	setex: Mock;
+	hset: Mock;
+	hget: Mock;
+	hdel: Mock;
+	hgetall: Mock;
+	incr: Mock;
+	decr: Mock;
+	zadd: Mock;
+	zrange: Mock;
+	zrem: Mock;
+	zcard: Mock;
 }
 
 /**
  * Mock pipeline interface for testing
  */
 export interface MockPipeline {
-	get: jest.Mock;
-	set: jest.Mock;
-	del: jest.Mock;
-	expire: jest.Mock;
-	exec: jest.Mock;
-	hset: jest.Mock;
-	hget: jest.Mock;
-	hdel: jest.Mock;
-	zadd: jest.Mock;
-	zrem: jest.Mock;
+	get: Mock;
+	set: Mock;
+	del: Mock;
+	expire: Mock;
+	exec: Mock;
+	hset: Mock;
+	hget: Mock;
+	hdel: Mock;
+	zadd: Mock;
+	zrem: Mock;
 }
 
 /**

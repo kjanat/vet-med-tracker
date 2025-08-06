@@ -209,7 +209,7 @@ describe("Rate Limiting", () => {
 
 		it("should throw TRPCError when rate limited", async () => {
 			// Mock a failed rate limit
-			vi.mocked(applyRateLimit as unknown).mockResolvedValueOnce({
+			vi.mocked(applyRateLimit as any).mockResolvedValueOnce({
 				success: false,
 				limit: 100,
 				remaining: 0,

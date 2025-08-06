@@ -1,4 +1,3 @@
-// biome-ignore lint/correctness/noUnusedImports: exported from drizzle/schema.ts like this
 import { sql } from "drizzle-orm";
 import {
 	boolean,

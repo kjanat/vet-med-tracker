@@ -21,8 +21,8 @@
 			"!screenshots",
 			"!test-results",
 			"!.vercel",
-			"!.vscode",
-			"!drizzle"
+			"!.vscode"
+			/* "!drizzle" */
 		]
 	},
 	"formatter": {
@@ -58,7 +58,6 @@
 			"quoteStyle": "double"
 		}
 	},
-
 	"css": {
 		"formatter": {
 			"enabled": true
@@ -74,7 +73,12 @@
 	},
 	"overrides": [
 		{
-			"includes": ["tests/**", "**/*.test.ts", "**/test-*.ts"],
+			"includes": [
+				"tests/**",
+				"**/*.test.ts",
+				"**/test-*.ts",
+				"**/__tests__/*"
+			],
 			"linter": {
 				"rules": {
 					"suspicious": {
@@ -87,11 +91,22 @@
 			}
 		},
 		{
-			"includes": ["db/drizzle.ts", "drizzle.config.ts"],
+			"includes": ["db/*", "drizzle.config.ts", "drizzle/*"],
+			"formatter": { "enabled": false },
 			"linter": {
 				"rules": {
 					"style": {
 						"noNonNullAssertion": "off"
+					},
+					"correctness": {
+						"noUnusedImports": "off"
+					}
+				}
+			},
+			"assist": {
+				"actions": {
+					"source": {
+						"organizeImports": "off"
 					}
 				}
 			}

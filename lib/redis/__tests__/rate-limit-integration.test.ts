@@ -5,8 +5,21 @@
 
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ClerkContext } from "@/server/api/trpc/clerk-init";
 import { createRateLimitMiddleware } from "../rate-limit";
+
+// Test-specific context type that matches the middleware constraints
+type TestContext = {
+	headers: Headers;
+	auth?: { userId?: string } | null;
+	dbUser?: { id: string; role?: string } | null;
+	householdId?: string | null;
+	requestedHouseholdId?: string | null;
+	db?: any;
+	clerkUser?: any;
+	currentHouseholdId?: string | null;
+	currentMembership?: any;
+	availableHouseholds?: any[];
+};
 
 // Mock Redis client
 const mockRedisClient = {
@@ -36,8 +49,9 @@ vi.mock("@upstash/ratelimit", () => ({
 }));
 
 // Augment the mock with the static method after import
-const { Ratelimit } = await import("@upstash/ratelimit");
-(Ratelimit as unknown).slidingWindow = vi.fn().mockReturnValue({});
+import("@upstash/ratelimit").then(({ Ratelimit }) => {
+	(Ratelimit as any).slidingWindow = vi.fn().mockReturnValue({});
+});
 
 describe("Rate Limiting Integration Tests", () => {
 	beforeEach(() => {
@@ -54,57 +68,57 @@ describe("Rate Limiting Integration Tests", () => {
 
 	describe("tRPC Context Integration", () => {
 		it("should work with Clerk context format", async () => {
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
 				requestedHouseholdId: "household123",
-				auth: { userId: "user123" },
+				auth: { userId: "user123" } as any,
 				clerkUser: {
 					id: "user123",
 					emailAddresses: [{ emailAddress: "test@example.com" }],
-				} as unknown,
+				} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
 					firstName: "John",
 					lastName: "Doe",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				currentHouseholdId: "household123",
 				currentMembership: {
 					id: "membership123",
 					userId: "user123",
 					householdId: "household123",
 					role: "OWNER",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				availableHouseholds: [
 					{
 						id: "household123",
 						name: "Test Household",
-						createdAt: new Date(),
-						updatedAt: new Date(),
+						createdAt: new Date().toISOString(),
+						updatedAt: new Date().toISOString(),
 						membership: {
 							id: "membership123",
 							userId: "user123",
 							householdId: "household123",
 							role: "OWNER",
-							createdAt: new Date(),
-							updatedAt: new Date(),
+							createdAt: new Date().toISOString(),
+							updatedAt: new Date().toISOString(),
 						},
-					},
+					} as any,
 				],
-			};
+			} as TestContext;
 
 			const result = await middleware({
-				ctx: mockClerkContext,
+				ctx: mockTestContext,
 				next: mockNext,
 				path: "animals.list",
 			});
@@ -114,11 +128,11 @@ describe("Rate Limiting Integration Tests", () => {
 		});
 
 		it("should handle unauthenticated users", async () => {
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
@@ -129,10 +143,10 @@ describe("Rate Limiting Integration Tests", () => {
 				currentHouseholdId: null,
 				currentMembership: null,
 				availableHouseholds: [],
-			};
+			} as TestContext;
 
 			const result = await middleware({
-				ctx: mockClerkContext,
+				ctx: mockTestContext,
 				next: mockNext,
 				path: "public.health",
 			});
@@ -142,26 +156,26 @@ describe("Rate Limiting Integration Tests", () => {
 		});
 
 		it("should apply different rate limits based on user roles", async () => {
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 
 			// Test OWNER role
-			const mockOwnerContext: ClerkContext = {
-				db: {} as unknown,
+			const mockOwnerContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "owner123" },
-				clerkUser: {} as unknown,
+				clerkUser: {} as any,
 				dbUser: {
 					id: "owner123",
 					email: "owner@example.com",
 					firstName: "Owner",
 					lastName: "User",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				currentHouseholdId: "household123",
 				currentMembership: {
 					id: "membership123",
@@ -192,25 +206,25 @@ describe("Rate Limiting Integration Tests", () => {
 				reset: new Date(Date.now() + 60000),
 			});
 
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn();
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext: TestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "user123" },
-				clerkUser: {} as unknown,
+				clerkUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
 					firstName: "John",
 					lastName: "Doe",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				currentHouseholdId: "household123",
 				currentMembership: null,
 				availableHouseholds: [],
@@ -218,7 +232,7 @@ describe("Rate Limiting Integration Tests", () => {
 
 			await expect(
 				middleware({
-					ctx: mockClerkContext,
+					ctx: mockTestContext,
 					next: mockNext,
 					path: "animals.create",
 				}),
@@ -237,25 +251,25 @@ describe("Rate Limiting Integration Tests", () => {
 
 			mockRatelimitInstance.limit.mockResolvedValueOnce(rateLimitResult);
 
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn();
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext: TestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "user123" },
-				clerkUser: {} as unknown,
+				clerkUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
 					firstName: "John",
 					lastName: "Doe",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				currentHouseholdId: "household123",
 				currentMembership: null,
 				availableHouseholds: [],
@@ -264,7 +278,7 @@ describe("Rate Limiting Integration Tests", () => {
 			let thrownError: TRPCError;
 			try {
 				await middleware({
-					ctx: mockClerkContext,
+					ctx: mockTestContext,
 					next: mockNext,
 					path: "animals.create",
 				});
@@ -288,11 +302,11 @@ describe("Rate Limiting Integration Tests", () => {
 
 	describe("System Operation Bypass", () => {
 		it("should bypass rate limits for health checks", async () => {
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
@@ -303,10 +317,10 @@ describe("Rate Limiting Integration Tests", () => {
 				currentHouseholdId: null,
 				currentMembership: null,
 				availableHouseholds: [],
-			};
+			} as TestContext;
 
 			const result = await middleware({
-				ctx: mockClerkContext,
+				ctx: mockTestContext,
 				next: mockNext,
 				path: "health",
 			});
@@ -316,11 +330,11 @@ describe("Rate Limiting Integration Tests", () => {
 		});
 
 		it("should bypass rate limits for system operations", async () => {
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext: TestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
@@ -334,7 +348,7 @@ describe("Rate Limiting Integration Tests", () => {
 			};
 
 			const result = await middleware({
-				ctx: mockClerkContext,
+				ctx: mockTestContext,
 				next: mockNext,
 				path: "system.sync",
 			});
@@ -346,25 +360,25 @@ describe("Rate Limiting Integration Tests", () => {
 
 	describe("Household-based Rate Limiting", () => {
 		it("should apply household-specific rate limits", async () => {
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext: TestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "user123" },
-				clerkUser: {} as unknown,
+				clerkUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
 					firstName: "John",
 					lastName: "Doe",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				currentHouseholdId: "household123",
 				currentMembership: {
 					id: "membership123",
@@ -378,7 +392,7 @@ describe("Rate Limiting Integration Tests", () => {
 			};
 
 			const result = await middleware({
-				ctx: mockClerkContext,
+				ctx: mockTestContext,
 				next: mockNext,
 				path: "animals.list",
 			});
@@ -390,32 +404,32 @@ describe("Rate Limiting Integration Tests", () => {
 		});
 
 		it("should handle missing household gracefully", async () => {
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext: TestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
 				requestedHouseholdId: null,
 				auth: { userId: "user123" },
-				clerkUser: {} as unknown,
+				clerkUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
 					firstName: "John",
 					lastName: "Doe",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				currentHouseholdId: null,
 				currentMembership: null,
 				availableHouseholds: [],
 			};
 
 			const result = await middleware({
-				ctx: mockClerkContext,
+				ctx: mockTestContext,
 				next: mockNext,
 				path: "user.profile",
 			});
@@ -431,25 +445,25 @@ describe("Rate Limiting Integration Tests", () => {
 				new Error("Redis connection failed"),
 			);
 
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn();
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext: TestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "192.168.1.1",
 				}),
 				requestedHouseholdId: null,
 				auth: { userId: "user123" },
-				clerkUser: {} as unknown,
+				clerkUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
 					firstName: "John",
 					lastName: "Doe",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				currentHouseholdId: null,
 				currentMembership: null,
 				availableHouseholds: [],
@@ -457,7 +471,7 @@ describe("Rate Limiting Integration Tests", () => {
 
 			await expect(
 				middleware({
-					ctx: mockClerkContext,
+					ctx: mockTestContext,
 					next: mockNext,
 					path: "animals.create",
 				}),
@@ -467,32 +481,32 @@ describe("Rate Limiting Integration Tests", () => {
 		});
 
 		it("should handle malformed headers gracefully", async () => {
-			const middleware = createRateLimitMiddleware<ClerkContext>();
+			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 
-			const mockClerkContext: ClerkContext = {
-				db: {} as unknown,
+			const mockTestContext: TestContext = {
+				db: {} as any,
 				headers: new Headers({
 					"x-forwarded-for": "invalid-ip-format",
 				}),
 				requestedHouseholdId: null,
 				auth: { userId: "user123" },
-				clerkUser: {} as unknown,
+				clerkUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
 					firstName: "John",
 					lastName: "Doe",
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				} as any,
 				currentHouseholdId: null,
 				currentMembership: null,
 				availableHouseholds: [],
 			};
 
 			const result = await middleware({
-				ctx: mockClerkContext,
+				ctx: mockTestContext,
 				next: mockNext,
 				path: "animals.list",
 			});

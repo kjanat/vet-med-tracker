@@ -42,7 +42,7 @@ vi.mock("@/lib/logging/audit-logger");
 vi.mock("@/db/drizzle");
 
 describe("Enhanced tRPC Integration", () => {
-	let caller: ReturnType<typeof createCallerFactory>;
+	let caller: any;
 	let mockContext: EnhancedTRPCContext;
 
 	beforeEach(() => {
@@ -55,7 +55,7 @@ describe("Enhanced tRPC Integration", () => {
 			db: db as any,
 			headers: new Headers(),
 			requestedHouseholdId: "household-123",
-			auth: { userId: "user-123" },
+			auth: { userId: "user-123" } as any,
 			clerkUser: {
 				id: "clerk-user-123",
 				firstName: "Test",
@@ -103,15 +103,6 @@ describe("Enhanced tRPC Integration", () => {
 					memoryUsed: 50,
 				})),
 			} as any,
-			householdId: "household-123",
-			membership: {
-				role: "OWNER" as const,
-				id: "membership-123",
-				userId: "user-123",
-				householdId: "household-123",
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			} as any,
 		};
 
 		// Setup caller
@@ -131,9 +122,9 @@ describe("Enhanced tRPC Integration", () => {
 		(logger.warn as Mock).mockResolvedValue(void 0);
 		(logger.debug as Mock).mockResolvedValue(void 0);
 
-		(auditLogger.logDataEvent as Mock).mockResolvedValue(void 0);
+		(auditLogger.logEvent as Mock).mockResolvedValue(void 0);
 		(auditLogger.logSecurityEvent as Mock).mockResolvedValue(void 0);
-		(auditLogger.logErrorEvent as Mock).mockResolvedValue(void 0);
+		(auditLogger.logEvent as Mock).mockResolvedValue(void 0);
 
 		(databaseCircuitBreaker.getMetrics as Mock).mockReturnValue({
 			state: "CLOSED",
@@ -421,7 +412,7 @@ describe("Enhanced tRPC Integration", () => {
 
 			await caller.recordAdministration(input);
 
-			expect(auditLogger.logDataEvent).toHaveBeenCalledWith(
+			expect(auditLogger.logEvent).toHaveBeenCalledWith(
 				expect.objectContaining({
 					event: "medication_administered",
 					userId: "user-123",
@@ -453,7 +444,7 @@ describe("Enhanced tRPC Integration", () => {
 
 			await expect(caller.recordAdministration(input)).rejects.toThrow();
 
-			expect(auditLogger.logErrorEvent).toHaveBeenCalledWith(
+			expect(auditLogger.logEvent).toHaveBeenCalledWith(
 				expect.objectContaining({
 					event: "medication_administration_failed",
 					userId: "user-123",
@@ -495,7 +486,7 @@ describe("Enhanced tRPC Integration", () => {
 
 			expect(result.success).toBe(true);
 			expect(result.summary.successful).toBe(2);
-			expect(auditLogger.logDataEvent).toHaveBeenCalledWith(
+			expect(auditLogger.logEvent).toHaveBeenCalledWith(
 				expect.objectContaining({
 					event: "bulk_animal_update_completed",
 				}),
@@ -504,7 +495,6 @@ describe("Enhanced tRPC Integration", () => {
 
 		it("should reject owner operations for non-owners", async () => {
 			// Change user role to caregiver
-			mockContext.membership.role = "CAREGIVER";
 			mockContext.currentMembership!.role = "CAREGIVER";
 
 			const input = {
@@ -708,7 +698,7 @@ const _createMockContext = (
 		db: db as any,
 		headers: new Headers(),
 		requestedHouseholdId: "household-123",
-		auth: { userId: "user-123" },
+		auth: { userId: "user-123" } as any,
 		clerkUser: {
 			id: "clerk-user-123",
 			firstName: "Test",
@@ -779,9 +769,9 @@ const _setupMockInfrastructure = () => {
 	(logger.warn as Mock).mockResolvedValue(void 0);
 	(logger.debug as Mock).mockResolvedValue(void 0);
 
-	(auditLogger.logDataEvent as Mock).mockResolvedValue(void 0);
+	(auditLogger.logEvent as Mock).mockResolvedValue(void 0);
 	(auditLogger.logSecurityEvent as Mock).mockResolvedValue(void 0);
-	(auditLogger.logErrorEvent as Mock).mockResolvedValue(void 0);
+	(auditLogger.logEvent as Mock).mockResolvedValue(void 0);
 
 	(databaseCircuitBreaker.getMetrics as Mock).mockReturnValue({
 		state: "CLOSED",
