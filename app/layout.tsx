@@ -61,6 +61,7 @@ export default function RootLayout({
 			>
 				<head>
 					{/* <script src="http://localhost:8097"></script> */}
+					<script src="https://unpkg.com/react-scan/dist/auto.global.js" />
 					<meta name="apple-mobile-web-app-title" content="VetMed" />
 				</head>
 				<body className={inter.className} suppressHydrationWarning>

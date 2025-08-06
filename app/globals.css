@@ -140,6 +140,10 @@
 			opacity: 1;
 		}
 	}
+	--animate-scroll: scroll var(--duration-scroll) linear infinite;
+	--animate-scroll-seamless: scroll-seamless var(--duration-scroll) linear
+		infinite;
+
 	@keyframes scroll {
 		from {
 			transform: translateX(0);
@@ -148,7 +152,15 @@
 			transform: translateX(-50%);
 		}
 	}
-	--animate-scroll: scroll var(--duration-scroll) linear infinite;
+
+	@keyframes scroll-seamless {
+		from {
+			transform: translateX(0);
+		}
+		to {
+			transform: translateX(-25%);
+		}
+	}
 
 	@keyframes float {
 		0%,
