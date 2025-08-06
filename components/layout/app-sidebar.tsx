@@ -108,10 +108,6 @@ const data = {
 					url: "/settings/notifications",
 				},
 				{
-					title: "Household",
-					url: "/settings/household",
-				},
-				{
 					title: "Data & Privacy",
 					url: "/settings/data-privacy",
 				},

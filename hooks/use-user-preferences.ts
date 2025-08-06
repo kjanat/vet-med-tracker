@@ -18,7 +18,11 @@ export interface VetMedPreferences {
 		use24HourTime: boolean;
 		temperatureUnit: "celsius" | "fahrenheit";
 		weightUnit: "kg" | "lbs";
+		weekStartsOn?: 0 | 1; // 0 = Sunday, 1 = Monday
+		theme?: "system" | "light" | "dark";
 	};
+	defaultHouseholdId?: string;
+	defaultAnimalId?: string;
 }
 
 export interface HouseholdSettings {
@@ -58,7 +62,11 @@ const defaultVetMedPreferences: VetMedPreferences = {
 		use24HourTime: false,
 		temperatureUnit: "fahrenheit",
 		weightUnit: "lbs",
+		weekStartsOn: 0,
+		theme: "system",
 	},
+	defaultHouseholdId: undefined,
+	defaultAnimalId: undefined,
 };
 
 const defaultHouseholdSettings: HouseholdSettings = {

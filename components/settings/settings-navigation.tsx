@@ -22,7 +22,6 @@ const tabs = [
 	{ value: "data", label: "Data & Privacy" },
 	{ value: "preferences", label: "Preferences" },
 	{ value: "notifications", label: "Notifications" },
-	{ value: "household", label: "Household" },
 ] as const;
 
 export function SettingsNavigation({
@@ -72,7 +71,7 @@ export function SettingsNavigation({
 
 	// Desktop: Tab list
 	return (
-		<TabsList className="grid h-auto w-full grid-cols-4 gap-1 p-1">
+		<TabsList className="grid h-auto w-full grid-cols-3 gap-1 p-1">
 			{tabs.map((tab) => (
 				<TabsTrigger
 					key={tab.value}

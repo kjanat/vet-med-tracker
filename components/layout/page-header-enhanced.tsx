@@ -124,10 +124,6 @@ export function PageHeaderEnhanced({ className }: PageHeaderProps) {
 			title: "Notifications",
 			description: "Configure alerts and notification preferences",
 		},
-		"settings/household": {
-			title: "Household Settings",
-			description: "Manage household members and permissions",
-		},
 		"settings/data-privacy/audit": {
 			title: "Audit Log",
 			description: "View system activity and changes",

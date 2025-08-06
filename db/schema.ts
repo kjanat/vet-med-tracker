@@ -578,11 +578,25 @@ export const vetmedUsers = pgTable(
 			withTimezone: true,
 			mode: "string",
 		}),
+		weekStartsOn: integer("week_starts_on").default(0), // 0 = Sunday, 1 = Monday
+		defaultHouseholdId: uuid("default_household_id"),
+		defaultAnimalId: uuid("default_animal_id"),
+		theme: text("theme").default("system"), // system, light, dark
 		preferencesBackup: jsonb("preferences_backup"),
 	},
 	(table) => [
 		unique("vetmed_users_email_unique").on(table.email),
 		unique("vetmed_users_clerk_user_id_unique").on(table.clerkUserId),
+		foreignKey({
+			columns: [table.defaultHouseholdId],
+			foreignColumns: [vetmedHouseholds.id],
+			name: "vetmed_users_default_household_id_fk",
+		}).onDelete("set null"),
+		foreignKey({
+			columns: [table.defaultAnimalId],
+			foreignColumns: [vetmedAnimals.id],
+			name: "vetmed_users_default_animal_id_fk",
+		}).onDelete("set null"),
 	],
 );
 

@@ -101,6 +101,8 @@ export const userRouter = createTRPCRouter({
 				use24HourTime: ctx.dbUser.use24HourTime,
 				temperatureUnit: ctx.dbUser.temperatureUnit,
 				weightUnit: ctx.dbUser.weightUnit,
+				weekStartsOn: ctx.dbUser.weekStartsOn,
+				theme: ctx.dbUser.theme,
 				emailReminders: ctx.dbUser.emailReminders,
 				smsReminders: ctx.dbUser.smsReminders,
 				pushNotifications: ctx.dbUser.pushNotifications,
@@ -109,6 +111,8 @@ export const userRouter = createTRPCRouter({
 					name: ctx.dbUser.emergencyContactName,
 					phone: ctx.dbUser.emergencyContactPhone,
 				},
+				defaultHouseholdId: ctx.dbUser.defaultHouseholdId,
+				defaultAnimalId: ctx.dbUser.defaultAnimalId,
 			},
 			onboarding: {
 				complete: ctx.dbUser.onboardingComplete,
@@ -132,6 +136,8 @@ export const userRouter = createTRPCRouter({
 								use24HourTime: z.boolean().optional(),
 								temperatureUnit: z.enum(["celsius", "fahrenheit"]).optional(),
 								weightUnit: z.enum(["kg", "lbs"]).optional(),
+								weekStartsOn: z.union([z.literal(0), z.literal(1)]).optional(),
+								theme: z.enum(["system", "light", "dark"]).optional(),
 							})
 							.optional(),
 						notificationPreferences: z
@@ -144,6 +150,8 @@ export const userRouter = createTRPCRouter({
 							.optional(),
 						emergencyContactName: z.string().optional(),
 						emergencyContactPhone: z.string().optional(),
+						defaultHouseholdId: z.string().optional(),
+						defaultAnimalId: z.string().optional(),
 					})
 					.optional(),
 				householdSettings: z

@@ -55,6 +55,8 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 				use24HourTime: vetMedPreferences.displayPreferences.use24HourTime,
 				temperatureUnit: vetMedPreferences.displayPreferences.temperatureUnit,
 				weightUnit: vetMedPreferences.displayPreferences.weightUnit,
+				weekStartsOn: vetMedPreferences.displayPreferences.weekStartsOn,
+				theme: vetMedPreferences.displayPreferences.theme,
 				emailReminders:
 					vetMedPreferences.notificationPreferences.emailReminders,
 				smsReminders: vetMedPreferences.notificationPreferences.smsReminders,
@@ -64,6 +66,8 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 					vetMedPreferences.notificationPreferences.reminderLeadTime.toString(),
 				emergencyContactName: vetMedPreferences.emergencyContactName,
 				emergencyContactPhone: vetMedPreferences.emergencyContactPhone,
+				defaultHouseholdId: vetMedPreferences.defaultHouseholdId || null,
+				defaultAnimalId: vetMedPreferences.defaultAnimalId || null,
 			}),
 			// Store complete preferences as backup
 			preferencesBackup: {
@@ -178,6 +182,12 @@ function mapVetMedPreferencesToDbColumns(
 	if (prefs.emergencyContactPhone !== undefined) {
 		updateData.emergencyContactPhone = prefs.emergencyContactPhone;
 	}
+	if (prefs.defaultHouseholdId !== undefined) {
+		updateData.defaultHouseholdId = prefs.defaultHouseholdId || null;
+	}
+	if (prefs.defaultAnimalId !== undefined) {
+		updateData.defaultAnimalId = prefs.defaultAnimalId || null;
+	}
 
 	mapDisplayPreferences(prefs.displayPreferences, updateData);
 	mapNotificationPreferences(prefs.notificationPreferences, updateData);
@@ -198,6 +208,12 @@ function mapDisplayPreferences(
 	}
 	if (displayPrefs.weightUnit) {
 		updateData.weightUnit = displayPrefs.weightUnit;
+	}
+	if (displayPrefs.weekStartsOn !== undefined) {
+		updateData.weekStartsOn = displayPrefs.weekStartsOn;
+	}
+	if (displayPrefs.theme) {
+		updateData.theme = displayPrefs.theme;
 	}
 }
 

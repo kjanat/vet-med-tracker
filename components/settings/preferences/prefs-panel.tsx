@@ -1,8 +1,10 @@
 "use client";
 
 import { Clock, Home, Monitor, Moon, Sun, Weight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useApp } from "@/components/providers/app-provider";
+import { useUserPreferencesContext } from "@/components/providers/user-preferences-provider";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -19,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { trpc } from "@/lib/trpc/client";
 
 interface UserPreferences {
 	theme: "system" | "light" | "dark";
@@ -31,30 +34,101 @@ interface UserPreferences {
 
 export function PrefsPanel() {
 	const { households, animals } = useApp();
-	const [prefs, setPrefs] = useState<UserPreferences>({
-		theme: "system",
-		clock12h: true,
-		weekStartsOn: 0,
-		units: "metric",
-		defaultHouseholdId: undefined,
-		defaultAnimalId: undefined,
+	const {
+		vetMedPreferences,
+		householdSettings,
+		updateVetMedPreferences,
+		updateHouseholdSettings,
+	} = useUserPreferencesContext();
+
+	// Initialize state from existing preferences
+	const [prefs, setPrefs] = useState<UserPreferences>(() => {
+		// Get saved theme from localStorage or default to system
+		const savedTheme =
+			typeof window !== "undefined"
+				? (localStorage.getItem("theme") as "system" | "light" | "dark" | null)
+				: null;
+
+		return {
+			theme: savedTheme || "system",
+			clock12h: !vetMedPreferences.displayPreferences.use24HourTime,
+			weekStartsOn: 0, // Default, will be added to preferences
+			units:
+				vetMedPreferences.displayPreferences.weightUnit === "kg"
+					? "metric"
+					: "imperial",
+			defaultHouseholdId: householdSettings.primaryHouseholdName
+				? households.find(
+						(h) => h.name === householdSettings.primaryHouseholdName,
+					)?.id
+				: undefined,
+			defaultAnimalId: undefined, // Will be added to preferences
+		};
 	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	// tRPC mutation for updating preferences
+	const updatePreferences = trpc.user.updatePreferences.useMutation({
+		onSuccess: () => {
+			toast.success("Preferences saved successfully");
+		},
+		onError: (error) => {
+			toast.error(`Failed to save preferences: ${error.message}`);
+		},
+	});
+
+	// Apply theme on mount
+	useEffect(() => {
+		const savedTheme = localStorage.getItem("theme") as
+			| "system"
+			| "light"
+			| "dark"
+			| null;
+		if (savedTheme) {
+			if (savedTheme === "dark") {
+				document.documentElement.classList.add("dark");
+			} else if (savedTheme === "light") {
+				document.documentElement.classList.remove("dark");
+			} else {
+				// System theme
+				const isDark = window.matchMedia(
+					"(prefers-color-scheme: dark)",
+				).matches;
+				document.documentElement.classList.toggle("dark", isDark);
+			}
+		}
+	}, []);
+
+	// Update prefs state when vetMedPreferences change
+	useEffect(() => {
+		const savedTheme =
+			typeof window !== "undefined"
+				? (localStorage.getItem("theme") as "system" | "light" | "dark" | null)
+				: null;
+
+		setPrefs({
+			theme:
+				savedTheme || vetMedPreferences.displayPreferences.theme || "system",
+			clock12h: !vetMedPreferences.displayPreferences.use24HourTime,
+			weekStartsOn: vetMedPreferences.displayPreferences.weekStartsOn || 0,
+			units:
+				vetMedPreferences.displayPreferences.weightUnit === "kg"
+					? "metric"
+					: "imperial",
+			defaultHouseholdId: householdSettings.primaryHouseholdName
+				? households.find(
+						(h) => h.name === householdSettings.primaryHouseholdName,
+					)?.id
+				: undefined,
+			defaultAnimalId: vetMedPreferences.defaultAnimalId,
+		});
+	}, [vetMedPreferences, householdSettings, households]);
 
 	const handleSave = async () => {
 		setIsSubmitting(true);
 		try {
-			console.log("Saving user preferences:", prefs);
-
-			// Fire instrumentation event
-			window.dispatchEvent(
-				new CustomEvent("settings_prefs_update", {
-					detail: prefs,
-				}),
-			);
-
-			// TODO: tRPC mutation
-			// await updateUserPrefs.mutateAsync(prefs)
+			// Save theme to localStorage for immediate application
+			localStorage.setItem("theme", prefs.theme);
 
 			// Apply theme immediately
 			if (prefs.theme === "dark") {
@@ -69,7 +143,55 @@ export function PrefsPanel() {
 				document.documentElement.classList.toggle("dark", isDark);
 			}
 
-			console.log("Preferences saved successfully");
+			// Find household name from ID
+			const selectedHousehold = prefs.defaultHouseholdId
+				? households.find((h) => h.id === prefs.defaultHouseholdId)
+				: null;
+
+			// Update preferences via tRPC
+			await updatePreferences.mutateAsync({
+				vetMedPreferences: {
+					displayPreferences: {
+						use24HourTime: !prefs.clock12h,
+						temperatureUnit:
+							prefs.units === "metric" ? "celsius" : "fahrenheit",
+						weightUnit: prefs.units === "metric" ? "kg" : "lbs",
+						weekStartsOn: prefs.weekStartsOn,
+						theme: prefs.theme,
+					},
+					defaultHouseholdId: prefs.defaultHouseholdId,
+					defaultAnimalId: prefs.defaultAnimalId,
+				},
+				householdSettings: {
+					primaryHouseholdName: selectedHousehold?.name || "",
+				},
+			});
+
+			// Also update via the context hooks for immediate UI updates
+			await updateVetMedPreferences({
+				displayPreferences: {
+					use24HourTime: !prefs.clock12h,
+					temperatureUnit: prefs.units === "metric" ? "celsius" : "fahrenheit",
+					weightUnit: prefs.units === "metric" ? "kg" : "lbs",
+					weekStartsOn: prefs.weekStartsOn,
+					theme: prefs.theme,
+				},
+				defaultHouseholdId: prefs.defaultHouseholdId,
+				defaultAnimalId: prefs.defaultAnimalId,
+			});
+
+			if (selectedHousehold) {
+				await updateHouseholdSettings({
+					primaryHouseholdName: selectedHousehold.name,
+				});
+			}
+
+			// Fire instrumentation event
+			window.dispatchEvent(
+				new CustomEvent("settings_prefs_update", {
+					detail: prefs,
+				}),
+			);
 		} catch (error) {
 			console.error("Failed to save preferences:", error);
 		} finally {

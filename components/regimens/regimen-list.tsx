@@ -522,13 +522,7 @@ export function RegimenList() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Regimens</h1>
-					<p className="text-muted-foreground">
-						Manage medication schedules and treatment plans
-					</p>
-				</div>
+			<div className="flex items-center justify-end">
 				<Button onClick={handleCreate} className="gap-2" disabled={isLoading}>
 					<Plus className="h-4 w-4" />
 					Add Regimen
