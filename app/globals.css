@@ -7,6 +7,46 @@
 @theme {
 	--font-mono: var(--font-jetbrains-mono);
 
+	/* Design Tokens - Spacing */
+	--space-section: 5rem; /* 80px - Standard section spacing */
+	--space-section-sm: 3rem; /* 48px - Small section spacing */
+	--space-section-lg: 8rem; /* 128px - Large section spacing */
+	--space-content: 4rem; /* 64px - Content block spacing */
+	--space-element: 2rem; /* 32px - Element spacing */
+	--space-component: 1.5rem; /* 24px - Component spacing */
+	--space-tight: 1rem; /* 16px - Tight spacing */
+
+	/* Design Tokens - Animation Durations */
+	--duration-fast: 200ms;
+	--duration-normal: 300ms;
+	--duration-slow: 500ms;
+	--duration-slower: 1000ms;
+	--duration-scroll: 30s;
+
+	/* Design Tokens - Gradients */
+	--gradient-hero: linear-gradient(
+		to bottom right,
+		hsl(var(--background)),
+		hsl(var(--background) / 0.95),
+		hsl(var(--primary) / 0.05)
+	);
+	--gradient-section: linear-gradient(
+		to bottom,
+		transparent,
+		hsl(var(--background) / 0.5),
+		hsl(var(--background))
+	);
+	--gradient-card: linear-gradient(
+		135deg,
+		hsl(var(--card)),
+		hsl(var(--card) / 0.95)
+	);
+	--gradient-overlay: linear-gradient(
+		to right,
+		hsl(var(--primary) / 0.2),
+		hsl(var(--primary) / 0.1)
+	);
+
 	--color-background: hsl(var(--background));
 	--color-foreground: hsl(var(--foreground));
 
@@ -108,7 +148,35 @@
 			transform: translateX(-50%);
 		}
 	}
-	--animate-scroll: scroll 30s linear infinite;
+	--animate-scroll: scroll var(--duration-scroll) linear infinite;
+
+	@keyframes float {
+		0%,
+		100% {
+			transform: translateY(0) translateX(0);
+		}
+		25% {
+			transform: translateY(-20px) translateX(10px);
+		}
+		50% {
+			transform: translateY(10px) translateX(-10px);
+		}
+		75% {
+			transform: translateY(-10px) translateX(20px);
+		}
+	}
+	--animate-float: float 6s ease-in-out infinite;
+
+	@keyframes pulse-subtle {
+		0%,
+		100% {
+			opacity: 0.5;
+		}
+		50% {
+			opacity: 0.8;
+		}
+	}
+	--animate-pulse-subtle: pulse-subtle 4s ease-in-out infinite;
 }
 
 /*

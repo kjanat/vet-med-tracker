@@ -3,6 +3,9 @@
 import { Star } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { StatsGrid } from "./content/stats-grid";
+import { Section } from "./primitives/section";
+import { SectionHeader } from "./primitives/section-header";
 
 const testimonials = [
 	{
@@ -33,79 +36,62 @@ const testimonials = [
 
 export function TestimonialsSection() {
 	return (
-		<section className="bg-muted/50 py-20">
-			<div className="container mx-auto max-w-6xl px-4">
-				{/* Section header */}
-				<div className="mb-16 text-center">
-					<h2 className="mb-4 font-bold text-3xl md:text-4xl">
-						Loved by Pet Parents Everywhere
-					</h2>
-					<p className="mx-auto max-w-2xl text-muted-foreground text-xl">
-						Join thousands of pet parents who've transformed how they manage
-						their pets' health.
-					</p>
-				</div>
+		<Section variant="muted">
+			<SectionHeader
+				title="Loved by Pet Parents Everywhere"
+				description="Join thousands of pet parents who've transformed how they manage their pets' health."
+			/>
 
-				{/* Testimonials grid */}
-				<div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-					{testimonials.map((testimonial) => (
-						<Card
-							key={`testimonial-${testimonial.name.replace(/\s+/g, "-").toLowerCase()}`}
-							className="transition-shadow hover:shadow-lg"
-						>
-							<CardContent className="p-6">
-								{/* Rating stars */}
-								<div className="mb-4 flex gap-1">
-									{[...Array(testimonial.rating)].map((_, i) => (
-										<Star
-											key={`star-${testimonial.name}-${i}`}
-											className="h-5 w-5 fill-primary text-primary"
-										/>
-									))}
+			{/* Testimonials grid */}
+			<div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+				{testimonials.map((testimonial) => (
+					<Card
+						key={`testimonial-${testimonial.name.replace(/\s+/g, "-").toLowerCase()}`}
+						className="transition-shadow hover:shadow-lg"
+					>
+						<CardContent className="p-6">
+							{/* Rating stars */}
+							<div className="mb-4 flex gap-1">
+								{[...Array(testimonial.rating)].map((_, i) => (
+									<Star
+										key={`star-${testimonial.name}-${i}`}
+										className="h-5 w-5 fill-primary text-primary"
+									/>
+								))}
+							</div>
+
+							{/* Quote */}
+							<blockquote className="mb-6 text-muted-foreground">
+								"{testimonial.content}"
+							</blockquote>
+
+							{/* Author */}
+							<div className="flex items-center gap-3">
+								<Avatar>
+									<AvatarFallback>{testimonial.avatar}</AvatarFallback>
+								</Avatar>
+								<div>
+									<p className="font-semibold">{testimonial.name}</p>
+									<p className="text-muted-foreground text-sm">
+										{testimonial.role}
+									</p>
 								</div>
-
-								{/* Quote */}
-								<blockquote className="mb-6 text-muted-foreground">
-									"{testimonial.content}"
-								</blockquote>
-
-								{/* Author */}
-								<div className="flex items-center gap-3">
-									<Avatar>
-										<AvatarFallback>{testimonial.avatar}</AvatarFallback>
-									</Avatar>
-									<div>
-										<p className="font-semibold">{testimonial.name}</p>
-										<p className="text-muted-foreground text-sm">
-											{testimonial.role}
-										</p>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					))}
-				</div>
-
-				{/* Stats */}
-				<div className="mt-16 grid grid-cols-2 gap-8 text-center md:grid-cols-4">
-					<div>
-						<p className="mb-2 font-bold text-4xl text-primary">10,000+</p>
-						<p className="text-muted-foreground">Pet Parents</p>
-					</div>
-					<div>
-						<p className="mb-2 font-bold text-4xl text-primary">50,000+</p>
-						<p className="text-muted-foreground">Pets Tracked</p>
-					</div>
-					<div>
-						<p className="mb-2 font-bold text-4xl text-primary">1M+</p>
-						<p className="text-muted-foreground">Doses Recorded</p>
-					</div>
-					<div>
-						<p className="mb-2 font-bold text-4xl text-primary">99.9%</p>
-						<p className="text-muted-foreground">Uptime</p>
-					</div>
-				</div>
+							</div>
+						</CardContent>
+					</Card>
+				))}
 			</div>
-		</section>
+
+			{/* Stats */}
+			<StatsGrid
+				className="mt-16"
+				stats={[
+					{ value: "10,000+", label: "Pet Parents", highlight: true },
+					{ value: "50,000+", label: "Pets Tracked", highlight: true },
+					{ value: "1M+", label: "Doses Recorded", highlight: true },
+					{ value: "99.9%", label: "Uptime", highlight: true },
+				]}
+			/>
+		</Section>
 	);
 }

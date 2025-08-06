@@ -6,48 +6,9 @@ import { Separator } from "@/components/ui/separator";
 export default function PrivacyPage() {
 	return (
 		<div className="container mx-auto max-w-4xl px-4 py-12">
-			<style jsx>{`
-				.legal-content {
-					font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
-					font-size: 14px;
-					line-height: 1.5;
-					color: hsl(var(--foreground) / 0.9);
-					letter-spacing: -0.01em;
-				}
-				.legal-content h2 {
-					font-size: 1.25rem;
-					font-weight: 600;
-					margin-top: 1.25rem;
-					margin-bottom: 0.5rem;
-					letter-spacing: -0.02em;
-				}
-				.legal-content h3 {
-					font-size: 1.1rem;
-					font-weight: 600;
-					margin-top: 1rem;
-					margin-bottom: 0.375rem;
-				}
-				.legal-content p {
-					margin-bottom: 0.625rem;
-				}
-				.legal-content ul {
-					margin-bottom: 0.625rem;
-					margin-left: 1.5rem;
-					list-style-type: disc;
-				}
-				.legal-content li {
-					margin-bottom: 0.25rem;
-					line-height: 1.5;
-				}
-				.legal-content strong {
-					font-weight: 600;
-					color: hsl(var(--foreground));
-				}
-			`}</style>
-
 			<h1 className="mb-6 font-bold text-3xl">Privacy Policy</h1>
 
-			<div className="legal-content prose dark:prose-invert max-w-none">
+			<div className="prose prose-sm dark:prose-invert max-w-none [&_code]:rounded [&_code]:bg-muted/30 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[13px] [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-semibold [&_h2]:text-xl [&_h3]:mt-4 [&_h3]:mb-1.5 [&_h3]:font-semibold [&_h3]:text-lg [&_li]:mb-1 [&_p]:mb-2.5 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:mb-2.5 [&_ul]:ml-6 [&_ul]:list-disc">
 				<p className="mb-6 text-muted-foreground">
 					Last updated: {new Date().toLocaleDateString()}
 				</p>

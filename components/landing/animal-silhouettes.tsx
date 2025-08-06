@@ -46,8 +46,8 @@ export function AnimalSilhouettes() {
 	const duplicatedImages = [...selectedImages, ...selectedImages];
 
 	return (
-		<div className="absolute inset-x-0 bottom-0 overflow-hidden">
-			<div className="flex animate-scroll gap-12 pb-8 opacity-5">
+		<div className="-mx-4 pointer-events-none mt-8 touch-none select-none overflow-hidden">
+			<div className="flex animate-scroll gap-12 opacity-5">
 				{duplicatedImages.map((imageName, index) => (
 					<Image
 						key={`${imageName.split(".")[0]}-${Math.floor(index / selectedImages.length)}`}
