@@ -12,12 +12,6 @@ import {
 
 const settingsCards = [
 	{
-		title: "Data & Privacy",
-		description: "Export your data and manage privacy settings",
-		href: "/settings/data-privacy" as const,
-		icon: Database,
-	},
-	{
 		title: "Preferences",
 		description: "Customize your app experience and display settings",
 		href: "/settings/preferences" as const,
@@ -34,6 +28,12 @@ const settingsCards = [
 		description: "Manage household members and permissions",
 		href: "/settings/household" as const,
 		icon: Home,
+	},
+	{
+		title: "Data & Privacy",
+		description: "Export your data and manage privacy settings",
+		href: "/settings/data-privacy" as const,
+		icon: Database,
 	},
 ] as const;
 

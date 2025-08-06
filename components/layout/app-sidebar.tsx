@@ -100,10 +100,6 @@ const data = {
 			icon: Settings,
 			items: [
 				{
-					title: "Data & Privacy",
-					url: "/settings/data-privacy",
-				},
-				{
 					title: "Preferences",
 					url: "/settings/preferences",
 				},
@@ -114,6 +110,10 @@ const data = {
 				{
 					title: "Household",
 					url: "/settings/household",
+				},
+				{
+					title: "Data & Privacy",
+					url: "/settings/data-privacy",
 				},
 			],
 		},
