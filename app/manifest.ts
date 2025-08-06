@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
 			"Track pet medications, set reminders, and manage veterinary prescriptions with ease",
 		start_url: "/",
 		display: "standalone",
-		background_color: "#404040",
-		theme_color: "#ffffff",
+		background_color: "#2c3e50",
+		theme_color: "#2c3e50",
 		orientation: "portrait-primary",
 		icons: [
 			{
