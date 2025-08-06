@@ -108,8 +108,8 @@ export default function DashboardPage() {
 	// No animals
 	if (animals.length === 0) {
 		return (
-			<div className="flex flex-col items-center justify-center px-4 py-16 text-center">
-				<div className="max-w-md">
+			<div className="flex flex-1 items-center justify-center px-4">
+				<div className="max-w-md text-center">
 					<h1 className="mb-4 font-bold text-3xl">Welcome to VetMed Tracker</h1>
 					<p className="mb-8 text-lg text-muted-foreground">
 						{

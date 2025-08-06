@@ -124,7 +124,7 @@ function AuditLogContent() {
 				<Button
 					variant="ghost"
 					size="icon"
-					onClick={() => router.push("/settings")}
+					onClick={() => router.push(".")}
 					className="shrink-0"
 				>
 					<ArrowLeft className="h-4 w-4" />

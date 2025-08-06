@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Database, Home, Settings2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useApp } from "@/components/providers/app-provider";
 import {
@@ -9,36 +9,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-
-const settingsCards = [
-	{
-		title: "Preferences",
-		description: "Customize your app experience and display settings",
-		href: "/settings/preferences" as const,
-		icon: Settings2,
-	},
-	{
-		title: "Notifications",
-		description: "Configure alerts and notification preferences",
-		href: "/settings/notifications" as const,
-		icon: Bell,
-	},
-	{
-		title: "Household",
-		description: "Manage household members and permissions",
-		href: "/settings/household" as const,
-		icon: Home,
-	},
-	{
-		title: "Data & Privacy",
-		description: "Export your data and manage privacy settings",
-		href: "/settings/data-privacy" as const,
-		icon: Database,
-	},
-] as const;
+import { getSettingsTabs } from "@/lib/navigation/utils";
 
 export default function SettingsPage() {
 	const { selectedHousehold } = useApp();
+	const settingsTabs = getSettingsTabs();
 
 	return (
 		<div className="space-y-6">
@@ -47,19 +22,22 @@ export default function SettingsPage() {
 			</p>
 
 			<div className="grid gap-4 md:grid-cols-2">
-				{settingsCards.map((card) => (
-					<Link key={card.href} href={card.href}>
-						<Card className="h-full transition-colors hover:bg-accent">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<card.icon className="h-5 w-5" />
-									{card.title}
-								</CardTitle>
-								<CardDescription>{card.description}</CardDescription>
-							</CardHeader>
-						</Card>
-					</Link>
-				))}
+				{settingsTabs.map((tab) => {
+					const Icon = tab.icon as LucideIcon;
+					return (
+						<Link key={tab.path} href={tab.path || "#"}>
+							<Card className="h-full transition-colors hover:bg-accent">
+								<CardHeader>
+									<CardTitle className="flex items-center gap-2">
+										{Icon && <Icon className="h-5 w-5" />}
+										{tab.title}
+									</CardTitle>
+									<CardDescription>{tab.description}</CardDescription>
+								</CardHeader>
+							</Card>
+						</Link>
+					);
+				})}
 			</div>
 
 			{!selectedHousehold && (

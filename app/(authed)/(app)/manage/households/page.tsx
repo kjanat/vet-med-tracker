@@ -1,53 +1,17 @@
 "use client";
 
-import {
-	Building2,
-	Edit2,
-	Globe,
-	LogOut,
-	MoreVertical,
-	Plus,
-	Settings,
-	Users,
-} from "lucide-react";
+import { Building2, Plus } from "lucide-react";
 import { useState } from "react";
+import { HouseholdCard } from "@/components/household/household-card";
+import { HouseholdDetails } from "@/components/household/household-details";
+import {
+	EditHouseholdDialog,
+	LeaveHouseholdDialog,
+} from "@/components/household/household-dialogs";
 import { type Member, MemberList } from "@/components/household/member-list";
 import { useApp } from "@/components/providers/app-provider";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { trpc } from "@/server/trpc/client";
@@ -213,120 +177,19 @@ export default function HouseholdsPage() {
 				{/* All Households Tab */}
 				<TabsContent value="all" className="space-y-4">
 					<div className="grid gap-4">
-						{memberships?.map((membership) => {
-							const isSelected =
-								selectedHousehold?.id === membership.household.id;
-							const isOwner = membership.role === "OWNER";
-
-							return (
-								<Card
-									key={membership.household.id}
-									className={isSelected ? "border-primary" : ""}
-								>
-									<CardHeader>
-										<div className="flex items-start justify-between">
-											<div className="flex items-center gap-3">
-												<div className="rounded-full bg-muted p-3">
-													<Building2 className="h-5 w-5" />
-												</div>
-												<div>
-													<CardTitle className="text-xl">
-														{membership.household.name}
-													</CardTitle>
-													<CardDescription>
-														Created{" "}
-														{new Date(
-															membership.household.createdAt,
-														).toLocaleDateString()}
-														{membership.household.timezone && (
-															<span className="ml-2">
-																• {membership.household.timezone}
-															</span>
-														)}
-													</CardDescription>
-												</div>
-											</div>
-											<div className="flex items-center gap-2">
-												<Badge variant={isOwner ? "default" : "secondary"}>
-													{membership.role}
-												</Badge>
-												{isSelected && (
-													<Badge variant="outline" className="border-primary">
-														Active
-													</Badge>
-												)}
-											</div>
-										</div>
-									</CardHeader>
-									<CardContent>
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-6 text-muted-foreground text-sm">
-												<div className="flex items-center gap-1">
-													<Users className="h-4 w-4" />
-													<span>
-														{membership.household._count?.members || 0} members
-													</span>
-												</div>
-												<div className="flex items-center gap-1">
-													<span>
-														{membership.household._count?.animals || 0} animals
-													</span>
-												</div>
-											</div>
-											<div className="flex items-center gap-2">
-												{!isSelected && (
-													<Button
-														variant="outline"
-														size="sm"
-														onClick={() =>
-															setSelectedHousehold(membership.household)
-														}
-													>
-														Make Active
-													</Button>
-												)}
-												<DropdownMenu>
-													<DropdownMenuTrigger asChild>
-														<Button variant="ghost" size="icon">
-															<MoreVertical className="h-4 w-4" />
-														</Button>
-													</DropdownMenuTrigger>
-													<DropdownMenuContent align="end">
-														{isOwner && (
-															<>
-																<DropdownMenuItem
-																	onClick={() =>
-																		handleEditHousehold(membership.household.id)
-																	}
-																>
-																	<Edit2 className="mr-2 h-4 w-4" />
-																	Edit Settings
-																</DropdownMenuItem>
-																<DropdownMenuSeparator />
-															</>
-														)}
-														{!isOwner && (
-															<DropdownMenuItem
-																onClick={() => {
-																	setLeavingHouseholdId(
-																		membership.household.id,
-																	);
-																	setIsLeaveDialogOpen(true);
-																}}
-																className="text-destructive"
-															>
-																<LogOut className="mr-2 h-4 w-4" />
-																Leave Household
-															</DropdownMenuItem>
-														)}
-													</DropdownMenuContent>
-												</DropdownMenu>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							);
-						})}
+						{memberships?.map((membership) => (
+							<HouseholdCard
+								key={membership.household.id}
+								membership={membership}
+								isSelected={selectedHousehold?.id === membership.household.id}
+								onMakeActive={() => setSelectedHousehold(membership.household)}
+								onEdit={() => handleEditHousehold(membership.household.id)}
+								onLeave={() => {
+									setLeavingHouseholdId(membership.household.id);
+									setIsLeaveDialogOpen(true);
+								}}
+							/>
+						))}
 					</div>
 
 					{/* Empty State */}
@@ -352,244 +215,39 @@ export default function HouseholdsPage() {
 				{/* Current Household Tab */}
 				{selectedHousehold && (
 					<TabsContent value="current" className="space-y-6">
-						{/* Household Details Card */}
-						<Card>
-							<CardHeader>
-								<div className="flex items-start justify-between">
-									<div>
-										<CardTitle className="flex items-center gap-2">
-											<Building2 className="h-5 w-5" />
-											{selectedHousehold.name}
-										</CardTitle>
-										<CardDescription>
-											Household information and settings
-										</CardDescription>
-									</div>
-									{userRoleInSelected && (
-										<Badge
-											variant={
-												userRoleInSelected === "OWNER" ? "default" : "secondary"
-											}
-										>
-											{userRoleInSelected}
-										</Badge>
-									)}
-								</div>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								{selectedHouseholdData && (
-									<>
-										<div className="grid gap-4 sm:grid-cols-2">
-											<div>
-												<p className="text-muted-foreground text-sm">
-													Timezone
-												</p>
-												<p className="font-medium">
-													{selectedHouseholdData.timezone || "Not set"}
-												</p>
-											</div>
-											<div>
-												<p className="text-muted-foreground text-sm">Created</p>
-												<p className="font-medium">
-													{new Date(
-														selectedHouseholdData.createdAt,
-													).toLocaleDateString()}
-												</p>
-											</div>
-										</div>
-										<Separator />
-										<div className="flex flex-wrap gap-2">
-											{userRoleInSelected === "OWNER" && (
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() =>
-														handleEditHousehold(selectedHousehold.id)
-													}
-												>
-													<Edit2 className="mr-2 h-4 w-4" />
-													Edit Settings
-												</Button>
-											)}
-											{userRoleInSelected !== "OWNER" && (
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => {
-														setLeavingHouseholdId(selectedHousehold.id);
-														setIsLeaveDialogOpen(true);
-													}}
-												>
-													<LogOut className="mr-2 h-4 w-4" />
-													Leave Household
-												</Button>
-											)}
-										</div>
-									</>
-								)}
-							</CardContent>
-						</Card>
-
-						{/* Household Statistics */}
 						{selectedHouseholdData && (
-							<Card>
-								<CardHeader>
-									<CardTitle className="flex items-center gap-2">
-										<Settings className="h-5 w-5" />
-										Household Statistics
-									</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<div className="grid gap-4 sm:grid-cols-3">
-										<div>
-											<p className="text-muted-foreground text-sm">Members</p>
-											<p className="font-medium text-2xl">
-												{selectedHouseholdData.memberships?.length || 0}
-											</p>
-										</div>
-										<div>
-											<p className="text-muted-foreground text-sm">Animals</p>
-											<p className="font-medium text-2xl">
-												{selectedHouseholdData.animals?.length || 0}
-											</p>
-										</div>
-										<div>
-											<p className="text-muted-foreground text-sm">
-												Active Regimens
-											</p>
-											<p className="font-medium text-2xl">
-												{selectedHouseholdData.regimens?.filter(
-													(r) => r.isActive,
-												).length || 0}
-											</p>
-										</div>
-									</div>
-								</CardContent>
-							</Card>
+							<HouseholdDetails
+								household={selectedHouseholdData}
+								userRole={userRoleInSelected}
+								onEdit={() => handleEditHousehold(selectedHousehold.id)}
+								onLeave={() => {
+									setLeavingHouseholdId(selectedHousehold.id);
+									setIsLeaveDialogOpen(true);
+								}}
+							/>
 						)}
-
-						{/* Members List */}
 						<MemberList members={members} userRole={userRoleInSelected} />
 					</TabsContent>
 				)}
 			</Tabs>
 
-			{/* Edit Household Dialog */}
-			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Edit Household Settings</DialogTitle>
-						<DialogDescription>
-							Update your household name and timezone settings.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="household-name">Household Name</Label>
-							<Input
-								id="household-name"
-								value={editedName}
-								onChange={(e) => setEditedName(e.target.value)}
-								placeholder="Enter household name"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="household-timezone">Timezone</Label>
-							<Select value={editedTimezone} onValueChange={setEditedTimezone}>
-								<SelectTrigger id="household-timezone">
-									<SelectValue placeholder="Select timezone" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="America/New_York">
-										<div className="flex items-center gap-2">
-											<Globe className="h-4 w-4" />
-											Eastern Time (New York)
-										</div>
-									</SelectItem>
-									<SelectItem value="America/Chicago">
-										<div className="flex items-center gap-2">
-											<Globe className="h-4 w-4" />
-											Central Time (Chicago)
-										</div>
-									</SelectItem>
-									<SelectItem value="America/Denver">
-										<div className="flex items-center gap-2">
-											<Globe className="h-4 w-4" />
-											Mountain Time (Denver)
-										</div>
-									</SelectItem>
-									<SelectItem value="America/Los_Angeles">
-										<div className="flex items-center gap-2">
-											<Globe className="h-4 w-4" />
-											Pacific Time (Los Angeles)
-										</div>
-									</SelectItem>
-									<SelectItem value="Europe/London">
-										<div className="flex items-center gap-2">
-											<Globe className="h-4 w-4" />
-											GMT (London)
-										</div>
-									</SelectItem>
-									<SelectItem value="Europe/Paris">
-										<div className="flex items-center gap-2">
-											<Globe className="h-4 w-4" />
-											CET (Paris)
-										</div>
-									</SelectItem>
-									<SelectItem value="Asia/Tokyo">
-										<div className="flex items-center gap-2">
-											<Globe className="h-4 w-4" />
-											JST (Tokyo)
-										</div>
-									</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setIsEditDialogOpen(false)}
-						>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleSaveHousehold}
-							disabled={updateHouseholdMutation.isPending}
-						>
-							Save Changes
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-
-			{/* Leave Household Dialog */}
-			<Dialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Leave Household</DialogTitle>
-						<DialogDescription>
-							Are you sure you want to leave this household? You'll need to be
-							invited back to regain access.
-						</DialogDescription>
-					</DialogHeader>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setIsLeaveDialogOpen(false)}
-						>
-							Cancel
-						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleLeaveHousehold}
-							disabled={leaveHouseholdMutation.isPending}
-						>
-							Leave Household
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			{/* Dialogs */}
+			<EditHouseholdDialog
+				open={isEditDialogOpen}
+				onOpenChange={setIsEditDialogOpen}
+				editedName={editedName}
+				onNameChange={setEditedName}
+				editedTimezone={editedTimezone}
+				onTimezoneChange={setEditedTimezone}
+				onSave={handleSaveHousehold}
+				isSaving={updateHouseholdMutation.isPending}
+			/>
+			<LeaveHouseholdDialog
+				open={isLeaveDialogOpen}
+				onOpenChange={setIsLeaveDialogOpen}
+				onLeave={handleLeaveHousehold}
+				isLeaving={leaveHouseholdMutation.isPending}
+			/>
 		</div>
 	);
 }
