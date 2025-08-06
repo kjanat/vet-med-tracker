@@ -73,7 +73,7 @@ const NoHouseholdState = () => (
 	</div>
 );
 
-const ErrorState = ({ error }: { error?: any }) => (
+const ErrorState = ({ error }: { error?: Error | string | unknown }) => (
 	<div className="min-h-screen bg-background">
 		<div className="no-print border-b p-4">
 			<div className="mx-auto flex max-w-4xl items-center justify-between">
@@ -89,8 +89,11 @@ const ErrorState = ({ error }: { error?: any }) => (
 							<div>
 								<h3 className="font-semibold text-lg">Unable to Load Report</h3>
 								<p className="text-muted-foreground text-sm">
-									{error?.message ||
-										"Animal not found or no data available for this period."}
+									{error instanceof Error
+										? error.message
+										: typeof error === "string"
+											? error
+											: "Animal not found or no data available for this period."}
 								</p>
 							</div>
 						</div>

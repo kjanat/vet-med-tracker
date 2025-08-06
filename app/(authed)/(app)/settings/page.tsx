@@ -14,28 +14,28 @@ const settingsCards = [
 	{
 		title: "Data & Privacy",
 		description: "Export your data and manage privacy settings",
-		href: "/settings/data-privacy",
+		href: "/settings/data-privacy" as const,
 		icon: Database,
 	},
 	{
 		title: "Preferences",
 		description: "Customize your app experience and display settings",
-		href: "/settings/preferences",
+		href: "/settings/preferences" as const,
 		icon: Settings2,
 	},
 	{
 		title: "Notifications",
 		description: "Configure alerts and notification preferences",
-		href: "/settings/notifications",
+		href: "/settings/notifications" as const,
 		icon: Bell,
 	},
 	{
 		title: "Household",
 		description: "Manage household members and permissions",
-		href: "/settings/household",
+		href: "/settings/household" as const,
 		icon: Home,
 	},
-];
+] as const;
 
 export default function SettingsPage() {
 	const { selectedHousehold } = useApp();
@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
 			<div className="grid gap-4 md:grid-cols-2">
 				{settingsCards.map((card) => (
-					<Link key={card.href} href={card.href as any}>
+					<Link key={card.href} href={card.href}>
 						<Card className="h-full transition-colors hover:bg-accent">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">

@@ -246,15 +246,44 @@ export function RegimenList() {
 	});
 
 	// Helper functions to reduce cognitive complexity
-	const formatDateForAPI = (date?: Date) => {
+	const formatDateForAPI = (date?: Date): string | undefined => {
 		return date?.toISOString().split("T")[0];
 	};
 
-	const buildUpdateData = (data: Partial<Regimen>, householdId: string) => {
+	const formatDateForAPIRequired = (date?: Date): string => {
+		const isoDate = (date || new Date()).toISOString();
+		const datePart = isoDate.split("T")[0];
+		return datePart ?? isoDate; // Fallback to full ISO string if split fails
+	};
+
+	// Type for regimen update input based on tRPC schema
+	type RegimenUpdateInput = {
+		id: string;
+		householdId: string;
+		name?: string;
+		instructions?: string;
+		scheduleType?: "FIXED" | "PRN" | "INTERVAL" | "TAPER";
+		timesLocal?: string[];
+		intervalHours?: number;
+		startDate?: string;
+		endDate?: string;
+		prnReason?: string;
+		maxDailyDoses?: number;
+		cutoffMinutes?: number;
+		highRisk?: boolean;
+		requiresCoSign?: boolean;
+		dose?: string;
+		route?: string;
+	};
+
+	const buildUpdateData = (
+		data: Partial<Regimen>,
+		householdId: string,
+	): RegimenUpdateInput => {
 		if (!editingRegimen) {
 			throw new Error("No regimen selected for editing");
 		}
-		const updateData: any = {
+		const updateData: RegimenUpdateInput = {
 			id: editingRegimen.id,
 			householdId,
 			name: data.medicationName,
@@ -279,17 +308,40 @@ export function RegimenList() {
 		return updateData;
 	};
 
-	const buildCreateData = (data: Partial<Regimen>, householdId: string) => {
-		const createData: any = {
+	// Type for regimen create input based on tRPC schema
+	type RegimenCreateInput = {
+		householdId: string;
+		animalId: string;
+		medicationId: string;
+		scheduleType: "FIXED" | "PRN" | "INTERVAL" | "TAPER";
+		startDate: string;
+		name?: string;
+		instructions?: string;
+		timesLocal?: string[];
+		intervalHours?: number;
+		endDate?: string;
+		prnReason?: string;
+		maxDailyDoses?: number;
+		cutoffMinutes?: number;
+		highRisk?: boolean;
+		requiresCoSign?: boolean;
+		dose?: string;
+		route?: string;
+	};
+
+	const buildCreateData = (
+		data: Partial<Regimen>,
+		householdId: string,
+	): RegimenCreateInput => {
+		const createData: RegimenCreateInput = {
 			householdId,
 			animalId: data.animalId || "",
 			medicationId: data.medicationId || "",
+			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
+			startDate: formatDateForAPIRequired(data.startDate),
 			name: data.medicationName,
 			instructions: data.medicationName, // TODO: Get actual instructions from form
-			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			timesLocal: data.timesLocal,
-			startDate:
-				formatDateForAPI(data.startDate) || formatDateForAPI(new Date()),
 			cutoffMinutes: data.cutoffMins || 240,
 			highRisk: data.highRisk || false,
 			requiresCoSign: data.highRisk || false, // High risk medications require co-sign

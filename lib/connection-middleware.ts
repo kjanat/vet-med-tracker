@@ -25,13 +25,10 @@ import {
 	comprehensiveHealthCheck,
 } from "./db-monitoring";
 import {
-	AdaptiveRateLimiter,
-	type checkRateLimit,
-	createRateLimitMiddleware,
-	generateRateLimitKey,
-	getRateLimitHeaders,
-	RATE_LIMIT_CONFIGS,
-} from "./rate-limiting";
+	applyRateLimit,
+	extractClientIP,
+	generateRateLimitHeaders,
+} from "./redis/rate-limit";
 
 /**
  * Connection middleware configuration
@@ -67,11 +64,27 @@ export interface ConnectionMiddlewareResult {
 }
 
 /**
- * Rate limit result type (from checkRateLimit function)
+ * Rate limit configurations for different endpoints
  */
-export type RateLimitResult = ReturnType<typeof checkRateLimit> & {
-	headers: Record<string, string>;
-};
+export const RATE_LIMIT_CONFIGS = {
+	// API routes - general
+	api: { requests: 100, windowMs: 60000 }, // 100 requests per minute
+
+	// Authentication routes
+	auth: { requests: 5, windowMs: 900000 }, // 5 auth attempts per 15 minutes
+
+	// Database heavy operations
+	heavy: { requests: 10, windowMs: 60000 }, // 10 requests per minute
+
+	// Medication recording (core feature)
+	recording: { requests: 30, windowMs: 60000 }, // 30 recordings per minute
+
+	// File uploads
+	upload: { requests: 10, windowMs: 300000 }, // 10 uploads per 5 minutes
+
+	// Reports and exports
+	reports: { requests: 5, windowMs: 60000 }, // 5 reports per minute
+} as const;
 
 /**
  * Queue status interface (enhanced for multiple queues)
@@ -135,14 +148,9 @@ const middlewareConfig: ConnectionMiddlewareConfig = {
 };
 
 /**
- * Adaptive rate limiter instance
- */
-const adaptiveRateLimiter = new AdaptiveRateLimiter(RATE_LIMIT_CONFIGS.api);
-
-/**
  * Connection health metrics cache
  */
-let lastHealthCheck: {
+let _lastHealthCheck: {
 	timestamp: number;
 	metrics: ConnectionMetrics;
 } | null = null;
@@ -315,38 +323,50 @@ export class ConnectionMiddleware {
 		req: NextRequest,
 		context: ConnectionContext,
 	): Promise<ConnectionMiddlewareResult> {
-		// Determine rate limit config based on endpoint
-		let config = RATE_LIMIT_CONFIGS.api;
+		// Extract IP and determine tier/identifier
+		const clientIP = extractClientIP(req.headers);
+		const userId = context.userId;
+		const householdId = context.householdId;
 
-		if (context.endpoint.includes("/auth")) {
-			config = RATE_LIMIT_CONFIGS.auth;
-		} else if (context.endpoint.includes("/admin/record")) {
-			config = RATE_LIMIT_CONFIGS.recording;
-		} else if (context.endpoint.includes("/reports")) {
-			config = RATE_LIMIT_CONFIGS.reports;
-		} else if (context.operationType === "batch") {
-			config = RATE_LIMIT_CONFIGS.heavy;
+		// Determine rate limit tier based on context
+		let tier: "user" | "household" | "ip" | "authenticated" | "anonymous" =
+			"ip";
+		let identifier = clientIP;
+
+		if (userId) {
+			tier = "user";
+			identifier = userId;
+		} else if (householdId) {
+			tier = "household";
+			identifier = householdId;
+		} else if (clientIP !== "unknown") {
+			tier = "ip";
+			identifier = clientIP;
+		} else {
+			tier = "anonymous";
+			identifier = "anonymous";
 		}
 
-		// Use adaptive rate limiter if enabled
-		if (this.config.enableAdaptiveThrottling) {
-			config = adaptiveRateLimiter.getCurrentConfig();
-		}
+		// Apply rate limiting
+		const result = await applyRateLimit(tier, identifier, {
+			// System operations and health checks bypass rate limiting
+			bypassReason:
+				context.endpoint === "health" || context.endpoint.includes("system")
+					? "health-check"
+					: undefined,
+		});
 
-		const rateLimitMiddleware = createRateLimitMiddleware(config);
-		const result: RateLimitResult = rateLimitMiddleware(req);
-
-		if (!result.allowed) {
+		if (!result.success) {
 			return {
 				allowed: false,
 				error: `Rate limit exceeded. Try again in ${result.retryAfter} seconds.`,
-				headers: result.headers,
+				headers: generateRateLimitHeaders(result) as Record<string, string>,
 			};
 		}
 
 		return {
 			allowed: true,
-			headers: result.headers,
+			headers: generateRateLimitHeaders(result) as Record<string, string>,
 		};
 	}
 
@@ -420,31 +440,25 @@ export class ConnectionMiddleware {
 		req: NextRequest,
 		_context: ConnectionContext,
 	): Promise<ConnectionMiddlewareResult> {
-		// Update adaptive rate limiter based on current health
-		if (lastHealthCheck && Date.now() - lastHealthCheck.timestamp < 60000) {
-			const metrics = lastHealthCheck.metrics;
-			adaptiveRateLimiter.adjustLimits({
-				connectionUsage: metrics.usagePercentage || 0,
-				responseTime: metrics.responseTime,
-				errorRate: metrics.isHealthy ? 0 : 100,
-			});
-		}
+		// Extract IP for adaptive throttling
+		const clientIP = extractClientIP(req.headers);
 
-		// Check adaptive rate limit
-		const key = generateRateLimitKey(req, "adaptive");
-		const result = adaptiveRateLimiter.checkLimit(key);
+		// Apply adaptive rate limiting with stricter limits based on system load
+		const result = await applyRateLimit("ip", clientIP, {
+			bypassReason: undefined, // No bypass for adaptive throttling
+		});
 
-		if (!result.allowed) {
+		if (!result.success) {
 			return {
 				allowed: false,
 				error: "System load is high. Request throttled for system stability.",
-				headers: getRateLimitHeaders(result),
+				headers: generateRateLimitHeaders(result) as Record<string, string>,
 			};
 		}
 
 		return {
 			allowed: true,
-			headers: getRateLimitHeaders(result),
+			headers: generateRateLimitHeaders(result) as Record<string, string>,
 		};
 	}
 
@@ -454,7 +468,7 @@ export class ConnectionMiddleware {
 				const healthResult = await checkDatabaseHealthWithCircuitBreaker();
 				if (healthResult.healthy) {
 					const metrics = await comprehensiveHealthCheck();
-					lastHealthCheck = {
+					_lastHealthCheck = {
 						timestamp: Date.now(),
 						metrics,
 					};
