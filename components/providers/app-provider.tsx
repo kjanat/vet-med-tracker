@@ -16,8 +16,6 @@ type User = typeof vetmedUsers.$inferSelect;
 
 import { getQueueSize } from "@/lib/offline/db";
 import { trpc } from "@/server/trpc/client";
-import { AnimalFormProvider } from "./animal-form-provider";
-import { InventoryFormProvider } from "./inventory-form-provider";
 
 // Minimal Animal interface for app-provider context
 interface Animal {
@@ -332,9 +330,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 				refreshPendingMeds,
 			}}
 		>
-			<InventoryFormProvider>
-				<AnimalFormProvider>{children}</AnimalFormProvider>
-			</InventoryFormProvider>
+			{children}
 		</AppContext.Provider>
 	);
 }

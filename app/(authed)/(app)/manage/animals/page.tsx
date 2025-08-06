@@ -80,7 +80,7 @@ function AnimalList({
 	return (
 		<div className="space-y-6">
 			{/* Add button */}
-			<div className="flex items-center justify-between">
+			{/* <div className="flex items-center justify-between">
 				<p className="text-muted-foreground">
 					Manage animal profiles and medical information
 				</p>
@@ -88,7 +88,7 @@ function AnimalList({
 					<Plus className="h-4 w-4" />
 					Add Animal
 				</Button>
-			</div>
+			</div> */}
 
 			{/* Search bar */}
 			<div className="relative max-w-sm">

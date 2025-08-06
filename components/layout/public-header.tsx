@@ -51,18 +51,20 @@ export function PublicHeader() {
 
 				{/* Desktop CTA */}
 				<div className="hidden items-center gap-4 md:flex">
-					{isLoaded && !user && (
+					{!isLoaded ? (
+						// Loading placeholder to prevent hydration mismatch
+						<div className="h-10 w-20 animate-pulse rounded-md bg-muted" />
+					) : !user ? (
 						<>
 							<Button variant="ghost" onClick={() => openSignIn()}>
 								Sign In
 							</Button>
 							<Button onClick={() => openSignIn()}>Get Started</Button>
 						</>
-					)}
-					{isLoaded && user && (
-						<Link href="/dashboard">
-							<Button>Dashboard</Button>
-						</Link>
+					) : (
+						<Button asChild>
+							<Link href="/dashboard">Dashboard</Link>
+						</Button>
 					)}
 				</div>
 
@@ -89,7 +91,10 @@ export function PublicHeader() {
 								</Link>
 							))}
 							<div className="space-y-3 border-t pt-4">
-								{isLoaded && !user && (
+								{!isLoaded ? (
+									// Loading placeholder
+									<div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+								) : !user ? (
 									<>
 										<Button
 											variant="outline"
@@ -111,11 +116,12 @@ export function PublicHeader() {
 											Get Started
 										</Button>
 									</>
-								)}
-								{isLoaded && user && (
-									<Link href="/dashboard" onClick={() => setIsOpen(false)}>
-										<Button className="w-full">Dashboard</Button>
-									</Link>
+								) : (
+									<Button asChild className="w-full">
+										<Link href="/dashboard" onClick={() => setIsOpen(false)}>
+											Dashboard
+										</Link>
+									</Button>
 								)}
 							</div>
 						</nav>

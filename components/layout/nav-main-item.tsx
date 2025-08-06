@@ -4,7 +4,7 @@ import { ChevronRight, type LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -39,7 +39,7 @@ interface NavMainItemProps {
 }
 
 // Sub-item component to avoid hooks in loops
-function NavSubItem({
+const NavSubItem = React.memo(function NavSubItem({
 	subItem,
 	segment,
 	isMobile,
@@ -112,9 +112,11 @@ function NavSubItem({
 			</SidebarMenuSubButton>
 		</SidebarMenuSubItem>
 	);
-}
+});
 
-export function NavMainItem({ item }: NavMainItemProps) {
+export const NavMainItem = React.memo(function NavMainItem({
+	item,
+}: NavMainItemProps) {
 	const segment = useSelectedLayoutSegment();
 	const { setOpenMobile, isMobile } = useSidebar();
 	const [isPending, startTransition] = useTransition();
@@ -276,4 +278,4 @@ export function NavMainItem({ item }: NavMainItemProps) {
 			</SidebarMenuItem>
 		</Collapsible>
 	);
-}
+});

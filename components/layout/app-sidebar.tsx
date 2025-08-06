@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import type * as React from "react";
 import { NotificationsSidebarItem } from "@/components/notifications/notifications-sidebar-item";
 import { useAnimalForm } from "@/components/providers/animal-form-provider";
 import { useInventoryForm } from "@/components/providers/inventory-form-provider";
@@ -140,7 +139,7 @@ const data = {
 	],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: Parameters<typeof Sidebar>[0]) {
 	const { openForm } = useAnimalForm();
 	const { openForm: openInventoryForm } = useInventoryForm();
 
