@@ -42,6 +42,9 @@ export const metadata: Metadata = {
 		description:
 			"Track pet medications and never miss a dose. Simple, reliable medication management for your furry friends.",
 	},
+	appleWebApp: {
+		title: "VetMed",
+	},
 };
 
 export default function RootLayout({
@@ -58,7 +61,7 @@ export default function RootLayout({
 			>
 				<head>
 					{/* <script src="http://localhost:8097"></script> */}
-					<meta name="apple-mobile-web-app-title" content="VetMed Tracker" />
+					<meta name="apple-mobile-web-app-title" content="VetMed" />
 				</head>
 				<body className={inter.className} suppressHydrationWarning>
 					<ThemeProvider

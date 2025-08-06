@@ -2,13 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
 	return {
-		name: "VetMed Tracker - Pet Medication Management",
-		short_name: "VetMed Tracker",
+		name: "VetMed Tracker",
+		short_name: "VetMed",
 		description:
 			"Track pet medications, set reminders, and manage veterinary prescriptions with ease",
 		start_url: "/",
 		display: "standalone",
-		background_color: "#000000",
+		background_color: "#404040",
 		theme_color: "#ffffff",
 		orientation: "portrait-primary",
 		icons: [
@@ -19,26 +19,14 @@ export default function manifest(): MetadataRoute.Manifest {
 				purpose: "maskable",
 			},
 			{
-				src: "/web-app-manifest-192x192.png",
-				sizes: "192x192",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
 				src: "/web-app-manifest-512x512.png",
 				sizes: "512x512",
 				type: "image/png",
 				purpose: "maskable",
 			},
-			{
-				src: "/web-app-manifest-512x512.png",
-				sizes: "512x512",
-				type: "image/png",
-				purpose: "any",
-			},
 		],
 		categories: ["health", "medical", "productivity"],
-		screenshots: [
+		/* screenshots: [
 			{
 				src: "/screenshot-mobile.png",
 				sizes: "390x844",
@@ -51,6 +39,6 @@ export default function manifest(): MetadataRoute.Manifest {
 				type: "image/png",
 				form_factor: "wide",
 			},
-		],
+		], */
 	};
 }
