@@ -117,7 +117,7 @@ export function PublicFooter() {
 						<p className="text-muted-foreground text-sm">
 							© {new Date().getFullYear()} VetMed Tracker. All rights reserved.
 						</p>
-						<div className="flex gap-6">
+						<div className="flex hidden gap-6">
 							<Link
 								href="https://twitter.com/vetmedtracker"
 								className="text-muted-foreground text-sm transition-colors hover:text-foreground"

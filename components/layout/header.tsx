@@ -1,6 +1,6 @@
 "use client";
 
-import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useIsMobile } from "@/hooks/shared/useResponsive";
 import { UserMenu } from "../auth/user-menu";
 import { AnimalBreadcrumb } from "../ui/animal-breadcrumb";
 import { HouseholdSwitcher } from "../ui/household-switcher";
@@ -10,7 +10,7 @@ import { SidebarTrigger } from "../ui/sidebar";
 import { SyncStatus } from "../ui/sync-status";
 
 export function Header() {
-	const isMobile = useMediaQuery("(max-width: 768px)");
+	const isMobile = useIsMobile();
 
 	return (
 		<header className="w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">

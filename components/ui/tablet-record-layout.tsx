@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, X } from "lucide-react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MobileMedicationCard } from "@/components/ui/mobile-medication-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useIsTablet } from "@/hooks/shared/useResponsive";
 
 interface DueRegimen {
 	id: string;
@@ -87,7 +87,7 @@ export function TabletRecordLayout({
 	onCancel,
 	children,
 }: TabletRecordLayoutProps) {
-	const isTablet = useMediaQuery("(min-width: 769px) and (max-width: 1024px)");
+	const isTablet = useIsTablet();
 	const { animals, selectedHousehold } = useApp();
 
 	// If not tablet, return children as-is (fallback to other layouts)

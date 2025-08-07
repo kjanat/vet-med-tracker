@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/mobile-record-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useIsMobile } from "@/hooks/shared/useResponsive";
 
 interface DueRegimen {
 	id: string;
@@ -154,7 +154,7 @@ export function MobileRecordLayout({
 	children,
 }: MobileRecordLayoutProps) {
 	// All hooks must be called at the top level, before any early returns
-	const isMobile = useMediaQuery("(max-width: 768px)");
+	const isMobile = useIsMobile();
 	const { animals, selectedHousehold } = useApp();
 	const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
 

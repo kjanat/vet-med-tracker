@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useApp } from "../providers/app-provider";
+import { useApp } from "../providers/app-provider-consolidated";
 import { OfflineBanner } from "../ui/offline-banner";
 
 export function GlobalLayout({ children }: { children: ReactNode }) {

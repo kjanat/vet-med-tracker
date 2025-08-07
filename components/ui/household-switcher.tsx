@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getAvatarColor } from "@/lib/utils/avatar-utils";
 import { cn } from "@/lib/utils/general";
-import { useApp } from "../providers/app-provider";
+import { useApp } from "../providers/app-provider-consolidated";
 
 export function HouseholdSwitcher() {
 	const { selectedHousehold, setSelectedHousehold, households } = useApp();

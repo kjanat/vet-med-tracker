@@ -2,7 +2,7 @@
 
 import { ArrowLeft, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Button } from "@/components/ui/button";
 

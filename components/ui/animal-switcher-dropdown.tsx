@@ -9,7 +9,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useApp } from "../providers/app-provider";
+import { useApp } from "../providers/app-provider-consolidated";
 import { AnimalAvatar } from "./animal-avatar";
 
 // Pages where animal context is relevant

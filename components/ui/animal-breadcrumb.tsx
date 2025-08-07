@@ -17,7 +17,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils/general";
-import { useApp } from "../providers/app-provider";
+import { useApp } from "../providers/app-provider-consolidated";
 import { AnimalAvatar } from "./animal-avatar";
 
 // Pages where animal context is relevant

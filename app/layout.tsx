@@ -5,15 +5,11 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 // import { DebugHouseholdState } from "@/components/debug/debug-household-state";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { GlobalKeyboardShortcuts } from "@/components/layout/global-keyboard-shortcuts";
 import { GlobalLayout } from "@/components/layout/global-layout";
-import { AppProvider } from "@/components/providers/app-provider";
-import { AuthProvider } from "@/components/providers/auth-provider";
-import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts-provider";
+import { ConsolidatedAppProvider } from "@/components/providers/app-provider-consolidated";
 import { ThemeProvider } from "@/components/theme-provider";
-import {
-	GlobalScreenReaderProvider,
-	SkipNavigation,
-} from "@/components/ui/screen-reader-announcer";
+import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
 import { TRPCProvider } from "@/server/trpc/client";
 import { inter, jetbrainsMono } from "./fonts";
 
@@ -60,8 +56,6 @@ export default function RootLayout({
 				suppressHydrationWarning
 			>
 				<head>
-					{/* <script src="http://localhost:8097"></script> */}
-					<script src="https://unpkg.com/react-scan/dist/auto.global.js" />
 					<meta name="apple-mobile-web-app-title" content="VetMed" />
 				</head>
 				<body className={inter.className} suppressHydrationWarning>
@@ -78,19 +72,14 @@ export default function RootLayout({
 								{ href: "#search", label: "Skip to search" },
 							]}
 						/>
-						<ErrorBoundary errorBoundaryId="root">
-							<TRPCProvider>
-								<AuthProvider>
-									<AppProvider>
-										<GlobalScreenReaderProvider>
-											<KeyboardShortcutsProvider>
-												<GlobalLayout>{children}</GlobalLayout>
-											</KeyboardShortcutsProvider>
-										</GlobalScreenReaderProvider>
-									</AppProvider>
-								</AuthProvider>
-							</TRPCProvider>
-						</ErrorBoundary>
+						<TRPCProvider>
+							<ErrorBoundary errorBoundaryId="root">
+								<ConsolidatedAppProvider>
+									<GlobalKeyboardShortcuts />
+									<GlobalLayout>{children}</GlobalLayout>
+								</ConsolidatedAppProvider>
+							</ErrorBoundary>
+						</TRPCProvider>
 						<Analytics />
 					</ThemeProvider>
 				</body>

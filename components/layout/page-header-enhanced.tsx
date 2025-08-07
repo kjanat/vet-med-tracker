@@ -2,8 +2,8 @@
 
 import { FileText, Plus, Syringe } from "lucide-react";
 import { useSelectedLayoutSegments } from "next/navigation";
-import { useAnimalForm } from "@/components/providers/animal-form-provider";
-import { useInventoryForm } from "@/components/providers/inventory-form-provider";
+import { useAnimalFormDialog } from "@/components/forms/animal-form-dialog";
+import { useInventoryFormDialog } from "@/components/forms/inventory-form-dialog";
 import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -23,8 +23,8 @@ interface PageContext {
 
 export function PageHeaderEnhanced({ className }: PageHeaderProps) {
 	const segments = useSelectedLayoutSegments();
-	const { openForm: openAnimalForm } = useAnimalForm();
-	const { openForm: openInventoryForm } = useInventoryForm();
+	const { openAnimalForm } = useAnimalFormDialog();
+	const { openInventoryForm } = useInventoryFormDialog();
 
 	// Filter out route groups
 	const filteredSegments = segments.filter(

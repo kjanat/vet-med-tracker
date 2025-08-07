@@ -13,9 +13,9 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useAnimalFormDialog } from "@/components/forms/animal-form-dialog";
+import { useInventoryFormDialog } from "@/components/forms/inventory-form-dialog";
 import { NotificationsSidebarItem } from "@/components/notifications/notifications-sidebar-item";
-import { useAnimalForm } from "@/components/providers/animal-form-provider";
-import { useInventoryForm } from "@/components/providers/inventory-form-provider";
 import {
 	Sidebar,
 	SidebarContent,
@@ -140,8 +140,8 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: Parameters<typeof Sidebar>[0]) {
-	const { openForm } = useAnimalForm();
-	const { openForm: openInventoryForm } = useInventoryForm();
+	const { openAnimalForm } = useAnimalFormDialog();
+	const { openInventoryForm } = useInventoryFormDialog();
 
 	// Add click handlers for dialog-based actions
 	const navMainWithHandlers = data.navMain.map((item) => ({
@@ -151,7 +151,7 @@ export function AppSidebar({ ...props }: Parameters<typeof Sidebar>[0]) {
 			if (subItem.title === "Add Animal") {
 				return {
 					...subItem,
-					onClick: () => openForm(),
+					onClick: () => openAnimalForm(),
 					url: undefined, // Remove the URL to prevent navigation
 				};
 			}

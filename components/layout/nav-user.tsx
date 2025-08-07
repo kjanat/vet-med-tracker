@@ -3,7 +3,7 @@
 import { Bell, ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/providers/auth-provider";
+import { useAuth } from "@/components/providers/app-provider-consolidated";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
