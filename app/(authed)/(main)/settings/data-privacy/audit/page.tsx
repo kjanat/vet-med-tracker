@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowLeft, Database, Download, Filter } from "lucide-react";
+import { ArrowLeft, Database, Download, Filter, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,78 +21,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-
-interface AuditEntry {
-	id: string;
-	userId: string;
-	userName: string;
-	action: string;
-	details: string;
-	timestamp: Date;
-	ipAddress?: string;
-}
-
-// Mock audit data - replace with tRPC
-const mockAuditEntries: AuditEntry[] = [
-	{
-		id: "1",
-		userId: "user-1",
-		userName: "John Smith",
-		action: "admin.create",
-		details: "Recorded Rimadyl for Buddy",
-		timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-		ipAddress: "192.168.1.100",
-	},
-	{
-		id: "2",
-		userId: "user-2",
-		userName: "Jane Doe",
-		action: "inventory.set_in_use",
-		details: "Set Insulin as in use for Whiskers",
-		timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-		ipAddress: "192.168.1.101",
-	},
-	{
-		id: "3",
-		userId: "user-1",
-		userName: "John Smith",
-		action: "regimen.create",
-		details: "Created PRN regimen for Buddy - Pain Relief",
-		timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-		ipAddress: "192.168.1.100",
-	},
-	{
-		id: "4",
-		userId: "user-2",
-		userName: "Jane Doe",
-		action: "admin.edit",
-		details: "Updated administration time for Whiskers - Insulin",
-		timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-		ipAddress: "192.168.1.101",
-	},
-	{
-		id: "5",
-		userId: "user-1",
-		userName: "John Smith",
-		action: "inventory.add",
-		details: "Added Rimadyl 75mg - 30 tablets",
-		timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-		ipAddress: "192.168.1.100",
-	},
-];
-
-const actionTypes = [
-	{ value: "all", label: "All Actions" },
-	{ value: "admin", label: "Administrations" },
-	{ value: "inventory", label: "Inventory" },
-	{ value: "regimen", label: "Regimens" },
-	{ value: "animal", label: "Animals" },
-	{ value: "household", label: "Household" },
-];
+import type { AuditEntry } from "@/lib/schemas/audit";
+import { trpc } from "@/server/trpc/client";
 
 function AuditLogContent() {
 	const router = useRouter();
-	const [auditEntries] = useState(mockAuditEntries);
+	const { selectedHouseholdId } = useApp();
 	const [filterUser, setFilterUser] = useState("");
 	const [filterAction, setFilterAction] = useState("all");
 	const [isClient, setIsClient] = useState(false);
@@ -100,23 +35,129 @@ function AuditLogContent() {
 		setIsClient(true);
 	}, []);
 
-	const filteredEntries = auditEntries.filter((entry) => {
-		if (
-			filterUser &&
-			!entry.userName.toLowerCase().includes(filterUser.toLowerCase())
-		) {
-			return false;
+	// Fetch audit logs
+	const {
+		data: auditData,
+		isLoading: isLoadingAudit,
+		error: auditError,
+	} = trpc.audit.list.useQuery(
+		{
+			householdId: selectedHouseholdId || "",
+			limit: 100,
+			action: filterAction === "all" ? undefined : filterAction,
+			search: filterUser || undefined,
+		},
+		{ enabled: !!selectedHouseholdId },
+	);
+
+	// Fetch action types for filtering
+	const { data: actionTypes } = trpc.audit.getActionTypes.useQuery(
+		{ householdId: selectedHouseholdId || "" },
+		{ enabled: !!selectedHouseholdId },
+	);
+
+	// Format action types for select component
+	const actionOptions = useMemo(() => {
+		const baseOptions = [{ value: "all", label: "All Actions" }];
+		if (actionTypes) {
+			return baseOptions.concat(
+				actionTypes.map((action) => ({
+					value: action,
+					label:
+						action.charAt(0).toUpperCase() +
+						action.slice(1).replace(/[._]/g, " "),
+				})),
+			);
 		}
-		if (filterAction !== "all" && !entry.action.startsWith(filterAction)) {
-			return false;
-		}
-		return true;
-	});
+		return baseOptions;
+	}, [actionTypes]);
+
+	// Transform the audit entries to match the expected format
+	const auditEntries: AuditEntry[] = useMemo(() => {
+		if (!auditData?.entries) return [];
+
+		return auditData.entries.map((entry) => ({
+			id: entry.id,
+			userId: entry.userId,
+			userName: entry.userName || "Unknown User",
+			userEmail: entry.userEmail,
+			action: entry.action,
+			resourceType: entry.resourceType,
+			resourceId: entry.resourceId,
+			details: entry.details,
+			timestamp: entry.timestamp,
+			ipAddress: entry.ipAddress,
+			userAgent: entry.userAgent,
+			sessionId: entry.sessionId,
+		}));
+	}, [auditData]);
 
 	const handleExport = () => {
 		// TODO: Implement export functionality
 		console.log("Exporting audit log...");
 	};
+
+	// Show loading state
+	if (isLoadingAudit) {
+		return (
+			<div className="space-y-6">
+				<div className="flex items-center gap-4">
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => router.push("/settings/data-privacy")}
+						className="shrink-0"
+					>
+						<ArrowLeft className="h-4 w-4" />
+					</Button>
+					<div className="flex-1">
+						<h1 className="font-bold text-2xl md:text-3xl">Audit Log</h1>
+						<p className="text-muted-foreground text-sm md:text-base">
+							View all activity in your household
+						</p>
+					</div>
+				</div>
+				<Card>
+					<CardContent className="py-8">
+						<div className="flex justify-center">
+							<Loader2 className="h-8 w-8 animate-spin" />
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
+	// Show error state
+	if (auditError) {
+		return (
+			<div className="space-y-6">
+				<div className="flex items-center gap-4">
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => router.push("/settings/data-privacy")}
+						className="shrink-0"
+					>
+						<ArrowLeft className="h-4 w-4" />
+					</Button>
+					<div className="flex-1">
+						<h1 className="font-bold text-2xl md:text-3xl">Audit Log</h1>
+						<p className="text-muted-foreground text-sm md:text-base">
+							View all activity in your household
+						</p>
+					</div>
+				</div>
+				<Card>
+					<CardContent className="py-8">
+						<div className="text-center text-red-500">
+							Failed to load audit log: {auditError.message}
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-6">
@@ -146,7 +187,7 @@ function AuditLogContent() {
 								Activity History
 							</CardTitle>
 							<CardDescription>
-								{filteredEntries.length} entries found
+								{auditEntries.length} entries found
 							</CardDescription>
 						</div>
 						<Button
@@ -177,7 +218,7 @@ function AuditLogContent() {
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{actionTypes.map((type) => (
+								{actionOptions.map((type) => (
 									<SelectItem key={type.value} value={type.value}>
 										{type.label}
 									</SelectItem>
@@ -188,7 +229,7 @@ function AuditLogContent() {
 
 					{/* Entries */}
 					<div className="space-y-3">
-						{filteredEntries.map((entry) => (
+						{auditEntries.map((entry) => (
 							<div
 								key={entry.id}
 								className="flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -199,19 +240,30 @@ function AuditLogContent() {
 										<Badge variant="outline" className="text-xs">
 											{entry.action}
 										</Badge>
+										{entry.resourceType && (
+											<Badge variant="secondary" className="text-xs">
+												{entry.resourceType}
+											</Badge>
+										)}
 									</div>
 									<div className="text-muted-foreground text-sm">
-										{entry.details}
+										{entry.details
+											? typeof entry.details === "string"
+												? entry.details
+												: `${entry.action} on ${entry.resourceType}${entry.resourceId ? ` (${entry.resourceId.slice(0, 8)}...)` : ""}`
+											: `${entry.action} on ${entry.resourceType}`}
 									</div>
 									<div className="text-muted-foreground text-xs">
-										{isClient ? entry.timestamp.toLocaleString() : "..."}
+										{isClient
+											? new Date(entry.timestamp).toLocaleString()
+											: "..."}
 										{entry.ipAddress && ` • ${entry.ipAddress}`}
 									</div>
 								</div>
 							</div>
 						))}
 
-						{filteredEntries.length === 0 && (
+						{auditEntries.length === 0 && (
 							<div className="py-8 text-center text-muted-foreground">
 								<Database className="mx-auto mb-2 h-8 w-8 opacity-50" />
 								<p>No audit entries found</p>

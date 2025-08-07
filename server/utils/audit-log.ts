@@ -1,6 +1,8 @@
-// Audit logging helper - TODO: Implement when audit_log table is added
+import { auditLog } from "@/db/schema";
+
+// Audit logging helper
 export const createAuditLog = async (
-	_db: typeof import("@/db/drizzle").db,
+	db: typeof import("@/db/drizzle").db,
 	{
 		userId,
 		householdId,
@@ -12,6 +14,9 @@ export const createAuditLog = async (
 		oldValues,
 		newValues,
 		details,
+		ipAddress,
+		userAgent,
+		sessionId,
 	}: {
 		userId: string;
 		householdId: string;
@@ -23,18 +28,27 @@ export const createAuditLog = async (
 		oldValues?: Record<string, unknown>;
 		newValues?: Record<string, unknown>;
 		details?: Record<string, unknown>;
+		ipAddress?: string;
+		userAgent?: string;
+		sessionId?: string;
 	},
 ) => {
-	// TODO: Implement audit logging when audit_log table is added to schema
-	console.log("Audit log:", {
-		userId,
-		householdId,
-		action,
-		resourceType: resourceType || tableName,
-		resourceId: resourceId || recordId,
-		oldValues,
-		newValues,
-		details,
-		timestamp: new Date().toISOString(),
-	});
+	try {
+		await db.insert(auditLog).values({
+			userId,
+			householdId,
+			action,
+			resourceType: resourceType || tableName || "unknown",
+			resourceId: resourceId || recordId || null,
+			oldValues: oldValues || null,
+			newValues: newValues || null,
+			details: details || null,
+			ipAddress: ipAddress || null,
+			userAgent: userAgent || null,
+			sessionId: sessionId || null,
+		});
+	} catch (error) {
+		console.error("Failed to create audit log:", error);
+		// Don't throw - audit logging should not break the main operation
+	}
 };

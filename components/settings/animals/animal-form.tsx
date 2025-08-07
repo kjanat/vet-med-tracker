@@ -28,6 +28,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
 import { type AnimalFormData, animalFormSchema } from "@/lib/schemas/animal";
 import type { Animal } from "@/lib/utils/types";
@@ -63,6 +64,9 @@ export function AnimalForm({
 			timezone: "America/New_York",
 			vetName: undefined,
 			vetPhone: undefined,
+			vetEmail: undefined,
+			clinicName: undefined,
+			notes: undefined,
 			allergies: [],
 			conditions: [],
 			photoUrl: undefined,
@@ -84,6 +88,9 @@ export function AnimalForm({
 				timezone: animal.timezone || "America/New_York",
 				vetName: animal.vetName || "",
 				vetPhone: animal.vetPhone || "",
+				vetEmail: animal.vetEmail || "",
+				clinicName: animal.clinicName || "",
+				notes: animal.notes || "",
 				allergies: animal.allergies || [],
 				conditions: animal.conditions || [],
 			});
@@ -401,6 +408,54 @@ export function AnimalForm({
 									)}
 								/>
 							</div>
+
+							<div className="grid grid-cols-2 gap-4">
+								<FormField
+									control={form.control}
+									name="vetEmail"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Veterinarian Email</FormLabel>
+											<FormControl>
+												<Input type="email" {...field} />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormField
+									control={form.control}
+									name="clinicName"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Clinic Name</FormLabel>
+											<FormControl>
+												<Input {...field} />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+
+							<FormField
+								control={form.control}
+								name="notes"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Notes</FormLabel>
+										<FormControl>
+											<Textarea
+												placeholder="Additional notes about the animal..."
+												className="min-h-[100px]"
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 						</div>
 
 						{/* Medical Info */}

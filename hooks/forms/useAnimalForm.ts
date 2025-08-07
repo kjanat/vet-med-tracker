@@ -142,6 +142,9 @@ export function useAnimalForm(
 			timezone: BROWSER_ZONE || "America/New_York",
 			vetName: "",
 			vetPhone: "",
+			vetEmail: "",
+			clinicName: "",
+			notes: "",
 			allergies: [],
 			conditions: [],
 			photoUrl: "",
@@ -219,6 +222,9 @@ export function useAnimalForm(
 			color: data.color || undefined,
 			vetName: data.vetName || undefined,
 			vetPhone: data.vetPhone || undefined,
+			vetEmail: data.vetEmail || undefined,
+			clinicName: data.clinicName || undefined,
+			notes: data.notes || undefined,
 			photoUrl: data.photoUrl || undefined,
 		};
 	}, []);
@@ -269,42 +275,69 @@ export function useAnimalForm(
 	);
 
 	/**
+	 * Get form data from existing animal
+	 */
+	const getFormDataFromAnimal = useCallback(
+		(animal: Animal): AnimalFormData => {
+			return {
+				name: animal.name,
+				species: animal.species,
+				breed: animal.breed || "",
+				sex: animal.sex,
+				neutered: animal.neutered || false,
+				dob: animal.dob,
+				weightKg: animal.weightKg,
+				microchipId: animal.microchipId || "",
+				color: animal.color || "",
+				timezone: animal.timezone || BROWSER_ZONE || "America/New_York",
+				vetName: animal.vetName || "",
+				vetPhone: animal.vetPhone || "",
+				vetEmail: animal.vetEmail || "",
+				clinicName: animal.clinicName || "",
+				notes: animal.notes || "",
+				allergies: animal.allergies || [],
+				conditions: animal.conditions || [],
+				// Use photo property from Animal type instead of photoUrl
+				photoUrl: animal.photo || "",
+			};
+		},
+		[],
+	);
+
+	/**
+	 * Initialize form state for opening
+	 */
+	const initializeFormState = useCallback((animal?: Animal | null) => {
+		setEditingAnimal(animal || null);
+		setIsOpen(true);
+		setIsDirty(false);
+	}, []);
+
+	/**
+	 * Setup form data based on animal
+	 */
+	const setupFormData = useCallback(
+		(animal?: Animal | null) => {
+			if (animal) {
+				const formData = getFormDataFromAnimal(animal);
+				form.reset(formData);
+			} else {
+				form.reset();
+			}
+		},
+		[form, getFormDataFromAnimal],
+	);
+
+	/**
 	 * Open the form for creating or editing an animal
 	 */
 	const openForm = useCallback(
 		(animal?: Animal | null) => {
-			setEditingAnimal(animal || null);
-			setIsOpen(true);
-			setIsDirty(false);
-
-			if (animal) {
-				// Populate form with existing animal data
-				form.reset({
-					name: animal.name,
-					species: animal.species,
-					breed: animal.breed || "",
-					sex: animal.sex,
-					neutered: animal.neutered || false,
-					dob: animal.dob,
-					weightKg: animal.weightKg,
-					microchipId: animal.microchipId || "",
-					color: animal.color || "",
-					timezone: animal.timezone || BROWSER_ZONE || "America/New_York",
-					vetName: animal.vetName || "",
-					vetPhone: animal.vetPhone || "",
-					allergies: animal.allergies || [],
-					conditions: animal.conditions || [],
-					// Use photo property from Animal type instead of photoUrl
-					photoUrl: animal.photo || "",
-				});
-			} else {
-				// Reset to default values for new animal
-				form.reset();
-			}
-
+			initializeFormState(animal);
+			setupFormData(animal);
 			onOpen?.(animal || null);
 		},
-		[form, onOpen],
+		[initializeFormState, setupFormData, onOpen],
 	);
 
 	/**
@@ -458,6 +491,9 @@ export function useSimpleAnimalForm(animal?: Animal | null) {
 			timezone: animal.timezone || BROWSER_ZONE || "America/New_York",
 			vetName: animal.vetName || "",
 			vetPhone: animal.vetPhone || "",
+			vetEmail: animal.vetEmail || "",
+			clinicName: animal.clinicName || "",
+			notes: animal.notes || "",
 			allergies: animal.allergies || [],
 			conditions: animal.conditions || [],
 			// Use photo property from Animal type instead of photoUrl

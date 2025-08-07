@@ -3,6 +3,7 @@
 import { formatDistanceToNow } from "date-fns";
 import { Bell, CheckCircle, Clock, Package } from "lucide-react";
 import { useState } from "react";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,77 +15,59 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { trpc } from "@/server/trpc/client";
 
 interface Notification {
 	id: string;
-	type: "medication" | "inventory" | "system";
+	type: string;
 	title: string;
 	message: string;
-	timestamp: Date;
+	createdAt: string;
 	read: boolean;
-	actionUrl?: string;
+	actionUrl?: string | null;
+	priority: string;
 }
 
 interface NotificationDropdownProps {
-	notifications?: Notification[];
-	notificationCount?: number;
+	householdId?: string;
 }
 
-// Mock notifications - replace with tRPC query
-const mockNotifications: Notification[] = [
-	{
-		id: "1",
-		type: "medication",
-		title: "Buddy - Medication Due",
-		message: "Rimadyl 75mg due now",
-		timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-		read: false,
-		actionUrl: "/admin/record",
-	},
-	{
-		id: "2",
-		type: "medication",
-		title: "Whiskers - Late Dose",
-		message: "Insulin is 30 minutes late",
-		timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-		read: false,
-		actionUrl: "/admin/record",
-	},
-	{
-		id: "3",
-		type: "inventory",
-		title: "Low Stock Alert",
-		message: "Rimadyl running low - 5 doses left",
-		timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-		read: false,
-		actionUrl: "/inventory",
-	},
-	{
-		id: "4",
-		type: "inventory",
-		title: "Medication Expiring",
-		message: "Joint Supplement expires in 7 days",
-		timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
-		read: true,
-		actionUrl: "/inventory",
-	},
-	{
-		id: "5",
-		type: "system",
-		title: "Sync Complete",
-		message: "All records synced successfully",
-		timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-		read: true,
-	},
-];
-
 export function NotificationDropdown({
-	notifications = mockNotifications,
-	notificationCount,
+	householdId,
 }: NotificationDropdownProps) {
 	const [open, setOpen] = useState(false);
-	const unreadCount =
-		notificationCount ?? notifications.filter((n) => !n.read).length;
+	const { selectedHouseholdId } = useApp();
+
+	// Use provided householdId or fall back to current household
+	const effectiveHouseholdId = householdId || selectedHouseholdId;
+
+	// Fetch notifications
+	const { data: notifications = [], refetch: refetchNotifications } =
+		trpc.notifications.list.useQuery({
+			householdId: effectiveHouseholdId || undefined,
+			limit: 20,
+		});
+
+	// Fetch unread count
+	const { data: unreadCount = 0, refetch: refetchUnreadCount } =
+		trpc.notifications.getUnreadCount.useQuery({
+			householdId: effectiveHouseholdId || undefined,
+		});
+
+	// Mutations
+	const markAsReadMutation = trpc.notifications.markAsRead.useMutation({
+		onSuccess: () => {
+			refetchNotifications();
+			refetchUnreadCount();
+		},
+	});
+
+	const markAllAsReadMutation = trpc.notifications.markAllAsRead.useMutation({
+		onSuccess: () => {
+			refetchNotifications();
+			refetchUnreadCount();
+		},
+	});
 
 	const getIcon = (type: Notification["type"]) => {
 		switch (type) {
@@ -109,17 +92,31 @@ export function NotificationDropdown({
 		}
 	};
 
-	const handleNotificationClick = (notification: Notification) => {
-		// TODO: Mark as read via tRPC mutation
+	const handleNotificationClick = async (notification: Notification) => {
+		// Mark as read if not already read
+		if (!notification.read) {
+			try {
+				await markAsReadMutation.mutateAsync({ id: notification.id });
+			} catch (error) {
+				console.error("Failed to mark notification as read:", error);
+			}
+		}
 
+		// Navigate to action URL if available
 		if (notification.actionUrl) {
 			window.location.href = notification.actionUrl;
 		}
 		setOpen(false);
 	};
 
-	const handleMarkAllAsRead = () => {
-		// TODO: Mark all as read via tRPC mutation
+	const handleMarkAllAsRead = async () => {
+		try {
+			await markAllAsReadMutation.mutateAsync({
+				householdId: effectiveHouseholdId || undefined,
+			});
+		} catch (error) {
+			console.error("Failed to mark all notifications as read:", error);
+		}
 	};
 
 	return (
@@ -186,7 +183,7 @@ export function NotificationDropdown({
 										{notification.message}
 									</p>
 									<p className="text-muted-foreground text-xs">
-										{formatDistanceToNow(notification.timestamp, {
+										{formatDistanceToNow(new Date(notification.createdAt), {
 											addSuffix: true,
 										})}
 									</p>

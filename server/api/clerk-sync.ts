@@ -12,6 +12,8 @@ export interface ClerkUserData {
 	userId: string;
 	email: string;
 	name?: string;
+	firstName?: string;
+	lastName?: string;
 	image?: string;
 	vetMedPreferences?: VetMedPreferences;
 	householdSettings?: HouseholdSettings;
@@ -26,6 +28,8 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 		userId: clerkUserId,
 		email,
 		name,
+		firstName,
+		lastName,
 		image,
 		vetMedPreferences,
 		householdSettings,
@@ -47,6 +51,8 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 			clerkUserId,
 			email,
 			name,
+			firstName,
+			lastName,
 			image,
 			// Sync VetMed preferences to database columns
 			...(vetMedPreferences && {

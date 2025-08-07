@@ -14,6 +14,9 @@ export interface Animal {
 	timezone: string;
 	vetName?: string;
 	vetPhone?: string;
+	vetEmail?: string | null;
+	clinicName?: string | null;
+	notes?: string | null;
 	allergies: string[];
 	conditions: string[];
 	avatar?: string;

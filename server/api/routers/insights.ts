@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, notInArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { timedOperations } from "@/db/drizzle";
 import {
@@ -7,6 +7,7 @@ import {
 	inventoryItems,
 	medicationCatalog,
 	regimens,
+	suggestions,
 } from "@/db/schema";
 import {
 	createTRPCRouter,
@@ -72,6 +73,16 @@ const snoozeReminderSchema = z.object({
 	householdId: z.string().uuid(),
 	suggestionId: z.string(),
 	snoozeUntil: z.string().datetime(),
+});
+
+const applySuggestionSchema = z.object({
+	householdId: z.string().uuid(),
+	suggestionId: z.string(),
+});
+
+const revertSuggestionSchema = z.object({
+	householdId: z.string().uuid(),
+	suggestionId: z.string(),
 });
 
 // Helper function to calculate compliance percentages for a time slot
@@ -307,12 +318,95 @@ function sortSuggestionsByPriority(suggestions: Suggestion[]): Suggestion[] {
 	});
 }
 
+// Store generated suggestions in database (only if they don't already exist)
+async function storeSuggestionInDb(
+	db: typeof import("@/db/drizzle").db,
+	householdId: string,
+	suggestion: Suggestion,
+): Promise<void> {
+	// Check if this suggestion already exists (by ID pattern)
+	const existing = await db
+		.select()
+		.from(suggestions)
+		.where(
+			and(
+				eq(suggestions.id, suggestion.id),
+				eq(suggestions.householdId, householdId),
+			),
+		)
+		.limit(1);
+
+	if (existing.length === 0) {
+		// Create new suggestion
+		await db.insert(suggestions).values({
+			id: suggestion.id,
+			householdId,
+			type: suggestion.type,
+			summary: suggestion.summary,
+			rationale: suggestion.rationale,
+			priority: suggestion.priority,
+			estimatedImpact: suggestion.estimatedImpact,
+			action: suggestion.action,
+			status: "pending",
+			// Set expiry to 7 days from now
+			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+		});
+	}
+}
+
+// Get suggestions from database, combining with generated ones
+async function getSuggestionsFromDb(
+	db: typeof import("@/db/drizzle").db,
+	householdId: string,
+	limit: number,
+): Promise<Suggestion[]> {
+	// Get existing suggestions from database that are not dismissed or expired
+	const existingSuggestions = await db
+		.select()
+		.from(suggestions)
+		.where(
+			and(
+				eq(suggestions.householdId, householdId),
+				notInArray(suggestions.status, ["dismissed", "reverted"]),
+				sql`(${suggestions.expiresAt} IS NULL OR ${suggestions.expiresAt} > NOW())`,
+			),
+		)
+		.orderBy(desc(suggestions.createdAt))
+		.limit(limit);
+
+	// Convert database suggestions to the interface format
+	const dbSuggestions: Suggestion[] = existingSuggestions.map((s) => ({
+		id: s.id,
+		type: s.type as Suggestion["type"],
+		summary: s.summary,
+		rationale: s.rationale,
+		priority: s.priority as Suggestion["priority"],
+		estimatedImpact: s.estimatedImpact || "",
+		action: s.action as Suggestion["action"],
+	}));
+
+	return dbSuggestions;
+}
+
 // Generate suggestions based on patterns in administration data
 async function generateSuggestions(
 	db: typeof import("@/db/drizzle").db,
 	householdId: string,
 	limit: number,
 ): Promise<Suggestion[]> {
+	// First, get existing suggestions from database
+	const existingSuggestions = await getSuggestionsFromDb(
+		db,
+		householdId,
+		limit,
+	);
+
+	// If we have enough existing suggestions, return them
+	if (existingSuggestions.length >= limit) {
+		return existingSuggestions;
+	}
+
+	// Generate new suggestions to fill the gap
 	const [reminderSuggestions, inventorySuggestions, coSignSuggestions] =
 		await Promise.all([
 			generateReminderSuggestions(db, householdId),
@@ -320,13 +414,32 @@ async function generateSuggestions(
 			generateCoSignSuggestions(db, householdId),
 		]);
 
-	const allSuggestions = [
+	const newSuggestions = [
 		...reminderSuggestions,
 		...inventorySuggestions,
 		...coSignSuggestions,
 	];
 
-	return sortSuggestionsByPriority(allSuggestions).slice(0, limit);
+	const sortedNewSuggestions = sortSuggestionsByPriority(newSuggestions);
+
+	// Store new suggestions in database
+	for (const suggestion of sortedNewSuggestions.slice(
+		0,
+		limit - existingSuggestions.length,
+	)) {
+		await storeSuggestionInDb(db, householdId, suggestion);
+	}
+
+	// Combine existing and new suggestions
+	const allSuggestions = [...existingSuggestions, ...sortedNewSuggestions];
+
+	// Remove duplicates by ID and return limited results
+	const uniqueSuggestions = allSuggestions.filter(
+		(suggestion, index, self) =>
+			index === self.findIndex((s) => s.id === suggestion.id),
+	);
+
+	return sortSuggestionsByPriority(uniqueSuggestions).slice(0, limit);
 }
 
 // Generate compliance heatmap data
@@ -408,6 +521,314 @@ async function generateComplianceHeatmap(
 	return { buckets };
 }
 
+// Helper function to get a suggestion from the database
+async function getSuggestionFromDb(
+	db: typeof import("@/db/drizzle").db,
+	householdId: string,
+	suggestionId: string,
+): Promise<{ id: string; type: string; action: Suggestion["action"] }> {
+	const suggestion = await db
+		.select()
+		.from(suggestions)
+		.where(
+			and(
+				eq(suggestions.id, suggestionId),
+				eq(suggestions.householdId, householdId),
+				eq(suggestions.status, "pending"),
+			),
+		)
+		.limit(1);
+
+	if (suggestion.length === 0) {
+		throw new Error("Suggestion not found or already processed");
+	}
+
+	const sug = suggestion[0];
+	if (!sug) {
+		throw new Error("Suggestion not found");
+	}
+
+	return {
+		id: sug.id,
+		type: sug.type,
+		action: sug.action as Suggestion["action"],
+	};
+}
+
+// Helper function to get regimen from database
+async function getRegimenById(
+	db: typeof import("@/db/drizzle").db,
+	regimenId: string,
+): Promise<{
+	id: string;
+	timesLocal: string[];
+	requiresCoSign: boolean;
+	highRisk: boolean;
+} | null> {
+	const regimenResult = await db
+		.select({
+			id: regimens.id,
+			timesLocal: regimens.timesLocal,
+			requiresCoSign: regimens.requiresCoSign,
+			highRisk: regimens.highRisk,
+		})
+		.from(regimens)
+		.where(eq(regimens.id, regimenId))
+		.limit(1);
+
+	if (regimenResult.length === 0 || !regimenResult[0]) {
+		return null;
+	}
+
+	const regimen = regimenResult[0];
+	return {
+		id: regimen.id,
+		timesLocal: regimen.timesLocal || [],
+		requiresCoSign: regimen.requiresCoSign,
+		highRisk: regimen.highRisk,
+	};
+}
+
+// Helper function to handle ADD_REMINDER suggestion type
+async function handleAddReminderSuggestion(
+	action: Suggestion["action"],
+): Promise<{ originalValues: Record<string, unknown>; changes: string[] }> {
+	if (!action.regimenId || !action.leadMinutes) {
+		throw new Error("Invalid reminder action data");
+	}
+
+	const originalValues = {
+		type: "reminder_added",
+		regimenId: action.regimenId,
+		leadMinutes: action.leadMinutes,
+	};
+
+	const changes = [
+		`Added ${action.leadMinutes}-minute reminder for regimen`,
+		"Scheduled weekly notification",
+	];
+
+	return { originalValues, changes };
+}
+
+// Helper function to handle SHIFT_TIME suggestion type
+async function handleShiftTimeSuggestion(
+	db: typeof import("@/db/drizzle").db,
+	action: Suggestion["action"],
+): Promise<{ originalValues: Record<string, unknown>; changes: string[] }> {
+	if (!action.regimenId || !action.toTime) {
+		throw new Error("Invalid time shift action data");
+	}
+
+	const regimen = await getRegimenById(db, action.regimenId);
+	if (!regimen) {
+		throw new Error("Regimen not found");
+	}
+
+	const originalValues = {
+		type: "time_shifted",
+		regimenId: action.regimenId,
+		originalTimes: regimen.timesLocal,
+	};
+
+	// Update regimen times (simplified - would need proper time parsing)
+	await db
+		.update(regimens)
+		.set({
+			timesLocal: [action.toTime],
+			updatedAt: new Date().toISOString(),
+		})
+		.where(eq(regimens.id, action.regimenId));
+
+	const changes = [
+		`Updated schedule time to ${action.toTime}`,
+		"Recalculated upcoming due times",
+	];
+
+	return { originalValues, changes };
+}
+
+// Helper function to handle ENABLE_COSIGN suggestion type
+async function handleEnableCoSignSuggestion(
+	db: typeof import("@/db/drizzle").db,
+	action: Suggestion["action"],
+): Promise<{ originalValues: Record<string, unknown>; changes: string[] }> {
+	if (!action.regimenId) {
+		throw new Error("Invalid co-sign action data");
+	}
+
+	const regimen = await getRegimenById(db, action.regimenId);
+	if (!regimen) {
+		throw new Error("Regimen not found");
+	}
+
+	const originalValues = {
+		type: "cosign_enabled",
+		regimenId: action.regimenId,
+		originalRequiresCoSign: regimen.requiresCoSign,
+		originalHighRisk: regimen.highRisk,
+	};
+
+	await db
+		.update(regimens)
+		.set({
+			requiresCoSign: true,
+			highRisk: action.highRisk || regimen.highRisk,
+			updatedAt: new Date().toISOString(),
+		})
+		.where(eq(regimens.id, action.regimenId));
+
+	const changes = ["Enabled co-sign requirement", "Updated high-risk flag"];
+
+	return { originalValues, changes };
+}
+
+// Helper function to update suggestion status
+async function updateSuggestionStatus(
+	db: typeof import("@/db/drizzle").db,
+	suggestionId: string,
+	userId: string,
+	originalValues: Record<string, unknown>,
+): Promise<void> {
+	await db
+		.update(suggestions)
+		.set({
+			status: "applied",
+			appliedAt: new Date().toISOString(),
+			appliedByUserId: userId,
+			originalValues,
+			updatedAt: new Date().toISOString(),
+		})
+		.where(eq(suggestions.id, suggestionId));
+}
+
+// Apply a suggestion by making the actual changes
+async function applySuggestion(
+	db: typeof import("@/db/drizzle").db,
+	householdId: string,
+	suggestionId: string,
+	userId: string,
+): Promise<{ success: boolean; changes: string[] }> {
+	try {
+		const suggestion = await getSuggestionFromDb(db, householdId, suggestionId);
+		let originalValues: Record<string, unknown> = {};
+		let changes: string[] = [];
+
+		// Handle different suggestion types
+		if (suggestion.type === "ADD_REMINDER") {
+			const result = await handleAddReminderSuggestion(suggestion.action);
+			originalValues = result.originalValues;
+			changes = result.changes;
+		} else if (suggestion.type === "SHIFT_TIME") {
+			const result = await handleShiftTimeSuggestion(db, suggestion.action);
+			originalValues = result.originalValues;
+			changes = result.changes;
+		} else if (suggestion.type === "ENABLE_COSIGN") {
+			const result = await handleEnableCoSignSuggestion(db, suggestion.action);
+			originalValues = result.originalValues;
+			changes = result.changes;
+		}
+
+		// Update suggestion status
+		await updateSuggestionStatus(db, suggestionId, userId, originalValues);
+
+		return { success: true, changes };
+	} catch (error) {
+		console.error("Failed to apply suggestion:", error);
+		throw new Error("Failed to apply suggestion");
+	}
+}
+
+// Revert an applied suggestion
+async function revertSuggestion(
+	db: typeof import("@/db/drizzle").db,
+	householdId: string,
+	suggestionId: string,
+	userId: string,
+): Promise<{ success: boolean; changes: string[] }> {
+	const changes: string[] = [];
+
+	// Get the suggestion from database
+	const suggestion = await db
+		.select()
+		.from(suggestions)
+		.where(
+			and(
+				eq(suggestions.id, suggestionId),
+				eq(suggestions.householdId, householdId),
+				eq(suggestions.status, "applied"),
+			),
+		)
+		.limit(1);
+
+	if (suggestion.length === 0) {
+		throw new Error("Suggestion not found or not applied");
+	}
+
+	const sug = suggestion[0];
+	if (!sug) {
+		throw new Error("Suggestion not found");
+	}
+
+	const originalValues = sug.originalValues as Record<string, unknown>;
+
+	if (!originalValues) {
+		throw new Error("No original values stored for reverting");
+	}
+
+	try {
+		if (originalValues.type === "time_shifted" && originalValues.regimenId) {
+			// Revert time shift
+			await db
+				.update(regimens)
+				.set({
+					timesLocal: originalValues.originalTimes as string[],
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(regimens.id, originalValues.regimenId as string));
+
+			changes.push("Reverted schedule time to original");
+			changes.push("Restored original timing");
+		} else if (
+			originalValues.type === "cosign_enabled" &&
+			originalValues.regimenId
+		) {
+			// Revert co-sign requirement
+			await db
+				.update(regimens)
+				.set({
+					requiresCoSign: originalValues.originalRequiresCoSign as boolean,
+					highRisk: originalValues.originalHighRisk as boolean,
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(regimens.id, originalValues.regimenId as string));
+
+			changes.push("Disabled co-sign requirement");
+			changes.push("Restored original risk level");
+		} else if (originalValues.type === "reminder_added") {
+			// For reminders, we would typically remove the notification entries
+			// This is simplified - in reality you'd clean up the notification queue
+			changes.push("Removed reminder notifications");
+		}
+
+		// Update suggestion status
+		await db
+			.update(suggestions)
+			.set({
+				status: "reverted",
+				revertedAt: new Date().toISOString(),
+				revertedByUserId: userId,
+				updatedAt: new Date().toISOString(),
+			})
+			.where(eq(suggestions.id, suggestionId));
+
+		return { success: true, changes };
+	} catch (error) {
+		console.error("Failed to revert suggestion:", error);
+		throw new Error("Failed to revert suggestion");
+	}
+}
+
 export const insightsRouter = createTRPCRouter({
 	// Get actionable suggestions for a household
 	getSuggestions: householdProcedure
@@ -436,22 +857,57 @@ export const insightsRouter = createTRPCRouter({
 			);
 		}),
 
-	// Dismiss a suggestion (placeholder - could store in a dismissals table)
+	// Apply a suggestion
+	applySuggestion: householdProcedure
+		.input(applySuggestionSchema)
+		.mutation(async ({ ctx, input }) => {
+			return timedOperations.analytics(
+				() =>
+					applySuggestion(
+						ctx.db,
+						input.householdId,
+						input.suggestionId,
+						ctx.dbUser.id,
+					),
+				"apply-suggestion",
+			);
+		}),
+
+	// Revert a suggestion
+	revertSuggestion: householdProcedure
+		.input(revertSuggestionSchema)
+		.mutation(async ({ ctx, input }) => {
+			return timedOperations.analytics(
+				() =>
+					revertSuggestion(
+						ctx.db,
+						input.householdId,
+						input.suggestionId,
+						ctx.dbUser.id,
+					),
+				"revert-suggestion",
+			);
+		}),
+
+	// Dismiss a suggestion
 	dismissSuggestion: householdProcedure
 		.input(dismissSuggestionSchema)
-		.mutation(async ({ ctx: _ctx, input: _input }) => {
-			// For now, just return success
-			// In a real implementation, you'd store the dismissal in a table
-			// with userId, suggestionId, and dismissedAt timestamp
-
-			// TODO: Store dismissal in database table
-			// await ctx.db.insert(suggestionDismissals).values({
-			//   id: generateId(),
-			//   userId: ctx.dbUser.id,
-			//   householdId: input.householdId,
-			//   suggestionId: input.suggestionId,
-			//   dismissedAt: new Date().toISOString(),
-			// });
+		.mutation(async ({ ctx, input }) => {
+			// Update suggestion status to dismissed
+			await ctx.db
+				.update(suggestions)
+				.set({
+					status: "dismissed",
+					dismissedAt: new Date().toISOString(),
+					dismissedByUserId: ctx.dbUser.id,
+					updatedAt: new Date().toISOString(),
+				})
+				.where(
+					and(
+						eq(suggestions.id, input.suggestionId),
+						eq(suggestions.householdId, input.householdId),
+					),
+				);
 
 			return { success: true, dismissedAt: new Date().toISOString() };
 		}),

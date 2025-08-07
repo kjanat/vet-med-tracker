@@ -552,9 +552,13 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 		(clerkUser: ClerkUserForConversion): User => ({
 			id: clerkUser.id,
 			name:
-				clerkUser.firstName ||
-				clerkUser.emailAddresses[0]?.emailAddress ||
-				"Unknown",
+				clerkUser.firstName && clerkUser.lastName
+					? `${clerkUser.firstName} ${clerkUser.lastName}`
+					: clerkUser.firstName ||
+						clerkUser.emailAddresses[0]?.emailAddress ||
+						"Unknown",
+			firstName: clerkUser.firstName || null,
+			lastName: clerkUser.lastName || null,
 			email: clerkUser.emailAddresses[0]?.emailAddress || "",
 			image: clerkUser.imageUrl || null,
 			emailVerified: null,

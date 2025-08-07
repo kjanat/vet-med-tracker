@@ -1,10 +1,12 @@
 import { createCallerFactory, createTRPCRouter } from "../trpc";
 import { adminRouter } from "./admin";
 import { animalRouter } from "./animals";
+import { auditRouter } from "./audit";
 import { householdRouter } from "./households";
 import { insightsRouter } from "./insights";
 import { inventoryRouter } from "./inventory";
 import { medicationRouter } from "./medication";
+import { notificationsRouter } from "./notifications";
 import { regimenRouter } from "./regimens";
 import { reportsRouter } from "./reports";
 import { userRouter } from "./user";
@@ -20,6 +22,8 @@ export const appRouter = createTRPCRouter({
 	insights: insightsRouter,
 	reports: reportsRouter,
 	user: userRouter,
+	audit: auditRouter,
+	notifications: notificationsRouter,
 });
 
 // Export type for use in client

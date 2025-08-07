@@ -22,6 +22,27 @@
 			"when": 1754496029074,
 			"tag": "0002_easy_strong_guy",
 			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1754540359032,
+			"tag": "0003_magenta_umar",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1754541160749,
+			"tag": "0004_elite_roxanne_simpson",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1754541812216,
+			"tag": "0005_brainy_whistler",
+			"breakpoints": true
 		}
 	]
 }

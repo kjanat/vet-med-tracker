@@ -25,6 +25,8 @@ export function buildClerkUserData(
 			clerkUser.firstName && clerkUser.lastName
 				? `${clerkUser.firstName} ${clerkUser.lastName}`
 				: clerkUser.firstName || clerkUser.username || undefined,
+		firstName: clerkUser.firstName || undefined,
+		lastName: clerkUser.lastName || undefined,
 		image: clerkUser.imageUrl,
 		vetMedPreferences: clerkUser.unsafeMetadata?.vetMedPreferences as
 			| import("@/hooks/shared/use-user-preferences").VetMedPreferences

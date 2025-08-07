@@ -20,6 +20,15 @@ export const animalFormSchema = z.object({
 			(val) => !val || /^[\d\s\-()+]+$/.test(val),
 			"Invalid phone number format",
 		),
+	vetEmail: z
+		.string()
+		.optional()
+		.refine(
+			(val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+			"Invalid email format",
+		),
+	clinicName: z.string().optional(),
+	notes: z.string().optional(),
 	allergies: z.array(z.string()),
 	conditions: z.array(z.string()),
 	photoUrl: z.string().optional(),

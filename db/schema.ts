@@ -544,12 +544,139 @@ export const vetmedAdministrations = pgTable(
 	],
 );
 
+export const vetmedNotifications = pgTable(
+	"vetmed_notifications",
+	{
+		id: uuid().defaultRandom().primaryKey().notNull(),
+		userId: uuid("user_id").notNull(),
+		householdId: uuid("household_id").notNull(),
+		type: text().notNull(), // "medication", "inventory", "system", "due", "overdue", "reminder"
+		title: text().notNull(),
+		message: text().notNull(),
+		priority: text().default("medium").notNull(), // "low", "medium", "high", "critical"
+		read: boolean().default(false).notNull(),
+		dismissed: boolean().default(false).notNull(),
+		actionUrl: text("action_url"), // Optional URL for click action
+		data: jsonb(), // Additional metadata (animalId, regimenId, etc.)
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+		readAt: timestamp("read_at", { withTimezone: true, mode: "string" }),
+		dismissedAt: timestamp("dismissed_at", { withTimezone: true, mode: "string" }),
+	},
+	(table) => [
+		index("notification_user_read_idx").using(
+			"btree",
+			table.userId.asc().nullsLast().op("uuid_ops"),
+			table.read.asc().nullsLast().op("bool_ops"),
+		),
+		index("notification_household_idx").using(
+			"btree",
+			table.householdId.asc().nullsLast().op("uuid_ops"),
+		),
+		index("notification_created_at_idx").using(
+			"btree",
+			table.createdAt.desc().nullsLast().op("timestamptz_ops"),
+		),
+		index("notification_type_idx").using(
+			"btree",
+			table.type.asc().nullsLast().op("text_ops"),
+		),
+		foreignKey({
+			columns: [table.userId],
+			foreignColumns: [vetmedUsers.id],
+			name: "vetmed_notifications_user_id_vetmed_users_id_fk",
+		}).onDelete("cascade"),
+		foreignKey({
+			columns: [table.householdId],
+			foreignColumns: [vetmedHouseholds.id],
+			name: "vetmed_notifications_household_id_vetmed_households_id_fk",
+		}).onDelete("cascade"),
+	],
+);
+
+export const vetmedSuggestionStatus = pgEnum("vetmed_suggestion_status", [
+	"pending",
+	"applied",
+	"reverted",
+	"dismissed",
+]);
+
+export const vetmedSuggestions = pgTable(
+	"vetmed_suggestions",
+	{
+		id: uuid().defaultRandom().primaryKey().notNull(),
+		householdId: uuid("household_id").notNull(),
+		type: text().notNull(), // "ADD_REMINDER", "SHIFT_TIME", "ENABLE_COSIGN", etc.
+		summary: text().notNull(),
+		rationale: text().notNull(),
+		priority: text().default("medium").notNull(), // "low", "medium", "high"
+		estimatedImpact: text("estimated_impact"),
+		status: vetmedSuggestionStatus().default("pending").notNull(),
+		action: jsonb().notNull(), // Store action parameters as JSON
+		originalValues: jsonb("original_values"), // Store original state for revert
+		appliedAt: timestamp("applied_at", { withTimezone: true, mode: "string" }),
+		appliedByUserId: uuid("applied_by_user_id"),
+		revertedAt: timestamp("reverted_at", { withTimezone: true, mode: "string" }),
+		revertedByUserId: uuid("reverted_by_user_id"),
+		dismissedAt: timestamp("dismissed_at", { withTimezone: true, mode: "string" }),
+		dismissedByUserId: uuid("dismissed_by_user_id"),
+		expiresAt: timestamp("expires_at", { withTimezone: true, mode: "string" }),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		index("suggestions_household_id_idx").using(
+			"btree",
+			table.householdId.asc().nullsLast().op("uuid_ops"),
+		),
+		index("suggestions_status_idx").using(
+			"btree",
+			table.status.asc().nullsLast().op("enum_ops"),
+		),
+		index("suggestions_type_idx").using(
+			"btree",
+			table.type.asc().nullsLast().op("text_ops"),
+		),
+		index("suggestions_created_at_idx").using(
+			"btree",
+			table.createdAt.desc().nullsLast().op("timestamptz_ops"),
+		),
+		foreignKey({
+			columns: [table.householdId],
+			foreignColumns: [vetmedHouseholds.id],
+			name: "vetmed_suggestions_household_id_vetmed_households_id_fk",
+		}).onDelete("cascade"),
+		foreignKey({
+			columns: [table.appliedByUserId],
+			foreignColumns: [vetmedUsers.id],
+			name: "vetmed_suggestions_applied_by_user_id_vetmed_users_id_fk",
+		}).onDelete("set null"),
+		foreignKey({
+			columns: [table.revertedByUserId],
+			foreignColumns: [vetmedUsers.id],
+			name: "vetmed_suggestions_reverted_by_user_id_vetmed_users_id_fk",
+		}).onDelete("set null"),
+		foreignKey({
+			columns: [table.dismissedByUserId],
+			foreignColumns: [vetmedUsers.id],
+			name: "vetmed_suggestions_dismissed_by_user_id_vetmed_users_id_fk",
+		}).onDelete("set null"),
+	],
+);
+
 export const vetmedUsers = pgTable(
 	"vetmed_users",
 	{
 		id: uuid().defaultRandom().primaryKey().notNull(),
 		email: text().notNull(),
 		name: text(),
+		firstName: text("first_name"),
+		lastName: text("last_name"),
 		image: text(),
 		emailVerified: timestamp("email_verified", {
 			withTimezone: true,
@@ -611,6 +738,8 @@ export const regimens = vetmedRegimens;
 export const administrations = vetmedAdministrations;
 export const auditLog = vetmedAuditLog;
 export const notificationQueue = vetmedNotificationQueue;
+export const notifications = vetmedNotifications;
+export const suggestions = vetmedSuggestions;
 
 // Export enum types and utilities
 export const adminStatusEnum = vetmedAdminStatus;
@@ -629,3 +758,5 @@ export type NewMembership = typeof vetmedMemberships.$inferInsert;
 export type NewRegimen = typeof vetmedRegimens.$inferInsert;
 export type NewInventoryItem = typeof vetmedInventoryItems.$inferInsert;
 export type NewMedicationCatalog = typeof vetmedMedicationCatalog.$inferInsert;
+export type NewNotification = typeof vetmedNotifications.$inferInsert;
+export type NewSuggestion = typeof vetmedSuggestions.$inferInsert;
