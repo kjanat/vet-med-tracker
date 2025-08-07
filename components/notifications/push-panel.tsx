@@ -11,8 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { cardPatterns } from "@/components/ui/class-variants";
-import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useIsMobile } from "@/hooks/shared/useResponsive";
 
 // Custom hook to manage push notification state
 function usePushNotifications() {
@@ -64,7 +63,7 @@ export function PushPanel() {
 		setIsLoading,
 		setPermission,
 	} = usePushNotifications();
-	const isMobile = useMediaQuery("(max-width: 640px)");
+	const isMobile = useIsMobile();
 
 	const subscribeToPush = async () => {
 		if (!isSupported) return;
@@ -150,7 +149,7 @@ export function PushPanel() {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className={cardPatterns.cardTitle}>
+				<CardTitle className="flex items-center gap-2">
 					<Bell className="h-5 w-5" />
 					Push Notifications
 				</CardTitle>
@@ -193,7 +192,7 @@ function UnsupportedBrowser() {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className={cardPatterns.cardTitle}>
+				<CardTitle className="flex items-center gap-2">
 					<BellOff className="h-5 w-5" />
 					Push Notifications
 				</CardTitle>

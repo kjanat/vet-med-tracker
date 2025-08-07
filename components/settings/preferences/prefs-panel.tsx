@@ -3,8 +3,10 @@
 import { Clock, Home, Monitor, Moon, Sun, Weight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useApp } from "@/components/providers/app-provider";
-import { useUserPreferencesContext } from "@/components/providers/user-preferences-provider";
+import {
+	useApp,
+	useUserPreferencesContext,
+} from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,7 +23,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { trpc } from "@/lib/trpc/client";
+import { trpc } from "@/server/trpc/client";
 
 interface UserPreferences {
 	theme: "system" | "light" | "dark";

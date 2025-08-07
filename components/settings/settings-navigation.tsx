@@ -11,7 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { SettingsTab } from "@/hooks/settings/useSettingsTabs";
-import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useIsMobile } from "@/hooks/shared/useResponsive";
 
 interface SettingsNavigationProps {
 	activeTab: SettingsTab;
@@ -29,7 +29,7 @@ export function SettingsNavigation({
 	onTabChange,
 }: SettingsNavigationProps) {
 	const [isClient, setIsClient] = useState(false);
-	const isMobile = useMediaQuery("(max-width: 640px)");
+	const isMobile = useIsMobile();
 
 	useEffect(() => {
 		setIsClient(true);

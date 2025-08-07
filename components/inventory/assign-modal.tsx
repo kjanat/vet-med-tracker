@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Button } from "@/components/ui/button";
 import {

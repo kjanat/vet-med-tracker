@@ -2,7 +2,7 @@
 
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useMemo, useState } from "react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { trpc } from "@/server/trpc/client";
 
 export function DebugHouseholdState() {

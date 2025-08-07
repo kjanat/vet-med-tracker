@@ -1,5 +1,10 @@
 import type { Page } from "@playwright/test";
-import type { MockReactProps } from "./types";
+
+interface MockReactProps {
+	[key: string]: unknown;
+	children?: React.ReactNode;
+	name?: string;
+}
 
 /**
  * Login helper for authenticated routes

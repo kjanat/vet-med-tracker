@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
 
 export default function TermsPage() {
 	return (
@@ -187,22 +186,6 @@ export default function TermsPage() {
 						<li>Address: [Your Company Address]</li>
 					</ul>
 				</section>
-
-				<div className="mt-12 border-t pt-8">
-					<div className="flex items-center justify-between">
-						<Link href="/privacy" className="text-primary hover:underline">
-							Privacy Policy
-						</Link>
-						<Separator
-							orientation="vertical"
-							className="mx-4 hidden h-4 sm:block"
-						/>
-						<span className="text-muted-foreground sm:hidden">|</span>
-						<Link href="/cookies" className="text-primary hover:underline">
-							Cookie Policy
-						</Link>
-					</div>
-				</div>
 			</div>
 		</div>
 	);

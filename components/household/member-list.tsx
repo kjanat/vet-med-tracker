@@ -11,7 +11,7 @@ import {
 	Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import {
 	Accordion,
 	AccordionContent,
@@ -36,7 +36,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/shared/use-toast";
-import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useIsMobile } from "@/hooks/shared/useResponsive";
 import { getAvatarColor } from "@/lib/utils/avatar-utils";
 import { cn } from "@/lib/utils/general";
 import { trpc } from "@/server/trpc/client";
@@ -296,7 +296,7 @@ export function MemberList({
 	const { user: clerkUser } = useUser();
 	const { selectedHousehold } = useApp();
 	const { toast } = useToast();
-	const isMobile = useMediaQuery("(max-width: 640px)");
+	const isMobile = useIsMobile();
 	const [isInviteFormOpen, setIsInviteFormOpen] = useState(false);
 
 	// Check if current user can manage roles

@@ -2,7 +2,7 @@
 
 import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/components/providers/auth-provider";
+import { useAuth } from "@/components/providers/app-provider-consolidated";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useIsMobile } from "@/hooks/shared/useResponsive";
 import { LoginButton } from "./login-button";
 import { UserMenuDesktop } from "./user-menu-desktop";
 
@@ -87,7 +87,7 @@ function MobileUserMenu() {
 }
 
 export function UserMenu() {
-	const isMobile = useMediaQuery("(max-width: 768px)");
+	const isMobile = useIsMobile();
 
 	return isMobile ? <MobileUserMenu /> : <UserMenuDesktop />;
 }

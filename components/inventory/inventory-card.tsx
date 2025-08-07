@@ -2,7 +2,7 @@
 
 import { differenceInDays, format } from "date-fns";
 import { Calendar, MapPin, MoreHorizontal, Package } from "lucide-react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -19,6 +19,7 @@ export const userRouter = createTRPCRouter({
 				household: {
 					id: households.id,
 					name: households.name,
+					timezone: households.timezone,
 					createdAt: households.createdAt,
 				},
 			})

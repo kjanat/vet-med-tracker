@@ -33,7 +33,7 @@ export function AnimalSilhouettes() {
 	const [visibleRange, setVisibleRange] = useState({ start: -1, end: 20 });
 	const containerRef = useRef<HTMLDivElement>(null);
 	const scrollerRef = useRef<HTMLDivElement>(null);
-	const animationRef = useRef<number>();
+	const animationRef = useRef<number>(0);
 	const isDraggingRef = useRef(false);
 	const scrollPositionRef = useRef(0);
 	const dragStartXRef = useRef(0);
@@ -73,7 +73,7 @@ export function AnimalSilhouettes() {
 		const seed = sessionSeedRef.current + index;
 		const random = seededRandom(seed);
 		const imageIndex = Math.floor(random() * allImages.length);
-		return allImages[imageIndex];
+		return allImages[imageIndex] ?? null;
 	};
 
 	// Update visible range based on scroll position
@@ -140,7 +140,7 @@ export function AnimalSilhouettes() {
 	// Handle drag start
 	const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
 		isDraggingRef.current = true;
-		const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+		const clientX = "touches" in e ? (e.touches[0]?.clientX ?? 0) : e.clientX;
 		dragStartXRef.current = clientX - dragOffsetRef.current;
 		lastXRef.current = clientX;
 		lastTimeRef.current = performance.now();
@@ -154,7 +154,7 @@ export function AnimalSilhouettes() {
 		const handleMove = (e: MouseEvent | TouchEvent) => {
 			if (!isDraggingRef.current) return;
 
-			const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+			const clientX = "touches" in e ? (e.touches[0]?.clientX ?? 0) : e.clientX;
 			const currentTime = performance.now();
 			const deltaTime = currentTime - lastTimeRef.current;
 

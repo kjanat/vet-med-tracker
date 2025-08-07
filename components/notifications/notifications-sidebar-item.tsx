@@ -18,7 +18,7 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
-import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useIsMobile } from "@/hooks/shared/useResponsive";
 
 // Mock data - in real app this would come from tRPC
 const mockNotifications = [
@@ -50,7 +50,7 @@ const mockNotifications = [
 
 export function NotificationsSidebarItem() {
 	const [isOpen, setIsOpen] = useState(false);
-	const isMobile = useMediaQuery("(max-width: 768px)");
+	const isMobile = useIsMobile();
 
 	const unreadCount = mockNotifications.length;
 

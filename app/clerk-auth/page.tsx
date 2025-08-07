@@ -5,7 +5,6 @@ import {
 	SignUpButton,
 	UserButton,
 } from "@clerk/nextjs";
-import TRPCDemo from "./trpc-demo";
 
 export default function ClerkAuthPage() {
 	return (
@@ -46,8 +45,6 @@ export default function ClerkAuthPage() {
 					/>
 				</SignedIn>
 			</div>
-
-			<TRPCDemo />
 		</div>
 	);
 }

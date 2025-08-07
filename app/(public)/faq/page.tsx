@@ -251,27 +251,6 @@ export default function FAQPage() {
 					</Button>
 				</div>
 			</div>
-
-			{/* Quick Links */}
-			<div className="mt-12 border-t pt-8">
-				<div className="flex flex-wrap justify-center gap-4 text-sm">
-					<Link href="/help" className="text-primary hover:underline">
-						Help Center
-					</Link>
-					<span className="text-muted-foreground">•</span>
-					<Link href="/privacy" className="text-primary hover:underline">
-						Privacy Policy
-					</Link>
-					<span className="text-muted-foreground">•</span>
-					<Link href="/terms" className="text-primary hover:underline">
-						Terms of Service
-					</Link>
-					<span className="text-muted-foreground">•</span>
-					<Link href="/cookies" className="text-primary hover:underline">
-						Cookie Policy
-					</Link>
-				</div>
-			</div>
 		</div>
 	);
 }

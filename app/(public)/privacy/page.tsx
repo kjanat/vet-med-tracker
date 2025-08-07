@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
 
 export default function PrivacyPage() {
 	return (
@@ -246,22 +245,6 @@ export default function PrivacyPage() {
 						<li>Data Protection Officer: [Name/Contact if applicable]</li>
 					</ul>
 				</section>
-
-				<div className="mt-12 border-t pt-8">
-					<div className="flex items-center justify-between">
-						<Link href="/terms" className="text-primary hover:underline">
-							Terms of Service
-						</Link>
-						<Separator
-							orientation="vertical"
-							className="mx-4 hidden h-4 sm:block"
-						/>
-						<span className="text-muted-foreground sm:hidden">|</span>
-						<Link href="/cookies" className="text-primary hover:underline">
-							Cookie Policy
-						</Link>
-					</div>
-				</div>
 			</div>
 		</div>
 	);

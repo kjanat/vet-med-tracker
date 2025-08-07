@@ -271,12 +271,12 @@ export const pageMetadata: Record<string, Partial<NavigationItem>> = {
  * Get all valid settings tabs from the navigation config
  */
 export const settingsTabs = Object.keys(
-	navigationConfig.main.settings.children || {},
+	navigationConfig.main.settings?.children || {},
 );
 
 /**
  * Get all valid manage sections from the navigation config
  */
 export const manageSections = Object.keys(
-	navigationConfig.main.manage.children || {},
+	navigationConfig.main.manage?.children || {},
 );

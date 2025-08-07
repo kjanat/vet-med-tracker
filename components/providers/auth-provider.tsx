@@ -2,7 +2,7 @@
 
 import { useClerk, useUser } from "@clerk/nextjs";
 import { createContext, type ReactNode, useContext } from "react";
-import { trpc } from "@/lib/trpc/client";
+import { trpc } from "@/server/trpc/client";
 
 interface UserProfile {
 	id: string;

@@ -282,10 +282,10 @@ export const featureRouter = createTRPCRouter({
 
 ### Using tRPC in Components
 ```typescript
-import { api } from "@/lib/trpc/client";
+import { trpc } from "@/server/trpc/client";
 
 function Component() {
-  const { data, isLoading } = api.feature.getData.useQuery({ id: "123" });
+  const { data, isLoading } = trpc.feature.getData.useQuery({ id: "123" });
   // Component logic
 }
 ```
@@ -316,3 +316,131 @@ import { formatDate } from "@/lib/utils/general";
 import { animalSchema } from "@/lib/schemas/animal";
 import { inventorySchema } from "@/lib/schemas/inventory";
 ```
+
+## AI Assistant Workflow Guidelines
+
+### Delegation-First Approach for Major Refactors
+
+When handling large-scale refactoring or complex multi-phase projects, adopt a **Project Manager (PM) role** and delegate all implementation work to specialized sub-agents. This approach has proven highly effective for maintaining clarity, preventing context overload, and ensuring systematic progress.
+
+#### When to Use Delegation Workflow
+
+Use this approach for:
+- **Major refactors** affecting >30% of the codebase
+- **Multi-phase projects** with distinct deliverables
+- **Complex architectural changes** requiring coordination
+- **Performance optimizations** needing systematic analysis
+- **Technical debt reduction** campaigns
+
+#### Project Manager Responsibilities
+
+As the PM, you should:
+1. **Create comprehensive task breakdowns** for all phases
+2. **Orchestrate parallel sub-agents** for independent tasks
+3. **Monitor progress** and coordinate dependencies
+4. **Validate results** from each sub-agent
+5. **Maintain documentation** of changes and outcomes
+6. **Ensure quality gates** are met at each phase
+
+**Critical**: As PM, you should NOT write any code directly. All implementation must be delegated.
+
+#### Effective Delegation Pattern
+
+```markdown
+## Phase [N]: [Phase Name]
+
+### Task [N.M]: [Task Description]
+**Objective**: [Clear goal]
+**Dependencies**: [Prerequisites if any]
+**Success Criteria**: [Measurable outcomes]
+
+[Spawn sub-agent with specific expertise and clear instructions]
+```
+
+#### Example: Architecture Simplification Refactor
+
+This project successfully used the delegation workflow to achieve 62% complexity reduction:
+
+1. **Phase 1: Quick Wins** (22% reduction)
+   - Task 1.1: Remove duplicate components → Frontend specialist
+   - Task 1.2: Clean up unused endpoints → Backend specialist
+   - Task 1.3: Consolidate mobile detection → UI specialist
+   - Task 1.4: Remove test utilities → Testing specialist
+
+2. **Phase 2: Provider Consolidation** (42% total reduction)
+   - Task 2.1: Design consolidated provider → Architecture specialist
+   - Task 2.2: Implement new provider → Frontend specialist
+   - Task 2.3: Migrate components → Migration specialist
+   - Task 2.4: Update tests → Testing specialist
+
+3. **Phase 3: Structure Refactor** (62% final reduction)
+   - Task 3.1: Component reorganization → Frontend specialist
+   - Task 3.2: Route flattening → Architecture specialist
+   - Task 3.3: tRPC cleanup → Backend specialist
+   - Task 3.4: Naming standardization → Code quality specialist
+
+4. **Validation Phase**
+   - Validation 1: TypeScript checking → TypeScript specialist
+   - Validation 2: Linting → Code quality specialist
+   - Validation 3: Build verification → Build specialist
+   - Validation 4: Test fixing → Testing specialist
+   - Validation 5: Metrics collection → Analytics specialist
+
+#### Quality Gates
+
+Each phase must pass these gates before proceeding:
+1. ✅ **No TypeScript errors** (`pnpm typecheck`)
+2. ✅ **Clean linting** (`pnpm lint`)
+3. ✅ **Successful build** (`pnpm build`)
+4. ✅ **Tests passing** (or properly updated)
+5. ✅ **Metrics documented** (complexity reduction %)
+
+#### Sub-Agent Instructions Template
+
+When spawning sub-agents, provide:
+```
+You are a [specialization] specialist. Your task is to:
+
+1. [Specific objective]
+2. [Detailed requirements]
+3. [Constraints/guidelines]
+
+Context:
+- [Relevant background]
+- [Dependencies]
+- [Expected outcomes]
+
+Execute this task and report results with:
+- Summary of changes
+- Files modified
+- Metrics/measurements
+- Any issues encountered
+```
+
+#### Success Metrics
+
+Track these metrics throughout the refactor:
+- **Complexity reduction**: Target vs achieved
+- **File count changes**: Additions vs deletions
+- **Import path updates**: Number of files affected
+- **Provider count**: Before vs after
+- **Build time**: Before vs after
+- **Bundle size**: Before vs after
+- **Type safety**: Errors eliminated
+
+### Benefits of This Approach
+
+1. **Clear separation of concerns**: PM focuses on orchestration, sub-agents on implementation
+2. **Parallel execution**: Multiple tasks can progress simultaneously
+3. **Specialized expertise**: Each sub-agent can focus on their domain
+4. **Better context management**: Prevents overwhelming single context
+5. **Systematic progress**: Clear phases with measurable outcomes
+6. **Quality assurance**: Built-in validation at each step
+
+### Common Pitfalls to Avoid
+
+- ❌ **Don't code as PM**: Maintain role separation
+- ❌ **Don't skip validation**: Always verify before proceeding
+- ❌ **Don't batch too much**: Keep tasks focused and atomic
+- ❌ **Don't ignore dependencies**: Coordinate sequential tasks properly
+- ❌ **Don't forget documentation**: Update CLAUDE.md with learnings

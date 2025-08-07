@@ -3,7 +3,7 @@
 import { CheckCircle, Clock, Heart, Home } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useUserPreferencesContext } from "@/components/providers/user-preferences-provider";
+import { useUserPreferencesContext } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 import {
 	Card,

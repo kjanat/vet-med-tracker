@@ -2,7 +2,7 @@
 
 import { Download, FileText, Printer } from "lucide-react";
 import { useState } from "react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 import {
 	Card,

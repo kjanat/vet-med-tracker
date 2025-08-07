@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { useInventoryForm } from "@/components/providers/inventory-form-provider";
+import { useInventoryFormDialog } from "@/components/forms/inventory-form-dialog";
 import { Button } from "@/components/ui/button";
 
 interface AddItemButtonProps {
@@ -15,14 +15,14 @@ export function AddItemButton({
 	size,
 	variant,
 }: AddItemButtonProps) {
-	const { openForm } = useInventoryForm();
+	const { openInventoryForm } = useInventoryFormDialog();
 
 	return (
 		<Button
 			className={`gap-2 ${className || ""}`}
 			size={size}
 			variant={variant}
-			onClick={openForm}
+			onClick={openInventoryForm}
 		>
 			<Plus className="h-4 w-4" />
 			Add Item

@@ -5,7 +5,7 @@ import { AlertCircle, Camera, Scan } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { MedicationSearch } from "@/components/medication/medication-search";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
 	AlertDialog,

@@ -5,6 +5,7 @@ import type React from "react";
 import { memo, useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useMobileDetection } from "@/hooks/shared/useResponsive";
 import { calculateScrollAreaHeight, VIEWPORT_CONFIG } from "./viewport/config";
 import { withSchemeParam } from "./viewport/constants";
 import { DeviceCard } from "./viewport/device-card";
@@ -17,7 +18,6 @@ import {
 import { MobileDeviceSelector } from "./viewport/mobile-device-selector";
 import { MobileToolbar } from "./viewport/mobile-toolbar";
 import { MobileViewportPreview } from "./viewport/mobile-viewport-preview";
-import { useMobileDetection } from "./viewport/use-mobile-detection";
 import { useViewportShortcuts } from "./viewport/use-viewport-shortcuts";
 import { ViewportPreview } from "./viewport/viewport-preview";
 import { ViewportToolbar } from "./viewport/viewport-toolbar";

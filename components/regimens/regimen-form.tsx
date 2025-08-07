@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { Plus, Search, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,7 +44,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { trpc } from "@/lib/trpc/client";
+import { trpc } from "@/server/trpc/client";
 import type { Regimen } from "./regimen-list";
 
 interface RegimenFormProps {

@@ -36,7 +36,7 @@ interface AnimalFormProps {
 	animal: Animal | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onSave: (data: Partial<Animal>) => Promise<void>;
+	onSave: (data: AnimalFormData) => Promise<void>;
 }
 
 export function AnimalForm({

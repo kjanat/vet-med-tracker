@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { Calendar, Filter, X } from "lucide-react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";

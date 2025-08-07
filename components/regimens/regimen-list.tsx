@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { AlertTriangle, Archive, Clock, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { trpc } from "@/lib/trpc/client";
+import { trpc } from "@/server/trpc/client";
 import { RegimenForm } from "./regimen-form";
 
 // Type for regimen data from tRPC - matches actual schema

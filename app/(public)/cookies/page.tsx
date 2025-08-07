@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
-
 export default function CookiesPage() {
 	return (
 		<div className="container mx-auto max-w-4xl px-4 py-12">
@@ -163,22 +160,6 @@ export default function CookiesPage() {
 						</a>
 					</p>
 				</section>
-
-				<div className="mt-12 border-t pt-8">
-					<div className="flex items-center justify-between">
-						<Link href="/privacy" className="text-primary hover:underline">
-							Privacy Policy
-						</Link>
-						<Separator
-							orientation="vertical"
-							className="mx-4 hidden h-4 sm:block"
-						/>
-						<span className="text-muted-foreground sm:hidden">|</span>
-						<Link href="/terms" className="text-primary hover:underline">
-							Terms of Service
-						</Link>
-					</div>
-				</div>
 			</div>
 		</div>
 	);

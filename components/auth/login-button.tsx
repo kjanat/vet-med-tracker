@@ -1,7 +1,7 @@
 "use client";
 
 import { LogIn } from "lucide-react";
-import { useAuth } from "@/components/providers/auth-provider";
+import { useAuth } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 
 interface LoginButtonProps {

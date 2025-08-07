@@ -1,5 +1,23 @@
 import type { Page } from "@playwright/test";
-import type { MockInput, MockWindow, QueuedMutationData } from "./types";
+
+interface QueuedMutationData {
+	id: string;
+	type: string;
+	input: unknown;
+	timestamp: number;
+	retries: number;
+}
+
+interface MockInput {
+	id: string;
+}
+
+interface MockWindow extends Window {
+	getOfflineQueueData: () => QueuedMutationData[];
+	clearOfflineQueue: () => void;
+	apiCallCount: Record<string, number>;
+	mockTRPCFailures: Record<string, () => boolean>;
+}
 
 /**
  * Mock IndexedDB offline queue for testing
