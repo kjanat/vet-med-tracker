@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
 	devIndicators: false,
 	experimental: {
 		// ppr: "incremental",
-		reactCompiler: true,
+		reactCompiler: process.env.CI,
 		typedRoutes: true,
 		// useCache: true,
 	},
