@@ -183,9 +183,10 @@ async function getOrSyncUser(
 	// Check if user exists in the database
 	let dbUser: typeof users.$inferSelect | null = null;
 	try {
-		dbUser = await db.query.users.findFirst({
+		const foundUser = await db.query.users.findFirst({
 			where: eq(users.clerkUserId, userId),
 		});
+		dbUser = foundUser || null;
 		console.log("User lookup result:", {
 			found: !!dbUser,
 			userId,
