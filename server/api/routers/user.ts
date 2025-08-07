@@ -1,12 +1,26 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { animals, households, memberships } from "@/db/schema";
+import { animals, households, memberships, users } from "@/db/schema";
 import type { VetMedPreferences } from "@/hooks/shared/use-user-preferences";
-import {
-	createTRPCRouter,
-	protectedProcedure,
-} from "@/server/api/trpc/clerk-init";
-import { updateUserPreferences } from "../clerk-sync";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+
+// Stub for updating user preferences - this would update Stack Auth metadata in production
+async function updateUserPreferences(
+	stackUserId: string,
+	preferences: {
+		vetMedPreferences?: Partial<VetMedPreferences>;
+		householdSettings?: any;
+	},
+	_dbContext: {
+		userId: string;
+		householdId: string | null;
+	},
+) {
+	// In production, this would update Stack Auth user metadata
+	// For now, we'll just log the update
+	console.log("Updating preferences for user:", stackUserId, preferences);
+	return true;
+}
 
 export const userRouter = createTRPCRouter({
 	// Get current user's memberships
@@ -92,10 +106,24 @@ export const userRouter = createTRPCRouter({
 	getProfile: protectedProcedure.query(async ({ ctx }) => {
 		return {
 			id: ctx.dbUser.id,
-			clerkUserId: ctx.dbUser.clerkUserId,
+			stackUserId: ctx.dbUser.stackUserId,
 			email: ctx.dbUser.email,
 			name: ctx.dbUser.name,
 			image: ctx.dbUser.image,
+			// Flexible profile fields
+			firstName: ctx.dbUser.firstName,
+			lastName: ctx.dbUser.lastName,
+			bio: ctx.dbUser.bio,
+			pronouns: ctx.dbUser.pronouns,
+			location: ctx.dbUser.location,
+			website: ctx.dbUser.website,
+			socialLinks: ctx.dbUser.socialLinks as Record<string, any>,
+			profileData: ctx.dbUser.profileData as Record<string, any>,
+			profileVisibility: ctx.dbUser.profileVisibility as Record<
+				string,
+				boolean
+			>,
+			profileCompletedAt: ctx.dbUser.profileCompletedAt,
 			preferences: {
 				timezone: ctx.dbUser.preferredTimezone,
 				phoneNumber: ctx.dbUser.preferredPhoneNumber,
@@ -123,6 +151,78 @@ export const userRouter = createTRPCRouter({
 			currentHouseholdId: ctx.currentHouseholdId,
 		};
 	}),
+
+	// Update user profile (flexible fields)
+	updateProfile: protectedProcedure
+		.input(
+			z.object({
+				firstName: z.string().optional(),
+				lastName: z.string().optional(),
+				bio: z.string().optional(),
+				pronouns: z.string().optional(),
+				location: z.string().optional(),
+				website: z.string().url().optional().or(z.literal("")),
+				socialLinks: z
+					.object({
+						linkedin: z.string().optional(),
+						twitter: z.string().optional(),
+						github: z.string().optional(),
+						instagram: z.string().optional(),
+						custom: z
+							.array(
+								z.object({
+									label: z.string(),
+									url: z.string().url(),
+								}),
+							)
+							.optional(),
+					})
+					.optional(),
+				profileVisibility: z
+					.object({
+						name: z.boolean().optional(),
+						email: z.boolean().optional(),
+						bio: z.boolean().optional(),
+						location: z.boolean().optional(),
+						social: z.boolean().optional(),
+					})
+					.optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const { db, dbUser } = ctx;
+
+			// Update user profile in database
+			const [updatedUser] = await db
+				.update(users)
+				.set({
+					firstName:
+						input.firstName !== undefined ? input.firstName : dbUser.firstName,
+					lastName:
+						input.lastName !== undefined ? input.lastName : dbUser.lastName,
+					bio: input.bio !== undefined ? input.bio : dbUser.bio,
+					pronouns:
+						input.pronouns !== undefined ? input.pronouns : dbUser.pronouns,
+					location:
+						input.location !== undefined ? input.location : dbUser.location,
+					website: input.website !== undefined ? input.website : dbUser.website,
+					socialLinks:
+						input.socialLinks !== undefined
+							? input.socialLinks
+							: dbUser.socialLinks,
+					profileVisibility:
+						input.profileVisibility !== undefined
+							? input.profileVisibility
+							: dbUser.profileVisibility,
+					profileCompletedAt:
+						dbUser.profileCompletedAt || new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(users.id, dbUser.id))
+				.returning();
+
+			return updatedUser;
+		}),
 
 	// Update user preferences
 	updatePreferences: protectedProcedure
@@ -164,11 +264,11 @@ export const userRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			// Update preferences in database
-			if (!ctx.dbUser.clerkUserId) {
+			if (!ctx.dbUser.stackUserId) {
 				throw new Error("User must have a Clerk ID to update preferences");
 			}
 			await updateUserPreferences(
-				ctx.dbUser.clerkUserId,
+				ctx.dbUser.stackUserId,
 				{
 					vetMedPreferences: input.vetMedPreferences as
 						| Partial<VetMedPreferences>
@@ -188,10 +288,10 @@ export const userRouter = createTRPCRouter({
 	// Check if user needs onboarding
 	needsOnboarding: protectedProcedure.query(async ({ ctx }) => {
 		const hasPreferences =
-			ctx.clerkUser?.unsafeMetadata?.vetMedPreferences ||
-			ctx.clerkUser?.unsafeMetadata?.householdSettings;
+			ctx.stackUser?.clientMetadata?.vetMedPreferences ||
+			ctx.stackUser?.clientMetadata?.householdSettings;
 		const hasCompletedOnboarding =
-			ctx.clerkUser?.unsafeMetadata?.onboardingComplete;
+			ctx.stackUser?.clientMetadata?.onboardingComplete;
 
 		return !hasPreferences && !hasCompletedOnboarding;
 	}),

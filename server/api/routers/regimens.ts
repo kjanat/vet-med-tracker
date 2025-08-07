@@ -13,7 +13,7 @@ import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
-} from "@/server/api/trpc/clerk-init";
+} from "@/server/api/trpc";
 import { createAuditLog } from "@/server/utils/audit-log";
 
 // Types for regimen processing

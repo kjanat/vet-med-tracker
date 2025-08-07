@@ -9,10 +9,7 @@ import {
 	regimens,
 	suggestions,
 } from "@/db/schema";
-import {
-	createTRPCRouter,
-	householdProcedure,
-} from "@/server/api/trpc/clerk-init";
+import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 
 // Types matching the existing mock data structure
 export interface Suggestion {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import {
 	createContext,
 	type ReactNode,
@@ -21,15 +21,12 @@ import { trpc } from "@/server/trpc/client";
 
 type User = typeof vetmedUsers.$inferSelect;
 
-// Minimal Clerk user interface based on properties accessed in convertClerkUser
-interface ClerkUserForConversion {
+// Stack user interface for conversion
+interface StackUserForConversion {
 	id: string;
-	firstName?: string | null;
-	lastName?: string | null;
-	imageUrl?: string | null;
-	emailAddresses: Array<{
-		emailAddress: string;
-	}>;
+	displayName?: string | null;
+	profileImageUrl?: string | null;
+	primaryEmail?: string | null;
 }
 
 // tRPC query result types
@@ -56,7 +53,7 @@ interface Household {
 
 interface UserProfile {
 	id: string;
-	clerkUserId: string | null;
+	stackUserId: string | null;
 	email: string | null;
 	name: string | null;
 	image: string | null;
@@ -521,8 +518,8 @@ export function useApp() {
 
 export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 	const [state, dispatch] = useReducer(appReducer, initialState);
-	const { user: clerkUser, isLoaded } = useUser();
-	const { openSignIn, signOut } = useClerk();
+	const stackUser = useUser();
+	const _isLoaded = true; // Stack Auth loads synchronously
 	const utils = trpc.useUtils();
 
 	// Refs for cleanup
@@ -548,23 +545,32 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 	// =============================================================================
 
 	// Convert Clerk user to internal user format
-	const convertClerkUser = useCallback(
-		(clerkUser: ClerkUserForConversion): User => ({
-			id: clerkUser.id,
-			name:
-				clerkUser.firstName && clerkUser.lastName
-					? `${clerkUser.firstName} ${clerkUser.lastName}`
-					: clerkUser.firstName ||
-						clerkUser.emailAddresses[0]?.emailAddress ||
-						"Unknown",
-			firstName: clerkUser.firstName || null,
-			lastName: clerkUser.lastName || null,
-			email: clerkUser.emailAddresses[0]?.emailAddress || "",
-			image: clerkUser.imageUrl || null,
+	const convertStackUser = useCallback(
+		(stackUser: StackUserForConversion): User => ({
+			id: stackUser.id,
+			name: stackUser.displayName || stackUser.primaryEmail || "Unknown",
+			firstName: null, // Let users set this themselves
+			lastName: null, // Let users set this themselves
+			email: stackUser.primaryEmail || "",
+			image: stackUser.profileImageUrl || null,
 			emailVerified: null,
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
-			clerkUserId: clerkUser.id,
+			stackUserId: stackUser.id,
+			// New flexible profile fields (all optional, defaults)
+			bio: null,
+			pronouns: null,
+			location: null,
+			website: null,
+			socialLinks: {},
+			profileData: {},
+			profileVisibility: {
+				name: true,
+				email: false,
+				bio: true,
+				location: true,
+			},
+			profileCompletedAt: null,
 			preferredTimezone: null,
 			preferredPhoneNumber: null,
 			use24HourTime: null,
@@ -588,11 +594,12 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 		[],
 	);
 
-	// Update user when Clerk user changes
+	// Update user when Stack user changes
 	useEffect(() => {
+		const isLoaded = true; // Stack Auth loads synchronously
 		if (isLoaded) {
-			if (clerkUser) {
-				const user = convertClerkUser(clerkUser);
+			if (stackUser) {
+				const user = convertStackUser(stackUser);
 				dispatch({ type: "SET_USER", payload: user });
 				dispatch({ type: "SET_AUTH_STATUS", payload: "authenticated" });
 			} else {
@@ -601,11 +608,11 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 			}
 			dispatch({ type: "SET_LOADING", payload: { key: "user", value: false } });
 		}
-	}, [clerkUser, isLoaded, convertClerkUser]);
+	}, [stackUser, convertStackUser]);
 
 	// Get user profile data from tRPC
 	const { data: userProfile, refetch: refetchProfile } =
-		trpc.user.getProfile.useQuery(undefined, { enabled: !!clerkUser });
+		trpc.user.getProfile.useQuery(undefined, { enabled: !!stackUser });
 
 	useEffect(() => {
 		if (userProfile) {
@@ -619,10 +626,10 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 
 	// Load preferences from Clerk user metadata
 	useEffect(() => {
-		if (clerkUser?.unsafeMetadata) {
-			const vetMedPrefs = clerkUser.unsafeMetadata
+		if (stackUser?.clientMetadata) {
+			const vetMedPrefs = stackUser.clientMetadata
 				.vetMedPreferences as VetMedPreferences;
-			const householdSettings = clerkUser.unsafeMetadata
+			const householdSettings = stackUser.clientMetadata
 				.householdSettings as HouseholdSettings;
 
 			if (vetMedPrefs) {
@@ -642,13 +649,13 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 			// Check if first time user
 			const hasPreferences = vetMedPrefs || householdSettings;
 			const hasCompletedOnboarding =
-				clerkUser.unsafeMetadata?.onboardingComplete;
+				stackUser.clientMetadata?.onboardingComplete;
 			dispatch({
 				type: "SET_FIRST_TIME_USER",
 				payload: !hasPreferences && !hasCompletedOnboarding,
 			});
 		}
-	}, [clerkUser]);
+	}, [stackUser]);
 
 	// =============================================================================
 	// HOUSEHOLDS & ANIMALS MANAGEMENT
@@ -656,7 +663,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 
 	// Fetch household details from API
 	const { data: householdData } = trpc.household.list.useQuery(undefined, {
-		enabled: isLoaded && !!clerkUser,
+		enabled: !!stackUser,
 	});
 
 	// Helper function to format household data
@@ -885,12 +892,16 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 	}, [utils.household.getPendingMeds, state.selectedHouseholdId]);
 
 	const login = useCallback(() => {
-		openSignIn();
-	}, [openSignIn]);
+		// Stack Auth uses redirects for sign-in
+		window.location.href = "/handler/sign-in";
+	}, []);
 
 	const logout = useCallback(async () => {
-		await signOut();
-	}, [signOut]);
+		// Stack Auth logout
+		if (stackUser) {
+			await stackUser.signOut();
+		}
+	}, [stackUser]);
 
 	const refreshAuth = useCallback(async () => {
 		await refetchProfile();
@@ -898,13 +909,13 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 
 	const updateVetMedPreferences = useCallback(
 		async (updates: Partial<VetMedPreferences>) => {
-			if (!clerkUser) throw new Error("User not loaded");
+			if (!stackUser) throw new Error("User not loaded");
 
 			const newPreferences = { ...state.preferences, ...updates };
 
-			await clerkUser.update({
-				unsafeMetadata: {
-					...clerkUser.unsafeMetadata,
+			await stackUser.update({
+				clientMetadata: {
+					...stackUser.clientMetadata,
 					vetMedPreferences: newPreferences,
 				},
 			});
@@ -922,18 +933,18 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 				console.warn("Failed to sync preferences to backend:", error);
 			}
 		},
-		[clerkUser, state.preferences],
+		[stackUser, state.preferences],
 	);
 
 	const updateHouseholdSettings = useCallback(
 		async (updates: Partial<HouseholdSettings>) => {
-			if (!clerkUser) throw new Error("User not loaded");
+			if (!stackUser) throw new Error("User not loaded");
 
 			const newSettings = { ...state.householdSettings, ...updates };
 
-			await clerkUser.update({
-				unsafeMetadata: {
-					...clerkUser.unsafeMetadata,
+			await stackUser.update({
+				clientMetadata: {
+					...stackUser.clientMetadata,
 					householdSettings: newSettings,
 				},
 			});
@@ -951,16 +962,16 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 				console.warn("Failed to sync settings to backend:", error);
 			}
 		},
-		[clerkUser, state.householdSettings],
+		[stackUser, state.householdSettings],
 	);
 
 	const markOnboardingComplete = useCallback(async () => {
-		if (!clerkUser) return;
+		if (!stackUser) return;
 
 		try {
-			await clerkUser.update({
-				unsafeMetadata: {
-					...clerkUser.unsafeMetadata,
+			await stackUser.update({
+				clientMetadata: {
+					...stackUser.clientMetadata,
 					onboardingComplete: true,
 					onboardingCompletedAt: new Date().toISOString(),
 				},
@@ -969,7 +980,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 		} catch (error) {
 			console.error("Error marking onboarding complete:", error);
 		}
-	}, [clerkUser]);
+	}, [stackUser]);
 
 	const announce = useCallback(
 		(message: string, priority: "polite" | "assertive" = "polite") => {

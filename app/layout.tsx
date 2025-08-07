@@ -1,13 +1,10 @@
+import { StackProvider, StackTheme } from "@stackframe/stack";
 import type { Metadata } from "next";
 import type React from "react";
+import { stackServerApp } from "../stack";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 // import { DebugHouseholdState } from "@/components/debug/debug-household-state";
-import { ErrorBoundary } from "@/components/error-boundary";
-import { GlobalKeyboardShortcuts } from "@/components/layout/global-keyboard-shortcuts";
-import { GlobalLayout } from "@/components/layout/global-layout";
-import { ConsolidatedAppProvider } from "@/components/providers/app-provider-consolidated";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
 import { TRPCProvider } from "@/server/trpc/client";
@@ -49,41 +46,36 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<ClerkProvider>
-			<html
-				lang="en"
-				className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
-				suppressHydrationWarning
-			>
-				<head>
-					<meta name="apple-mobile-web-app-title" content="VetMed" />
-				</head>
-				<body className={inter.className} suppressHydrationWarning>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
-						<SkipNavigation
-							links={[
-								{ href: "#main-content", label: "Skip to main content" },
-								{ href: "#main-navigation", label: "Skip to navigation" },
-								{ href: "#search", label: "Skip to search" },
-							]}
-						/>
-						<TRPCProvider>
-							<ErrorBoundary errorBoundaryId="root">
-								<ConsolidatedAppProvider>
-									<GlobalKeyboardShortcuts />
-									<GlobalLayout>{children}</GlobalLayout>
-								</ConsolidatedAppProvider>
-							</ErrorBoundary>
-						</TRPCProvider>
-						<Analytics />
-					</ThemeProvider>
-				</body>
-			</html>
-		</ClerkProvider>
+		<html
+			lang="en"
+			className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
+			suppressHydrationWarning
+		>
+			<head>
+				<meta name="apple-mobile-web-app-title" content="VetMed" />
+			</head>
+			<body className={inter.className} suppressHydrationWarning>
+				<StackProvider app={stackServerApp}>
+					<StackTheme>
+						<ThemeProvider
+							attribute="class"
+							defaultTheme="system"
+							enableSystem
+							disableTransitionOnChange
+						>
+							<SkipNavigation
+								links={[
+									{ href: "#main-content", label: "Skip to main content" },
+									{ href: "#main-navigation", label: "Skip to navigation" },
+									{ href: "#search", label: "Skip to search" },
+								]}
+							/>
+							<TRPCProvider>{children}</TRPCProvider>
+							<Analytics />
+						</ThemeProvider>
+					</StackTheme>
+				</StackProvider>
+			</body>
+		</html>
 	);
 }

@@ -26,7 +26,7 @@ export interface Household {
 
 export interface UserProfile {
 	id: string;
-	clerkUserId: string | null;
+	stackUserId: string | null;
 	email: string | null;
 	name: string | null;
 	image: string | null;

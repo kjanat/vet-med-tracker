@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import { Bell, Clock, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -56,21 +56,21 @@ const defaultPreferences: VetMedPreferences = {
 };
 
 export default function VetMedPreferencesPage() {
-	const { user, isLoaded } = useUser();
+	const user = useUser();
 	const [preferences, setPreferences] =
 		useState<VetMedPreferences>(defaultPreferences);
 	const [isSaving, setIsSaving] = useState(false);
 
 	useEffect(() => {
-		if (isLoaded && user) {
+		if (user) {
 			// Load preferences from user's unsafe metadata
-			const savedPreferences = user.unsafeMetadata
+			const savedPreferences = user.clientMetadata
 				.vetMedPreferences as VetMedPreferences;
 			if (savedPreferences) {
 				setPreferences({ ...defaultPreferences, ...savedPreferences });
 			}
 		}
-	}, [isLoaded, user]);
+	}, [user]);
 
 	const handleSavePreferences = async () => {
 		if (!user) return;
@@ -78,8 +78,8 @@ export default function VetMedPreferencesPage() {
 		setIsSaving(true);
 		try {
 			await user.update({
-				unsafeMetadata: {
-					...user.unsafeMetadata,
+				clientMetadata: {
+					...user.clientMetadata,
 					vetMedPreferences: preferences,
 				},
 			});
@@ -114,6 +114,7 @@ export default function VetMedPreferencesPage() {
 		}));
 	};
 
+	const isLoaded = true; // Stack Auth loads synchronously
 	if (!isLoaded) {
 		return <div className="p-6">Loading preferences...</div>;
 	}

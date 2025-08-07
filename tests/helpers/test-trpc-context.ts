@@ -1,5 +1,5 @@
 import type * as schema from "@/db/schema";
-import type { ClerkContext } from "../../server/api/trpc/clerk-init";
+import type { Context } from "@/server/api/trpc";
 import { createTestDatabase } from "./test-db";
 
 /**
@@ -11,7 +11,7 @@ export function createTestTRPCContext(options: {
 	user: typeof schema.users.$inferSelect;
 	household: typeof schema.households.$inferSelect;
 	membership?: Partial<typeof schema.memberships.$inferSelect>;
-}): ClerkContext {
+}): Context {
 	const { user, household, membership } = options;
 	const db = createTestDatabase();
 
@@ -29,22 +29,13 @@ export function createTestTRPCContext(options: {
 		db,
 		headers: new Headers(),
 		requestedHouseholdId: household.id,
-		// Mock Clerk auth result
-		auth: {
-			userId: user.id,
-			sessionId: `test-session-${Date.now()}`,
-			// Add other required auth properties
-		} as any,
-		// Mock Clerk user
-		clerkUser: {
+		// Mock Stack Auth user
+		stackUser: {
 			id: user.id,
-			emailAddresses: [{ emailAddress: user.email }],
-			firstName: user.name?.split(" ")[0] || "",
-			lastName: user.name?.split(" ")[1] || "",
-			username: user.email.split("@")[0],
-			imageUrl: user.image,
-			publicMetadata: {},
-			unsafeMetadata: {},
+			primaryEmail: user.email,
+			displayName: user.name || "",
+			profileImageUrl: user.image,
+			clientMetadata: {},
 		} as any,
 		// Database user
 		dbUser: user,
@@ -62,15 +53,14 @@ export function createTestTRPCContext(options: {
 /**
  * Create a test context for unauthenticated requests
  */
-export function createUnauthenticatedTestContext(): ClerkContext {
+export function createUnauthenticatedTestContext(): Context {
 	const db = createTestDatabase();
 
 	return {
 		db,
 		headers: new Headers(),
 		requestedHouseholdId: null,
-		auth: null,
-		clerkUser: null,
+		stackUser: null,
 		dbUser: null,
 		currentHouseholdId: null,
 		currentMembership: null,

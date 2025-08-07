@@ -688,7 +688,24 @@ export const vetmedUsers = pgTable(
 		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
 			.defaultNow()
 			.notNull(),
-		clerkUserId: text("clerk_user_id"),
+		stackUserId: text("stack_user_id"), // renamed from clerk_user_id
+		
+		// Flexible profile fields (all optional)
+		bio: text(),
+		pronouns: text(),
+		location: text(),
+		website: text(),
+		socialLinks: jsonb("social_links").default(sql`'{}'::jsonb`),
+		profileData: jsonb("profile_data").default(sql`'{}'::jsonb`), // Extensible custom fields
+		profileVisibility: jsonb("profile_visibility").default(
+			sql`'{"name": true, "email": false, "bio": true, "location": true}'::jsonb`
+		),
+		profileCompletedAt: timestamp("profile_completed_at", {
+			withTimezone: true,
+			mode: "string",
+		}),
+		
+		// Preferences
 		preferredTimezone: text("preferred_timezone").default("America/New_York"),
 		preferredPhoneNumber: text("preferred_phone_number"),
 		use24HourTime: boolean("use_24_hour_time").default(false),
@@ -713,7 +730,7 @@ export const vetmedUsers = pgTable(
 	},
 	(table) => [
 		unique("vetmed_users_email_unique").on(table.email),
-		unique("vetmed_users_clerk_user_id_unique").on(table.clerkUserId),
+		unique("vetmed_users_stack_user_id_unique").on(table.stackUserId),
 		foreignKey({
 			columns: [table.defaultHouseholdId],
 			foreignColumns: [vetmedHouseholds.id],

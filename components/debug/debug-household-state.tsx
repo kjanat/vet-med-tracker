@@ -1,35 +1,32 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import { useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { trpc } from "@/server/trpc/client";
 
 export function DebugHouseholdState() {
 	const { selectedHousehold, households } = useApp();
-	const { user: clerkUser, isLoaded } = useUser();
+	const stackUser = useUser();
 	const {
 		data: householdData,
 		isLoading,
 		error,
 	} = trpc.household.list.useQuery(undefined, {
-		enabled: isLoaded && !!clerkUser,
+		enabled: !!stackUser,
 	});
 
-	const isAuthenticated = isLoaded && !!clerkUser;
+	const isAuthenticated = !!stackUser;
 	const user = useMemo(
 		() =>
-			clerkUser
+			stackUser
 				? {
-						id: clerkUser.id,
-						email: clerkUser.emailAddresses[0]?.emailAddress || "",
-						name:
-							clerkUser.firstName ||
-							clerkUser.emailAddresses[0]?.emailAddress ||
-							"Unknown",
+						id: stackUser.id,
+						email: stackUser.primaryEmail || "",
+						name: stackUser.displayName || stackUser.primaryEmail || "Unknown",
 					}
 				: null,
-		[clerkUser],
+		[stackUser],
 	);
 	const [localStorageValue, setLocalStorageValue] = useState<string>("SSR");
 

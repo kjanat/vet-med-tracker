@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "@/components/providers/app-provider-consolidated";
@@ -31,7 +31,7 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 	const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
 	const processingRef = useRef(false);
 	const processQueueRef = useRef<(() => Promise<void>) | null>(null);
-	const { user: clerkUser } = useUser();
+	const stackUser = useUser();
 	const { selectedHousehold } = useApp();
 	const utils = trpc.useUtils();
 
@@ -86,7 +86,7 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 			payload: unknown,
 			idempotencyKey: string,
 		) => {
-			if (!clerkUser?.id || !selectedHousehold?.id) {
+			if (!stackUser?.id || !selectedHousehold?.id) {
 				throw new Error("No user or household context");
 			}
 
@@ -98,7 +98,7 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 				retries: 0,
 				maxRetries,
 				householdId: selectedHousehold.id,
-				userId: clerkUser.id,
+				userId: stackUser.id,
 			};
 
 			try {
@@ -126,7 +126,7 @@ export function useOfflineQueue(options: OfflineQueueOptions = {}) {
 			isOnline,
 			maxRetries,
 			selectedHousehold?.id,
-			clerkUser?.id,
+			stackUser?.id,
 			updateQueueSize,
 		],
 	);

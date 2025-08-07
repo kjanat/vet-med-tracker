@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import type React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import {
@@ -48,29 +48,29 @@ interface UserPreferencesProviderProps {
 export function UserPreferencesProvider({
 	children,
 }: UserPreferencesProviderProps) {
-	const { user, isLoaded: clerkLoaded } = useUser();
+	const user = useUser();
 	const preferences = useUserPreferences();
 	const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
 
 	useEffect(() => {
-		if (clerkLoaded && user) {
+		if (user) {
 			// Check if this is a first-time user (no preferences set yet)
 			const hasPreferences =
-				user.unsafeMetadata.vetMedPreferences ||
-				user.unsafeMetadata.householdSettings;
-			const hasCompletedOnboarding = user.unsafeMetadata?.onboardingComplete;
+				user.clientMetadata?.vetMedPreferences ||
+				user.clientMetadata?.householdSettings;
+			const hasCompletedOnboarding = user.clientMetadata?.onboardingComplete;
 
 			setIsFirstTimeUser(!hasPreferences && !hasCompletedOnboarding);
 		}
-	}, [clerkLoaded, user]);
+	}, [user]);
 
 	const markOnboardingComplete = async () => {
 		if (!user) return;
 
 		try {
 			await user.update({
-				unsafeMetadata: {
-					...user.unsafeMetadata,
+				clientMetadata: {
+					...user.clientMetadata,
 					onboardingComplete: true,
 					onboardingCompletedAt: new Date().toISOString(),
 				},

@@ -6,7 +6,7 @@ import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
-} from "@/server/api/trpc/clerk-init";
+} from "@/server/api/trpc";
 
 export const medicationRouter = createTRPCRouter({
 	search: protectedProcedure

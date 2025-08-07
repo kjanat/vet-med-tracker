@@ -315,7 +315,7 @@ export const vetmedUsers = pgTable("vetmed_users", {
 	emailVerified: timestamp("email_verified", { withTimezone: true, mode: 'string' }),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-	clerkUserId: text("clerk_user_id"),
+	stackUserId: text("clerk_user_id"),
 	preferredTimezone: text("preferred_timezone").default('America/New_York'),
 	preferredPhoneNumber: text("preferred_phone_number"),
 	use24HourTime: boolean("use_24_hour_time").default(false),
@@ -332,5 +332,5 @@ export const vetmedUsers = pgTable("vetmed_users", {
 	preferencesBackup: jsonb("preferences_backup"),
 }, (table) => [
 	unique("vetmed_users_email_unique").on(table.email),
-	unique("vetmed_users_clerk_user_id_unique").on(table.clerkUserId),
+	unique("vetmed_users_clerk_user_id_unique").on(table.stackUserId),
 ]);

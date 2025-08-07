@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import { AlertCircle, CheckCircle, Loader2, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/card";
 
 interface SyncStatus {
-	clerkUser: {
+	stackUser: {
 		id: string;
 		email: string;
 		name: string;
 	} | null;
 	dbUser: {
 		id: string;
-		clerkUserId: string;
+		stackUserId: string;
 		email: string;
 		name: string;
 	} | null;
@@ -29,7 +29,7 @@ interface SyncStatus {
 }
 
 export function SyncStatus() {
-	const { user, isLoaded } = useUser();
+	const user = useUser();
 	const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [syncing, setSyncing] = useState(false);
@@ -83,11 +83,12 @@ export function SyncStatus() {
 	};
 
 	useEffect(() => {
-		if (isLoaded && user) {
+		if (user) {
 			checkSyncStatus();
 		}
-	}, [isLoaded, user, checkSyncStatus]);
+	}, [user, checkSyncStatus]);
 
+	const isLoaded = true; // Stack Auth loads synchronously
 	if (!isLoaded || loading) {
 		return (
 			<Card>
@@ -127,9 +128,9 @@ export function SyncStatus() {
 				<div>
 					<h4 className="mb-2 font-medium">Clerk User</h4>
 					<div className="space-y-1 text-muted-foreground text-sm">
-						<p>ID: {syncStatus?.clerkUser?.id || "N/A"}</p>
-						<p>Email: {syncStatus?.clerkUser?.email || "N/A"}</p>
-						<p>Name: {syncStatus?.clerkUser?.name || "N/A"}</p>
+						<p>ID: {syncStatus?.stackUser?.id || "N/A"}</p>
+						<p>Email: {syncStatus?.stackUser?.email || "N/A"}</p>
+						<p>Name: {syncStatus?.stackUser?.name || "N/A"}</p>
 					</div>
 				</div>
 
@@ -139,7 +140,7 @@ export function SyncStatus() {
 						{syncStatus?.dbUser ? (
 							<>
 								<p>ID: {syncStatus.dbUser.id}</p>
-								<p>Clerk ID: {syncStatus.dbUser.clerkUserId}</p>
+								<p>Clerk ID: {syncStatus.dbUser.stackUserId}</p>
 								<p>Email: {syncStatus.dbUser.email}</p>
 								<p>Name: {syncStatus.dbUser.name || "N/A"}</p>
 							</>

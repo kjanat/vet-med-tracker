@@ -1,6 +1,6 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useStackApp, useUser } from "@stackframe/stack";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,8 @@ export function CtaButtons({
 	variant = "primary",
 	showSecondary = true,
 }: CtaButtonsProps) {
-	const { openSignIn } = useClerk();
-	const { user, isLoaded } = useUser();
+	const app = useStackApp();
+	const user = useUser();
 
 	return (
 		<div
@@ -27,13 +27,17 @@ export function CtaButtons({
 				className,
 			)}
 		>
-			{isLoaded && !user && (
-				<Button size="lg" className="px-8 text-lg" onClick={() => openSignIn()}>
+			{!user && (
+				<Button
+					size="lg"
+					className="px-8 text-lg"
+					onClick={() => app.redirectToSignUp()}
+				>
 					{variant === "hero" ? "Start Free" : "Get Started Free"}
 					<ArrowRight className="ml-2 h-5 w-5" />
 				</Button>
 			)}
-			{isLoaded && user && (
+			{user && (
 				<Button size="lg" className="px-8 text-lg" asChild>
 					<Link href="/dashboard">
 						Go to Dashboard

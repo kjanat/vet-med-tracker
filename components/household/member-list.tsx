@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import {
 	Crown,
 	Eye,
@@ -293,7 +293,7 @@ export function MemberList({
 	pendingInvites = [],
 	userRole = "CAREGIVER",
 }: MemberListProps) {
-	const { user: clerkUser } = useUser();
+	const stackUser = useUser();
 	const { selectedHousehold } = useApp();
 	const { toast } = useToast();
 	const isMobile = useIsMobile();
@@ -478,7 +478,7 @@ export function MemberList({
 								key={member.id}
 								member={member}
 								canManageRoles={canManageRoles}
-								currentUserId={clerkUser?.id}
+								currentUserId={stackUser?.id}
 								onRoleChange={handleRoleChange}
 								isUpdating={updateRoleMutation.isPending}
 							/>

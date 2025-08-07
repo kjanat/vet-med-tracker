@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import type { ClerkContext } from "@/server/api/trpc/clerk-init";
+import type { ClerkContext } from "@/server/api/trpc";
 import {
 	type AuditEventType,
 	AuditSeverity,
@@ -279,7 +279,7 @@ export const trpcAudit = {
 	): Promise<string> {
 		const loggingContext = await getTRPCLoggingContext(
 			{
-				auth: ctx.auth?.userId ? { userId: ctx.auth.userId } : undefined,
+				auth: ctx.stackUser?.id ? { userId: ctx.stackUser.id } : undefined,
 				householdId: ctx.currentHouseholdId || undefined,
 				loggingContext: undefined,
 			},
@@ -305,7 +305,7 @@ export const trpcDb = {
 	): Promise<T> {
 		const loggingContext = await getTRPCLoggingContext(
 			{
-				auth: ctx.auth?.userId ? { userId: ctx.auth.userId } : undefined,
+				auth: ctx.stackUser?.id ? { userId: ctx.stackUser.id } : undefined,
 				householdId: ctx.currentHouseholdId || undefined,
 				loggingContext: undefined,
 			},
@@ -351,7 +351,7 @@ export const trpcDb = {
 	): Promise<T> {
 		const loggingContext = await getTRPCLoggingContext(
 			{
-				auth: ctx.auth?.userId ? { userId: ctx.auth.userId } : undefined,
+				auth: ctx.stackUser?.id ? { userId: ctx.stackUser.id } : undefined,
 				householdId: ctx.currentHouseholdId || undefined,
 				loggingContext: undefined,
 			},

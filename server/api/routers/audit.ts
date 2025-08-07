@@ -1,10 +1,7 @@
 import { and, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
 import { z } from "zod";
 import { auditLog, users } from "@/db/schema";
-import {
-	createTRPCRouter,
-	householdProcedure,
-} from "@/server/api/trpc/clerk-init";
+import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 
 // Input validation schema for listing audit logs
 const listAuditLogsSchema = z.object({

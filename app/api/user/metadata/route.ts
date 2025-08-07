@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { stackServerApp } from "@/stack";
 
 // Schema for VetMed preferences
 const VetMedPreferencesSchema = z.object({
@@ -51,9 +51,9 @@ const UpdateMetadataSchema = z.object({
 
 export async function POST(req: NextRequest) {
 	try {
-		const authResult = await auth();
+		const user = await stackServerApp.getUser();
 
-		if (!authResult?.userId) {
+		if (!user) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
@@ -65,13 +65,13 @@ export async function POST(req: NextRequest) {
 		if (validatedData.vetMedPreferences?.defaultTimezone) {
 			// Update user's timezone in the database for medication scheduling
 			console.log(
-				`Updating timezone for user ${authResult.userId} to:`,
+				`Updating timezone for user ${user.id} to:`,
 				validatedData.vetMedPreferences.defaultTimezone,
 			);
 
 			// TODO: Update database with timezone information
 			// await db.users.update({
-			//   where: { clerkUserId: authResult.userId },
+			//   where: { stackUserId: user.id },
 			//   data: { timezone: validatedData.vetMedPreferences.defaultTimezone }
 			// });
 		}
@@ -79,16 +79,16 @@ export async function POST(req: NextRequest) {
 		if (validatedData.householdSettings?.primaryHouseholdName) {
 			// Sync household name to database
 			console.log(
-				`Updating household name for user ${authResult.userId}:`,
+				`Updating household name for user ${user.id}:`,
 				validatedData.householdSettings.primaryHouseholdName,
 			);
 
 			// TODO: Create or update household in database
 			// await db.households.upsert({
-			//   where: { primaryUserId: authResult.userId },
+			//   where: { primaryUserId: user.id },
 			//   create: {
 			//     name: validatedData.householdSettings.primaryHouseholdName,
-			//     primaryUserId: authResult.userId,
+			//     primaryUserId: user.id,
 			//   },
 			//   update: {
 			//     name: validatedData.householdSettings.primaryHouseholdName,
@@ -123,9 +123,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
 	try {
-		const authResult = await auth();
+		const user = await stackServerApp.getUser();
 
-		if (!authResult?.userId) {
+		if (!user) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
@@ -133,7 +133,7 @@ export async function GET() {
 		// For now, return a success response indicating the endpoint is working
 		return NextResponse.json({
 			success: true,
-			userId: authResult.userId,
+			userId: user.id,
 			message: "User metadata endpoint is accessible",
 		});
 	} catch (error) {

@@ -1,7 +1,6 @@
-import type { inferAsyncReturnType } from "@trpc/server";
 import { expect, vi } from "vitest";
 import { appRouter } from "@/server/api/routers/_app";
-import type { createClerkTRPCContext } from "@/server/api/trpc/clerk-init";
+import type { Context } from "@/server/api/trpc";
 import { ClerkMockHelpers } from "./clerk-test-utils";
 import { mockDb } from "./mock-db";
 
@@ -22,7 +21,7 @@ export const mockSession: TestSession = ClerkMockHelpers.createTestSession();
 // Create mock context for testing
 export async function createMockContext(
 	overrides: Record<string, unknown> = {},
-): Promise<inferAsyncReturnType<typeof createClerkTRPCContext>> {
+): Promise<Context> {
 	const mockReq = {
 		headers: new Headers({
 			"content-type": "application/json",
@@ -30,15 +29,14 @@ export async function createMockContext(
 		...(overrides.req || {}),
 	};
 
-	// Mock the auth context directly
-	// Note: auth is intentionally null here for testing unauthenticated scenarios
+	// Mock the context directly for Stack Auth
+	// Note: stackUser is intentionally null here for testing unauthenticated scenarios
 	// Use createAuthenticatedContext() for authenticated test scenarios
 	return {
 		db: mockDb as any,
 		headers: mockReq.headers,
 		requestedHouseholdId: null,
-		auth: null,
-		clerkUser: null,
+		stackUser: null,
 		dbUser: null,
 		currentHouseholdId: null,
 		currentMembership: null,
@@ -73,35 +71,18 @@ export async function createAuthenticatedContext(
 		updatedAt: new Date(),
 	};
 
-	// Mock Clerk user context
-	const mockClerkUser = {
+	// Mock Stack Auth user context
+	const mockStackUser = {
 		id: session.subject,
-		firstName: "Test",
-		lastName: "User",
-		emailAddresses: [{ emailAddress: "test@example.com" }],
-		imageUrl: null,
+		displayName: "Test User",
+		primaryEmail: "test@example.com",
+		profileImageUrl: null,
+		clientMetadata: {},
 	};
 
 	return createMockContext({
 		...overrides,
-		auth: {
-			userId: session.subject,
-			sessionId: `session-${session.subject}`,
-			actor: null,
-			sessionClaims: {
-				sub: session.subject,
-				exp: session.exp,
-				iat: Math.floor(Date.now() / 1000),
-				nbf: Math.floor(Date.now() / 1000),
-				iss: "https://clerk.test",
-				azp: "test-app",
-			},
-			orgId: null,
-			orgRole: null,
-			orgSlug: null,
-			orgPermissions: null,
-		},
-		clerkUser: mockClerkUser,
+		stackUser: mockStackUser,
 		dbUser: mockUser,
 		currentHouseholdId: session.access.householdId,
 		currentMembership: mockMembership,
@@ -119,18 +100,13 @@ export async function createAuthenticatedContext(
 }
 
 // Mock tRPC caller for testing
-export function createMockCaller(
-	ctx: inferAsyncReturnType<typeof createClerkTRPCContext>,
-) {
+export function createMockCaller(ctx: Context) {
 	return appRouter.createCaller(ctx);
 }
 
 // Helper to test protected procedures
 export async function testProtectedProcedure(
-	procedure: (params: {
-		ctx: inferAsyncReturnType<typeof createClerkTRPCContext>;
-		input: unknown;
-	}) => Promise<unknown>,
+	procedure: (params: { ctx: Context; input: unknown }) => Promise<unknown>,
 	input: unknown,
 	expectedError = "UNAUTHORIZED",
 ) {
@@ -141,10 +117,7 @@ export async function testProtectedProcedure(
 
 // Helper to test successful procedure
 export async function testSuccessfulProcedure<T>(
-	procedure: (params: {
-		ctx: inferAsyncReturnType<typeof createClerkTRPCContext>;
-		input: unknown;
-	}) => Promise<T>,
+	procedure: (params: { ctx: Context; input: unknown }) => Promise<T>,
 	input: unknown,
 	session = mockSession,
 ): Promise<T> {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import { useMemo } from "react";
 
 export interface VetMedPreferences {
@@ -92,25 +92,27 @@ const defaultHouseholdSettings: HouseholdSettings = {
 };
 
 export function useUserPreferences() {
-	const { user, isLoaded } = useUser();
+	const user = useUser();
+
+	const isLoaded = true; // Stack Auth loads synchronously
 
 	const vetMedPreferences = useMemo(() => {
 		if (!isLoaded || !user) return defaultVetMedPreferences;
 
-		const saved = user.unsafeMetadata.vetMedPreferences as VetMedPreferences;
+		const saved = user.clientMetadata?.vetMedPreferences as VetMedPreferences;
 		return saved
 			? { ...defaultVetMedPreferences, ...saved }
 			: defaultVetMedPreferences;
-	}, [user, isLoaded]);
+	}, [user]);
 
 	const householdSettings = useMemo(() => {
 		if (!isLoaded || !user) return defaultHouseholdSettings;
 
-		const saved = user.unsafeMetadata.householdSettings as HouseholdSettings;
+		const saved = user.clientMetadata?.householdSettings as HouseholdSettings;
 		return saved
 			? { ...defaultHouseholdSettings, ...saved }
 			: defaultHouseholdSettings;
-	}, [user, isLoaded]);
+	}, [user]);
 
 	const updateVetMedPreferences = async (
 		updates: Partial<VetMedPreferences>,
@@ -120,8 +122,8 @@ export function useUserPreferences() {
 		const newPreferences = { ...vetMedPreferences, ...updates };
 
 		await user.update({
-			unsafeMetadata: {
-				...user.unsafeMetadata,
+			clientMetadata: {
+				...user.clientMetadata,
 				vetMedPreferences: newPreferences,
 			},
 		});
@@ -146,8 +148,8 @@ export function useUserPreferences() {
 		const newSettings = { ...householdSettings, ...updates };
 
 		await user.update({
-			unsafeMetadata: {
-				...user.unsafeMetadata,
+			clientMetadata: {
+				...user.clientMetadata,
 				householdSettings: newSettings,
 			},
 		});

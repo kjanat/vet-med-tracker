@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import { Home, MapPin, Plus, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -123,21 +123,21 @@ const US_STATES = [
 ];
 
 export default function HouseholdSettingsPage() {
-	const { user, isLoaded } = useUser();
+	const user = useUser();
 	const [settings, setSettings] = useState<HouseholdSettings>(defaultSettings);
 	const [newRole, setNewRole] = useState("");
 	const [isSaving, setIsSaving] = useState(false);
 
 	useEffect(() => {
-		if (isLoaded && user) {
-			// Load settings from user's unsafe metadata
-			const savedSettings = user.unsafeMetadata
-				.householdSettings as HouseholdSettings;
+		if (user) {
+			// Load settings from user's client metadata
+			const savedSettings = user.clientMetadata
+				?.householdSettings as HouseholdSettings;
 			if (savedSettings) {
 				setSettings({ ...defaultSettings, ...savedSettings });
 			}
 		}
-	}, [isLoaded, user]);
+	}, [user]);
 
 	const handleSaveSettings = async () => {
 		if (!user) return;
@@ -145,8 +145,8 @@ export default function HouseholdSettingsPage() {
 		setIsSaving(true);
 		try {
 			await user.update({
-				unsafeMetadata: {
-					...user.unsafeMetadata,
+				clientMetadata: {
+					...user.clientMetadata,
 					householdSettings: settings,
 				},
 			});
@@ -209,6 +209,7 @@ export default function HouseholdSettingsPage() {
 		}));
 	};
 
+	const isLoaded = true; // Stack Auth loads synchronously
 	if (!isLoaded) {
 		return <div className="p-6">Loading household settings...</div>;
 	}

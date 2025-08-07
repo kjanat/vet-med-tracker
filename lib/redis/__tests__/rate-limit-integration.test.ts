@@ -15,7 +15,7 @@ type TestContext = {
 	householdId?: string | null;
 	requestedHouseholdId?: string | null;
 	db?: any;
-	clerkUser?: any;
+	stackUser?: any;
 	currentHouseholdId?: string | null;
 	currentMembership?: any;
 	availableHouseholds?: any[];
@@ -78,7 +78,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "user123" } as any,
-				clerkUser: {
+				stackUser: {
 					id: "user123",
 					emailAddresses: [{ emailAddress: "test@example.com" }],
 				} as any,
@@ -138,7 +138,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: null,
 				auth: null,
-				clerkUser: null,
+				stackUser: null,
 				dbUser: null,
 				currentHouseholdId: null,
 				currentMembership: null,
@@ -167,7 +167,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "owner123" },
-				clerkUser: {} as any,
+				stackUser: {} as any,
 				dbUser: {
 					id: "owner123",
 					email: "owner@example.com",
@@ -216,7 +216,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "user123" },
-				clerkUser: {} as any,
+				stackUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
@@ -261,7 +261,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "user123" },
-				clerkUser: {} as any,
+				stackUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
@@ -312,7 +312,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: null,
 				auth: null,
-				clerkUser: null,
+				stackUser: null,
 				dbUser: null,
 				currentHouseholdId: null,
 				currentMembership: null,
@@ -340,7 +340,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: null,
 				auth: { userId: "system" },
-				clerkUser: null,
+				stackUser: null,
 				dbUser: null,
 				currentHouseholdId: null,
 				currentMembership: null,
@@ -370,7 +370,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: "household123",
 				auth: { userId: "user123" },
-				clerkUser: {} as any,
+				stackUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
@@ -414,7 +414,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: null,
 				auth: { userId: "user123" },
-				clerkUser: {} as any,
+				stackUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
@@ -455,7 +455,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: null,
 				auth: { userId: "user123" },
-				clerkUser: {} as any,
+				stackUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",
@@ -491,7 +491,7 @@ describe("Rate Limiting Integration Tests", () => {
 				}),
 				requestedHouseholdId: null,
 				auth: { userId: "user123" },
-				clerkUser: {} as any,
+				stackUser: {} as any,
 				dbUser: {
 					id: "user123",
 					email: "test@example.com",

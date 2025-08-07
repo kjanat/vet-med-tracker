@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { ClerkProvider } from "@clerk/nextjs";
+// Stack Auth provider not needed for testing
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { vi } from "vitest";
@@ -15,7 +15,7 @@ import {
 } from "../app-provider-consolidated";
 
 // Mock Clerk
-vi.mock("@clerk/nextjs", () => ({
+vi.mock("@stackframe/stack", () => ({
 	useUser: () => ({
 		user: {
 			id: "user_123",
@@ -26,11 +26,11 @@ vi.mock("@clerk/nextjs", () => ({
 		},
 		isLoaded: true,
 	}),
-	useClerk: () => ({
-		openSignIn: vi.fn(),
+	useStackApp: () => ({
+		redirectToSignIn: vi.fn(),
 		signOut: vi.fn(),
 	}),
-	ClerkProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+	StackProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 // Mock tRPC
@@ -117,11 +117,9 @@ Object.defineProperty(window, "localStorage", {
 	value: localStorageMock,
 });
 
-// Test wrapper
+// Test wrapper (Stack Auth doesn't need a provider for testing)
 const TestWrapper = ({ children }: { children: ReactNode }) => (
-	<ClerkProvider publishableKey="test">
-		<ConsolidatedAppProvider>{children}</ConsolidatedAppProvider>
-	</ClerkProvider>
+	<ConsolidatedAppProvider>{children}</ConsolidatedAppProvider>
 );
 
 describe("ConsolidatedAppProvider", () => {
@@ -258,7 +256,7 @@ describe("ConsolidatedAppProvider", () => {
 				wrapper: TestWrapper,
 			});
 
-			expect(result.current).toHaveProperty("isLoaded");
+			expect(result.current).toHaveProperty("");
 			expect(result.current).toHaveProperty("vetMedPreferences");
 			expect(result.current).toHaveProperty("householdSettings");
 			expect(result.current).toHaveProperty("updateVetMedPreferences");

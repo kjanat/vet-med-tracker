@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { WelcomeFlow } from "@/components/onboarding/welcome-flow";
@@ -10,18 +10,18 @@ interface OnboardingCheckerProps {
 }
 
 export function OnboardingChecker({ children }: OnboardingCheckerProps) {
-	const { user, isLoaded } = useUser();
+	const user = useUser();
 	const pathname = usePathname();
 	const [showOnboarding, setShowOnboarding] = useState(false);
 
 	useEffect(() => {
-		if (!isLoaded || !user) return;
+		if (!user) return;
 
 		// Check if user needs onboarding
 		const hasPreferences =
-			user.unsafeMetadata?.vetMedPreferences ||
-			user.unsafeMetadata?.householdSettings;
-		const hasCompletedOnboarding = user.unsafeMetadata?.onboardingComplete;
+			user.clientMetadata?.vetMedPreferences ||
+			user.clientMetadata?.householdSettings;
+		const hasCompletedOnboarding = user.clientMetadata?.onboardingComplete;
 		const needsOnboarding = !hasPreferences && !hasCompletedOnboarding;
 
 		// Don't show onboarding on profile pages or if already completed
@@ -29,10 +29,10 @@ export function OnboardingChecker({ children }: OnboardingCheckerProps) {
 		const shouldShowOnboarding = needsOnboarding && !isProfilePage;
 
 		setShowOnboarding(shouldShowOnboarding);
-	}, [user, isLoaded, pathname]);
+	}, [user, pathname]);
 
 	// Show loading while determining onboarding status
-	if (!isLoaded) {
+	if (user === undefined) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-gray-50">
 				<div className="h-8 w-8 animate-spin rounded-full border-green-600 border-b-2"></div>

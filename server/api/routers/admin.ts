@@ -11,10 +11,7 @@ import {
 	regimens,
 	users,
 } from "@/db/schema";
-import {
-	createTRPCRouter,
-	householdProcedure,
-} from "@/server/api/trpc/clerk-init";
+import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 import { createAuditLog } from "@/server/utils/audit-log";
 
 // Input validation schema for recording administration

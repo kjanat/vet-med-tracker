@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@stackframe/stack";
 import {
 	createContext,
 	type ReactNode,
@@ -57,7 +57,7 @@ export function useApp() {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-	const { user: clerkUser, isLoaded } = useUser();
+	const stackUser = useUser();
 	const [selectedHousehold, setSelectedHouseholdState] =
 		useState<Household | null>(null);
 	const utils = trpc.useUtils();
@@ -102,21 +102,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 	const [pendingSyncCount, setPendingSyncCount] = useState(0);
 	const [households, setHouseholds] = useState<Household[]>([]);
 
-	// Convert Clerk user to minimal user format
-	const user = clerkUser
+	// Convert Stack user to minimal user format
+	const user = stackUser
 		? ({
-				id: clerkUser.id,
-				name:
-					clerkUser.firstName ||
-					clerkUser.emailAddresses[0]?.emailAddress ||
-					"Unknown",
-				email: clerkUser.emailAddresses[0]?.emailAddress || "",
-				image: clerkUser.imageUrl || null,
-				emailVerified: null, // Clerk handles verification
+				id: stackUser.id,
+				name: stackUser.displayName || stackUser.primaryEmail || "Unknown",
+				email: stackUser.primaryEmail || "",
+				image: stackUser.profileImageUrl || null,
+				emailVerified: null, // Stack handles verification
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 				// Add required fields with defaults
-				clerkUserId: clerkUser.id,
+				stackUserId: stackUser.id,
 				preferredTimezone: null,
 				preferredPhoneNumber: null,
 				use24HourTime: null,
@@ -136,7 +133,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 	// Fetch household details from API
 	const { data: householdData } = trpc.household.list.useQuery(undefined, {
-		enabled: isLoaded && !!clerkUser,
+		enabled: !!stackUser,
 	});
 
 	// Helper function to restore household from localStorage

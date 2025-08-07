@@ -17,7 +17,7 @@ import {
 	householdProcedure,
 	ownerProcedure,
 	protectedProcedure,
-} from "@/server/api/trpc/clerk-init";
+} from "@/server/api/trpc";
 
 export const householdRouter = createTRPCRouter({
 	// List all households for the current user

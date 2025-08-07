@@ -5,7 +5,7 @@ import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
-} from "@/server/api/trpc/clerk-init";
+} from "@/server/api/trpc";
 
 export const notificationsRouter = createTRPCRouter({
 	// List notifications for the current user, optionally filtered by household

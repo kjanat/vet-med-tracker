@@ -1,12 +1,12 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useStackApp, useUser } from "@stackframe/stack";
 import { createContext, type ReactNode, useContext } from "react";
 import { trpc } from "@/server/trpc/client";
 
 interface UserProfile {
 	id: string;
-	clerkUserId: string | null;
+	stackUserId: string | null;
 	email: string | null;
 	name: string | null;
 	image: string | null;
@@ -61,8 +61,9 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-	const { user, isLoaded } = useUser();
-	const { openSignIn, signOut } = useClerk();
+	const user = useUser();
+	const app = useStackApp();
+	const isLoaded = true; // Stack Auth loads synchronously
 
 	// Get user profile data from tRPC
 	const {
@@ -77,9 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		isAuthenticated: !!user,
 		isLoading: !isLoaded || profileLoading,
 		error: null,
-		login: () => openSignIn(),
+		login: () => app.redirectToSignIn(),
 		logout: async () => {
-			await signOut();
+			await user?.signOut();
 		},
 		refreshAuth: async () => {
 			await refetch();

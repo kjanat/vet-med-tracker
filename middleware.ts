@@ -1,17 +1,17 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
+import { stackServerApp } from "./stack";
 
 /**
- * Simplified Edge Runtime compatible middleware
+ * Simple middleware for Stack Auth
  *
- * This middleware only handles:
- * 1. Authentication via Clerk
+ * This middleware handles:
+ * 1. Authentication via Stack Auth
  * 2. Basic request routing
  *
  * Connection safeguards (rate limiting, circuit breakers, connection pools)
- * are now handled in the tRPC middleware layer which runs in Node.js runtime
+ * are handled in the tRPC middleware layer which runs in Node.js runtime
  */
-export default clerkMiddleware(async (_auth, req: NextRequest) => {
+export default async function middleware(req: NextRequest) {
 	// Allow health checks, monitoring endpoints, and static files without any processing
 	if (
 		req.nextUrl.pathname === "/api/health" ||
@@ -19,6 +19,11 @@ export default clerkMiddleware(async (_auth, req: NextRequest) => {
 		req.nextUrl.pathname.startsWith("/_next") ||
 		req.nextUrl.pathname.includes(".")
 	) {
+		return NextResponse.next();
+	}
+
+	// Allow Stack Auth handler routes
+	if (req.nextUrl.pathname.startsWith("/handler/")) {
 		return NextResponse.next();
 	}
 
@@ -30,8 +35,24 @@ export default clerkMiddleware(async (_auth, req: NextRequest) => {
 		return NextResponse.next();
 	}
 
+	// Check authentication for protected routes
+	if (
+		req.nextUrl.pathname.startsWith("/authed") ||
+		req.nextUrl.pathname.startsWith("/admin") ||
+		req.nextUrl.pathname.startsWith("/manage")
+	) {
+		const user = await stackServerApp.getUser();
+
+		if (!user) {
+			// Redirect to sign-in page
+			const signInUrl = new URL("/handler/sign-in", req.url);
+			signInUrl.searchParams.set("redirect", req.nextUrl.pathname);
+			return NextResponse.redirect(signInUrl);
+		}
+	}
+
 	return NextResponse.next();
-});
+}
 
 export const config = {
 	matcher: [

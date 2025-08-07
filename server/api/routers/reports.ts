@@ -7,10 +7,7 @@ import {
 	medicationCatalog,
 	regimens,
 } from "@/db/schema";
-import {
-	createTRPCRouter,
-	householdProcedure,
-} from "@/server/api/trpc/clerk-init";
+import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 
 // Types for report data
 interface ComplianceData {

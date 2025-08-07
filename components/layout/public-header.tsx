@@ -1,6 +1,6 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useStackApp, useUser } from "@stackframe/stack";
 import { Menu } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -24,8 +24,9 @@ const navigation = [
 
 export function PublicHeader() {
 	const [isOpen, setIsOpen] = useState(false);
-	const { openSignIn } = useClerk();
-	const { user, isLoaded } = useUser();
+	const app = useStackApp();
+	const user = useUser();
+	const isLoaded = true; // Stack Auth loads synchronously
 
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -56,10 +57,12 @@ export function PublicHeader() {
 						<div className="h-10 w-20 animate-pulse rounded-md bg-muted" />
 					) : !user ? (
 						<>
-							<Button variant="ghost" onClick={() => openSignIn()}>
+							<Button variant="ghost" onClick={() => app.redirectToSignIn()}>
 								Sign In
 							</Button>
-							<Button onClick={() => openSignIn()}>Get Started</Button>
+							<Button onClick={() => app.redirectToSignUp()}>
+								Get Started
+							</Button>
 						</>
 					) : (
 						<Button asChild>
@@ -100,7 +103,7 @@ export function PublicHeader() {
 											variant="outline"
 											className="w-full"
 											onClick={() => {
-												openSignIn();
+												app.redirectToSignIn();
 												setIsOpen(false);
 											}}
 										>
@@ -109,7 +112,7 @@ export function PublicHeader() {
 										<Button
 											className="w-full"
 											onClick={() => {
-												openSignIn();
+												app.redirectToSignUp();
 												setIsOpen(false);
 											}}
 										>
