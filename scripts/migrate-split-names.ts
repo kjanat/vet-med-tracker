@@ -5,7 +5,7 @@
  * This should be run after the database migration adds the firstName and lastName columns
  */
 
-import { eq, isNotNull, isNull } from "drizzle-orm";
+import { eq, isNotNull } from "drizzle-orm";
 import { dbPooled as db } from "@/db/drizzle";
 import { users } from "@/db/schema";
 

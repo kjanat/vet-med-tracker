@@ -30,7 +30,7 @@ function BasicExample() {
 		user,
 		selectedHousehold,
 		selectedAnimal,
-		households, // Used in household selector
+		_households, // Used in household selector
 		animals,
 		isAuthenticated,
 		loading,
@@ -194,9 +194,9 @@ function AuthExample() {
 function PreferencesExample() {
 	const {
 		vetMedPreferences,
-		householdSettings, // Available for household configuration
+		_householdSettings, // Available for household configuration
 		updateVetMedPreferences,
-		updateHouseholdSettings, // Available for household updates
+		_updateHouseholdSettings, // Available for household updates
 		formatTime,
 		formatWeight,
 		formatTemperature,
