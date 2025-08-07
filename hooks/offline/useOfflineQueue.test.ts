@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { QueuedMutation } from "@/lib/offline/db";
 import * as db from "@/lib/offline/db";
-import { trpc } from "@/lib/trpc/client";
+import { trpc } from "@/server/trpc/client";
 import { useOfflineQueue } from "./useOfflineQueue";
 
 // Mock dependencies
@@ -12,7 +12,7 @@ vi.mock("@/lib/offline/db");
 vi.mock("@/hooks/useAuth", () => ({
 	useAuth: vi.fn(() => ({ user: { id: "user-123" } })),
 }));
-vi.mock("@/components/providers/app-provider", () => ({
+vi.mock("@/components/providers/app-provider-consolidated", () => ({
 	useApp: vi.fn(() => ({ selectedHousehold: { id: "household-123" } })),
 }));
 vi.mock("@/lib/trpc/client", () => ({

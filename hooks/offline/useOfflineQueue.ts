@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useApp } from "@/components/providers/app-provider";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import {
 	addToQueue,
 	clearQueue,
