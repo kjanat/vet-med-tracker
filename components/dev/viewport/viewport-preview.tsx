@@ -3,7 +3,7 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 import type { ViewportState } from "./constants";
 
 interface ViewportPreviewProps {

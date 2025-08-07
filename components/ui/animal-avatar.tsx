@@ -3,8 +3,8 @@
 import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getAvatarColor } from "@/lib/avatar-utils";
-import { cn } from "@/lib/utils";
+import { getAvatarColor } from "@/lib/utils/avatar-utils";
+import { cn } from "@/lib/utils/general";
 
 interface Animal {
 	id: string;

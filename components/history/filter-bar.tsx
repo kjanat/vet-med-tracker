@@ -18,7 +18,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useHistoryFilters } from "@/hooks/useHistoryFilters";
+import { useHistoryFilters } from "@/hooks/history/useHistoryFilters";
 
 export function FilterBar() {
 	const { animals } = useApp();

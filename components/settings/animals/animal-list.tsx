@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { Animal } from "@/lib/types";
+import type { Animal } from "@/lib/utils/types";
 import { AnimalForm } from "./animal-form";
 
 // Mock data - replace with tRPC

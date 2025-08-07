@@ -35,7 +35,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 
 interface HeatmapBucket {
 	dow: number; // 0-6 (Sunday-Saturday)

@@ -7,7 +7,7 @@ import {
 	getTypedSearchParams,
 	type InsightsSearchParams,
 	updateSearchParams,
-} from "@/lib/search-params";
+} from "@/lib/utils/search-params";
 
 export interface InsightsFilters {
 	/** Start date for insights data (ISO date string) */

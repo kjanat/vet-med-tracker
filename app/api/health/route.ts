@@ -10,7 +10,7 @@ import {
 	livenessCheck,
 	readinessCheck,
 	simpleHealthCheck,
-} from "@/lib/health/checks";
+} from "@/lib/infrastructure/health/checks";
 
 /**
  * Health check endpoint query parameters

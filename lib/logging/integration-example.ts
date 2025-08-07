@@ -14,12 +14,12 @@ import { ZodError } from "zod";
 // Existing imports
 import { dbPooled as db } from "@/db/drizzle";
 import type { households, memberships, users } from "@/db/schema";
-import { createTRPCConnectionMiddleware } from "@/lib/connection-middleware";
+import { createTRPCConnectionMiddleware } from "@/lib/infrastructure/connection-middleware";
 import {
 	createEnhancedError,
 	setupGlobalErrorHandling,
 	toUserFriendlyError,
-} from "@/lib/error-handling";
+} from "@/lib/infrastructure/error-handling";
 // NEW: Import logging utilities
 import { auditLog, Logger, logger } from "@/lib/logging";
 import {

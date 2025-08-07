@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
 import { type AnimalFormData, animalFormSchema } from "@/lib/schemas/animal";
-import type { Animal } from "@/lib/types";
+import type { Animal } from "@/lib/utils/types";
 
 interface AnimalFormProps {
 	animal: Animal | null;

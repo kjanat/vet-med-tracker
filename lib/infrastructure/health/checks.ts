@@ -13,14 +13,17 @@ import {
 	CircuitState,
 	criticalCircuitBreaker,
 	databaseCircuitBreaker,
-} from "@/lib/circuit-breaker";
-import { getAllQueueStats, type QueueStats } from "@/lib/connection-queue";
+} from "@/lib/infrastructure/circuit-breaker";
+import {
+	getAllQueueStats,
+	type QueueStats,
+} from "@/lib/infrastructure/connection-queue";
 import {
 	type ConnectionMetrics,
 	checkDatabaseHealth,
 	comprehensiveHealthCheck,
 	testRawConnection,
-} from "@/lib/db-monitoring";
+} from "@/lib/infrastructure/db-monitoring";
 import {
 	type CircuitBreakerStats,
 	checkAllCircuitBreakers,

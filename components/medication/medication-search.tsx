@@ -19,7 +19,7 @@ import type { vetmedMedicationCatalog } from "@/db/schema";
 
 type MedicationCatalog = typeof vetmedMedicationCatalog.$inferSelect;
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 import { trpc } from "@/server/trpc/client";
 
 interface MedicationSearchProps {

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 import { Skeleton } from "./skeleton";
 
 // Animal Card Skeleton

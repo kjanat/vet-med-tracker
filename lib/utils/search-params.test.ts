@@ -14,7 +14,7 @@ import {
 	removeSearchParams,
 	type SettingsSearchParams,
 	updateSearchParams,
-} from "../search-params";
+} from "./search-params";
 
 describe("search-params", () => {
 	describe("createTypedQueryString", () => {

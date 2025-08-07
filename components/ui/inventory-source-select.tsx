@@ -19,7 +19,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 import type { InventorySource } from "@/types/inventory";
 
 interface InventorySourceSelectProps {

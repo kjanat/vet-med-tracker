@@ -18,7 +18,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
 
 export function SyncStatus() {
 	const {

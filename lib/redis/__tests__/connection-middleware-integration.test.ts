@@ -4,7 +4,7 @@
 
 import type { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ConnectionMiddleware } from "../../connection-middleware";
+import { ConnectionMiddleware } from "../../infrastructure/connection-middleware";
 
 // Mock the improved rate limiting module
 vi.mock("../rate-limit", () => ({
@@ -14,7 +14,7 @@ vi.mock("../rate-limit", () => ({
 }));
 
 // Mock other dependencies
-vi.mock("../../circuit-breaker", () => ({
+vi.mock("../../infrastructure/circuit-breaker", () => ({
 	CircuitState: { CLOSED: "CLOSED", OPEN: "OPEN", HALF_OPEN: "HALF_OPEN" },
 	checkDatabaseHealthWithCircuitBreaker: vi.fn(),
 	criticalCircuitBreaker: {
@@ -28,7 +28,7 @@ vi.mock("../../circuit-breaker", () => ({
 	setupCircuitBreakerLogging: vi.fn(),
 }));
 
-vi.mock("../../connection-queue", () => ({
+vi.mock("../../infrastructure/connection-queue", () => ({
 	areAllQueuesHealthy: () => true,
 	connectionQueues: {
 		read: { getStats: () => ({ queuedItems: 5, activeConnections: 2 }) },
@@ -47,7 +47,7 @@ vi.mock("../../connection-queue", () => ({
 	withConnectionQueue: vi.fn(),
 }));
 
-vi.mock("../../db-monitoring", () => ({
+vi.mock("../../infrastructure/db-monitoring", () => ({
 	comprehensiveHealthCheck: vi.fn(),
 }));
 

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { NavigationGuardLink } from "@/components/ui/navigation-guard";
-import { useNavigationGuard } from "@/hooks/use-navigation-guard";
+import { useNavigationGuard } from "@/hooks/shared/use-navigation-guard";
 
 /**
  * Example form component demonstrating Next.js 15 navigation features:

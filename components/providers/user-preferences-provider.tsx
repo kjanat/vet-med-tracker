@@ -7,7 +7,7 @@ import {
 	type HouseholdSettings,
 	useUserPreferences,
 	type VetMedPreferences,
-} from "@/hooks/use-user-preferences";
+} from "@/hooks/shared/use-user-preferences";
 
 interface UserPreferencesContextType {
 	isLoaded: boolean;

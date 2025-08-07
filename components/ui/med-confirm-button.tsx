@@ -5,8 +5,8 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useScreenReaderAnnouncements } from "@/components/ui/screen-reader-announcer";
-import { TRANSITIONS } from "@/lib/animation-config";
-import { cn } from "@/lib/utils";
+import { TRANSITIONS } from "@/lib/utils/animation-config";
+import { cn } from "@/lib/utils/general";
 
 interface MedConfirmButtonProps {
 	onConfirm: () => void;

@@ -12,7 +12,7 @@ import {
 	SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { SidebarMenuButton } from "@/components/ui/sidebar-css";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 
 interface NavItem {
 	title: string;

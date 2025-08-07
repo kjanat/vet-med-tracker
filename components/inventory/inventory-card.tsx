@@ -13,8 +13,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CARD_ANIMATIONS } from "@/lib/animation-config";
-import { cn } from "@/lib/utils";
+import { CARD_ANIMATIONS } from "@/lib/utils/animation-config";
+import { cn } from "@/lib/utils/general";
 
 export interface InventoryItem {
 	id: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
 import { UserMenu } from "../auth/user-menu";
 import { AnimalBreadcrumb } from "../ui/animal-breadcrumb";
 import { HouseholdSwitcher } from "../ui/household-switcher";

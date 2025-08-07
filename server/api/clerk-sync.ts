@@ -5,7 +5,7 @@ import { users } from "@/db/schema";
 import type {
 	HouseholdSettings,
 	VetMedPreferences,
-} from "@/hooks/use-user-preferences";
+} from "@/hooks/shared/use-user-preferences";
 import { createAuditLog } from "@/server/utils/audit-log";
 
 export interface ClerkUserData {

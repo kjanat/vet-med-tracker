@@ -22,8 +22,8 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import type { AdministrationRecord } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
+import type { AdministrationRecord } from "@/lib/utils/types";
 
 interface DayCount {
 	date: Date;

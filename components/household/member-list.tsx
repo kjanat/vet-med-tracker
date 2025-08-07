@@ -35,10 +35,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { getAvatarColor } from "@/lib/avatar-utils";
-import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/shared/use-toast";
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { getAvatarColor } from "@/lib/utils/avatar-utils";
+import { cn } from "@/lib/utils/general";
 import { trpc } from "@/server/trpc/client";
 import { InviteForm } from "./invite-form";
 

@@ -4,7 +4,7 @@ import { BarChart3, History, Home, Package, Settings } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 
 const navigation = [
 	{ name: "Home", href: "/" as Route, icon: Home },

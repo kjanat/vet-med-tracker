@@ -6,7 +6,7 @@ import {
 	CircuitState,
 	criticalCircuitBreaker,
 	databaseCircuitBreaker,
-} from "@/lib/circuit-breaker";
+} from "@/lib/infrastructure/circuit-breaker";
 
 /**
  * Circuit breaker status response

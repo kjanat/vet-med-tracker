@@ -18,7 +18,7 @@ import {
 	errorReporter,
 	extractErrorContext,
 	formatErrorMessage,
-} from "@/lib/error-reporting";
+} from "@/lib/infrastructure/error-reporting";
 
 interface Props {
 	children: ReactNode;

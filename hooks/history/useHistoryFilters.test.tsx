@@ -6,7 +6,7 @@ import {
 	useSearchParams,
 } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useHistoryFilters } from "../useHistoryFilters";
+import { useHistoryFilters } from "./useHistoryFilters";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({

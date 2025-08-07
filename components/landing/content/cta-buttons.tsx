@@ -4,7 +4,7 @@ import { useClerk, useUser } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 
 interface CtaButtonsProps {
 	className?: string;

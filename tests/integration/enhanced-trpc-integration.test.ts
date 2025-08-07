@@ -26,7 +26,7 @@ import { db } from "@/db/drizzle";
 import {
 	criticalCircuitBreaker,
 	databaseCircuitBreaker,
-} from "@/lib/circuit-breaker";
+} from "@/lib/infrastructure/circuit-breaker";
 import { auditLogger } from "@/lib/logging/audit-logger";
 import { logger } from "@/lib/logging/logger";
 import { animalCache, cache, householdCache } from "@/lib/redis/cache";

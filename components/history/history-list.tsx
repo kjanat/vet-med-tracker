@@ -27,9 +27,9 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useOfflineQueue } from "@/hooks/useOfflineQueue";
-import { useKeyboardNavigation } from "@/lib/keyboard-shortcuts";
-import type { AdministrationRecord } from "@/lib/types";
+import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
+import { useKeyboardNavigation } from "@/lib/utils/keyboard-shortcuts";
+import type { AdministrationRecord } from "@/lib/utils/types";
 import { formatTimeLocal } from "@/utils/tz";
 
 interface HistoryListProps {

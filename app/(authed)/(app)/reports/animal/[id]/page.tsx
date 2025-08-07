@@ -24,7 +24,7 @@ import type {
 	RegimenSummary,
 	ReportAnimal,
 	ReportData,
-} from "@/lib/types";
+} from "@/lib/utils/types";
 
 // Helper components to reduce cognitive complexity
 const LoadingState = () => (

@@ -5,7 +5,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 import type { DeviceItem } from "./constants";
 
 interface MobileDeviceSelectorProps {

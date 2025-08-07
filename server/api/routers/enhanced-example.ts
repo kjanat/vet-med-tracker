@@ -26,7 +26,7 @@ import {
 import {
 	databaseCircuitBreaker,
 	withCircuitBreaker,
-} from "@/lib/circuit-breaker";
+} from "@/lib/infrastructure/circuit-breaker";
 import {
 	AuditEventType,
 	AuditSeverity,

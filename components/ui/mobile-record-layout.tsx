@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/mobile-record-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
 
 interface DueRegimen {
 	id: string;

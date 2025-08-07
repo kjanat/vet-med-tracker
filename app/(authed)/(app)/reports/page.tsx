@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/app-provider";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 
 export default function AnimalReportsPage() {
 	const router = useRouter();

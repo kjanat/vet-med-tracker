@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { SettingsTab } from "@/hooks/useSettingsTabs";
+import type { SettingsTab } from "@/hooks/settings/useSettingsTabs";
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
 
 interface SettingsNavigationProps {
 	activeTab: SettingsTab;

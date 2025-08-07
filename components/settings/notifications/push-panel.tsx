@@ -11,7 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
 
 // Custom hook to manage push notification state
 function usePushNotifications() {

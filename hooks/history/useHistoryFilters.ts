@@ -8,7 +8,7 @@ import {
 	getTypedSearchParams,
 	type HistorySearchParams,
 	updateSearchParams,
-} from "@/lib/search-params";
+} from "@/lib/utils/search-params";
 
 export interface HistoryFilters {
 	animalId?: string;

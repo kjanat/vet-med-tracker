@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 import { VIEWPORT_CONFIG } from "./config";
 import type { ViewportState } from "./constants";
 

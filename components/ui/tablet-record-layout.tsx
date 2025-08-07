@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MobileMedicationCard } from "@/components/ui/mobile-medication-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
 
 interface DueRegimen {
 	id: string;

@@ -25,8 +25,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useDaysOfSupply } from "@/hooks/useDaysOfSupply";
-import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { useDaysOfSupply } from "@/hooks/inventory/useDaysOfSupply";
+import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
 import { trpc } from "@/server/trpc/client";
 
 // Remove mock data - now using real calculations

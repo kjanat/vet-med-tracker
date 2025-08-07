@@ -19,7 +19,7 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/general";
 
 interface NavItem {
 	title: string;

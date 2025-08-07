@@ -15,7 +15,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { RecordButton } from "@/components/ui/record-button";
-import type { Animal } from "@/lib/types";
+import type { Animal } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 import { formatTimeLocal } from "@/utils/tz";
 

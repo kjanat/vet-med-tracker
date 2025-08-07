@@ -4,8 +4,8 @@ import { RefreshCw, Wifi, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { useBackgroundSync } from "@/hooks/useBackgroundSync";
-import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { useBackgroundSync } from "@/hooks/offline/useBackgroundSync";
+import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
 
 export function OfflineBanner() {
 	const { isOnline, queueSize, isProcessing, sync } = useOfflineQueue();

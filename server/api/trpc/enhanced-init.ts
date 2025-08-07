@@ -27,16 +27,20 @@ import type { households, memberships, users } from "@/db/schema";
 import {
 	criticalCircuitBreaker,
 	withCircuitBreaker,
-} from "@/lib/circuit-breaker";
+} from "@/lib/infrastructure/circuit-breaker";
 import {
 	createTRPCConnectionMiddleware,
 	withDatabaseSafeguards,
-} from "@/lib/connection-middleware";
+} from "@/lib/infrastructure/connection-middleware";
 import {
 	createEnhancedError,
 	setupGlobalErrorHandling,
 	toUserFriendlyError,
-} from "@/lib/error-handling";
+} from "@/lib/infrastructure/error-handling";
+import {
+	InputSanitizer,
+	MedicalDataSanitizer,
+} from "@/lib/infrastructure/validation/sanitizer";
 import { AuditEventType, auditLogger } from "@/lib/logging/audit-logger";
 import { Logger, logger } from "@/lib/logging/logger";
 import { logDatabaseOperation } from "@/lib/logging/trpc-middleware";
@@ -46,10 +50,6 @@ import {
 	applyRateLimit,
 	rateLimitCriticalOperation,
 } from "@/lib/redis/rate-limit";
-import {
-	InputSanitizer,
-	MedicalDataSanitizer,
-} from "@/lib/validation/sanitizer";
 
 // Context helpers
 import {

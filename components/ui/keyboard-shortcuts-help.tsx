@@ -12,12 +12,12 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { TRANSITIONS } from "@/lib/animation-config";
+import { TRANSITIONS } from "@/lib/utils/animation-config";
 import {
 	KEYBOARD_SHORTCUTS,
 	useFocusManagement,
 	useKeyboardShortcuts,
-} from "@/lib/keyboard-shortcuts";
+} from "@/lib/utils/keyboard-shortcuts";
 
 /**
  * Keyboard Shortcuts Help Dialog

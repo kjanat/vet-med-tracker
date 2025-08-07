@@ -7,7 +7,7 @@ import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { EmergencyAnimal, EmergencyRegimen } from "@/lib/types";
+import type { EmergencyAnimal, EmergencyRegimen } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 
 // Helper components to reduce cognitive complexity

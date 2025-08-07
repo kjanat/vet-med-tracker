@@ -3,7 +3,7 @@
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useScreenReaderAnnouncements } from "@/components/ui/screen-reader-announcer";
-import { useKeyboardShortcuts } from "@/lib/keyboard-shortcuts";
+import { useKeyboardShortcuts } from "@/lib/utils/keyboard-shortcuts";
 
 /**
  * Global Keyboard Shortcuts Provider

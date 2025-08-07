@@ -8,7 +8,7 @@ import {
 	isValidUUID,
 	type RecordSearchParams,
 	updateSearchParams,
-} from "@/lib/search-params";
+} from "@/lib/utils/search-params";
 
 export interface RecordParams {
 	/** Pre-selected animal ID */

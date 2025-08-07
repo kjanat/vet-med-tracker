@@ -3,8 +3,8 @@
 import type React from "react";
 import { createContext, useContext, useState } from "react";
 import { AnimalForm } from "@/components/settings/animals/animal-form";
-import { useToast } from "@/hooks/use-toast";
-import type { Animal } from "@/lib/types";
+import { useToast } from "@/hooks/shared/use-toast";
+import type { Animal } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 import { BROWSER_ZONE } from "@/utils/timezone-helpers";
 import { useApp } from "./app-provider";

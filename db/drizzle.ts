@@ -339,7 +339,7 @@ export const timedOperations = {
 // Initialize monitoring in production - only in Node.js runtime, not Edge Runtime
 // if (typeof process !== "undefined" && process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === 'production') {
 // 	// Lazy load DatabaseMonitor to avoid circular dependency
-// 	import("@/lib/db-monitoring").then(({ DatabaseMonitor }) => {
+// 	import("@/lib/infrastructure/db-monitoring").then(({ DatabaseMonitor }) => {
 // 		monitor = new DatabaseMonitor();
 // 		monitor.startMonitoring(60000, (violations: string[], metrics: unknown) => {
 // 			const metricsTyped = metrics as ConnectionMetrics;

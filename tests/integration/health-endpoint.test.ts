@@ -23,12 +23,15 @@ import {
 	GET as healthHandler,
 	OPTIONS as healthOptionsHandler,
 } from "@/app/api/health/route";
-import { type CircuitMetrics, CircuitState } from "@/lib/circuit-breaker";
+import {
+	type CircuitMetrics,
+	CircuitState,
+} from "@/lib/infrastructure/circuit-breaker";
 import {
 	clearHealthCache,
 	type HealthReport,
 	HealthSeverity,
-} from "@/lib/health/checks";
+} from "@/lib/infrastructure/health/checks";
 
 // Mock external dependencies
 vi.mock("@/lib/db-monitoring", () => ({
@@ -92,11 +95,13 @@ describe("Health Check API Integration Tests", () => {
 
 	beforeAll(async () => {
 		// Import mocked modules
-		const dbMonitoring = await import("@/lib/db-monitoring");
+		const dbMonitoring = await import("@/lib/infrastructure/db-monitoring");
 		const redisClient = await import("@/lib/redis/client");
-		const circuitBreaker = await import("@/lib/circuit-breaker");
+		const circuitBreaker = await import("@/lib/infrastructure/circuit-breaker");
 		const redisCircuitBreaker = await import("@/lib/redis/circuit-breaker");
-		const connectionQueue = await import("@/lib/connection-queue");
+		const connectionQueue = await import(
+			"@/lib/infrastructure/connection-queue"
+		);
 
 		mockComprehensiveHealthCheck = vi.mocked(
 			dbMonitoring.comprehensiveHealthCheck,

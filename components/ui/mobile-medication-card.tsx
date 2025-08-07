@@ -5,8 +5,14 @@ import { useMemo } from "react";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getCardAnimation, PRIORITY_ANIMATIONS } from "@/lib/animation-config";
-import { getMedicationStatus, getStatusConfig } from "@/lib/status-config";
+import {
+	getCardAnimation,
+	PRIORITY_ANIMATIONS,
+} from "@/lib/utils/animation-config";
+import {
+	getMedicationStatus,
+	getStatusConfig,
+} from "@/lib/utils/status-config";
 import { formatTimeLocal } from "@/utils/tz";
 import { layoutPatterns, textPatterns } from "./class-variants";
 

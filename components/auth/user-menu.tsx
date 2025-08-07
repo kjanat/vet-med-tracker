@@ -13,7 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
 import { LoginButton } from "./login-button";
 import { UserMenuDesktop } from "./user-menu-desktop";
 

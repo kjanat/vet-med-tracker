@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type {
 	HouseholdSettings,
 	VetMedPreferences,
-} from "@/hooks/use-user-preferences";
+} from "@/hooks/shared/use-user-preferences";
 import type { ClerkUserData } from "@/server/api/clerk-sync";
 import { syncUserToDatabase } from "@/server/api/clerk-sync";
 

@@ -27,10 +27,10 @@ export function buildClerkUserData(
 				: clerkUser.firstName || clerkUser.username || undefined,
 		image: clerkUser.imageUrl,
 		vetMedPreferences: clerkUser.unsafeMetadata?.vetMedPreferences as
-			| import("@/hooks/use-user-preferences").VetMedPreferences
+			| import("@/hooks/shared/use-user-preferences").VetMedPreferences
 			| undefined,
 		householdSettings: clerkUser.unsafeMetadata?.householdSettings as
-			| import("@/hooks/use-user-preferences").HouseholdSettings
+			| import("@/hooks/shared/use-user-preferences").HouseholdSettings
 			| undefined,
 		onboardingComplete: clerkUser.publicMetadata?.onboardingComplete as boolean,
 	};
@@ -110,10 +110,10 @@ export async function createDefaultHousehold(
 	membership: typeof memberships.$inferSelect;
 }> {
 	const householdSettings = clerkUser.unsafeMetadata?.householdSettings as
-		| import("@/hooks/use-user-preferences").HouseholdSettings
+		| import("@/hooks/shared/use-user-preferences").HouseholdSettings
 		| undefined;
 	const vetMedPreferences = clerkUser.unsafeMetadata?.vetMedPreferences as
-		| import("@/hooks/use-user-preferences").VetMedPreferences
+		| import("@/hooks/shared/use-user-preferences").VetMedPreferences
 		| undefined;
 
 	const defaultHouseholdName =

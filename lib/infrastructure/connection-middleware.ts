@@ -1,6 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { type NextRequest, NextResponse } from "next/server";
 import {
+	applyRateLimit,
+	extractClientIP,
+	generateRateLimitHeaders,
+} from "../redis/rate-limit";
+import {
 	type CircuitMetrics,
 	CircuitState,
 	checkDatabaseHealthWithCircuitBreaker,
@@ -24,11 +29,6 @@ import {
 	type ConnectionMetrics,
 	comprehensiveHealthCheck,
 } from "./db-monitoring";
-import {
-	applyRateLimit,
-	extractClientIP,
-	generateRateLimitHeaders,
-} from "./redis/rate-limit";
 
 /**
  * Connection middleware configuration

@@ -6,9 +6,9 @@ import { FilterBar } from "@/components/history/filter-bar";
 import { HistoryCalendar } from "@/components/history/history-calendar";
 import { HistoryList } from "@/components/history/history-list";
 import { useApp } from "@/components/providers/app-provider";
-import { useHistoryFilters } from "@/hooks/useHistoryFilters";
-// import { useOfflineQueue } from "@/hooks/useOfflineQueue"; // TODO: Uncomment when mutations are implemented
-import type { AdministrationRecord } from "@/lib/types";
+import { useHistoryFilters } from "@/hooks/history/useHistoryFilters";
+// import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue"; // TODO: Uncomment when mutations are implemented
+import type { AdministrationRecord } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 import { localDayISO } from "@/utils/tz";
 

@@ -9,7 +9,7 @@ import {
 	removeSearchParams,
 	type SearchParamPageType,
 	updateSearchParams,
-} from "@/lib/search-params";
+} from "@/lib/utils/search-params";
 
 /**
  * Generic hook for managing typed search parameters

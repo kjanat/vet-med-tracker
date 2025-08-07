@@ -8,7 +8,7 @@ import {
 	isValidSettingsTab,
 	type SettingsSearchParams,
 	updateSearchParams,
-} from "@/lib/search-params";
+} from "@/lib/utils/search-params";
 
 export type SettingsTab =
 	| "data"

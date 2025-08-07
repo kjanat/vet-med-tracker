@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { animals, households, memberships } from "@/db/schema";
-import type { VetMedPreferences } from "@/hooks/use-user-preferences";
+import type { VetMedPreferences } from "@/hooks/shared/use-user-preferences";
 import {
 	createTRPCRouter,
 	protectedProcedure,

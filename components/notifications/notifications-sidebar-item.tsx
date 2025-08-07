@@ -18,7 +18,7 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
 
 // Mock data - in real app this would come from tRPC
 const mockNotifications = [

@@ -16,8 +16,8 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { getAvatarColor } from "@/lib/avatar-utils";
-import { cn } from "@/lib/utils";
+import { getAvatarColor } from "@/lib/utils/avatar-utils";
+import { cn } from "@/lib/utils/general";
 import { useApp } from "../providers/app-provider";
 
 export function HouseholdSwitcher() {

@@ -43,13 +43,13 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
+import { useBarcodeScanner } from "@/hooks/inventory/useBarcodeScanner";
 import {
 	type InventoryFormData,
 	inventoryFormSchema,
 } from "@/lib/schemas/inventory";
 
-// import { useOfflineQueue } from "@/hooks/useOfflineQueue"
+// import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue"
 
 interface AddItemModalProps {
 	onAdd: (data: InventoryFormData) => Promise<void>;
