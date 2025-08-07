@@ -30,7 +30,8 @@ function BasicExample() {
 		user,
 		selectedHousehold,
 		selectedAnimal,
-		_households, // Used in household selector
+		// biome-ignore lint/correctness/noUnusedVariables: Example showing available properties
+		households, // Used in household selector
 		animals,
 		isAuthenticated,
 		loading,
@@ -194,9 +195,11 @@ function AuthExample() {
 function PreferencesExample() {
 	const {
 		vetMedPreferences,
-		_householdSettings, // Available for household configuration
+		// biome-ignore lint/correctness/noUnusedVariables: Example showing available properties
+		householdSettings, // Available for household configuration
 		updateVetMedPreferences,
-		_updateHouseholdSettings, // Available for household updates
+		// biome-ignore lint/correctness/noUnusedVariables: Example showing available properties
+		updateHouseholdSettings, // Available for household updates
 		formatTime,
 		formatWeight,
 		formatTemperature,
