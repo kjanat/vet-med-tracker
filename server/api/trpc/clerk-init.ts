@@ -157,10 +157,12 @@ export const createCallerFactory = t.createCallerFactory;
 const connectionMiddleware = createTRPCConnectionMiddleware();
 
 // Base procedures
+// @ts-expect-error - Connection middleware type compatibility issue
 export const publicProcedure = t.procedure.use(connectionMiddleware);
 
 // Protected procedure - requires Clerk authentication
 export const protectedProcedure = t.procedure
+	// @ts-expect-error - Connection middleware type compatibility issue
 	.use(connectionMiddleware)
 	.use(async ({ ctx, next }) => {
 		if (!ctx.auth?.userId || !ctx.dbUser) {

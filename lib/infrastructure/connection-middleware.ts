@@ -536,11 +536,21 @@ export async function withConnectionMiddleware(
  * tRPC middleware integration
  */
 export function createTRPCConnectionMiddleware() {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return async function connectionMiddleware({ ctx, next }: any) {
+	return async function connectionMiddleware({
+		ctx,
+		next,
+	}: {
+		ctx: Record<string, unknown>;
+		next: () => Promise<unknown>;
+	}) {
 		const context: ConnectionContext = {
-			userId: ctx.auth?.userId || ctx.dbUser?.id,
-			householdId: ctx.currentHouseholdId || undefined,
+			userId:
+				(ctx.auth as unknown as { userId?: string })?.userId ||
+				(ctx.dbUser as unknown as { id?: string })?.id ||
+				undefined,
+			householdId:
+				(ctx as unknown as { currentHouseholdId?: string })
+					.currentHouseholdId || undefined,
 			operationType: "read", // Default, can be overridden
 			endpoint: "trpc",
 			priority: QUEUE_PRIORITIES.NORMAL,

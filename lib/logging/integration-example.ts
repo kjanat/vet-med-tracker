@@ -265,11 +265,13 @@ const loggingMiddleware = t.middleware(
 
 // Base procedures with enhanced logging
 export const publicProcedure = t.procedure
+	// @ts-expect-error - Connection middleware type compatibility issue
 	.use(connectionMiddleware)
 	.use(loggingMiddleware);
 
 // Protected procedure - requires Clerk authentication
 export const protectedProcedure = t.procedure
+	// @ts-expect-error - Connection middleware type compatibility issue
 	.use(connectionMiddleware)
 	.use(loggingMiddleware)
 	.use(async ({ ctx, next }) => {

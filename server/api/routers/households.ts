@@ -757,4 +757,144 @@ export const householdRouter = createTRPCRouter({
 				message: "Invitation revoked successfully",
 			};
 		}),
+
+	// Update household information
+	update: ownerProcedure
+		.input(
+			z.object({
+				householdId: z.string(),
+				name: z.string().min(1).max(100),
+				timezone: z.string(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const { householdId, name, timezone } = input;
+
+			// Get current household data for audit log
+			const currentHousehold = await ctx.db
+				.select()
+				.from(households)
+				.where(eq(households.id, householdId))
+				.limit(1);
+
+			if (!currentHousehold[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Household not found",
+				});
+			}
+
+			// Update the household
+			const [updatedHousehold] = await ctx.db
+				.update(households)
+				.set({
+					name,
+					timezone,
+					updatedAt: new Date().toISOString(),
+				})
+				.where(eq(households.id, householdId))
+				.returning();
+
+			if (!updatedHousehold) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to update household",
+				});
+			}
+
+			// Log the action
+			await ctx.db.insert(auditLog).values({
+				userId: ctx.dbUser.id,
+				householdId,
+				action: "HOUSEHOLD_UPDATED",
+				resourceType: "household",
+				resourceId: householdId,
+				oldValues: {
+					name: currentHousehold[0].name,
+					timezone: currentHousehold[0].timezone,
+				},
+				newValues: { name, timezone },
+			});
+
+			return updatedHousehold;
+		}),
+
+	// Leave a household
+	leave: protectedProcedure
+		.input(
+			z.object({
+				householdId: z.string(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const { householdId } = input;
+
+			// Get current user's membership
+			const membership = await ctx.db
+				.select()
+				.from(memberships)
+				.where(
+					and(
+						eq(memberships.userId, ctx.dbUser.id),
+						eq(memberships.householdId, householdId),
+					),
+				)
+				.limit(1);
+
+			if (!membership[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "You are not a member of this household",
+				});
+			}
+
+			// Check if user is the last owner
+			if (membership[0].role === "OWNER") {
+				const ownerCount = await ctx.db
+					.select({ count: count() })
+					.from(memberships)
+					.where(
+						and(
+							eq(memberships.householdId, householdId),
+							eq(memberships.role, "OWNER"),
+						),
+					);
+
+				if (!ownerCount[0] || ownerCount[0].count <= 1) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message:
+							"Cannot leave as the last owner. Transfer ownership first or delete the household.",
+					});
+				}
+			}
+
+			// Remove the membership
+			await ctx.db
+				.delete(memberships)
+				.where(
+					and(
+						eq(memberships.userId, ctx.dbUser.id),
+						eq(memberships.householdId, householdId),
+					),
+				);
+
+			// Log the action
+			await ctx.db.insert(auditLog).values({
+				userId: ctx.dbUser.id,
+				householdId,
+				action: "MEMBER_LEFT",
+				resourceType: "membership",
+				resourceId: membership[0].id,
+				oldValues: {
+					userId: ctx.dbUser.id,
+					role: membership[0].role,
+				},
+			});
+
+			return {
+				success: true,
+				message: "Successfully left the household",
+			};
+		}),
 });
