@@ -287,13 +287,14 @@ export function RegimenList() {
 			id: editingRegimen.id,
 			householdId,
 			name: data.medicationName,
-			instructions: data.medicationName, // TODO: Get actual instructions from form
+			instructions:
+				`${data.strength || ""} ${data.form || ""} - ${data.route || ""}`.trim(),
 			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			timesLocal: data.timesLocal,
 			cutoffMinutes: data.cutoffMins,
 			highRisk: data.highRisk,
 			requiresCoSign: data.highRisk, // High risk medications require co-sign
-			dose: data.medicationName, // TODO: Get actual dose from form
+			dose: data.strength || "",
 			route: data.route,
 		};
 
@@ -340,12 +341,13 @@ export function RegimenList() {
 			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			startDate: formatDateForAPIRequired(data.startDate),
 			name: data.medicationName,
-			instructions: data.medicationName, // TODO: Get actual instructions from form
+			instructions:
+				`${data.strength || ""} ${data.form || ""} - ${data.route || ""}`.trim(),
 			timesLocal: data.timesLocal,
 			cutoffMinutes: data.cutoffMins || 240,
 			highRisk: data.highRisk || false,
 			requiresCoSign: data.highRisk || false, // High risk medications require co-sign
-			dose: data.medicationName, // TODO: Get actual dose from form
+			dose: data.strength || "",
 			route: data.route,
 		};
 

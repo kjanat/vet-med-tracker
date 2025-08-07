@@ -11,7 +11,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,6 @@ import type {
 	NotableEvent,
 	RegimenSummary,
 	ReportAnimal,
-	ReportData,
 } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 
@@ -104,67 +103,6 @@ const ErrorState = ({ error }: { error?: Error | string | unknown }) => (
 	</div>
 );
 
-// Mock data for demo purposes
-const generateMockReportData = (animalId: string): ReportData => ({
-	animal: {
-		id: animalId,
-		name: "Demo Pet",
-		species: "Dog",
-		breed: "Golden Retriever",
-		weightKg: 30,
-		photoUrl: null,
-		pendingMeds: 0,
-		timezone: "America/New_York",
-		allergies: [],
-		conditions: [],
-	},
-	compliance: {
-		adherencePct: 92,
-		scheduled: 60,
-		completed: 55,
-		missed: 3,
-		late: 2,
-		veryLate: 0,
-		streak: 7,
-	},
-	regimens: [
-		{
-			id: "demo-1",
-			medicationName: "Amoxicillin",
-			strength: "250mg",
-			route: "Oral",
-			schedule: "8:00 AM, 8:00 PM",
-			adherence: 95,
-			notes: "Give with food",
-		},
-		{
-			id: "demo-2",
-			medicationName: "Gabapentin",
-			strength: "100mg",
-			route: "Oral",
-			schedule: "Every 8 hours",
-			adherence: 88,
-			notes: null,
-		},
-	],
-	notableEvents: [
-		{
-			id: "event-1",
-			date: subDays(new Date(), 2),
-			medication: "Amoxicillin",
-			note: "Gave dose 30 minutes late due to vet appointment",
-			tags: ["Late"],
-		},
-		{
-			id: "event-2",
-			date: subDays(new Date(), 5),
-			medication: "Gabapentin",
-			note: "Missed morning dose - pet was at groomer",
-			tags: ["Missed Dose"],
-		},
-	],
-});
-
 // Report content component to reduce complexity
 const ReportContent = ({
 	reportPeriod,
@@ -215,11 +153,6 @@ const ReportContent = ({
 					{format(reportPeriod.from, "MMMM d")} -{" "}
 					{format(reportPeriod.to, "MMMM d, yyyy")}
 				</p>
-				{useDemoMode && (
-					<p className="mt-2 text-muted-foreground text-sm">
-						This is sample data for demonstration purposes
-					</p>
-				)}
 			</div>
 
 			{/* Animal Info */}
@@ -448,8 +381,6 @@ const ReportContent = ({
 export default function AnimalReportPage() {
 	const params = useParams();
 	const animalId = params.id as string;
-	const [useDemoMode, _setUseDemoMode] = useState(false);
-	const [hasErrored, _setHasErrored] = useState(false);
 
 	// Get selected household from context (secure)
 	const { selectedHousehold } = useApp();
@@ -487,8 +418,7 @@ export default function AnimalReportPage() {
 			endDate: queryDates.endDate,
 		},
 		{
-			enabled:
-				!!animalId && !!selectedHouseholdId && !useDemoMode && !hasErrored,
+			enabled: !!animalId && !!selectedHouseholdId,
 			retry: 1, // Only retry once
 			retryDelay: 1000,
 			staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
@@ -498,17 +428,12 @@ export default function AnimalReportPage() {
 		},
 	);
 
-	// Use mock data in demo mode
-	const displayData = useDemoMode
-		? generateMockReportData(animalId)
-		: reportData;
-
 	const handlePrint = () => {
 		window.print();
 	};
 
 	// Early returns for different states - now simplified
-	if (isLoading && !useDemoMode) {
+	if (isLoading) {
 		return <LoadingState />;
 	}
 
@@ -516,16 +441,11 @@ export default function AnimalReportPage() {
 		return <NoHouseholdState />;
 	}
 
-	if (!useDemoMode && isError && !displayData) {
+	if (isError || !reportData) {
 		return <ErrorState error={error} />;
 	}
 
-	// If we don't have data at this point, something went wrong
-	if (!displayData) {
-		return null;
-	}
-
-	const { animal, compliance, regimens, notableEvents } = displayData;
+	const { animal, compliance, regimens, notableEvents } = reportData;
 
 	return (
 		<ReportContent
@@ -534,7 +454,7 @@ export default function AnimalReportPage() {
 			compliance={compliance}
 			regimens={regimens}
 			notableEvents={notableEvents}
-			useDemoMode={useDemoMode}
+			useDemoMode={false}
 			handlePrint={handlePrint}
 		/>
 	);

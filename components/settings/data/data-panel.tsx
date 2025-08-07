@@ -2,6 +2,7 @@
 
 import { Database, Download, FileText, Shield, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
 	AlertDialog,
@@ -25,23 +26,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// Mock current user - replace with auth context
-const currentUser = { role: "Owner" };
-
 export function DataPanel() {
+	const { selectedHousehold, user } = useApp();
 	const [isExporting, setIsExporting] = useState(false);
 	const [isClearing, setIsClearing] = useState(false);
 	const [clearConfirm, setClearConfirm] = useState("");
 	const [holdProgress, setHoldProgress] = useState(0);
 
-	const canViewAudit = currentUser.role === "Owner";
-	const canClearData = currentUser.role === "Owner";
+	// For now, assume all authenticated users can export data
+	// and only check for household selection for data clearing
+	const canViewAudit = !!user;
+	const canClearData = !!user && !!selectedHousehold;
 
 	const handleExport = async (format: "json" | "csv") => {
+		if (!selectedHousehold?.id) {
+			console.error("No household selected");
+			return;
+		}
+
 		setIsExporting(true);
 		try {
-			console.log(`Exporting data as ${format}`);
-
 			// Fire instrumentation event
 			window.dispatchEvent(
 				new CustomEvent("settings_data_export", {
@@ -49,46 +53,32 @@ export function DataPanel() {
 				}),
 			);
 
-			// TODO: tRPC mutation
-			// const data = await exportData.mutateAsync({
-			//   householdId,
-			//   format,
-			//   from: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
-			//   to: new Date()
-			// })
+			// TODO: Implement export endpoint in reports router
+			// Needs to fetch and format:
+			// - Administration history
+			// - Animal information
+			// - Medication regimens
+			// - Inventory data
+			// Then convert to JSON or CSV format
 
-			// Simulate download
-			const filename = `vetmed-export-${new Date().toISOString().split("T")[0]}.${format}`;
-			console.log(`Downloaded ${filename}`);
-
-			// Create mock download
-			const mockData =
-				format === "json"
-					? '{"export": "data"}'
-					: "Date,Animal,Medication,Status\n";
-			const blob = new Blob([mockData], {
-				type: format === "json" ? "application/json" : "text/csv",
-			});
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = filename;
-			a.click();
-			URL.revokeObjectURL(url);
+			alert(
+				`Data export to ${format.toUpperCase()} is not yet implemented. This feature is coming soon.`,
+			);
 		} catch (error) {
 			console.error("Export failed:", error);
+			alert("Failed to export data. Please try again.");
 		} finally {
 			setIsExporting(false);
 		}
 	};
 
 	const handleClearData = async () => {
-		if (clearConfirm !== "DELETE" || !canClearData) return;
+		if (clearConfirm !== "DELETE" || !canClearData || !selectedHousehold?.id) {
+			return;
+		}
 
 		setIsClearing(true);
 		try {
-			console.log("Clearing household history");
-
 			// Fire instrumentation event
 			window.dispatchEvent(
 				new CustomEvent("settings_data_clear", {
@@ -96,16 +86,20 @@ export function DataPanel() {
 				}),
 			);
 
-			// TODO: tRPC mutation with re-auth
-			// await clearHistory.mutateAsync({
-			//   householdId,
-			//   confirm: true
-			// })
+			// TODO: Implement clearHistory endpoint in household or admin router
+			// Should:
+			// - Require owner role
+			// - Soft delete all administrations
+			// - Keep animals, regimens, and inventory intact
+			// - Log the action for audit purposes
 
+			alert(
+				"Data clearing is not yet implemented. This feature requires additional safety measures and is coming soon.",
+			);
 			setClearConfirm("");
-			console.log("History cleared successfully");
 		} catch (error) {
 			console.error("Failed to clear history:", error);
+			alert("Failed to clear data. Please try again.");
 		} finally {
 			setIsClearing(false);
 		}

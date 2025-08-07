@@ -298,11 +298,32 @@ export function MemberList({
 	const { toast } = useToast();
 	const isMobile = useIsMobile();
 	const [isInviteFormOpen, setIsInviteFormOpen] = useState(false);
+	const utils = trpc.useUtils();
 
 	// Check if current user can manage roles
 	const canManageRoles = userRole === "OWNER";
 
 	// Mutations
+	const inviteMemberMutation = trpc.household.inviteMember.useMutation({
+		onSuccess: () => {
+			toast({
+				title: "Invitation sent",
+				description: "The invitation has been sent successfully.",
+			});
+			setIsInviteFormOpen(false);
+			utils.household.getMembers.invalidate({
+				householdId: selectedHousehold?.id,
+			});
+		},
+		onError: (error) => {
+			toast({
+				title: "Failed to send invitation",
+				description: error.message || "Please try again later.",
+				variant: "destructive",
+			});
+		},
+	});
+
 	const updateRoleMutation = trpc.household.updateMemberRole.useMutation({
 		onSuccess: (data) => {
 			toast({
@@ -413,9 +434,24 @@ export function MemberList({
 							<InviteForm
 								open={isInviteFormOpen}
 								onOpenChange={setIsInviteFormOpen}
-								onInvite={async (_email, _role) => {
-									// TODO: Implement invite functionality
-									setIsInviteFormOpen(false);
+								onInvite={async (email, role) => {
+									if (!selectedHousehold?.id) {
+										toast({
+											title: "No household selected",
+											description: "Please select a household first.",
+											variant: "destructive",
+										});
+										return;
+									}
+
+									await inviteMemberMutation.mutateAsync({
+										householdId: selectedHousehold.id,
+										email,
+										role: role.toUpperCase() as
+											| "OWNER"
+											| "CAREGIVER"
+											| "VETREADONLY",
+									});
 								}}
 							/>
 						</AccordionContent>
