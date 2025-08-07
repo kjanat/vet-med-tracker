@@ -36,13 +36,21 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 		onboardingComplete,
 	} = clerkUserData;
 
-	console.log("Syncing user to database:", { clerkUserId, name });
+	console.log("Syncing user to database:", {
+		clerkUserId,
+		email,
+		name,
+		hasPreferences: !!vetMedPreferences,
+		hasSettings: !!householdSettings,
+	});
 
 	// Validate required fields
 	if (!clerkUserId) {
+		console.error("Sync failed: Clerk user ID is missing");
 		throw new Error("Clerk user ID is required for sync");
 	}
 	if (!email) {
+		console.error("Sync failed: Email is missing for user", clerkUserId);
 		throw new Error("Email is required for sync");
 	}
 
@@ -143,10 +151,20 @@ export async function syncUserToDatabase(clerkUserData: ClerkUserData) {
 			return upserted[0];
 		});
 
-		console.log("User synced successfully:", result.id);
+		console.log("User synced successfully:", {
+			id: result.id,
+			clerkUserId: result.clerkUserId,
+			email: result.email,
+		});
 		return result;
 	} catch (error) {
-		console.error("Error syncing user to database:", error);
+		console.error("Error syncing user to database:", {
+			error,
+			clerkUserId,
+			email,
+			errorMessage: error instanceof Error ? error.message : "Unknown error",
+			errorStack: error instanceof Error ? error.stack : undefined,
+		});
 		throw error;
 	}
 }

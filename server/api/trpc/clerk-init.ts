@@ -88,20 +88,30 @@ export const createClerkTRPCContext = async (
 			...userContext,
 		};
 	} catch (error) {
-		console.error("Error setting up user context:", error);
-		console.error("Failed for Clerk user:", {
+		const errorMessage =
+			error instanceof Error ? error.message : "Unknown error";
+		const errorDetails = {
 			userId: authResult.userId,
 			email: clerkUser?.emailAddresses[0]?.emailAddress,
 			name: clerkUser?.firstName,
-		});
+			errorMessage,
+			databaseUrl: process.env.DATABASE_URL ? "configured" : "missing",
+			nodeEnv: process.env.NODE_ENV,
+			timestamp: new Date().toISOString(),
+		};
+
+		console.error("Error setting up user context:", error);
+		console.error("Context setup failed with details:", errorDetails);
 
 		// In production, we should throw an error to prevent silent failures
 		if (process.env.NODE_ENV === "production") {
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",
-				message:
-					"Failed to initialize user context. Please try refreshing the page or contact support.",
-				cause: error,
+				message: `Failed to initialize user context: ${errorMessage}. Please try refreshing the page. If the problem persists, contact support.`,
+				cause: {
+					...errorDetails,
+					originalError: error,
+				},
 			});
 		}
 

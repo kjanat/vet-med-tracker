@@ -18,9 +18,24 @@ export function buildClerkUserData(
 	userId: string,
 	clerkUser: ClerkUser,
 ): ClerkUserData {
+	// Get the primary email address
+	const primaryEmail =
+		clerkUser.emailAddresses.find(
+			(e) => e.id === clerkUser.primaryEmailAddressId,
+		)?.emailAddress || clerkUser.emailAddresses[0]?.emailAddress;
+
+	if (!primaryEmail) {
+		console.error("No email address found for Clerk user:", {
+			userId,
+			emailCount: clerkUser.emailAddresses.length,
+			primaryEmailId: clerkUser.primaryEmailAddressId,
+		});
+		throw new Error("No email address found for user");
+	}
+
 	return {
 		userId,
-		email: clerkUser.emailAddresses[0]?.emailAddress || "",
+		email: primaryEmail,
 		name:
 			clerkUser.firstName && clerkUser.lastName
 				? `${clerkUser.firstName} ${clerkUser.lastName}`
@@ -160,6 +175,78 @@ export async function createDefaultHousehold(
 	};
 }
 
+// Helper function to get or sync user from database
+async function getOrSyncUser(
+	userId: string,
+	clerkUser: ClerkUser,
+): Promise<typeof users.$inferSelect> {
+	// Check if user exists in the database
+	let dbUser: typeof users.$inferSelect | null = null;
+	try {
+		dbUser = await db.query.users.findFirst({
+			where: eq(users.clerkUserId, userId),
+		});
+		console.log("User lookup result:", {
+			found: !!dbUser,
+			userId,
+			dbUserId: dbUser?.id,
+		});
+	} catch (error) {
+		console.error("Failed to lookup user in database:", {
+			error,
+			userId,
+			errorMessage: error instanceof Error ? error.message : "Unknown error",
+		});
+		throw new Error(
+			`Database lookup failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+	}
+
+	// If user doesn't exist, sync them from Clerk
+	if (!dbUser) {
+		console.log("User not found in database, syncing from Clerk...");
+		const clerkUserData = buildClerkUserData(userId, clerkUser);
+		try {
+			dbUser = await syncUserToDatabase(clerkUserData);
+		} catch (error) {
+			console.error("Failed to sync user from Clerk:", {
+				error,
+				userId,
+				email: clerkUserData.email,
+				errorMessage: error instanceof Error ? error.message : "Unknown error",
+			});
+			throw new Error(
+				`User sync failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
+		}
+	}
+
+	return dbUser;
+}
+
+// Helper function to get user households with error handling
+async function getUserHouseholdsWithLogging(
+	dbUserId: string,
+): Promise<HouseholdWithMembership[]> {
+	try {
+		const households = await getUserHouseholds(dbUserId);
+		console.log("User households retrieved:", {
+			userId: dbUserId,
+			householdCount: households.length,
+		});
+		return households;
+	} catch (error) {
+		console.error("Failed to get user households:", {
+			error,
+			userId: dbUserId,
+			errorMessage: error instanceof Error ? error.message : "Unknown error",
+		});
+		throw new Error(
+			`Failed to retrieve households: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+	}
+}
+
 // Setup authenticated user context
 export async function setupAuthenticatedUser(
 	userId: string,
@@ -170,33 +257,50 @@ export async function setupAuthenticatedUser(
 	currentMembership: typeof memberships.$inferSelect | null;
 	availableHouseholds: HouseholdWithMembership[];
 }> {
-	// Check if user exists in the database
-	let dbUser = await db.query.users.findFirst({
-		where: eq(users.clerkUserId, userId),
+	console.log("Setting up authenticated user:", {
+		userId,
+		email: clerkUser.emailAddresses[0]?.emailAddress,
+		hasDbConnection: !!db,
+		databaseUrl: process.env.DATABASE_URL ? "configured" : "missing",
 	});
 
-	// If user doesn't exist, sync them from Clerk
-	if (!dbUser) {
-		const clerkUserData = buildClerkUserData(userId, clerkUser);
-		dbUser = await syncUserToDatabase(clerkUserData);
+	// Check database connection
+	if (!db) {
+		console.error("Database connection is null or undefined");
+		throw new Error("Database connection not available");
 	}
 
+	// Get or sync user from database
+	const dbUser = await getOrSyncUser(userId, clerkUser);
+
 	// Get user's household memberships
-	let availableHouseholds = await getUserHouseholds(dbUser.id);
+	const availableHouseholds = await getUserHouseholdsWithLogging(dbUser.id);
 
 	// If user has no households, create a default one
 	if (availableHouseholds.length === 0) {
-		const { household, householdId, membership } = await createDefaultHousehold(
-			dbUser,
-			clerkUser,
+		console.log(
+			"No households found, creating default household for user:",
+			dbUser.id,
 		);
-		availableHouseholds = [household];
-		return {
-			dbUser,
-			currentHouseholdId: householdId,
-			currentMembership: membership,
-			availableHouseholds,
-		};
+		try {
+			const { household, householdId, membership } =
+				await createDefaultHousehold(dbUser, clerkUser);
+			return {
+				dbUser,
+				currentHouseholdId: householdId,
+				currentMembership: membership,
+				availableHouseholds: [household],
+			};
+		} catch (error) {
+			console.error("Failed to create default household:", {
+				error,
+				userId: dbUser.id,
+				errorMessage: error instanceof Error ? error.message : "Unknown error",
+			});
+			throw new Error(
+				`Failed to create default household: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
+		}
 	}
 
 	return {
