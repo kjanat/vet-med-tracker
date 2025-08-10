@@ -16,6 +16,10 @@ import {
 	setupGlobalErrorHandling,
 	toUserFriendlyError,
 } from "@/lib/infrastructure/error-handling";
+import {
+	createAuditMiddleware,
+	auditHelpers,
+} from "@/lib/security/audit-logger";
 import { stackServerApp } from "@/stack";
 
 // Context type definition
@@ -219,16 +223,37 @@ export const createCallerFactory = t.createCallerFactory;
 // Connection middleware for tRPC procedures
 const connectionMiddleware = createTRPCConnectionMiddleware();
 
+// Audit middleware for security logging
+const auditMiddleware = createAuditMiddleware();
+
 // Base procedures
 // @ts-expect-error - Connection middleware type compatibility issue
-export const publicProcedure = t.procedure.use(connectionMiddleware);
+export const publicProcedure = t.procedure
+	.use(connectionMiddleware)
+	// @ts-expect-error - Audit middleware type compatibility issue
+	.use(auditMiddleware);
 
 // Protected procedure - requires Stack authentication
 export const protectedProcedure = t.procedure
 	// @ts-expect-error - Connection middleware type compatibility issue
 	.use(connectionMiddleware)
+	// @ts-expect-error - Audit middleware type compatibility issue
+	.use(auditMiddleware)
 	.use(async ({ ctx, next }) => {
 		if (!ctx.stackUser || !ctx.dbUser) {
+			// Log failed authentication attempt
+			const clientIp = ctx.headers
+				?.get?.("x-forwarded-for")
+				?.split(",")[0]
+				?.trim();
+			await auditHelpers.logThreat(
+				"unauthorized_access_attempt",
+				"medium",
+				clientIp,
+				undefined,
+				{ reason: "missing_authentication" },
+			);
+
 			throw new TRPCError({
 				code: "UNAUTHORIZED",
 				message: "You must be logged in to perform this action",

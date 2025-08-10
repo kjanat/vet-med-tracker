@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gte, isNull, lte, or } from "drizzle-orm";
+import { and, eq, gte, inArray, isNull, lte, or } from "drizzle-orm";
 import { z } from "zod";
 import {
-	administrations,
-	animals,
-	medicationCatalog,
+	vetmedAdministrations as administrations,
+	vetmedAnimals as animals,
+	vetmedMedicationCatalog as medicationCatalog,
 	type NewRegimen,
-	regimens,
+	vetmedRegimens as regimens,
 	scheduleTypeEnum,
 } from "@/db/schema";
 import {
@@ -854,5 +854,78 @@ export const regimenRouter = createTRPCRouter({
 			});
 
 			return { success: true, regimen: result[0] };
+		}),
+
+	// Get regimens for multiple animals (for bulk operations)
+	listByAnimals: householdProcedure
+		.input(
+			z.object({
+				householdId: z.string().uuid(),
+				animalIds: z.array(z.string().uuid()).min(1),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const results = await ctx.db
+				.select({
+					// Animal info
+					animalId: animals.id,
+					animalName: animals.name,
+					// Regimen info
+					regimenId: regimens.id,
+					medicationId: regimens.medicationId,
+					dose: regimens.dose,
+					route: regimens.route,
+					scheduleType: regimens.scheduleType,
+					timesLocal: regimens.timesLocal,
+					// Medication info
+					genericName: medicationCatalog.genericName,
+					brandName: medicationCatalog.brandName,
+					strength: medicationCatalog.strength,
+				})
+				.from(regimens)
+				.innerJoin(animals, eq(regimens.animalId, animals.id))
+				.innerJoin(
+					medicationCatalog,
+					eq(regimens.medicationId, medicationCatalog.id),
+				)
+				.where(
+					and(
+						eq(animals.householdId, input.householdId),
+						inArray(animals.id, input.animalIds),
+						eq(regimens.active, true),
+						isNull(regimens.deletedAt),
+					),
+				)
+				.orderBy(animals.name, medicationCatalog.genericName);
+
+			// Group regimens by animal
+			const animalRegimens = new Map<string, typeof results>();
+
+			for (const row of results) {
+				if (!animalRegimens.has(row.animalId)) {
+					animalRegimens.set(row.animalId, []);
+				}
+				animalRegimens.get(row.animalId)!.push(row);
+			}
+
+			// Convert to the expected format
+			return input.animalIds.map((animalId) => {
+				const animalData = results.find((r) => r.animalId === animalId);
+				const animalRegimensData = animalRegimens.get(animalId) || [];
+
+				return {
+					animalId,
+					animalName: animalData?.animalName || "Unknown Animal",
+					regimens: animalRegimensData.map((regimen) => ({
+						id: regimen.regimenId,
+						animalId: regimen.animalId,
+						animalName: regimen.animalName,
+						medicationName: regimen.brandName || regimen.genericName,
+						dose: regimen.dose || "",
+						route: regimen.route,
+						scheduleType: regimen.scheduleType,
+					})),
+				};
+			});
 		}),
 });

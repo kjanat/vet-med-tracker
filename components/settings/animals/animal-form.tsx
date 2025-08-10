@@ -1,7 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Upload, X } from "lucide-react";
+import { useUser } from "@stackframe/stack";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,6 +23,7 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PhotoUploader } from "@/components/ui/photo-uploader";
 import {
 	Select,
 	SelectContent,
@@ -46,6 +49,8 @@ export function AnimalForm({
 	onOpenChange,
 	onSave,
 }: AnimalFormProps) {
+	const user = useUser();
+	const { selectedHousehold } = useApp();
 	const [newAllergy, setNewAllergy] = useState("");
 	const [newCondition, setNewCondition] = useState("");
 
@@ -554,18 +559,19 @@ export function AnimalForm({
 						</div>
 
 						{/* Photo Upload */}
-						<div className="space-y-2">
-							<div className="font-medium text-sm">Photo</div>
-							<div className="rounded-lg border-2 border-muted-foreground/25 border-dashed p-6 text-center">
-								<Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-								<p className="text-muted-foreground text-sm">
-									Click to upload or drag and drop
-								</p>
-								<p className="text-muted-foreground text-xs">
-									PNG, JPG up to 5MB
-								</p>
-							</div>
-						</div>
+						{user?.id && selectedHousehold?.id && (
+							<PhotoUploader
+								onUpload={(url, _file) => {
+									form.setValue("photoUrl", url);
+								}}
+								value={form.watch("photoUrl") || undefined}
+								householdId={selectedHousehold.id}
+								userId={user.id}
+								animalId={animal?.id}
+								maxSizeKB={5000}
+								placeholder="Click to upload animal photo or drag and drop"
+							/>
+						)}
 
 						{/* Actions */}
 						<div className="flex justify-end gap-2 pt-4">

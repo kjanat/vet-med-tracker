@@ -138,7 +138,7 @@ self.addEventListener("sync", (event) => {
 });
 
 /**
- * Push notification event handler - displays medication reminders
+ * Push notification event handler - displays medication reminders and other notifications
  * @param {PushEvent} event - Service worker push event
  */
 self.addEventListener("push", (event) => {
@@ -147,62 +147,115 @@ self.addEventListener("push", (event) => {
 	}
 
 	const data = event.data.json();
+
+	// Default notification options
 	/** @type {NotificationOptions} */
-	const options = {
+	const baseOptions = {
 		body: data.body,
-		icon: "/icon-192x192.png",
-		badge: "/badge-72x72.png",
-		tag: data.tag || "medication-reminder",
-		data: {
-			url: data.url || "/",
-			animalId: data.animalId,
-			regimenId: data.regimenId,
-		},
-		actions: [
-			{
-				action: "record",
-				title: "Record Now",
-				icon: "/icon-check.png",
-			},
-			{
-				action: "snooze",
-				title: "Remind in 15min",
-				icon: "/icon-clock.png",
-			},
-		],
-		requireInteraction: true,
+		icon: data.icon || "/icon-192x192.png",
+		badge: data.badge || "/badge-72x72.png",
+		tag: data.tag || "general-notification",
+		data: data.data || {},
+		actions: data.actions || [],
+		requireInteraction: data.requireInteraction || false,
+		silent: data.silent || false,
+		timestamp: data.timestamp || Date.now(),
 	};
 
-	event.waitUntil(self.registration.showNotification(data.title, options));
+	// Add image if provided
+	if (data.image) {
+		baseOptions.image = data.image;
+	}
+
+	event.waitUntil(self.registration.showNotification(data.title, baseOptions));
 });
 
 /**
- * Notification click event handler - handles user interaction with medication reminders
+ * Notification click event handler - handles user interaction with various notification types
  * @param {NotificationEvent} event - Service worker notification click event
  */
 self.addEventListener("notificationclick", (event) => {
 	event.notification.close();
 
-	const { action, data } = event;
-	let url = data?.url || "/";
+	const { action, data = {} } = event;
+	const notificationType = data.type || "general";
 
-	if (action === "record" && data?.animalId && data?.regimenId) {
-		url = `/admin/record?animalId=${data.animalId}&regimenId=${data.regimenId}`;
-	} else if (action === "snooze") {
-		// Handle snooze action
-		url = "/?snooze=15";
+	let url = "/";
+
+	// Handle different notification types and actions
+	switch (notificationType) {
+		case "medication_reminder":
+			if (action === "record" && data.animalId && data.regimenId) {
+				url = `/admin/record?animalId=${data.animalId}&regimenId=${data.regimenId}`;
+			} else if (action === "snooze") {
+				// Post message to app to handle snooze
+				event.waitUntil(
+					clients.matchAll({ type: "window" }).then((clientList) => {
+						if (clientList.length > 0) {
+							clientList[0].postMessage({
+								type: "SNOOZE_NOTIFICATION",
+								data: {
+									regimenId: data.regimenId,
+									animalId: data.animalId,
+									minutes: 15,
+								},
+							});
+							return clientList[0].focus();
+						}
+						return clients.openWindow("/");
+					}),
+				);
+				return;
+			} else {
+				url = "/";
+			}
+			break;
+
+		case "low_inventory":
+			if (action === "view_inventory") {
+				url = "/inventory";
+			} else if (action === "dismiss") {
+				// Just close, no navigation needed
+				return;
+			} else {
+				url = "/inventory";
+			}
+			break;
+
+		case "cosign_request":
+			if (action === "approve" || action === "review") {
+				url = `/cosign/${data.cosignRequestId}`;
+			} else {
+				url = "/admin";
+			}
+			break;
+
+		case "system_announcement":
+			url = "/settings";
+			break;
+
+		case "test":
+			url = "/settings/notifications";
+			break;
+
+		default:
+			url = data.url || "/";
+			break;
 	}
 
 	event.waitUntil(
 		clients.matchAll({ type: "window" }).then((clientList) => {
-			// Focus existing window if available
+			// Focus existing window if available and URL matches
 			for (const client of clientList) {
-				if (client.url === url && "focus" in client) {
+				const clientURL = new URL(client.url);
+				const targetURL = new URL(url, self.location.origin);
+
+				if (clientURL.pathname === targetURL.pathname && "focus" in client) {
 					return client.focus();
 				}
 			}
 
-			// Open new window
+			// Open new window or navigate existing one
 			if (clients.openWindow) {
 				return clients.openWindow(url);
 			}

@@ -381,6 +381,32 @@ function AdministrationRow({
 									</div>
 								)}
 
+								{/* Photo Evidence */}
+								{record.media && record.media.length > 0 && (
+									<div>
+										<span className="font-medium text-sm">Photo Evidence:</span>
+										<div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+											{record.media.map((url, index) => (
+												<button
+													key={index}
+													type="button"
+													className="group relative aspect-square overflow-hidden rounded-md border transition-transform hover:scale-105"
+													onClick={() => window.open(url, "_blank")}
+													aria-label={`View photo evidence ${index + 1} of ${record.media?.length}`}
+												>
+													<img
+														src={url}
+														alt={`Evidence photo ${index + 1}`}
+														className="h-full w-full object-cover transition-transform group-hover:scale-110"
+														loading="lazy"
+													/>
+													<div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
+												</button>
+											))}
+										</div>
+									</div>
+								)}
+
 								{/* Co-sign Status */}
 								{record.cosignUser && record.cosignedAt && (
 									<div className="flex items-center gap-2 text-sm">

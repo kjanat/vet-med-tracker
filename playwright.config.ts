@@ -56,6 +56,18 @@ export default defineConfig({
 			name: "Mobile Safari",
 			use: { ...devices["iPhone 12"] },
 		},
+
+		/* Visual regression testing with Percy - separate project */
+		{
+			name: "visual-chromium",
+			testDir: "./tests/e2e/visual",
+			use: {
+				...devices["Desktop Chrome"],
+				// Disable video/screenshot for visual tests to avoid conflicts
+				video: "off",
+				screenshot: "off",
+			},
+		},
 	],
 
 	/* Run your local dev server before starting the tests */

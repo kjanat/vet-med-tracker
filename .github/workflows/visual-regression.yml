@@ -1,0 +1,239 @@
+name: Visual Regression Tests
+
+on:
+  pull_request:
+    branches: [master, development]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [master]
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: 'Update visual baselines'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+# Prevent concurrent runs on the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10.14.0'
+
+jobs:
+  visual-tests:
+    name: Visual Regression Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    # Required environment variables
+    env:
+      PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+      PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
+      PERCY_PULL_REQUEST: ${{ github.event.number }}
+      PERCY_COMMIT: ${{ github.sha }}
+      
+      # Database configuration for tests
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      
+      # Stack Auth configuration for tests  
+      NEXT_PUBLIC_STACK_PROJECT_ID: ${{ secrets.TEST_STACK_PROJECT_ID }}
+      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: ${{ secrets.TEST_STACK_PUBLISHABLE_CLIENT_KEY }}
+      STACK_SECRET_SERVER_KEY: ${{ secrets.TEST_STACK_SECRET_SERVER_KEY }}
+      
+      # Test-specific overrides
+      NODE_ENV: test
+      CI: true
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch more history for Percy's commit comparison
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup test database
+        run: |
+          # Run database migrations for test environment
+          pnpm db:migrate
+          # Seed with test data
+          pnpm db:seed
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+
+      - name: Build application
+        run: pnpm build
+        env:
+          # Use test environment variables
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+
+      - name: Install Playwright browsers
+        run: pnpm playwright install --with-deps chromium
+
+      - name: Wait for application to be ready
+        run: |
+          # Start the application in background
+          pnpm start &
+          
+          # Wait for the server to be ready
+          timeout 60s bash -c 'until curl -f http://localhost:3000/api/health > /dev/null 2>&1; do sleep 2; done'
+        env:
+          PORT: 3000
+
+      - name: Run visual regression tests
+        run: |
+          if [ "${{ github.event.inputs.update_snapshots }}" = "true" ]; then
+            echo "Updating visual baselines..."
+            pnpm test:visual:update
+          else
+            echo "Running visual regression tests..."
+            pnpm test:visual
+          fi
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+      - name: Upload Percy build artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: percy-debug-logs
+          path: |
+            percy-debug.log
+            .percy/
+          retention-days: 7
+
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Comment PR with Percy results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr_number = context.payload.pull_request.number;
+            
+            // Add comment with Percy build link
+            const percy_project_url = `https://percy.io/vetmed-tracker/web-app`;
+            const comment_body = `
+            ## 📸 Visual Regression Test Results
+            
+            Percy has finished comparing the visual changes in this PR.
+            
+            [View Percy Build →](${percy_project_url})
+            
+            **Status**: ${process.env.PERCY_BUILD_STATUS || 'Processing...'}
+            
+            The visual changes will be reviewed automatically. If there are any visual regressions:
+            - Minor changes (<5% difference) will be auto-approved
+            - Significant changes will require manual review
+            - Critical UI elements always require manual approval
+            
+            ---
+            *This comment is automatically updated by the Visual Regression workflow.*
+            `;
+            
+            // Check if comment already exists
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: pr_number,
+            });
+            
+            const existing_comment = comments.find(comment => 
+              comment.body.includes('Visual Regression Test Results')
+            );
+            
+            if (existing_comment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing_comment.id,
+                body: comment_body,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr_number,
+                body: comment_body,
+              });
+            }
+
+  # Notification job for Slack/Discord (optional)
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [visual-tests]
+    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request')
+    
+    steps:
+      - name: Notify Slack on failure
+        if: needs.visual-tests.result == 'failure'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: |
+            🚨 Visual regression tests failed!
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            
+            Check the Percy dashboard for details.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Security and quality checks
+  security-check:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'

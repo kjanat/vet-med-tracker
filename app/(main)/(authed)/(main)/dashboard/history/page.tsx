@@ -67,6 +67,7 @@ function HistoryContent() {
 			sourceItem: undefined, // TODO: Join with inventory items
 			site: record.site || undefined,
 			notes: record.notes || undefined,
+			media: record.mediaUrls || undefined,
 			isEdited: false, // TODO: Implement edit tracking
 			editedBy: undefined,
 			editedAt: undefined,

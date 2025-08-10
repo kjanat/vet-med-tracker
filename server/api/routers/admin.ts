@@ -1,15 +1,15 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gte, isNull, lte } from "drizzle-orm";
+import { and, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 import { z } from "zod";
 import {
-	administrations,
+	vetmedAdministrations as administrations,
 	type adminStatusEnum,
-	animals,
-	inventoryItems,
-	medicationCatalog,
+	vetmedAnimals as animals,
+	vetmedInventoryItems as inventoryItems,
+	vetmedMedicationCatalog as medicationCatalog,
 	type NewAdministration,
-	regimens,
-	users,
+	vetmedRegimens as regimens,
+	vetmedUsers as users,
 } from "@/db/schema";
 import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 import { createAuditLog } from "@/server/utils/audit-log";
@@ -30,6 +30,27 @@ const recordAdministrationSchema = z.object({
 	// Optional fields for offline sync
 	dose: z.string().optional(), // Actual dose given if different from regimen
 	status: z.enum(["ON_TIME", "LATE", "VERY_LATE", "PRN"]).optional(),
+	// Photo evidence URLs
+	mediaUrls: z.array(z.string().url()).optional(), // Photo evidence URLs
+});
+
+// Input validation schema for bulk recording administration
+const recordBulkAdministrationSchema = z.object({
+	householdId: z.string().uuid(),
+	animalIds: z.array(z.string().uuid()).min(1).max(50), // Limit to reasonable batch size
+	regimenId: z.string().uuid(),
+	administeredAt: z.string().datetime().optional(), // ISO datetime, defaults to now
+	inventorySourceId: z.string().uuid().optional(),
+	notes: z.string().optional(),
+	site: z.string().optional(),
+	conditionTags: z.array(z.string()).optional(),
+	allowOverride: z.boolean().default(false),
+	idempotencyKey: z.string(), // Base key, will be suffixed per animal
+	// Optional fields for offline sync
+	dose: z.string().optional(), // Actual dose given if different from regimen
+	status: z.enum(["ON_TIME", "LATE", "VERY_LATE", "PRN"]).optional(),
+	// Photo evidence URLs
+	mediaUrls: z.array(z.string().url()).optional(), // Photo evidence URLs
 });
 
 // Helper function to calculate administration status
@@ -287,6 +308,7 @@ async function createAdministrationRecord(
 		site: input.site || null,
 		dose: input.dose || regimen.dose || null,
 		notes: input.notes || null,
+		mediaUrls: input.mediaUrls || null,
 		adverseEvent: false,
 		idempotencyKey: input.idempotencyKey,
 	};
@@ -690,5 +712,219 @@ export const adminRouter = createTRPCRouter({
 			});
 
 			return { success: true, cosignedRecord: result[0] };
+		}),
+
+	// Record medication administrations for multiple animals (bulk operation)
+	recordBulk: householdProcedure
+		.input(recordBulkAdministrationSchema)
+		.mutation(async ({ ctx, input }) => {
+			const results: {
+				animalId: string;
+				animalName: string;
+				success: boolean;
+				error?: string;
+				administration?: typeof administrations.$inferSelect;
+			}[] = [];
+
+			// Validate all animals belong to the household first
+			const animalData = await ctx.db
+				.select({
+					id: animals.id,
+					name: animals.name,
+					timezone: animals.timezone,
+					householdId: animals.householdId,
+				})
+				.from(animals)
+				.where(
+					and(
+						eq(animals.householdId, input.householdId),
+						inArray(animals.id, input.animalIds),
+					),
+				)
+				.execute();
+
+			// Check that all requested animals were found
+			const foundAnimalIds = new Set(animalData.map((a) => a.id));
+			const missingAnimalIds = input.animalIds.filter(
+				(id) => !foundAnimalIds.has(id),
+			);
+
+			if (missingAnimalIds.length > 0) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: `Animals not found in household: ${missingAnimalIds.join(", ")}`,
+				});
+			}
+
+			// Validate regimen exists and get its details
+			const regimen = await ctx.db
+				.select()
+				.from(regimens)
+				.where(and(eq(regimens.id, input.regimenId), eq(regimens.active, true)))
+				.limit(1)
+				.execute();
+
+			if (!regimen[0]) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Active regimen not found",
+				});
+			}
+
+			// Validate inventory item if provided
+			let inventoryItem = null;
+			if (input.inventorySourceId) {
+				try {
+					inventoryItem = await verifyInventoryItem(
+						ctx.db,
+						input.inventorySourceId,
+						input.householdId,
+						input.allowOverride,
+					);
+				} catch (error) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: `Inventory validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+					});
+				}
+			}
+
+			// Process each animal in a database transaction
+			await ctx.db.transaction(async (tx) => {
+				for (const animal of animalData) {
+					try {
+						// Check if this animal has an active regimen with this ID
+						const animalRegimen = await tx
+							.select()
+							.from(regimens)
+							.where(
+								and(
+									eq(regimens.id, input.regimenId),
+									eq(regimens.animalId, animal.id),
+									eq(regimens.active, true),
+								),
+							)
+							.limit(1)
+							.execute();
+
+						if (!animalRegimen[0]) {
+							results.push({
+								animalId: animal.id,
+								animalName: animal.name,
+								success: false,
+								error: "No active regimen found for this animal",
+							});
+							continue;
+						}
+
+						// Create unique idempotency key per animal
+						const animalIdempotencyKey = `${input.idempotencyKey}-${animal.id}`;
+
+						// Check for duplicate
+						const existing = await checkDuplicateAdministration(
+							ctx.db,
+							animalIdempotencyKey,
+						);
+
+						if (existing) {
+							results.push({
+								animalId: animal.id,
+								animalName: animal.name,
+								success: true,
+								administration: existing,
+							});
+							continue;
+						}
+
+						// Create administration record
+						const administeredAt = input.administeredAt
+							? new Date(input.administeredAt)
+							: new Date();
+
+						const { status, scheduledFor } = calculateScheduledTimeAndStatus(
+							{
+								scheduleType: animalRegimen[0].scheduleType,
+								timesLocal: animalRegimen[0].timesLocal,
+								cutoffMinutes: animalRegimen[0].cutoffMinutes,
+							},
+							animal,
+							administeredAt,
+							input.status,
+						);
+
+						const newAdmin: NewAdministration = {
+							regimenId: input.regimenId,
+							animalId: animal.id,
+							householdId: input.householdId,
+							caregiverId: ctx.dbUser.id,
+							scheduledFor: scheduledFor?.toISOString() || null,
+							recordedAt: administeredAt.toISOString(),
+							status,
+							sourceItemId: input.inventorySourceId || null,
+							site: input.site || null,
+							dose: input.dose || animalRegimen[0].dose || null,
+							notes: input.notes || null,
+							mediaUrls: input.mediaUrls || null,
+							adverseEvent: false,
+							idempotencyKey: animalIdempotencyKey,
+						};
+
+						const result = await tx
+							.insert(administrations)
+							.values(newAdmin)
+							.returning();
+
+						if (!result[0]) {
+							results.push({
+								animalId: animal.id,
+								animalName: animal.name,
+								success: false,
+								error: "Failed to create administration record",
+							});
+							continue;
+						}
+
+						// Create audit log
+						await createAuditLog(ctx.db, {
+							userId: ctx.dbUser.id,
+							householdId: input.householdId,
+							action: "CREATE",
+							tableName: "administrations",
+							recordId: result[0].id,
+							newValues: result[0],
+						});
+
+						results.push({
+							animalId: animal.id,
+							animalName: animal.name,
+							success: true,
+							administration: result[0],
+						});
+					} catch (error) {
+						results.push({
+							animalId: animal.id,
+							animalName: animal.name,
+							success: false,
+							error:
+								error instanceof Error
+									? error.message
+									: "Unknown error occurred",
+						});
+						// Continue processing other animals instead of failing entire transaction
+					}
+				}
+			});
+
+			const successCount = results.filter((r) => r.success).length;
+			const failureCount = results.filter((r) => !r.success).length;
+
+			return {
+				results,
+				summary: {
+					total: results.length,
+					successful: successCount,
+					failed: failureCount,
+				},
+			};
 		}),
 });

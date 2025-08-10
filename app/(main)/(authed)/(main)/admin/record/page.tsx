@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@stackframe/stack";
 import { ArrowLeft, Camera, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -25,6 +26,7 @@ import { MedConfirmButton } from "@/components/ui/med-confirm-button";
 import { MobileConfirmLayout } from "@/components/ui/mobile-confirm-layout";
 import { MobileRecordLayout } from "@/components/ui/mobile-record-layout";
 import { MobileSuccessLayout } from "@/components/ui/mobile-success-layout";
+import { PhotoUploader } from "@/components/ui/photo-uploader";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TabletConfirmLayout } from "@/components/ui/tablet-confirm-layout";
@@ -85,6 +87,7 @@ function useRecordState() {
 	const [notes, setNotes] = useState("");
 	const [site, setSite] = useState("");
 	const [conditionTags, setConditionTags] = useState<string[]>([]);
+	const [photoUrls, setPhotoUrls] = useState<string[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	return {
@@ -106,6 +109,8 @@ function useRecordState() {
 		setSite,
 		conditionTags,
 		setConditionTags,
+		photoUrls,
+		setPhotoUrls,
 		isSubmitting,
 		setIsSubmitting,
 	};
@@ -476,6 +481,7 @@ function resetRecordState(state: RecordState) {
 	state.setNotes("");
 	state.setSite("");
 	state.setConditionTags([]);
+	state.setPhotoUrls([]);
 }
 
 function RecordContent() {
@@ -689,6 +695,7 @@ function createAdminPayload(
 		site: state.site || undefined,
 		conditionTags:
 			state.conditionTags.length > 0 ? state.conditionTags : undefined,
+		mediaUrls: state.photoUrls.length > 0 ? state.photoUrls : undefined,
 		requiresCoSign: state.requiresCoSign,
 		allowOverride: state.allowOverride,
 		// Optional fields for proper status calculation
@@ -782,6 +789,8 @@ function ConfirmStep({
 	handleConfirm: () => Promise<void>;
 	isSubmitting?: boolean;
 }) {
+	const user = useUser();
+	const { selectedHousehold } = useApp();
 	const animal = animals.find((a) => a.id === state.selectedAnimalId);
 	const relevantSources = inventorySources.filter((s) =>
 		s.name
@@ -851,11 +860,14 @@ function ConfirmStep({
 							/>
 						</div>
 						<div>
-							<Label>Photo/Video</Label>
-							<Button variant="outline" className="w-full bg-transparent">
-								<Camera className="mr-2 h-4 w-4" />
-								Add Media
-							</Button>
+							<Label>Photo Evidence</Label>
+							<PhotoEvidenceUploader
+								photoUrls={state.photoUrls}
+								setPhotoUrls={state.setPhotoUrls}
+								householdId={selectedHousehold?.id || ""}
+								userId={user?.id || ""}
+								animalId={state.selectedAnimalId || ""}
+							/>
 						</div>
 					</div>
 
@@ -1114,6 +1126,125 @@ function RenderTabletLayout({
 				/>
 			)}
 		</TabletRecordLayout>
+	);
+}
+
+// Photo Evidence Uploader Component for multiple photos
+function PhotoEvidenceUploader({
+	photoUrls,
+	setPhotoUrls,
+	householdId,
+	userId,
+	animalId,
+}: {
+	photoUrls: string[];
+	setPhotoUrls: React.Dispatch<React.SetStateAction<string[]>>;
+	householdId: string;
+	userId: string;
+	animalId: string;
+}) {
+	const [currentUpload, setCurrentUpload] = useState<string | null>(null);
+
+	const handlePhotoUpload = (url: string, _file: File) => {
+		setPhotoUrls((prev) => [...prev, url]);
+		setCurrentUpload(null);
+	};
+
+	const handleRemovePhoto = (indexToRemove: number) => {
+		setPhotoUrls((prev) => prev.filter((_, index) => index !== indexToRemove));
+	};
+
+	const handleStartUpload = () => {
+		const uploadId = Date.now().toString();
+		setCurrentUpload(uploadId);
+	};
+
+	// Don't show uploader if we don't have required IDs
+	if (!householdId || !userId) {
+		return (
+			<div className="rounded-lg border-2 border-muted-foreground/25 border-dashed p-4 text-center">
+				<Camera className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+				<p className="text-muted-foreground text-sm">
+					Photo upload unavailable
+				</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-3">
+			{/* Show existing photos */}
+			{photoUrls.length > 0 && (
+				<div className="grid grid-cols-2 gap-2">
+					{photoUrls.map((url, index) => (
+						<div key={index} className="relative">
+							<img
+								src={url}
+								alt={`Evidence photo ${index + 1}`}
+								className="h-20 w-full rounded-md border object-cover"
+							/>
+							<Button
+								type="button"
+								variant="destructive"
+								size="sm"
+								className="-top-2 -right-2 absolute h-6 w-6 rounded-full p-0"
+								onClick={() => handleRemovePhoto(index)}
+							>
+								×
+							</Button>
+						</div>
+					))}
+				</div>
+			)}
+
+			{/* Show uploader for new photos (limit to 4 photos) */}
+			{photoUrls.length < 4 && !currentUpload && (
+				<Button
+					type="button"
+					variant="outline"
+					className="w-full bg-transparent"
+					onClick={handleStartUpload}
+				>
+					<Camera className="mr-2 h-4 w-4" />
+					{photoUrls.length === 0 ? "Add Photo Evidence" : "Add Another Photo"}
+				</Button>
+			)}
+
+			{/* PhotoUploader component when actively uploading */}
+			{currentUpload && (
+				<div className="space-y-2">
+					<PhotoUploader
+						onUpload={handlePhotoUpload}
+						onError={(error) => {
+							console.error("Photo upload error:", error);
+							toast.error("Failed to upload photo");
+							setCurrentUpload(null);
+						}}
+						householdId={householdId}
+						userId={userId}
+						animalId={animalId}
+						maxSizeKB={2000}
+						placeholder="Drag and drop photo or click to select"
+						className="min-h-[120px]"
+					/>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						onClick={() => setCurrentUpload(null)}
+						className="w-full"
+					>
+						Cancel Upload
+					</Button>
+				</div>
+			)}
+
+			{photoUrls.length >= 4 && (
+				<p className="text-center text-muted-foreground text-xs">
+					Maximum 4 photos per administration
+				</p>
+			)}
+		</div>
 	);
 }
 

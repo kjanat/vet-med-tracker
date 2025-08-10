@@ -1,11 +1,18 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
-import { notifications } from "@/db/schema";
+import webpush from "web-push";
+import { notifications, pushSubscriptions } from "@/db/schema";
 import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
 } from "@/server/api/trpc";
+import {
+	pushSubscriptionSchema,
+	pushSubscriptionWithDeviceSchema,
+	pushNotificationPayloadSchema,
+} from "@/lib/schemas/push-notifications";
+import { getVAPIDConfig } from "@/lib/push-notifications/vapid-config";
 
 export const notificationsRouter = createTRPCRouter({
 	// List notifications for the current user, optionally filtered by household
@@ -336,4 +343,214 @@ export const notificationsRouter = createTRPCRouter({
 
 			return created;
 		}),
+
+	// Push notification subscription management
+	subscribeToPush: protectedProcedure
+		.input(pushSubscriptionWithDeviceSchema)
+		.mutation(async ({ ctx, input }) => {
+			const { endpoint, keys, deviceInfo } = input;
+
+			// Check if subscription already exists
+			const existingSubscription = await ctx.db
+				.select()
+				.from(pushSubscriptions)
+				.where(eq(pushSubscriptions.endpoint, endpoint))
+				.limit(1);
+
+			if (existingSubscription[0]) {
+				// Update existing subscription
+				const updated = await ctx.db
+					.update(pushSubscriptions)
+					.set({
+						userId: ctx.dbUser.id,
+						p256dhKey: keys.p256dh,
+						authKey: keys.auth,
+						userAgent: deviceInfo?.userAgent || null,
+						deviceName: deviceInfo?.deviceName || null,
+						isActive: true,
+						lastUsed: new Date().toISOString(),
+						updatedAt: new Date().toISOString(),
+					})
+					.where(eq(pushSubscriptions.endpoint, endpoint))
+					.returning();
+
+				return updated[0];
+			}
+
+			// Create new subscription
+			const created = await ctx.db
+				.insert(pushSubscriptions)
+				.values({
+					userId: ctx.dbUser.id,
+					endpoint,
+					p256dhKey: keys.p256dh,
+					authKey: keys.auth,
+					userAgent: deviceInfo?.userAgent || null,
+					deviceName: deviceInfo?.deviceName || null,
+				})
+				.returning();
+
+			return created[0];
+		}),
+
+	unsubscribeFromPush: protectedProcedure
+		.input(z.object({ endpoint: z.string().url() }))
+		.mutation(async ({ ctx, input }) => {
+			const updated = await ctx.db
+				.update(pushSubscriptions)
+				.set({
+					isActive: false,
+					updatedAt: new Date().toISOString(),
+				})
+				.where(
+					and(
+						eq(pushSubscriptions.endpoint, input.endpoint),
+						eq(pushSubscriptions.userId, ctx.dbUser.id),
+					),
+				)
+				.returning();
+
+			return updated[0] || null;
+		}),
+
+	listPushSubscriptions: protectedProcedure.query(async ({ ctx }) => {
+		const subscriptions = await ctx.db
+			.select()
+			.from(pushSubscriptions)
+			.where(
+				and(
+					eq(pushSubscriptions.userId, ctx.dbUser.id),
+					eq(pushSubscriptions.isActive, true),
+				),
+			)
+			.orderBy(desc(pushSubscriptions.lastUsed));
+
+		return subscriptions;
+	}),
+
+	deletePushSubscription: protectedProcedure
+		.input(z.object({ id: z.string().uuid() }))
+		.mutation(async ({ ctx, input }) => {
+			// Verify subscription belongs to user
+			const subscription = await ctx.db
+				.select()
+				.from(pushSubscriptions)
+				.where(
+					and(
+						eq(pushSubscriptions.id, input.id),
+						eq(pushSubscriptions.userId, ctx.dbUser.id),
+					),
+				)
+				.limit(1);
+
+			if (!subscription[0]) {
+				throw new Error("Push subscription not found");
+			}
+
+			const deleted = await ctx.db
+				.delete(pushSubscriptions)
+				.where(eq(pushSubscriptions.id, input.id))
+				.returning();
+
+			return deleted[0];
+		}),
+
+	sendTestNotification: protectedProcedure.mutation(async ({ ctx }) => {
+		// Get user's active push subscriptions
+		const userSubscriptions = await ctx.db
+			.select()
+			.from(pushSubscriptions)
+			.where(
+				and(
+					eq(pushSubscriptions.userId, ctx.dbUser.id),
+					eq(pushSubscriptions.isActive, true),
+				),
+			);
+
+		if (userSubscriptions.length === 0) {
+			throw new Error("No active push subscriptions found");
+		}
+
+		// Configure web-push
+		const vapidConfig = getVAPIDConfig();
+		webpush.setVapidDetails(
+			vapidConfig.subject,
+			vapidConfig.publicKey,
+			vapidConfig.privateKey,
+		);
+
+		const payload = {
+			title: "VetMed Tracker Test",
+			body: "Push notifications are working correctly!",
+			icon: "/icon-192x192.png",
+			badge: "/badge-72x72.png",
+			tag: "test-notification",
+			data: {
+				type: "test",
+				timestamp: Date.now(),
+			},
+		};
+
+		const results = [];
+
+		for (const subscription of userSubscriptions) {
+			try {
+				await webpush.sendNotification(
+					{
+						endpoint: subscription.endpoint,
+						keys: {
+							p256dh: subscription.p256dhKey,
+							auth: subscription.authKey,
+						},
+					},
+					JSON.stringify(payload),
+					{
+						TTL: 3600, // 1 hour
+						urgency: "normal",
+					},
+				);
+
+				// Update last used timestamp
+				await ctx.db
+					.update(pushSubscriptions)
+					.set({
+						lastUsed: new Date().toISOString(),
+						updatedAt: new Date().toISOString(),
+					})
+					.where(eq(pushSubscriptions.id, subscription.id));
+
+				results.push({ success: true, subscriptionId: subscription.id });
+			} catch (error) {
+				console.error("Push notification failed:", error);
+
+				// If subscription is invalid, mark as inactive
+				if (error.statusCode === 410) {
+					await ctx.db
+						.update(pushSubscriptions)
+						.set({
+							isActive: false,
+							updatedAt: new Date().toISOString(),
+						})
+						.where(eq(pushSubscriptions.id, subscription.id));
+				}
+
+				results.push({
+					success: false,
+					subscriptionId: subscription.id,
+					error: error.message,
+				});
+			}
+		}
+
+		return {
+			sent: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results,
+		};
+	}),
+
+	getVAPIDPublicKey: protectedProcedure.query(() => {
+		const vapidConfig = getVAPIDConfig();
+		return { publicKey: vapidConfig.publicKey };
+	}),
 });

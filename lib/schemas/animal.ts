@@ -1,37 +1,65 @@
 import { z } from "zod";
+import {
+	secureSchemas,
+	createSecurityValidator,
+} from "@/lib/security/input-sanitization";
 
-// Define the animal schema for form validation
-export const animalFormSchema = z.object({
-	name: z.string().min(1, "Name is required").max(100, "Name is too long"),
-	species: z.string().min(1, "Species is required"),
-	breed: z.string().optional(),
+// Define the animal schema for form validation with enhanced security
+export const animalFormSchema = createSecurityValidator(
+	z.object({
+		name: secureSchemas.safeString(100).min(1, "Name is required"),
+		species: secureSchemas.safeString(50).min(1, "Species is required"),
+		breed: secureSchemas.safeString(100).optional(),
+		sex: z.enum(["Male", "Female"]).optional(),
+		neutered: z.boolean(),
+		dob: secureSchemas.recentDate(200, 0).optional(), // Max 200 years back, no future dates
+		weightKg: secureSchemas.positiveNumber(1000).optional(), // Max 1000kg
+		microchipId: secureSchemas.safeString(50).optional(),
+		color: secureSchemas.safeString(50).optional(),
+		timezone: z
+			.string()
+			.min(1, "Timezone is required")
+			.refine((val) => {
+				// Validate against common timezone format
+				return /^[A-Za-z_]+\/[A-Za-z_]+$/.test(val) || val === "UTC";
+			}, "Invalid timezone format"),
+		vetName: secureSchemas.safeString(100).optional(),
+		vetPhone: secureSchemas.phone.optional(),
+		vetEmail: secureSchemas.email.optional(),
+		clinicName: secureSchemas.safeString(200).optional(),
+		notes: secureSchemas.safeString(2000).optional(),
+		allergies: secureSchemas.limitedArray(secureSchemas.safeString(100), 50),
+		conditions: secureSchemas.limitedArray(secureSchemas.safeString(100), 50),
+		photoUrl: secureSchemas.url().optional(),
+	}),
+);
+
+// API schema with additional UUID validation for IDs
+export const animalApiSchema = z.object({
+	id: secureSchemas.uuid.optional(),
+	householdId: secureSchemas.uuid,
+	name: secureSchemas.safeString(100).min(1, "Name is required"),
+	species: secureSchemas.safeString(50).min(1, "Species is required"),
+	breed: secureSchemas.safeString(100).optional(),
 	sex: z.enum(["Male", "Female"]).optional(),
 	neutered: z.boolean(),
-	dob: z.date().optional(),
-	weightKg: z.number().positive("Weight must be positive").optional(),
-	microchipId: z.string().optional(),
-	color: z.string().optional(),
+	dob: z.string().optional(), // ISO date string for API
+	weightKg: z.string().optional(), // String representation for database
+	microchipId: secureSchemas.safeString(50).optional(),
+	color: secureSchemas.safeString(50).optional(),
 	timezone: z.string().min(1, "Timezone is required"),
-	vetName: z.string().optional(),
-	vetPhone: z
-		.string()
-		.optional()
-		.refine(
-			(val) => !val || /^[\d\s\-()+]+$/.test(val),
-			"Invalid phone number format",
-		),
-	vetEmail: z
-		.string()
-		.optional()
-		.refine(
-			(val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
-			"Invalid email format",
-		),
-	clinicName: z.string().optional(),
-	notes: z.string().optional(),
-	allergies: z.array(z.string()),
-	conditions: z.array(z.string()),
-	photoUrl: z.string().optional(),
+	vetName: secureSchemas.safeString(100).optional(),
+	vetPhone: secureSchemas.phone.optional(),
+	vetEmail: secureSchemas.email.optional(),
+	clinicName: secureSchemas.safeString(200).optional(),
+	notes: secureSchemas.safeString(2000).optional(),
+	allergies: secureSchemas
+		.limitedArray(secureSchemas.safeString(100), 50)
+		.optional(),
+	conditions: secureSchemas
+		.limitedArray(secureSchemas.safeString(100), 50)
+		.optional(),
 });
 
 export type AnimalFormData = z.infer<typeof animalFormSchema>;
+export type AnimalApiData = z.infer<typeof animalApiSchema>;

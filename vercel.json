@@ -1,0 +1,56 @@
+{
+	"buildCommand": "pnpm build",
+	"devCommand": "pnpm dev",
+	"installCommand": "pnpm install",
+	"framework": "nextjs",
+	"regions": ["iad1"],
+	"functions": {
+		"app/api/**/*.ts": {
+			"maxDuration": 30
+		}
+	},
+	"headers": [
+		{
+			"source": "/api/health",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "no-cache, no-store, must-revalidate"
+				}
+			]
+		},
+		{
+			"source": "/service-worker.js",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=0, must-revalidate"
+				},
+				{
+					"key": "Service-Worker-Allowed",
+					"value": "/"
+				}
+			]
+		}
+	],
+	"rewrites": [
+		{
+			"source": "/health",
+			"destination": "/api/health"
+		},
+		{
+			"source": "/healthcheck",
+			"destination": "/api/health"
+		}
+	],
+	"env": {
+		"NODE_ENV": "production",
+		"ENABLE_NOTIFICATION_SCHEDULER": "true"
+	},
+	"crons": [
+		{
+			"path": "/api/notifications/scheduler",
+			"schedule": "0 */6 * * *"
+		}
+	]
+}

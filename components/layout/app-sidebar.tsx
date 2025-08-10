@@ -69,6 +69,10 @@ const data = {
 					url: "/admin/record",
 				},
 				{
+					title: "Dosage Calculator",
+					url: "/medications/dosage-calculator",
+				},
+				{
 					title: "Inventory",
 					url: "/medications/inventory",
 				},

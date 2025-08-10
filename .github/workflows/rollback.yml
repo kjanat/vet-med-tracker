@@ -1,0 +1,386 @@
+name: Rollback Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      rollback_type:
+        description: 'Type of rollback to perform'
+        required: true
+        type: choice
+        options:
+          - 'vercel_only'
+          - 'database_only' 
+          - 'full_rollback'
+        default: 'vercel_only'
+      
+      target_deployment:
+        description: 'Target deployment to rollback to (leave empty for previous deployment)'
+        required: false
+        type: string
+      
+      database_backup_file:
+        description: 'Database backup file to restore (for database rollback)'
+        required: false
+        type: string
+      
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      
+      emergency:
+        description: 'Emergency rollback (skip confirmations)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  # Pre-rollback validation and confirmation
+  validate:
+    name: Validate Rollback Request
+    runs-on: ubuntu-latest
+    outputs:
+      rollback-approved: ${{ steps.validate.outputs.approved }}
+      target-deployment: ${{ steps.validate.outputs.target_deployment }}
+      backup-file: ${{ steps.validate.outputs.backup_file }}
+    
+    steps:
+      - name: Validate rollback parameters
+        id: validate
+        run: |
+          echo "🔍 Validating rollback request..."
+          echo "Type: ${{ inputs.rollback_type }}"
+          echo "Reason: ${{ inputs.reason }}"
+          echo "Emergency: ${{ inputs.emergency }}"
+          echo "Target: ${{ inputs.target_deployment }}"
+          
+          # Basic validation
+          if [ -z "${{ inputs.reason }}" ]; then
+            echo "❌ Rollback reason is required"
+            exit 1
+          fi
+          
+          # Set outputs
+          echo "approved=true" >> $GITHUB_OUTPUT
+          echo "target_deployment=${{ inputs.target_deployment }}" >> $GITHUB_OUTPUT
+          echo "backup_file=${{ inputs.database_backup_file }}" >> $GITHUB_OUTPUT
+          
+          echo "✅ Validation passed"
+
+      - name: Emergency mode check
+        if: inputs.emergency == true
+        run: |
+          echo "🚨 EMERGENCY ROLLBACK MODE ACTIVATED"
+          echo "Skipping additional confirmations and proceeding immediately"
+
+  # Create current state backup before rollback
+  pre-rollback-backup:
+    name: Pre-rollback Backup
+    needs: validate
+    runs-on: ubuntu-latest
+    if: needs.validate.outputs.rollback-approved == 'true' && (inputs.rollback_type == 'database_only' || inputs.rollback_type == 'full_rollback')
+    outputs:
+      backup-path: ${{ steps.backup.outputs.backup_path }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Create pre-rollback backup
+        id: backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          BACKUP_DIR: ./backups
+          BACKUP_COMPRESSION: true
+        run: |
+          echo "📦 Creating pre-rollback backup..."
+          pnpm db:backup
+          
+          # Find the most recent backup file
+          backup_file=$(ls -t ./backups/vetmed-backup-*.sql.gz | head -1)
+          echo "backup_path=$backup_file" >> $GITHUB_OUTPUT
+          echo "✅ Pre-rollback backup created: $backup_file"
+
+      - name: Upload pre-rollback backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-rollback-backup-${{ github.run_number }}
+          path: ${{ steps.backup.outputs.backup_path }}
+          retention-days: 30
+
+  # Vercel application rollback
+  rollback-vercel:
+    name: Rollback Vercel Deployment
+    needs: [validate, pre-rollback-backup]
+    runs-on: ubuntu-latest
+    if: needs.validate.outputs.rollback-approved == 'true' && (inputs.rollback_type == 'vercel_only' || inputs.rollback_type == 'full_rollback')
+    outputs:
+      previous-url: ${{ steps.rollback.outputs.previous_url }}
+      rollback-url: ${{ steps.rollback.outputs.rollback_url }}
+    
+    steps:
+      - name: Setup Vercel CLI
+        run: npm install -g vercel
+
+      - name: Get current deployment info
+        id: current
+        run: |
+          echo "📋 Getting current deployment info..."
+          current_deployment=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} ${{ secrets.VERCEL_PROJECT_ID }} --meta production=true -t 1 | tail -1)
+          echo "Current deployment: $current_deployment"
+          echo "current_deployment=$current_deployment" >> $GITHUB_OUTPUT
+
+      - name: Find target deployment
+        id: target
+        run: |
+          if [ -n "${{ needs.validate.outputs.target-deployment }}" ]; then
+            target="${{ needs.validate.outputs.target-deployment }}"
+            echo "Using specified target deployment: $target"
+          else
+            echo "🔍 Finding previous deployment..."
+            # Get the second most recent production deployment
+            target=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} ${{ secrets.VERCEL_PROJECT_ID }} --meta production=true -t 2 | tail -1)
+            echo "Using previous deployment: $target"
+          fi
+          
+          echo "target_deployment=$target" >> $GITHUB_OUTPUT
+
+      - name: Perform Vercel rollback
+        id: rollback
+        run: |
+          target_deployment="${{ steps.target.outputs.target_deployment }}"
+          
+          echo "🔄 Rolling back to deployment: $target_deployment"
+          
+          # Promote the target deployment to production
+          vercel promote $target_deployment --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }}
+          
+          # Get the rollback URL
+          rollback_url=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} ${{ secrets.VERCEL_PROJECT_ID }} --meta production=true -t 1 | tail -1 | awk '{print $2}')
+          
+          echo "rollback_url=https://$rollback_url" >> $GITHUB_OUTPUT
+          echo "previous_url=${{ steps.current.outputs.current_deployment }}" >> $GITHUB_OUTPUT
+          
+          echo "✅ Vercel rollback completed"
+          echo "New production URL: https://$rollback_url"
+
+  # Database rollback
+  rollback-database:
+    name: Rollback Database
+    needs: [validate, pre-rollback-backup]
+    runs-on: ubuntu-latest
+    if: needs.validate.outputs.rollback-approved == 'true' && (inputs.rollback_type == 'database_only' || inputs.rollback_type == 'full_rollback')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Download backup file
+        if: inputs.database_backup_file != ''
+        run: |
+          echo "📥 Downloading specified backup file..."
+          # This would need to be implemented based on your backup storage solution
+          # For now, assume backups are stored in GitHub artifacts or S3
+          echo "Backup file: ${{ inputs.database_backup_file }}"
+
+      - name: Perform database rollback
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+        run: |
+          echo "🗄️ Performing database rollback..."
+          
+          if [ -n "${{ inputs.database_backup_file }}" ]; then
+            backup_file="${{ inputs.database_backup_file }}"
+          else
+            echo "❌ No backup file specified for database rollback"
+            exit 1
+          fi
+          
+          echo "Rolling back database using: $backup_file"
+          
+          # Restore database from backup
+          if [[ "$backup_file" == *.gz ]]; then
+            zcat "$backup_file" | psql "$DATABASE_URL_UNPOOLED"
+          else
+            psql "$DATABASE_URL_UNPOOLED" < "$backup_file"
+          fi
+          
+          echo "✅ Database rollback completed"
+
+      - name: Verify database rollback
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🔍 Verifying database rollback..."
+          
+          # Basic verification
+          node -e "
+            const { Client } = require('pg');
+            const client = new Client({ connectionString: process.env.DATABASE_URL });
+            client.connect().then(() => {
+              return client.query('SELECT NOW() as current_time, version()');
+            }).then(result => {
+              console.log('✅ Database accessible after rollback');
+              console.log('Time:', result.rows[0].current_time);
+              client.end();
+            }).catch(err => {
+              console.error('❌ Database verification failed:', err);
+              process.exit(1);
+            });
+          "
+
+  # Post-rollback verification
+  verify-rollback:
+    name: Verify Rollback
+    needs: [rollback-vercel, rollback-database]
+    runs-on: ubuntu-latest
+    if: always() && (needs.rollback-vercel.result == 'success' || needs.rollback-database.result == 'success')
+    
+    steps:
+      - name: Wait for services to stabilize
+        run: sleep 60
+
+      - name: Health check after rollback
+        run: |
+          echo "🏥 Running post-rollback health checks..."
+          
+          if [ -n "${{ needs.rollback-vercel.outputs.rollback-url }}" ]; then
+            url="${{ needs.rollback-vercel.outputs.rollback-url }}"
+          else
+            # Use current production URL
+            url="https://your-production-domain.com"  # Update with actual domain
+          fi
+          
+          echo "Testing: $url"
+          
+          for i in {1..5}; do
+            echo "Health check attempt $i/5..."
+            response=$(curl -s -w "%{http_code}" "$url/api/health" -o /tmp/health.json || echo "000")
+            
+            if [ "$response" == "200" ]; then
+              echo "✅ Health check passed after rollback"
+              cat /tmp/health.json
+              break
+            else
+              echo "❌ Health check failed: $response"
+              if [ $i -eq 5 ]; then
+                echo "🚨 CRITICAL: Health checks failing after rollback!"
+                exit 1
+              fi
+              sleep 15
+            fi
+          done
+
+      - name: Feature flags verification
+        if: needs.rollback-vercel.outputs.rollback-url != ''
+        run: |
+          echo "🎛️ Verifying feature flags after rollback..."
+          response=$(curl -s -w "%{http_code}" "${{ needs.rollback-vercel.outputs.rollback-url }}/api/feature-flags" -o /tmp/flags.json || echo "000")
+          
+          if [ "$response" == "200" ]; then
+            echo "✅ Feature flags working after rollback"
+          else
+            echo "⚠️ Feature flags issue after rollback: $response"
+            # Don't fail rollback for feature flag issues
+          fi
+
+  # Emergency maintenance mode (if rollback fails)
+  emergency-maintenance:
+    name: Emergency Maintenance Mode
+    needs: [rollback-vercel, rollback-database, verify-rollback]
+    runs-on: ubuntu-latest
+    if: failure() && inputs.emergency == true
+    
+    steps:
+      - name: Enable maintenance mode
+        run: |
+          echo "🚨 CRITICAL FAILURE - Enabling emergency maintenance mode"
+          
+          # This would trigger your maintenance page
+          # Implementation depends on your infrastructure
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "maintenance-mode",
+              "target": "production",
+              "meta": {
+                "emergency": "true",
+                "reason": "Rollback failure - ${{ inputs.reason }}"
+              }
+            }' \
+            "https://api.vercel.com/v1/projects/${{ secrets.VERCEL_PROJECT_ID }}/env"
+
+  # Notifications and cleanup
+  notify:
+    name: Rollback Notifications
+    needs: [rollback-vercel, rollback-database, verify-rollback, emergency-maintenance]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Rollback Success Notification
+        if: needs.verify-rollback.result == 'success'
+        run: |
+          echo "✅ ROLLBACK COMPLETED SUCCESSFULLY"
+          echo "Reason: ${{ inputs.reason }}"
+          echo "Type: ${{ inputs.rollback_type }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          
+          if [ -n "${{ needs.rollback-vercel.outputs.rollback-url }}" ]; then
+            echo "New URL: ${{ needs.rollback-vercel.outputs.rollback-url }}"
+          fi
+
+      - name: Rollback Failure Notification
+        if: needs.verify-rollback.result == 'failure' || needs.emergency-maintenance.result == 'success'
+        run: |
+          echo "🚨 ROLLBACK FAILED OR EMERGENCY MODE ACTIVATED"
+          echo "Reason: ${{ inputs.reason }}"
+          echo "Type: ${{ inputs.rollback_type }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Status: REQUIRES IMMEDIATE ATTENTION"
+          
+          # Add critical status
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+            -d '{
+              "state": "error",
+              "description": "Production rollback failed - emergency intervention required",
+              "context": "rollback/production"
+            }'
+
+      - name: Create incident record
+        run: |
+          mkdir -p .incidents
+          cat > .incidents/rollback-${{ github.run_number }}.json << EOF
+          {
+            "id": "rollback-${{ github.run_number }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "type": "rollback",
+            "rollback_type": "${{ inputs.rollback_type }}",
+            "reason": "${{ inputs.reason }}",
+            "actor": "${{ github.actor }}",
+            "emergency": ${{ inputs.emergency }},
+            "success": ${{ needs.verify-rollback.result == 'success' }},
+            "vercel_status": "${{ needs.rollback-vercel.result }}",
+            "database_status": "${{ needs.rollback-database.result }}",
+            "verification_status": "${{ needs.verify-rollback.result }}"
+          }
+          EOF
+          
+          echo "Incident record created"

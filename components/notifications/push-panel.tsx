@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BellOff, Smartphone } from "lucide-react";
+import { Bell, BellOff, Smartphone, TestTube } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/shared/useResponsive";
+import { trpc } from "@/server/trpc/client";
+import { toast } from "@/hooks/shared/use-toast";
 
 // Custom hook to manage push notification state
 function usePushNotifications() {
@@ -21,15 +23,27 @@ function usePushNotifications() {
 	const [permission, setPermission] =
 		useState<NotificationPermission>("default");
 
+	// tRPC hooks
+	const vapidKeyQuery = trpc.notifications.getVAPIDPublicKey.useQuery();
+	const subscriptionsQuery =
+		trpc.notifications.listPushSubscriptions.useQuery();
+	const subscribeMutation = trpc.notifications.subscribeToPush.useMutation();
+	const unsubscribeMutation =
+		trpc.notifications.unsubscribeFromPush.useMutation();
+	const testMutation = trpc.notifications.sendTestNotification.useMutation();
+
 	const checkSubscriptionStatus = useCallback(async () => {
 		try {
 			const registration = await navigator.serviceWorker.ready;
 			const subscription = await registration.pushManager.getSubscription();
-			setIsSubscribed(!!subscription);
+			const hasLocalSubscription = !!subscription;
+			const hasServerSubscription = (subscriptionsQuery.data?.length || 0) > 0;
+
+			setIsSubscribed(hasLocalSubscription && hasServerSubscription);
 		} catch (error) {
 			console.error("Failed to check subscription status:", error);
 		}
-	}, []);
+	}, [subscriptionsQuery.data]);
 
 	useEffect(() => {
 		// Check if push notifications are supported
@@ -50,6 +64,11 @@ function usePushNotifications() {
 		setIsSubscribed,
 		setIsLoading,
 		setPermission,
+		vapidPublicKey: vapidKeyQuery.data?.publicKey,
+		subscriptions: subscriptionsQuery.data || [],
+		subscribeMutation,
+		unsubscribeMutation,
+		testMutation,
 	};
 }
 
@@ -62,20 +81,38 @@ export function PushPanel() {
 		setIsSubscribed,
 		setIsLoading,
 		setPermission,
+		vapidPublicKey,
+		subscriptions,
+		subscribeMutation,
+		unsubscribeMutation,
+		testMutation,
 	} = usePushNotifications();
 	const isMobile = useIsMobile();
 
 	const subscribeToPush = async () => {
-		if (!isSupported) return;
+		if (!isSupported || !vapidPublicKey) {
+			toast({
+				title: "Error",
+				description:
+					"Push notifications are not supported or VAPID key is not available",
+				variant: "destructive",
+			});
+			return;
+		}
 
 		setIsLoading(true);
 		try {
 			// Request notification permission
-			const permission = await Notification.requestPermission();
-			setPermission(permission);
+			const permissionResult = await Notification.requestPermission();
+			setPermission(permissionResult);
 
-			if (permission !== "granted") {
-				console.log("Notification permission denied");
+			if (permissionResult !== "granted") {
+				toast({
+					title: "Permission Required",
+					description:
+						"Please allow notifications to receive medication reminders",
+					variant: "destructive",
+				});
 				return;
 			}
 
@@ -85,13 +122,23 @@ export function PushPanel() {
 			// Subscribe to push notifications
 			const subscription = await registration.pushManager.subscribe({
 				userVisibleOnly: true,
-				applicationServerKey: urlBase64ToUint8Array(
-					"BEl62iUYgUivxIkv69yViEuiBIa40HI80NM9LUhbJQQVLpCBWjWrJ0NG54L1jKJtnv9Uy4i5wEckXs6EwqNUK8s", // Mock VAPID key
-				),
+				applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
 			});
 
-			// Send subscription to server
-			console.log("Push subscription:", subscription.toJSON());
+			const subscriptionData = subscription.toJSON();
+
+			// Send subscription to server via tRPC
+			await subscribeMutation.mutateAsync({
+				endpoint: subscription.endpoint,
+				keys: {
+					p256dh: subscriptionData.keys?.p256dh || "",
+					auth: subscriptionData.keys?.auth || "",
+				},
+				deviceInfo: {
+					userAgent: navigator.userAgent,
+					deviceName: getDeviceName(),
+				},
+			});
 
 			// Fire instrumentation event
 			window.dispatchEvent(
@@ -100,16 +147,19 @@ export function PushPanel() {
 				}),
 			);
 
-			// TODO: tRPC mutation
-			// await subscribeWebPush.mutateAsync({
-			//   endpoint: subscription.endpoint,
-			//   keys: subscription.toJSON().keys
-			// })
-
 			setIsSubscribed(true);
-			console.log("Successfully subscribed to push notifications");
+			toast({
+				title: "Success!",
+				description: "You're now subscribed to push notifications",
+			});
 		} catch (error) {
 			console.error("Failed to subscribe to push notifications:", error);
+			toast({
+				title: "Error",
+				description:
+					"Failed to subscribe to push notifications. Please try again.",
+				variant: "destructive",
+			});
 		} finally {
 			setIsLoading(false);
 		}
@@ -124,21 +174,57 @@ export function PushPanel() {
 			const subscription = await registration.pushManager.getSubscription();
 
 			if (subscription) {
+				// Unsubscribe from server first
+				await unsubscribeMutation.mutateAsync({
+					endpoint: subscription.endpoint,
+				});
+
+				// Then unsubscribe locally
 				await subscription.unsubscribe();
 
-				// TODO: tRPC mutation
-				// await unsubscribeWebPush.mutateAsync({
-				//   endpoint: subscription.endpoint
-				// })
-
 				console.log("Unsubscribed from push notifications");
+				toast({
+					title: "Unsubscribed",
+					description: "You will no longer receive push notifications",
+				});
 			}
 
 			setIsSubscribed(false);
 		} catch (error) {
 			console.error("Failed to unsubscribe from push notifications:", error);
+			toast({
+				title: "Error",
+				description: "Failed to unsubscribe. Please try again.",
+				variant: "destructive",
+			});
 		} finally {
 			setIsLoading(false);
+		}
+	};
+
+	const sendTestNotification = async () => {
+		if (!isSubscribed) {
+			toast({
+				title: "Not Subscribed",
+				description: "Please subscribe to push notifications first",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		try {
+			const result = await testMutation.mutateAsync();
+			toast({
+				title: "Test Sent!",
+				description: `Sent ${result.sent} notification(s), ${result.failed} failed`,
+			});
+		} catch (error) {
+			console.error("Failed to send test notification:", error);
+			toast({
+				title: "Error",
+				description: "Failed to send test notification. Please try again.",
+				variant: "destructive",
+			});
 		}
 	};
 
@@ -163,6 +249,8 @@ export function PushPanel() {
 						isLoading={isLoading}
 						onSubscribe={subscribeToPush}
 						onUnsubscribe={unsubscribeFromPush}
+						onTest={sendTestNotification}
+						isTestLoading={testMutation.isPending}
 					/>
 				) : (
 					<DesktopLayout
@@ -171,6 +259,8 @@ export function PushPanel() {
 						isLoading={isLoading}
 						onSubscribe={subscribeToPush}
 						onUnsubscribe={unsubscribeFromPush}
+						onTest={sendTestNotification}
+						isTestLoading={testMutation.isPending}
 					/>
 				)}
 
@@ -181,6 +271,20 @@ export function PushPanel() {
 							browser&apos;s address bar and allow notifications for this site.
 						</AlertDescription>
 					</Alert>
+				)}
+
+				{subscriptions.length > 0 && (
+					<div className="space-y-2">
+						<h4 className="text-sm font-medium">Active Devices</h4>
+						<div className="space-y-1">
+							{subscriptions.map((sub) => (
+								<div key={sub.id} className="text-xs text-muted-foreground">
+									{sub.deviceName || "Unknown Device"} - Last used:{" "}
+									{new Date(sub.lastUsed).toLocaleDateString()}
+								</div>
+							))}
+						</div>
+					</div>
 				)}
 			</CardContent>
 		</Card>
@@ -216,23 +320,40 @@ function MobileLayout({
 	isLoading,
 	onSubscribe,
 	onUnsubscribe,
+	onTest,
+	isTestLoading,
 }: {
 	permission: NotificationPermission;
 	isSubscribed: boolean;
 	isLoading: boolean;
 	onSubscribe: () => void;
 	onUnsubscribe: () => void;
+	onTest: () => void;
+	isTestLoading: boolean;
 }) {
 	return (
 		<>
 			{permission !== "denied" && (
-				<SubscriptionButton
-					isSubscribed={isSubscribed}
-					isLoading={isLoading}
-					onSubscribe={onSubscribe}
-					onUnsubscribe={onUnsubscribe}
-					className="w-full"
-				/>
+				<div className="space-y-2">
+					<SubscriptionButton
+						isSubscribed={isSubscribed}
+						isLoading={isLoading}
+						onSubscribe={onSubscribe}
+						onUnsubscribe={onUnsubscribe}
+						className="w-full"
+					/>
+					{isSubscribed && (
+						<Button
+							onClick={onTest}
+							disabled={isTestLoading}
+							variant="outline"
+							className="w-full"
+						>
+							<TestTube className="mr-2 h-4 w-4" />
+							{isTestLoading ? "Sending..." : "Send Test"}
+						</Button>
+					)}
+				</div>
 			)}
 			{permission === "denied" && (
 				<div className="text-center text-muted-foreground text-sm">
@@ -249,23 +370,40 @@ function DesktopLayout({
 	isLoading,
 	onSubscribe,
 	onUnsubscribe,
+	onTest,
+	isTestLoading,
 }: {
 	permission: NotificationPermission;
 	isSubscribed: boolean;
 	isLoading: boolean;
 	onSubscribe: () => void;
 	onUnsubscribe: () => void;
+	onTest: () => void;
+	isTestLoading: boolean;
 }) {
 	return (
 		<div className="flex items-center justify-between">
 			<StatusDisplay permission={permission} isSubscribed={isSubscribed} />
 			{permission !== "denied" && (
-				<SubscriptionButton
-					isSubscribed={isSubscribed}
-					isLoading={isLoading}
-					onSubscribe={onSubscribe}
-					onUnsubscribe={onUnsubscribe}
-				/>
+				<div className="flex gap-2">
+					<SubscriptionButton
+						isSubscribed={isSubscribed}
+						isLoading={isLoading}
+						onSubscribe={onSubscribe}
+						onUnsubscribe={onUnsubscribe}
+					/>
+					{isSubscribed && (
+						<Button
+							onClick={onTest}
+							disabled={isTestLoading}
+							variant="outline"
+							size="sm"
+						>
+							<TestTube className="mr-2 h-4 w-4" />
+							{isTestLoading ? "Sending..." : "Test"}
+						</Button>
+					)}
+				</div>
 			)}
 		</div>
 	);
@@ -341,4 +479,18 @@ function urlBase64ToUint8Array(base64String: string) {
 		outputArray[i] = rawData.charCodeAt(i);
 	}
 	return outputArray;
+}
+
+// Helper function to get a friendly device name
+function getDeviceName(): string {
+	const userAgent = navigator.userAgent;
+
+	if (userAgent.includes("iPhone")) return "iPhone";
+	if (userAgent.includes("iPad")) return "iPad";
+	if (userAgent.includes("Android")) return "Android Device";
+	if (userAgent.includes("Windows")) return "Windows PC";
+	if (userAgent.includes("Macintosh")) return "Mac";
+	if (userAgent.includes("Linux")) return "Linux PC";
+
+	return "Web Browser";
 }

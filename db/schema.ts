@@ -299,6 +299,41 @@ export const vetmedMedicationCatalog = pgTable(
 			.notNull(),
 		commonDosing: text("common_dosing"),
 		warnings: text(),
+		
+		// Dosage calculation fields
+		dosageMinMgKg: numeric("dosage_min_mg_kg", { precision: 10, scale: 4 }), // Minimum dose per kg
+		dosageMaxMgKg: numeric("dosage_max_mg_kg", { precision: 10, scale: 4 }), // Maximum dose per kg
+		dosageTypicalMgKg: numeric("dosage_typical_mg_kg", { precision: 10, scale: 4 }), // Typical/recommended dose per kg
+		maxDailyDoseMg: numeric("max_daily_dose_mg", { precision: 10, scale: 2 }), // Maximum daily dose total
+		
+		// Species-specific adjustments stored as JSON
+		// Format: { "dog": { "multiplier": 1.0 }, "cat": { "multiplier": 0.8 }, "bird": { "multiplier": 1.2, "maxDailyDose": 50 } }
+		speciesAdjustments: jsonb("species_adjustments"),
+		
+		// Route-specific adjustments
+		// Format: { "ORAL": { "multiplier": 1.0 }, "IV": { "multiplier": 0.5, "additionalWarnings": ["Monitor for reactions"] } }
+		routeAdjustments: jsonb("route_adjustments"),
+		
+		// Contraindications and special considerations
+		contraindications: text().array(), // Array of conditions/scenarios to avoid
+		
+		// Age-specific modifications
+		// Format: { "pediatric": { "multiplier": 0.8, "minAgeMonths": 2 }, "geriatric": { "multiplier": 0.9, "minAgeYears": 7 } }
+		ageAdjustments: jsonb("age_adjustments"),
+		
+		// Breed-specific considerations (e.g., MDR1 gene in collies)
+		// Format: { "collie": { "contraindicatedRoutes": ["IV"], "maxReduction": 0.5 }, "greyhound": { "multiplier": 0.9 } }
+		breedConsiderations: jsonb("breed_considerations"),
+		
+		// Units and concentration information
+		concentrationMgMl: numeric("concentration_mg_ml", { precision: 10, scale: 4 }), // For liquid medications
+		unitsPerTablet: numeric("units_per_tablet", { precision: 10, scale: 4 }), // For solid medications
+		unitType: text("unit_type").default("mg"), // mg, mcg, IU, etc.
+		
+		// Frequency information
+		typicalFrequencyHours: integer("typical_frequency_hours"), // How often medication is typically given
+		maxFrequencyPerDay: integer("max_frequency_per_day"), // Maximum doses per day
+		
 		createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
 			.defaultNow()
 			.notNull(),
@@ -314,6 +349,11 @@ export const vetmedMedicationCatalog = pgTable(
 		index("med_catalog_generic_name_idx").using(
 			"btree",
 			table.genericName.asc().nullsLast().op("text_ops"),
+		),
+		index("med_catalog_dosage_range_idx").using(
+			"btree",
+			table.dosageMinMgKg.asc().nullsLast().op("numeric_ops"),
+			table.dosageMaxMgKg.asc().nullsLast().op("numeric_ops"),
 		),
 	],
 );
@@ -595,6 +635,13 @@ export const vetmedNotifications = pgTable(
 	],
 );
 
+export const vetmedCosignStatus = pgEnum("vetmed_cosign_status", [
+	"pending",
+	"approved",
+	"rejected",
+	"expired",
+]);
+
 export const vetmedSuggestionStatus = pgEnum("vetmed_suggestion_status", [
 	"pending",
 	"applied",
@@ -666,6 +713,121 @@ export const vetmedSuggestions = pgTable(
 			foreignColumns: [vetmedUsers.id],
 			name: "vetmed_suggestions_dismissed_by_user_id_vetmed_users_id_fk",
 		}).onDelete("set null"),
+	],
+);
+
+export const vetmedCosignRequests = pgTable(
+	"vetmed_cosign_requests",
+	{
+		id: uuid().defaultRandom().primaryKey().notNull(),
+		administrationId: uuid("administration_id").notNull(),
+		requesterId: uuid("requester_id").notNull(),
+		cosignerId: uuid("cosigner_id").notNull(),
+		householdId: uuid("household_id").notNull(),
+		status: vetmedCosignStatus().default("pending").notNull(),
+		signature: text(), // Base64 encoded signature
+		rejectionReason: text("rejection_reason"),
+		signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+		expiresAt: timestamp("expires_at", { withTimezone: true, mode: "string" })
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		index("cosign_requests_administration_id_idx").using(
+			"btree",
+			table.administrationId.asc().nullsLast().op("uuid_ops"),
+		),
+		index("cosign_requests_requester_id_idx").using(
+			"btree",
+			table.requesterId.asc().nullsLast().op("uuid_ops"),
+		),
+		index("cosign_requests_cosigner_id_idx").using(
+			"btree",
+			table.cosignerId.asc().nullsLast().op("uuid_ops"),
+		),
+		index("cosign_requests_household_id_idx").using(
+			"btree",
+			table.householdId.asc().nullsLast().op("uuid_ops"),
+		),
+		index("cosign_requests_status_idx").using(
+			"btree",
+			table.status.asc().nullsLast().op("enum_ops"),
+		),
+		index("cosign_requests_expires_at_idx").using(
+			"btree",
+			table.expiresAt.asc().nullsLast().op("timestamptz_ops"),
+		),
+		foreignKey({
+			columns: [table.administrationId],
+			foreignColumns: [vetmedAdministrations.id],
+			name: "vetmed_cosign_requests_administration_id_vetmed_administrations_id_fk",
+		}).onDelete("cascade"),
+		foreignKey({
+			columns: [table.requesterId],
+			foreignColumns: [vetmedUsers.id],
+			name: "vetmed_cosign_requests_requester_id_vetmed_users_id_fk",
+		}).onDelete("cascade"),
+		foreignKey({
+			columns: [table.cosignerId],
+			foreignColumns: [vetmedUsers.id],
+			name: "vetmed_cosign_requests_cosigner_id_vetmed_users_id_fk",
+		}).onDelete("cascade"),
+		foreignKey({
+			columns: [table.householdId],
+			foreignColumns: [vetmedHouseholds.id],
+			name: "vetmed_cosign_requests_household_id_vetmed_households_id_fk",
+		}).onDelete("cascade"),
+		unique("vetmed_cosign_requests_administration_id_unique").on(
+			table.administrationId,
+		),
+	],
+);
+
+export const vetmedPushSubscriptions = pgTable(
+	"vetmed_push_subscriptions",
+	{
+		id: uuid().defaultRandom().primaryKey().notNull(),
+		userId: uuid("user_id").notNull(),
+		endpoint: text().notNull(),
+		p256dhKey: text("p256dh_key").notNull(),
+		authKey: text("auth_key").notNull(),
+		userAgent: text("user_agent"),
+		deviceName: text("device_name"),
+		isActive: boolean("is_active").default(true).notNull(),
+		lastUsed: timestamp("last_used", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		index("push_subscription_user_idx").using(
+			"btree",
+			table.userId.asc().nullsLast().op("uuid_ops"),
+		),
+		index("push_subscription_endpoint_idx").using(
+			"btree",
+			table.endpoint.asc().nullsLast().op("text_ops"),
+		),
+		index("push_subscription_active_idx").using(
+			"btree",
+			table.isActive.asc().nullsLast().op("bool_ops"),
+		),
+		unique("vetmed_push_subscriptions_endpoint_unique").on(table.endpoint),
+		foreignKey({
+			columns: [table.userId],
+			foreignColumns: [vetmedUsers.id],
+			name: "vetmed_push_subscriptions_user_id_vetmed_users_id_fk",
+		}).onDelete("cascade"),
 	],
 );
 
@@ -757,6 +919,8 @@ export const auditLog = vetmedAuditLog;
 export const notificationQueue = vetmedNotificationQueue;
 export const notifications = vetmedNotifications;
 export const suggestions = vetmedSuggestions;
+export const cosignRequests = vetmedCosignRequests;
+export const pushSubscriptions = vetmedPushSubscriptions;
 
 // Export enum types and utilities
 export const adminStatusEnum = vetmedAdminStatus;
@@ -765,6 +929,7 @@ export const scheduleTypeEnum = vetmedScheduleType;
 export const routeEnum = vetmedRoute;
 export const formEnum = vetmedForm;
 export const storageEnum = vetmedStorage;
+export const cosignStatusEnum = vetmedCosignStatus;
 
 // Type exports for easier use
 export type NewAdministration = typeof vetmedAdministrations.$inferInsert;
@@ -777,3 +942,5 @@ export type NewInventoryItem = typeof vetmedInventoryItems.$inferInsert;
 export type NewMedicationCatalog = typeof vetmedMedicationCatalog.$inferInsert;
 export type NewNotification = typeof vetmedNotifications.$inferInsert;
 export type NewSuggestion = typeof vetmedSuggestions.$inferInsert;
+export type NewCosignRequest = typeof vetmedCosignRequests.$inferInsert;
+export type NewPushSubscription = typeof vetmedPushSubscriptions.$inferInsert;
