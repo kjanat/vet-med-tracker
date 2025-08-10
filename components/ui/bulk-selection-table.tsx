@@ -2,6 +2,13 @@
 
 import { useEffect, useMemo } from "react";
 import {
+	BulkSelectionProvider,
+	useBulkSelection,
+} from "@/components/providers/bulk-selection-provider";
+import { BulkSelectionCheckbox } from "@/components/ui/bulk-selection-checkbox";
+import { FloatingActionBar } from "@/components/ui/floating-action-bar";
+import { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -9,13 +16,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { BulkSelectionCheckbox } from "@/components/ui/bulk-selection-checkbox";
-import { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
-import { FloatingActionBar } from "@/components/ui/floating-action-bar";
-import {
-	BulkSelectionProvider,
-	useBulkSelection,
-} from "@/components/providers/bulk-selection-provider";
 import { cn } from "@/lib/utils/general";
 
 export interface BulkSelectionColumn<T> {

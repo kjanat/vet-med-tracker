@@ -17,10 +17,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+	CardHeader as _CardHeader,
 	Card,
 	CardContent,
 	CardDescription,
-	CardHeader as _CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
 import {

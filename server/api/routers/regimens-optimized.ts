@@ -371,7 +371,7 @@ export const regimensOptimizedRouter = createTRPCRouter({
 						}
 
 						const now = new Date().toISOString();
-						let updateFields: any = { updatedAt: now };
+						const updateFields: any = { updatedAt: now };
 
 						switch (operation.type) {
 							case "pause":

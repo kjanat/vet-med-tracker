@@ -2,7 +2,7 @@
  * Test fixtures and mock data for comprehensive testing
  */
 
-import { type MedicationData, type AnimalInfo } from "@/lib/calculators/dosage";
+import type { AnimalInfo, MedicationData } from "@/lib/calculators/dosage";
 
 // Animal test fixtures
 export const testAnimals = {

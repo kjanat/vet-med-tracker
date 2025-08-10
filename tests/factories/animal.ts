@@ -3,9 +3,9 @@
  */
 
 import type { NewAnimal } from "@/db/schema";
-import { random, animal, location } from "./utils/random";
 import { dates } from "./utils/dates";
-import { conditions, veterinary, medical } from "./utils/medical";
+import { conditions, medical, veterinary } from "./utils/medical";
+import { animal, location, random } from "./utils/random";
 
 // Animal factory function
 export function createAnimal(overrides: Partial<NewAnimal> = {}): NewAnimal {

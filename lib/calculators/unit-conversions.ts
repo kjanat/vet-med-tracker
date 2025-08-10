@@ -34,11 +34,11 @@ export class WeightConverter {
 			case "kg":
 				return value;
 			case "lbs":
-				return value / this.KG_TO_LBS;
+				return value / WeightConverter.KG_TO_LBS;
 			case "g":
-				return value * this.G_TO_KG;
+				return value * WeightConverter.G_TO_KG;
 			case "oz":
-				return (value * this.OZ_TO_LBS) / this.KG_TO_LBS;
+				return (value * WeightConverter.OZ_TO_LBS) / WeightConverter.KG_TO_LBS;
 			default:
 				throw new Error(`Unsupported weight unit: ${unit}`);
 		}
@@ -52,13 +52,14 @@ export class WeightConverter {
 				convertedValue = value;
 				break;
 			case "lbs":
-				convertedValue = value * this.KG_TO_LBS;
+				convertedValue = value * WeightConverter.KG_TO_LBS;
 				break;
 			case "g":
-				convertedValue = value / this.G_TO_KG;
+				convertedValue = value / WeightConverter.G_TO_KG;
 				break;
 			case "oz":
-				convertedValue = (value * this.KG_TO_LBS) / this.OZ_TO_LBS;
+				convertedValue =
+					(value * WeightConverter.KG_TO_LBS) / WeightConverter.OZ_TO_LBS;
 				break;
 			default:
 				throw new Error(`Unsupported weight unit: ${targetUnit}`);
@@ -78,8 +79,8 @@ export class WeightConverter {
 		fromUnit: WeightUnit,
 		toUnit: WeightUnit,
 	): ConversionResult {
-		const kgValue = this.toKg(value, fromUnit);
-		const result = this.fromKg(kgValue, toUnit);
+		const kgValue = WeightConverter.toKg(value, fromUnit);
+		const result = WeightConverter.fromKg(kgValue, toUnit);
 
 		return {
 			...result,
@@ -104,15 +105,15 @@ export class VolumeConverter {
 			case "ml":
 				return value;
 			case "L":
-				return value / this.ML_TO_L;
+				return value / VolumeConverter.ML_TO_L;
 			case "tsp":
-				return value * this.TSP_TO_ML;
+				return value * VolumeConverter.TSP_TO_ML;
 			case "tbsp":
-				return value * this.TBSP_TO_ML;
+				return value * VolumeConverter.TBSP_TO_ML;
 			case "fl_oz":
-				return value * this.FL_OZ_TO_ML;
+				return value * VolumeConverter.FL_OZ_TO_ML;
 			case "cup":
-				return value * this.CUP_TO_ML;
+				return value * VolumeConverter.CUP_TO_ML;
 			default:
 				throw new Error(`Unsupported volume unit: ${unit}`);
 		}
@@ -126,19 +127,19 @@ export class VolumeConverter {
 				convertedValue = value;
 				break;
 			case "L":
-				convertedValue = value * this.ML_TO_L;
+				convertedValue = value * VolumeConverter.ML_TO_L;
 				break;
 			case "tsp":
-				convertedValue = value / this.TSP_TO_ML;
+				convertedValue = value / VolumeConverter.TSP_TO_ML;
 				break;
 			case "tbsp":
-				convertedValue = value / this.TBSP_TO_ML;
+				convertedValue = value / VolumeConverter.TBSP_TO_ML;
 				break;
 			case "fl_oz":
-				convertedValue = value / this.FL_OZ_TO_ML;
+				convertedValue = value / VolumeConverter.FL_OZ_TO_ML;
 				break;
 			case "cup":
-				convertedValue = value / this.CUP_TO_ML;
+				convertedValue = value / VolumeConverter.CUP_TO_ML;
 				break;
 			default:
 				throw new Error(`Unsupported volume unit: ${targetUnit}`);
@@ -158,8 +159,8 @@ export class VolumeConverter {
 		fromUnit: VolumeUnit,
 		toUnit: VolumeUnit,
 	): ConversionResult {
-		const mlValue = this.toMl(value, fromUnit);
-		const result = this.fromMl(mlValue, toUnit);
+		const mlValue = VolumeConverter.toMl(value, fromUnit);
+		const result = VolumeConverter.fromMl(mlValue, toUnit);
 
 		return {
 			...result,
@@ -181,9 +182,9 @@ export class DosageConverter {
 			case "mg":
 				return value;
 			case "mcg":
-				return value / this.MG_TO_MCG;
+				return value / DosageConverter.MG_TO_MCG;
 			case "g":
-				return value * this.G_TO_MG;
+				return value * DosageConverter.G_TO_MG;
 			case "IU":
 				// IU conversion depends on the specific medication
 				// This would need to be handled per medication in the calculator
@@ -212,10 +213,10 @@ export class DosageConverter {
 				convertedValue = value;
 				break;
 			case "mcg":
-				convertedValue = value * this.MG_TO_MCG;
+				convertedValue = value * DosageConverter.MG_TO_MCG;
 				break;
 			case "g":
-				convertedValue = value / this.G_TO_MG;
+				convertedValue = value / DosageConverter.G_TO_MG;
 				break;
 			case "ml":
 				if (!concentrationMgMl || concentrationMgMl <= 0) {
@@ -248,8 +249,8 @@ export class DosageConverter {
 		toUnit: DosageUnit,
 		concentrationMgMl?: number,
 	): ConversionResult {
-		const mgValue = this.toMg(value, fromUnit);
-		const result = this.fromMg(mgValue, toUnit, concentrationMgMl);
+		const mgValue = DosageConverter.toMg(value, fromUnit);
+		const result = DosageConverter.fromMg(mgValue, toUnit, concentrationMgMl);
 
 		return {
 			...result,
@@ -290,7 +291,7 @@ export class VetUnitUtils {
 	 * Format value with unit for display
 	 */
 	static formatWithUnit(value: number, unit: string): string {
-		const rounded = this.roundToVetPrecision(value, unit);
+		const rounded = VetUnitUtils.roundToVetPrecision(value, unit);
 		return `${rounded} ${unit}`;
 	}
 

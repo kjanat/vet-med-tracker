@@ -5,19 +5,19 @@
  * This component demonstrates various use cases and customization options.
  */
 
+import { Archive, Download, Plus, Search, Share, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Download, Trash2, Archive, Share, Plus, Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import {
-	BulkSelectionTable,
-	type BulkSelectionColumn,
-} from "@/components/ui/bulk-selection-table";
 import { BulkSelectionProvider } from "@/components/providers/bulk-selection-provider";
+import { Badge } from "@/components/ui/badge";
+import {
+	type BulkSelectionColumn,
+	BulkSelectionTable,
+} from "@/components/ui/bulk-selection-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useBulkSelectionIntegration } from "@/hooks/shared/use-bulk-selection-integration";
 import { useToast } from "@/hooks/shared/use-toast";
 
@@ -371,7 +371,7 @@ function BulkSelectionDemoContent() {
 					</div>
 
 					{/* Statistics */}
-					<div className="flex gap-4 text-sm text-muted-foreground">
+					<div className="flex gap-4 text-muted-foreground text-sm">
 						<span>Total: {data.length}</span>
 						<span>Visible: {filteredData.length}</span>
 						<span>Selected: {selectionCount}</span>
@@ -422,7 +422,7 @@ function BulkSelectionDemoContent() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-2">
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted-foreground text-sm">
 								{selectedItems.length} item
 								{selectedItems.length !== 1 ? "s" : ""} selected:
 							</p>

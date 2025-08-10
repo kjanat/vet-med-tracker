@@ -6,8 +6,8 @@ import {
 	BulkSelectionProvider,
 	useBulkSelection,
 } from "@/components/providers/bulk-selection-provider";
+import { Badge } from "@/components/ui/badge";
 import { BulkSelectionCheckbox } from "@/components/ui/bulk-selection-checkbox";
-import { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
 import {
 	Card,
 	CardContent,
@@ -15,6 +15,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
 import {
 	Table,
 	TableBody,
@@ -23,9 +24,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { BulkAdminActions } from "./bulk-admin-actions";
 import { trpc } from "@/server/trpc/client";
+import { BulkAdminActions } from "./bulk-admin-actions";
 
 function AnimalTable() {
 	const { selectedHouseholdId } = useApp();
@@ -109,9 +109,9 @@ function AnimalTable() {
 export function BulkRecordingDemo() {
 	return (
 		<BulkSelectionProvider>
-			<div className="container max-w-6xl mx-auto py-6 space-y-6">
+			<div className="container mx-auto max-w-6xl space-y-6 py-6">
 				<div className="space-y-2">
-					<h1 className="text-3xl font-bold">Bulk Administration Recording</h1>
+					<h1 className="font-bold text-3xl">Bulk Administration Recording</h1>
 					<p className="text-muted-foreground">
 						Select multiple animals and record medication administrations for
 						them all at once.
@@ -127,12 +127,12 @@ export function BulkRecordingDemo() {
 					</CardHeader>
 					<CardContent className="space-y-3">
 						<div className="flex items-start gap-3">
-							<div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">
+							<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
 								1
 							</div>
 							<div>
 								<h4 className="font-medium">Select Animals</h4>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted-foreground text-sm">
 									Check the boxes next to the animals you want to record
 									administrations for. Use "Select All" to select all animals at
 									once.
@@ -140,24 +140,24 @@ export function BulkRecordingDemo() {
 							</div>
 						</div>
 						<div className="flex items-start gap-3">
-							<div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">
+							<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
 								2
 							</div>
 							<div>
 								<h4 className="font-medium">Access Bulk Actions</h4>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted-foreground text-sm">
 									Once you select animals, a floating action bar will appear at
 									the bottom with bulk action options.
 								</p>
 							</div>
 						</div>
 						<div className="flex items-start gap-3">
-							<div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">
+							<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-sm">
 								3
 							</div>
 							<div>
 								<h4 className="font-medium">Record Administrations</h4>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted-foreground text-sm">
 									Click "Record Administration" to open the bulk recording form.
 									Fill in the common details and submit to record for all
 									selected animals.

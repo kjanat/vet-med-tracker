@@ -2,16 +2,16 @@
  * Unit tests for DosageCalculator component
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import DosageCalculator from "@/components/dosage-calculator";
 import {
-	renderWithProviders,
-	fillFormField,
-	selectOption,
 	clickButton,
+	fillFormField,
+	renderWithProviders,
+	selectOption,
 } from "@/tests/helpers/rtl-utils";
 import { testAnimals, testMedications } from "@/tests/helpers/test-fixtures";
-import DosageCalculator from "@/components/dosage-calculator";
 
 // Mock the dosage calculator module
 vi.mock("@/lib/calculators/dosage", () => ({

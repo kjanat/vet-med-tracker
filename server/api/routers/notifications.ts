@@ -1,18 +1,18 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { z } from "zod";
 import webpush from "web-push";
+import { z } from "zod";
 import { notifications, pushSubscriptions } from "@/db/schema";
+import { getVAPIDConfig } from "@/lib/push-notifications/vapid-config";
+import {
+	pushNotificationPayloadSchema,
+	pushSubscriptionSchema,
+	pushSubscriptionWithDeviceSchema,
+} from "@/lib/schemas/push-notifications";
 import {
 	createTRPCRouter,
 	householdProcedure,
 	protectedProcedure,
 } from "@/server/api/trpc";
-import {
-	pushSubscriptionSchema,
-	pushSubscriptionWithDeviceSchema,
-	pushNotificationPayloadSchema,
-} from "@/lib/schemas/push-notifications";
-import { getVAPIDConfig } from "@/lib/push-notifications/vapid-config";
 
 export const notificationsRouter = createTRPCRouter({
 	// List notifications for the current user, optionally filtered by household

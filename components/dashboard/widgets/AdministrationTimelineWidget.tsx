@@ -11,13 +11,13 @@ import {
 	YAxis,
 } from "recharts";
 import {
+	type ChartConfig,
 	ChartContainer,
 	ChartTooltipContent,
-	type ChartConfig,
 } from "@/components/ui/chart";
 import {
-	useAdministrationStats,
 	type Period,
+	useAdministrationStats,
 } from "@/hooks/dashboard/useDashboardData";
 import { WidgetErrorBoundary } from "./WidgetErrorBoundary";
 import { WidgetSkeletons } from "./WidgetSkeletons";

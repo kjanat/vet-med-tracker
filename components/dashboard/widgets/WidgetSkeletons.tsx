@@ -26,7 +26,7 @@ export function BaseWidgetSkeleton({
 		<Card className={className}>
 			<CardHeader className="space-y-2">
 				<CardTitle className="flex items-center justify-between">
-					<span className="text-lg font-medium">{title}</span>
+					<span className="font-medium text-lg">{title}</span>
 					<Skeleton className="h-4 w-4 rounded" />
 				</CardTitle>
 				{description && <CardDescription>{description}</CardDescription>}
@@ -51,7 +51,7 @@ export function ChartWidgetSkeleton({
 			<div className="space-y-4">
 				{/* Chart area */}
 				<div className="relative h-64 w-full overflow-hidden rounded-lg bg-muted">
-					<div className="absolute inset-0 -translate-x-full animate-pulse bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+					<div className="-translate-x-full absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 					{/* Mock chart bars */}
 					<div className="flex h-full items-end justify-around p-4">
 						{Array.from({ length: 7 }).map((_, i) => (

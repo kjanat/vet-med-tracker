@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
 import {
 	Line,
@@ -11,15 +11,15 @@ import {
 	YAxis,
 } from "recharts";
 import {
+	type ChartConfig,
 	ChartContainer,
 	ChartTooltipContent,
-	type ChartConfig,
 } from "@/components/ui/chart";
 import {
-	useComplianceData,
 	type DateRange,
 	getDateRangeFromPeriod,
 	PERIOD_OPTIONS,
+	useComplianceData,
 } from "@/hooks/dashboard/useDashboardData";
 import { WidgetErrorBoundary } from "./WidgetErrorBoundary";
 import { WidgetSkeletons } from "./WidgetSkeletons";

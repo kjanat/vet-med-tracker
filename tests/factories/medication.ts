@@ -3,9 +3,9 @@
  */
 
 import type { NewMedicationCatalog } from "@/db/schema";
-import { random, medical } from "./utils/random";
 import { dates } from "./utils/dates";
-import { medications, dosage } from "./utils/medical";
+import { dosage, medications } from "./utils/medical";
+import { medical, random } from "./utils/random";
 
 // Medication factory function
 export function createMedication(

@@ -4,9 +4,9 @@
  */
 
 import {
-	WeightConverter,
 	DosageConverter,
 	VetUnitUtils,
+	WeightConverter,
 } from "./unit-conversions";
 
 export type WeightUnit = "kg" | "lbs";
@@ -140,35 +140,35 @@ export class DosageCalculator {
 		const { animal, medication, route, targetUnit = "mg" } = input;
 
 		// Input validation
-		this.validateInput(input);
+		DosageCalculator.validateInput(input);
 
 		// Convert weight to kg for calculations
 		const weightInKg = WeightConverter.toKg(animal.weight, animal.weightUnit);
 
 		// Get base dosage ranges
-		const baseDosage = this.getBaseDosage(medication);
+		const baseDosage = DosageCalculator.getBaseDosage(medication);
 		if (!baseDosage.typical) {
 			throw new Error("Medication does not have dosage information configured");
 		}
 
 		// Apply species adjustments
-		const speciesAdjustment = this.getSpeciesAdjustment(
+		const speciesAdjustment = DosageCalculator.getSpeciesAdjustment(
 			medication,
 			animal.species,
 		);
 
 		// Apply breed considerations
-		const breedAdjustment = this.getBreedAdjustment(
+		const breedAdjustment = DosageCalculator.getBreedAdjustment(
 			medication,
 			animal.breed,
 			animal.species,
 		);
 
 		// Apply age adjustments
-		const ageAdjustment = this.getAgeAdjustment(medication, animal);
+		const ageAdjustment = DosageCalculator.getAgeAdjustment(medication, animal);
 
 		// Apply route adjustments
-		const routeAdjustment = this.getRouteAdjustment(
+		const routeAdjustment = DosageCalculator.getRouteAdjustment(
 			medication,
 			route || medication.route,
 		);
@@ -190,17 +190,17 @@ export class DosageCalculator {
 		const maxDoseMg = maxDoseMgKg * weightInKg;
 
 		// Convert to target unit
-		const convertedDose = this.convertToTargetUnit(
+		const convertedDose = DosageCalculator.convertToTargetUnit(
 			finalDoseMg,
 			targetUnit,
 			medication,
 		);
-		const convertedMin = this.convertToTargetUnit(
+		const convertedMin = DosageCalculator.convertToTargetUnit(
 			minDoseMg,
 			targetUnit,
 			medication,
 		);
-		const convertedMax = this.convertToTargetUnit(
+		const convertedMax = DosageCalculator.convertToTargetUnit(
 			maxDoseMg,
 			targetUnit,
 			medication,
@@ -210,14 +210,14 @@ export class DosageCalculator {
 		const warnings: string[] = [];
 		const appliedAdjustments: string[] = [];
 
-		this.collectWarnings(warnings, medication, animal, route, {
+		DosageCalculator.collectWarnings(warnings, medication, animal, route, {
 			species: speciesAdjustment,
 			breed: breedAdjustment,
 			age: ageAdjustment,
 			route: routeAdjustment,
 		});
 
-		this.collectAppliedAdjustments(appliedAdjustments, {
+		DosageCalculator.collectAppliedAdjustments(appliedAdjustments, {
 			species: speciesAdjustment,
 			breed: breedAdjustment,
 			age: ageAdjustment,
@@ -225,14 +225,14 @@ export class DosageCalculator {
 		});
 
 		// Determine safety level
-		const safetyLevel = this.determineSafetyLevel(
+		const safetyLevel = DosageCalculator.determineSafetyLevel(
 			warnings,
 			totalMultiplier,
 			medication,
 		);
 
 		// Calculate method used
-		const calculationMethod = this.determineCalculationMethod({
+		const calculationMethod = DosageCalculator.determineCalculationMethod({
 			species: speciesAdjustment,
 			breed: breedAdjustment,
 			age: ageAdjustment,
@@ -240,18 +240,21 @@ export class DosageCalculator {
 		});
 
 		// Generate alternative formats
-		const alternativeFormats = this.generateAlternativeFormats(
+		const alternativeFormats = DosageCalculator.generateAlternativeFormats(
 			finalDoseMg,
 			medication,
 		);
 
 		// Calculate daily dosing info
-		const dailyInfo = this.calculateDailyInfo(convertedDose.dose, medication);
+		const dailyInfo = DosageCalculator.calculateDailyInfo(
+			convertedDose.dose,
+			medication,
+		);
 
 		return {
 			dose: convertedDose.dose,
 			unit: convertedDose.unit,
-			frequency: this.getFrequencyString(medication),
+			frequency: DosageCalculator.getFrequencyString(medication),
 
 			minDose: convertedMin.dose,
 			maxDose: convertedMax.dose,
@@ -368,7 +371,7 @@ export class DosageCalculator {
 		}
 
 		// Otherwise, check for special genetic considerations
-		const geneticMultiplier = this.handleGeneticConsiderations(
+		const geneticMultiplier = DosageCalculator.handleGeneticConsiderations(
 			breed,
 			species,
 			medication,

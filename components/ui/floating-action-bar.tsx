@@ -1,8 +1,8 @@
 "use client";
 
 import { Download, Trash2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/general";
 
 interface FloatingActionBarProps {
@@ -40,12 +40,12 @@ export function FloatingActionBar({
 	return (
 		<div
 			className={cn(
-				"fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 transform items-center gap-2 rounded-lg border bg-background px-4 py-3 shadow-lg animate-in slide-in-from-bottom-2",
+				"-translate-x-1/2 slide-in-from-bottom-2 fixed bottom-4 left-1/2 z-50 flex transform animate-in items-center gap-2 rounded-lg border bg-background px-4 py-3 shadow-lg",
 				"sm:bottom-6",
 				className,
 			)}
 		>
-			<span className="text-muted-foreground text-sm font-medium">
+			<span className="font-medium text-muted-foreground text-sm">
 				{selectionCount} selected
 			</span>
 

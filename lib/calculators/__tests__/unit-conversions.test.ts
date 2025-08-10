@@ -2,12 +2,12 @@
  * Unit tests for the Unit Conversion System
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-	WeightConverter,
-	VolumeConverter,
 	DosageConverter,
 	VetUnitUtils,
+	VolumeConverter,
+	WeightConverter,
 } from "../unit-conversions";
 
 describe("WeightConverter", () => {

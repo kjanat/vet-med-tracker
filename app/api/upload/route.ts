@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { stackServerApp } from "@/stack";
 import { auditHelpers } from "@/lib/security/audit-logger";
 import { sanitizeFileName } from "@/lib/security/input-sanitization";
+import { stackServerApp } from "@/stack";
 
 // Upload configuration
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB

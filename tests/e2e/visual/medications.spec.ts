@@ -1,13 +1,13 @@
 import { test } from "@playwright/test";
 import {
-	takeVisualSnapshot,
-	testResponsiveView,
-	testComponentStates,
+	fillTestForm,
 	mockAuthenticatedUser,
 	mockHouseholdData,
-	setupMedicationTestData,
-	fillTestForm,
 	STABLE_CSS,
+	setupMedicationTestData,
+	takeVisualSnapshot,
+	testComponentStates,
+	testResponsiveView,
 } from "./visual-helpers";
 
 test.describe("Medication Features Visual Regression", () => {

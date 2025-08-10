@@ -5,8 +5,8 @@ import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-	useAnimalActivityData,
 	type DateRange,
+	useAnimalActivityData,
 } from "@/hooks/dashboard/useDashboardData";
 import { WidgetErrorBoundary } from "./WidgetErrorBoundary";
 import { WidgetSkeletons } from "./WidgetSkeletons";
@@ -124,7 +124,7 @@ function AnimalActivityWidgetContent({
 						<p className="text-muted-foreground text-xs">High Performers</p>
 					</div>
 					<div className="rounded-lg bg-red-50 p-2 dark:bg-red-950/20">
-						<div className="font-bold text-red-600 text-lg">
+						<div className="font-bold text-lg text-red-600">
 							{summaryStats.needsAttention}
 						</div>
 						<p className="text-muted-foreground text-xs">Need Attention</p>
@@ -144,7 +144,7 @@ function AnimalActivityWidgetContent({
 						{/* Ranking */}
 						<div className="flex flex-col items-center gap-1">
 							<div
-								className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+								className={`flex h-6 w-6 items-center justify-center rounded-full font-bold text-xs ${
 									animal.rank === 1
 										? "bg-yellow-500 text-white"
 										: animal.rank === 2

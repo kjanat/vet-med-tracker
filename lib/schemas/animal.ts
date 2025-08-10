@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
-	secureSchemas,
 	createSecurityValidator,
+	secureSchemas,
 } from "@/lib/security/input-sanitization";
 
 // Define the animal schema for form validation with enhanced security

@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Badge } from "@/components/ui/badge";
 import {
+	type ChartConfig,
 	ChartContainer,
 	ChartTooltipContent,
-	type ChartConfig,
 } from "@/components/ui/chart";
-import { Badge } from "@/components/ui/badge";
 import { useMedicationDistribution } from "@/hooks/dashboard/useDashboardData";
 import { WidgetErrorBoundary } from "./WidgetErrorBoundary";
 import { WidgetSkeletons } from "./WidgetSkeletons";
@@ -95,7 +95,7 @@ function MedicationDistributionWidgetContent({
 			return (
 				<div className="rounded-lg border bg-background px-3 py-2 shadow-md">
 					<p className="font-medium">{data.name}</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted-foreground text-sm">
 						{data.value} regimens ({data.payload.percentage}%)
 					</p>
 				</div>

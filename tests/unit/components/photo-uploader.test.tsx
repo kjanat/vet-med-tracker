@@ -2,11 +2,11 @@
  * Unit tests for PhotoUploader component
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-	renderWithProviders,
 	clickButton,
+	renderWithProviders,
 	uploadFile,
 } from "@/tests/helpers/rtl-utils";
 

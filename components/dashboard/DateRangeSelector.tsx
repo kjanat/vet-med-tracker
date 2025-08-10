@@ -1,8 +1,8 @@
 "use client";
 
+import { format } from "date-fns";
 import { CalendarIcon, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -17,13 +17,13 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils/general";
 import {
 	type DateRange,
-	type Period,
-	PERIOD_OPTIONS,
 	getDateRangeFromPeriod,
+	PERIOD_OPTIONS,
+	type Period,
 } from "@/hooks/dashboard/useDashboardData";
+import { cn } from "@/lib/utils/general";
 
 // Helper function to format date range
 function formatDateRange(from: Date | undefined, to: Date | undefined): string {
@@ -154,7 +154,7 @@ export function DateRangeSelector({
 					<div className="p-4">
 						<div className="space-y-4">
 							<div className="space-y-2">
-								<label className="text-sm font-medium">From Date</label>
+								<label className="font-medium text-sm">From Date</label>
 								<Calendar
 									mode="single"
 									selected={tempFromDate}
@@ -164,7 +164,7 @@ export function DateRangeSelector({
 							</div>
 
 							<div className="space-y-2">
-								<label className="text-sm font-medium">To Date</label>
+								<label className="font-medium text-sm">To Date</label>
 								<Calendar
 									mode="single"
 									selected={tempToDate}

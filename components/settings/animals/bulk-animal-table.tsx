@@ -1,16 +1,16 @@
 "use client";
 
-import { FileText, Plus, Search, Trash2, Download } from "lucide-react";
+import { Download, FileText, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+	type BulkSelectionColumn,
+	BulkSelectionTable,
+} from "@/components/ui/bulk-selection-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-	BulkSelectionTable,
-	type BulkSelectionColumn,
-} from "@/components/ui/bulk-selection-table";
 import { useToast } from "@/hooks/shared/use-toast";
 import type { Animal } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";

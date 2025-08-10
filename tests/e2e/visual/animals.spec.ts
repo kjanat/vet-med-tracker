@@ -1,12 +1,12 @@
 import { test } from "@playwright/test";
 import {
-	takeVisualSnapshot,
-	testResponsiveView,
-	testComponentStates,
+	fillTestForm,
 	mockAuthenticatedUser,
 	mockHouseholdData,
-	fillTestForm,
 	STABLE_CSS,
+	takeVisualSnapshot,
+	testComponentStates,
+	testResponsiveView,
 } from "./visual-helpers";
 
 test.describe("Animal Management Visual Regression", () => {

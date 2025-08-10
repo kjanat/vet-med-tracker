@@ -1,10 +1,10 @@
 import { test } from "@playwright/test";
 import {
-	takeVisualSnapshot,
 	mockAuthenticatedUser,
 	mockHouseholdData,
-	VIEWPORTS,
 	STABLE_CSS,
+	takeVisualSnapshot,
+	VIEWPORTS,
 } from "./visual-helpers";
 
 const CRITICAL_PAGES = [

@@ -3,7 +3,7 @@
  * Manages the background notification scheduler service
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/drizzle";
 import { getNotificationScheduler } from "@/lib/push-notifications/notification-scheduler";
 

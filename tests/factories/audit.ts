@@ -3,8 +3,8 @@
  */
 
 import type { NewAuditLog } from "@/db/schema";
-import { random, person } from "./utils/random";
 import { dates } from "./utils/dates";
+import { person, random } from "./utils/random";
 
 // Define audit log types
 type AuditAction =
@@ -78,7 +78,7 @@ function generateAuditData(action: string, resourceType: string) {
 
 	let oldValues = null;
 	let newValues = null;
-	let details: any = { action, resourceType };
+	const details: any = { action, resourceType };
 
 	switch (action) {
 		case "CREATE":

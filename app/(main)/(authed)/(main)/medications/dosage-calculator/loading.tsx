@@ -3,10 +3,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DosageCalculatorLoading() {
 	return (
-		<div className="container mx-auto p-4 max-w-6xl">
+		<div className="container mx-auto max-w-6xl p-4">
 			{/* Header */}
 			<div className="mb-6">
-				<div className="flex items-center gap-2 mb-2">
+				<div className="mb-2 flex items-center gap-2">
 					<Skeleton className="h-6 w-6" />
 					<Skeleton className="h-8 w-48" />
 				</div>
@@ -18,7 +18,7 @@ export default function DosageCalculatorLoading() {
 				<Skeleton className="h-10 w-48" />
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				{/* Input Form */}
 				<div className="space-y-6">
 					<Card>
@@ -55,8 +55,8 @@ export default function DosageCalculatorLoading() {
 				<div className="space-y-6">
 					<Card>
 						<CardContent className="flex flex-col items-center justify-center py-12">
-							<Skeleton className="h-12 w-12 mb-4" />
-							<Skeleton className="h-6 w-48 mb-2" />
+							<Skeleton className="mb-4 h-12 w-12" />
+							<Skeleton className="mb-2 h-6 w-48" />
 							<Skeleton className="h-4 w-80" />
 						</CardContent>
 					</Card>

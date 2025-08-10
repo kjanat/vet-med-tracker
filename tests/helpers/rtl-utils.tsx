@@ -2,13 +2,14 @@
  * React Testing Library utilities and custom render functions
  */
 
-import React, { type ReactElement } from "react";
-import { render, type RenderOptions } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TRPCProvider } from "@/lib/trpc/client";
+import { type RenderOptions, render } from "@testing-library/react";
 import { createTRPCMsw } from "msw-trpc";
+import type React from "react";
+import type { ReactElement } from "react";
+import { TRPCProvider } from "@/lib/trpc/client";
+import type { AppRouter } from "@/server/api/root";
 import { trpc } from "@/server/trpc/client";
-import { type AppRouter } from "@/server/api/root";
 import { testConfig } from "./test-fixtures";
 
 // Mock providers for isolated testing

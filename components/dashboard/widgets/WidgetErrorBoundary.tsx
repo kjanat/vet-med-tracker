@@ -145,7 +145,7 @@ function DefaultWidgetErrorFallback({
 			<CardContent className="space-y-4">
 				{error && (
 					<div className="rounded-md bg-muted/50 p-3">
-						<p className="font-mono text-sm text-muted-foreground">
+						<p className="font-mono text-muted-foreground text-sm">
 							{error.message}
 						</p>
 					</div>

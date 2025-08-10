@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
 import { useApp } from "@/components/providers/app-provider-consolidated";
+import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
 import { useToast } from "@/hooks/shared/use-toast";
 import { trpc } from "@/server/trpc/client";
 

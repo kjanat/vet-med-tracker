@@ -1,7 +1,7 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface BulkSelectionCheckboxProps {
 	id: string;

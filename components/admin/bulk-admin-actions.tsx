@@ -2,11 +2,10 @@
 
 import { Plus, Users, X } from "lucide-react";
 import { useState } from "react";
-
+import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
 import { BulkRecordingForm } from "./bulk-recording-form";
 
 interface BulkAdminActionsProps {
@@ -23,13 +22,13 @@ export function BulkAdminActions({ className }: BulkAdminActionsProps) {
 
 	return (
 		<>
-			<div className={`fixed bottom-20 left-4 right-4 z-40 ${className || ""}`}>
-				<Card className="shadow-lg border-2">
+			<div className={`fixed right-4 bottom-20 left-4 z-40 ${className || ""}`}>
+				<Card className="border-2 shadow-lg">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between gap-4">
 							<div className="flex items-center gap-2">
 								<Users className="h-5 w-5 text-muted-foreground" />
-								<span className="text-sm font-medium">
+								<span className="font-medium text-sm">
 									<Badge variant="secondary" className="mr-2">
 										{selectionCount}
 									</Badge>

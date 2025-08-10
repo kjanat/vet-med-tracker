@@ -5,18 +5,18 @@
  * This script creates consistent data for reliable visual testing
  */
 
+import { hashSync } from "bcrypt";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
-	vetmedUsers,
-	vetmedHouseholds,
-	vetmedAnimals,
-	vetmedMedicationCatalog,
-	vetmedInventoryItems,
-	vetmedRegimens,
 	vetmedAdministrations,
+	vetmedAnimals,
+	vetmedHouseholds,
+	vetmedInventoryItems,
+	vetmedMedicationCatalog,
+	vetmedRegimens,
+	vetmedUsers,
 } from "../db/schema";
-import { hashSync } from "bcrypt";
 
 // Use test database
 const connectionString =

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 interface PerformanceMetrics {
 	FCP?: number; // First Contentful Paint
@@ -84,10 +84,11 @@ export function PerformanceMonitor({
 							metrics.CLS = (metrics.CLS || 0) + (entry as any).value;
 						}
 						break;
-					case "navigation":
+					case "navigation": {
 						const navEntry = entry as PerformanceNavigationTiming;
 						metrics.TTFB = navEntry.responseStart - navEntry.requestStart;
 						break;
+					}
 				}
 			});
 		});

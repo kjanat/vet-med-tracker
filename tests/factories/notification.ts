@@ -3,8 +3,8 @@
  */
 
 import type { NewNotification } from "@/db/schema";
-import { random } from "./utils/random";
 import { dates } from "./utils/dates";
+import { random } from "./utils/random";
 
 // Notification factory function
 export function createNotification(

@@ -3,8 +3,8 @@
  */
 
 import type { NewRegimen } from "@/db/schema";
-import { random } from "./utils/random";
 import { dates, times } from "./utils/dates";
+import { random } from "./utils/random";
 
 // Regimen factory function
 export function createRegimen(overrides: Partial<NewRegimen> = {}): NewRegimen {

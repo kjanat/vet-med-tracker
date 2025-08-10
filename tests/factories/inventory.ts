@@ -3,9 +3,9 @@
  */
 
 import type { NewInventoryItem } from "@/db/schema";
-import { random } from "./utils/random";
 import { dates } from "./utils/dates";
 import { storage } from "./utils/medical";
+import { random } from "./utils/random";
 
 // Inventory factory function
 export function createInventoryItem(

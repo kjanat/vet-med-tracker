@@ -17,8 +17,8 @@ import {
 	toUserFriendlyError,
 } from "@/lib/infrastructure/error-handling";
 import {
-	createAuditMiddleware,
 	auditHelpers,
+	createAuditMiddleware,
 } from "@/lib/security/audit-logger";
 import { stackServerApp } from "@/stack";
 

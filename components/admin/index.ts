@@ -4,13 +4,12 @@
  * Centralized exports for all administration-related components.
  */
 
-// Bulk Recording Components
-export { BulkRecordingForm } from "./bulk-recording-form";
-export { BulkAdminActions } from "./bulk-admin-actions";
-export { BulkRecordingDemo } from "./bulk-recording-demo";
-
 // Hooks
 export { useBulkRecording } from "@/hooks/admin/use-bulk-recording";
+export { BulkAdminActions } from "./bulk-admin-actions";
+export { BulkRecordingDemo } from "./bulk-recording-demo";
+// Bulk Recording Components
+export { BulkRecordingForm } from "./bulk-recording-form";
 
 /**
  * Usage Examples:

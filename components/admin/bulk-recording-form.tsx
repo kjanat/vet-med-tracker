@@ -1,12 +1,14 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Check, Clock, X } from "lucide-react";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-
+import { useApp } from "@/components/providers/app-provider-consolidated";
+import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -34,12 +36,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-
-import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
-import { useApp } from "@/components/providers/app-provider-consolidated";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/shared/use-toast";
 import { trpc } from "@/server/trpc/client";
 
@@ -270,7 +268,7 @@ export function BulkRecordingForm({
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>
 						{showResults
@@ -294,22 +292,22 @@ export function BulkRecordingForm({
 							<CardContent>
 								<div className="grid grid-cols-3 gap-4 text-center">
 									<div>
-										<div className="text-2xl font-bold text-green-600">
+										<div className="font-bold text-2xl text-green-600">
 											{results.filter((r) => r.success).length}
 										</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted-foreground text-sm">
 											Successful
 										</div>
 									</div>
 									<div>
-										<div className="text-2xl font-bold text-red-600">
+										<div className="font-bold text-2xl text-red-600">
 											{results.filter((r) => !r.success).length}
 										</div>
-										<div className="text-sm text-muted-foreground">Failed</div>
+										<div className="text-muted-foreground text-sm">Failed</div>
 									</div>
 									<div>
-										<div className="text-2xl font-bold">{results.length}</div>
-										<div className="text-sm text-muted-foreground">Total</div>
+										<div className="font-bold text-2xl">{results.length}</div>
+										<div className="text-muted-foreground text-sm">Total</div>
 									</div>
 								</div>
 							</CardContent>
@@ -321,7 +319,7 @@ export function BulkRecordingForm({
 							{results.map((result) => (
 								<div
 									key={result.animalId}
-									className="flex items-center justify-between p-3 border rounded"
+									className="flex items-center justify-between rounded border p-3"
 								>
 									<div className="flex items-center gap-3">
 										{result.success ? (
@@ -338,7 +336,7 @@ export function BulkRecordingForm({
 											<>
 												<Badge variant="destructive">Failed</Badge>
 												{result.error && (
-													<span className="text-sm text-muted-foreground">
+													<span className="text-muted-foreground text-sm">
 														{result.error}
 													</span>
 												)}
@@ -350,7 +348,7 @@ export function BulkRecordingForm({
 						</div>
 
 						{/* Action Buttons */}
-						<div className="flex gap-2 justify-end">
+						<div className="flex justify-end gap-2">
 							{results.some((r) => !r.success) && (
 								<Button
 									onClick={retryFailedRecords}
@@ -375,7 +373,7 @@ export function BulkRecordingForm({
 									<CardTitle className="text-sm">Selected Animals</CardTitle>
 								</CardHeader>
 								<CardContent>
-									<div className="text-sm text-muted-foreground">
+									<div className="text-muted-foreground text-sm">
 										{selectedIds.size} animals selected for bulk recording
 									</div>
 								</CardContent>
@@ -413,7 +411,7 @@ export function BulkRecordingForm({
 													<SelectItem key={regimen.id} value={regimen.id}>
 														<div className="flex flex-col">
 															<span>{regimen.medicationName}</span>
-															<span className="text-sm text-muted-foreground">
+															<span className="text-muted-foreground text-sm">
 																{regimen.dose} - {regimen.route} -{" "}
 																{regimen.scheduleType}
 															</span>
@@ -530,7 +528,7 @@ export function BulkRecordingForm({
 							/>
 
 							{/* Submit Buttons */}
-							<div className="flex gap-2 justify-end">
+							<div className="flex justify-end gap-2">
 								<Button
 									type="button"
 									variant="outline"

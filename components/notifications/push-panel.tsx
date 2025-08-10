@@ -11,9 +11,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { toast } from "@/hooks/shared/use-toast";
 import { useIsMobile } from "@/hooks/shared/useResponsive";
 import { trpc } from "@/server/trpc/client";
-import { toast } from "@/hooks/shared/use-toast";
 
 // Custom hook to manage push notification state
 function usePushNotifications() {
@@ -275,10 +275,10 @@ export function PushPanel() {
 
 				{subscriptions.length > 0 && (
 					<div className="space-y-2">
-						<h4 className="text-sm font-medium">Active Devices</h4>
+						<h4 className="font-medium text-sm">Active Devices</h4>
 						<div className="space-y-1">
 							{subscriptions.map((sub) => (
-								<div key={sub.id} className="text-xs text-muted-foreground">
+								<div key={sub.id} className="text-muted-foreground text-xs">
 									{sub.deviceName || "Unknown Device"} - Last used:{" "}
 									{new Date(sub.lastUsed).toLocaleDateString()}
 								</div>

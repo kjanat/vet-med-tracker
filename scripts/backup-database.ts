@@ -7,9 +7,9 @@
  */
 
 import { exec } from "node:child_process";
-import { promisify } from "node:util";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { promisify } from "node:util";
 
 const execAsync = promisify(exec);
 

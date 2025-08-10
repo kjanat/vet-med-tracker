@@ -3,18 +3,18 @@
  * Handles sending push notifications to subscribed users
  */
 
+import { and, eq } from "drizzle-orm";
 import webpush from "web-push";
 import type { db } from "@/db/drizzle";
 import { pushSubscriptions } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
-import { getVAPIDConfig } from "./vapid-config";
 import type {
-	PushNotificationPayload,
-	MedicationReminder,
-	LowInventoryWarning,
 	CosignRequest,
+	LowInventoryWarning,
+	MedicationReminder,
+	PushNotificationPayload,
 	SystemAnnouncement,
 } from "@/lib/schemas/push-notifications";
+import { getVAPIDConfig } from "./vapid-config";
 
 export interface PushSubscriptionData {
 	id: string;

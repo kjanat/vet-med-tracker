@@ -6,8 +6,8 @@
  */
 
 import { performance } from "node:perf_hooks";
-import { db } from "@/db/drizzle";
 import { sql } from "drizzle-orm";
+import { db } from "@/db/drizzle";
 
 interface TestResult {
 	testName: string;
@@ -332,7 +332,7 @@ async function testViewHealth(): Promise<TestResult> {
 		console.log(`  Found ${healthRows.length} materialized views`);
 
 		let healthyViews = 0;
-		let totalViews = healthRows.length;
+		const totalViews = healthRows.length;
 
 		for (const view of healthRows) {
 			const lastRefresh = view.last_refresh

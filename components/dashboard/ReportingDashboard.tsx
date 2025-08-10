@@ -1,7 +1,17 @@
 "use client";
 
 import { BarChart3, Download, RefreshCw, Settings } from "lucide-react";
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
+// Use lazy loading for heavy chart components
+import {
+	LazyAdministrationTimelineWidget,
+	LazyAnimalActivityWidget,
+	LazyComplianceHeatmap,
+	LazyComplianceRateWidget,
+	LazyInventoryLevelsWidget,
+	LazyMedicationDistributionWidget,
+} from "@/components/optimized/LazyComponents";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -18,25 +28,15 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { useApp } from "@/components/providers/app-provider-consolidated";
 import {
 	type DateRange,
-	type Period,
-	PERIOD_OPTIONS,
 	getDateRangeFromPeriod,
+	PERIOD_OPTIONS,
+	type Period,
 	useDashboardRefresh,
 } from "@/hooks/dashboard/useDashboardData";
 import { DashboardLayout, type DashboardWidget } from "./DashboardLayout";
 import { DateRangeSelector } from "./DateRangeSelector";
-// Use lazy loading for heavy chart components
-import {
-	LazyComplianceRateWidget,
-	LazyAdministrationTimelineWidget,
-	LazyMedicationDistributionWidget,
-	LazyAnimalActivityWidget,
-	LazyInventoryLevelsWidget,
-	LazyComplianceHeatmap,
-} from "@/components/optimized/LazyComponents";
 import { UpcomingDosesWidget } from "./widgets/UpcomingDosesWidget";
 
 interface ReportingDashboardProps {

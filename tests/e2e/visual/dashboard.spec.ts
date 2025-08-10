@@ -1,11 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
-	takeVisualSnapshot,
-	testResponsiveView,
 	mockAuthenticatedUser,
 	mockHouseholdData,
-	waitForCharts,
 	STABLE_CSS,
+	takeVisualSnapshot,
+	testResponsiveView,
+	waitForCharts,
 } from "./visual-helpers";
 
 test.describe("Dashboard Visual Regression", () => {

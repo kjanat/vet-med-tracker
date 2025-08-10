@@ -3,16 +3,16 @@
  * Handles timing calculations for different types of medication schedules
  */
 
+import { and, desc, eq, gte, lte, or } from "drizzle-orm";
 import { DateTime } from "luxon";
 import type { db } from "@/db/drizzle";
 import {
-	vetmedRegimens as regimens,
 	vetmedAdministrations as administrations,
 	vetmedAnimals as animals,
-	vetmedUsers as users,
 	vetmedMemberships as memberships,
+	vetmedRegimens as regimens,
+	vetmedUsers as users,
 } from "@/db/schema";
-import { and, eq, gte, desc, lte, or } from "drizzle-orm";
 
 export interface RegimenSchedule {
 	regimenId: string;
@@ -201,8 +201,8 @@ export class RegimenCalculator {
 			try {
 				const [hours, minutes] = timeStr.split(":").map(Number);
 				if (
-					isNaN(hours) ||
-					isNaN(minutes) ||
+					Number.isNaN(hours) ||
+					Number.isNaN(minutes) ||
 					hours === undefined ||
 					minutes === undefined
 				)

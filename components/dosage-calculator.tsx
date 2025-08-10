@@ -1,5 +1,6 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	Calculator,
 	Clock,
@@ -12,7 +13,8 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { MedicationSearch } from "@/components/medication/medication-search";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -42,10 +44,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/shared/use-toast";
-import { MedicationSearch } from "@/components/medication/medication-search";
-import { useApp } from "@/components/providers/app-provider-consolidated";
-import { trpc } from "@/server/trpc/client";
 import type { DosageResult, SafetyLevel } from "@/lib/schemas/dosage";
+import { trpc } from "@/server/trpc/client";
 
 // Form schema for dosage calculation
 const dosageCalculatorSchema = z.object({
@@ -379,7 +379,7 @@ export function DosageCalculator() {
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<div
-							className="w-4 h-4 rounded-full flex items-center justify-center text-white text-xs font-bold"
+							className="flex h-4 w-4 items-center justify-center rounded-full font-bold text-white text-xs"
 							style={{ backgroundColor: config.color }}
 						>
 							{config.icon}
@@ -389,16 +389,16 @@ export function DosageCalculator() {
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div
-						className="p-4 rounded-lg"
+						className="rounded-lg p-4"
 						style={{ backgroundColor: config.bgColor }}
 					>
 						<div
-							className="text-2xl font-bold"
+							className="font-bold text-2xl"
 							style={{ color: config.textColor }}
 						>
 							{calculationResult.dose} {calculationResult.unit}
 						</div>
-						<div className="text-sm text-muted-foreground mt-1">
+						<div className="mt-1 text-muted-foreground text-sm">
 							Calculated dose
 						</div>
 					</div>
@@ -434,9 +434,9 @@ export function DosageCalculator() {
 						calculationResult.alternativeFormats.length > 0 && (
 							<div className="space-y-2">
 								<Separator />
-								<div className="text-sm font-medium">Alternative Formats:</div>
+								<div className="font-medium text-sm">Alternative Formats:</div>
 								{calculationResult.alternativeFormats.map((format, index) => (
-									<div key={index} className="text-sm text-muted-foreground">
+									<div key={index} className="text-muted-foreground text-sm">
 										{format.dose} {format.unit} - {format.description}
 									</div>
 								))}
@@ -448,11 +448,11 @@ export function DosageCalculator() {
 	}, [calculationResult]);
 
 	return (
-		<div className="container mx-auto p-4 max-w-6xl">
+		<div className="container mx-auto max-w-6xl p-4">
 			<div className="mb-6">
-				<div className="flex items-center gap-2 mb-2">
+				<div className="mb-2 flex items-center gap-2">
 					<Calculator className="h-6 w-6 text-primary" />
-					<h1 className="text-2xl font-bold">Dosage Calculator</h1>
+					<h1 className="font-bold text-2xl">Dosage Calculator</h1>
 				</div>
 				<p className="text-muted-foreground">
 					Calculate safe medication dosages with real-time safety validation
@@ -468,7 +468,7 @@ export function DosageCalculator() {
 				</TabsList>
 
 				<TabsContent value="calculator" className="space-y-6">
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 						{/* Input Form */}
 						<div className="space-y-6">
 							<Card>
@@ -713,7 +713,7 @@ export function DosageCalculator() {
 								<Card>
 									<CardContent className="flex items-center justify-center py-8">
 										<div className="flex items-center gap-3">
-											<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+											<div className="h-6 w-6 animate-spin rounded-full border-primary border-b-2" />
 											<span>Calculating...</span>
 										</div>
 									</CardContent>
@@ -784,10 +784,10 @@ export function DosageCalculator() {
 
 											{calculationResult.appliedAdjustments.length > 0 && (
 												<div>
-													<div className="font-medium text-sm mb-1">
+													<div className="mb-1 font-medium text-sm">
 														Applied Adjustments
 													</div>
-													<div className="text-sm text-muted-foreground">
+													<div className="text-muted-foreground text-sm">
 														{calculationResult.appliedAdjustments.join(", ")}
 													</div>
 												</div>
@@ -829,8 +829,8 @@ export function DosageCalculator() {
 							) : (
 								<Card>
 									<CardContent className="flex flex-col items-center justify-center py-12 text-center">
-										<Calculator className="h-12 w-12 text-muted-foreground mb-4" />
-										<h3 className="text-lg font-medium mb-2">
+										<Calculator className="mb-4 h-12 w-12 text-muted-foreground" />
+										<h3 className="mb-2 font-medium text-lg">
 											Ready to Calculate
 										</h3>
 										<p className="text-muted-foreground">
@@ -856,12 +856,12 @@ export function DosageCalculator() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className="text-center py-8">
-								<Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+							<div className="py-8 text-center">
+								<Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
 								<p className="text-muted-foreground">
 									History feature coming soon
 								</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted-foreground text-sm">
 									Your calculations will be saved here for easy reference
 								</p>
 							</div>

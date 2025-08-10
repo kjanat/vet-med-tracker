@@ -11,17 +11,17 @@
  */
 
 import { performance } from "node:perf_hooks";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { sql } from "drizzle-orm";
 import {
 	vetmedAdministrations as administrations,
 	vetmedAnimals as animals,
-	vetmedRegimens as regimens,
-	vetmedMedicationCatalog as medicationCatalog,
 	vetmedHouseholds as households,
-	vetmedUsers as users,
 	vetmedInventoryItems as inventoryItems,
+	vetmedMedicationCatalog as medicationCatalog,
+	vetmedRegimens as regimens,
+	vetmedUsers as users,
 } from "../db/schema";
 
 // Database connection

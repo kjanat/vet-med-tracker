@@ -12,14 +12,13 @@ export {
 
 // Individual Components
 export { BulkSelectionCheckbox } from "@/components/ui/bulk-selection-checkbox";
-export { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
-export { FloatingActionBar } from "@/components/ui/floating-action-bar";
-
 // Complete Table Solution
 export {
-	BulkSelectionTable,
 	type BulkSelectionColumn,
+	BulkSelectionTable,
 } from "@/components/ui/bulk-selection-table";
+export { FloatingActionBar } from "@/components/ui/floating-action-bar";
+export { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
 
 // Integration Helpers
 export { useBulkSelectionIntegration } from "@/hooks/shared/use-bulk-selection-integration";

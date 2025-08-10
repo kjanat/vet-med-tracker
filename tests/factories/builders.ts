@@ -2,31 +2,29 @@
  * Complex test scenario builders for multi-entity relationships
  */
 
-import { random } from "./utils/random";
-import { dates } from "./utils/dates";
-
-import { createUser, UserBuilder } from "./user";
-import { createHousehold, HouseholdBuilder } from "./household";
-import { createAnimal, AnimalBuilder } from "./animal";
-import { createMedication, MedicationBuilder } from "./medication";
-import { createRegimen, RegimenBuilder } from "./regimen";
-import { createAdministration, AdministrationBuilder } from "./administration";
-import { createInventoryItem, InventoryBuilder } from "./inventory";
-import { createNotification, NotificationBuilder } from "./notification";
-import { createAuditLog, AuditLogBuilder } from "./audit";
-
 import type {
-	NewUser,
-	NewHousehold,
-	NewMembership,
-	NewAnimal,
-	NewMedicationCatalog,
-	NewRegimen,
 	NewAdministration,
-	NewInventoryItem,
-	NewNotification,
+	NewAnimal,
 	NewAuditLog,
+	NewHousehold,
+	NewInventoryItem,
+	NewMedicationCatalog,
+	NewMembership,
+	NewNotification,
+	NewRegimen,
+	NewUser,
 } from "@/db/schema";
+import { AdministrationBuilder, createAdministration } from "./administration";
+import { AnimalBuilder, createAnimal } from "./animal";
+import { AuditLogBuilder, createAuditLog } from "./audit";
+import { createHousehold, HouseholdBuilder } from "./household";
+import { createInventoryItem, InventoryBuilder } from "./inventory";
+import { createMedication, MedicationBuilder } from "./medication";
+import { createNotification, NotificationBuilder } from "./notification";
+import { createRegimen, RegimenBuilder } from "./regimen";
+import { createUser, UserBuilder } from "./user";
+import { dates } from "./utils/dates";
+import { random } from "./utils/random";
 
 // Complete test scenario builder
 export class TestScenarioBuilder {
@@ -512,7 +510,7 @@ export class ComplianceDataBuilder {
 		);
 
 		// Generate administrations with realistic compliance patterns
-		let currentDate = new Date(startDate);
+		const currentDate = new Date(startDate);
 		let complianceRate = 0.85; // Start with 85% compliance
 
 		while (currentDate <= endDate) {
@@ -556,7 +554,7 @@ export class ComplianceDataBuilder {
 	withPerfectCompliance(days = 14): ComplianceDataBuilder {
 		// Generate perfect compliance for testing
 		const startDate = new Date(this.data.regimen.startDate!);
-		let currentDate = new Date(startDate);
+		const currentDate = new Date(startDate);
 
 		for (let day = 0; day < days; day++) {
 			const times = this.data.regimen.timesLocal || ["08:00", "20:00"];
@@ -585,7 +583,7 @@ export class ComplianceDataBuilder {
 	withPoorCompliance(days = 21): ComplianceDataBuilder {
 		// Generate poor compliance pattern for testing
 		const startDate = new Date(this.data.regimen.startDate!);
-		let currentDate = new Date(startDate);
+		const currentDate = new Date(startDate);
 
 		for (let day = 0; day < days; day++) {
 			const times = this.data.regimen.timesLocal || ["08:00", "20:00"];

@@ -2,25 +2,25 @@
 
 import {
 	FileText,
+	Grid,
+	LayoutGrid,
+	List,
 	Plus,
 	Search,
 	Trash2,
-	Grid,
-	List,
-	LayoutGrid,
 } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
+import { BulkSelectionProvider } from "@/components/providers/bulk-selection-provider";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+	type BulkSelectionColumn,
+	BulkSelectionTable,
+} from "@/components/ui/bulk-selection-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-	BulkSelectionTable,
-	type BulkSelectionColumn,
-} from "@/components/ui/bulk-selection-table";
-import { BulkSelectionProvider } from "@/components/providers/bulk-selection-provider";
 import { useToast } from "@/hooks/shared/use-toast";
 import type { Animal } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
@@ -504,7 +504,7 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
 			</div>
 
 			{/* Search and View Toggle */}
-			<div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+			<div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 				<div className="relative max-w-sm">
 					<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
 					<Input

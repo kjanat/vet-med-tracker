@@ -6,6 +6,11 @@
  */
 
 import { Download, Trash2 } from "lucide-react";
+import { BulkSelectionProvider } from "@/components/providers/bulk-selection-provider";
+import { BulkSelectionCheckbox } from "@/components/ui/bulk-selection-checkbox";
+import { Button } from "@/components/ui/button";
+import { FloatingActionBar } from "@/components/ui/floating-action-bar";
+import { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
 import {
 	Table,
 	TableBody,
@@ -14,11 +19,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { BulkSelectionCheckbox } from "@/components/ui/bulk-selection-checkbox";
-import { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
-import { FloatingActionBar } from "@/components/ui/floating-action-bar";
-import { BulkSelectionProvider } from "@/components/providers/bulk-selection-provider";
 import { useBulkSelectionIntegration } from "@/hooks/shared/use-bulk-selection-integration";
 
 // Example data interface

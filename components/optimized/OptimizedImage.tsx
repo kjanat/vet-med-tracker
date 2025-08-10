@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import Image from "next/image";
+import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils/general";
 
 interface OptimizedImageProps {

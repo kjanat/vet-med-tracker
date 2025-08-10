@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // Page loading skeletons
 const PageSkeleton = () => (
-	<div className="container mx-auto p-4 space-y-6">
+	<div className="container mx-auto space-y-6 p-4">
 		<div className="space-y-2">
 			<Skeleton className="h-8 w-[300px]" />
 			<Skeleton className="h-4 w-[200px]" />
@@ -19,7 +19,7 @@ const PageSkeleton = () => (
 );
 
 const FormPageSkeleton = () => (
-	<div className="container mx-auto p-4 space-y-4">
+	<div className="container mx-auto space-y-4 p-4">
 		<Skeleton className="h-8 w-[250px]" />
 		<div className="space-y-4">
 			<Skeleton className="h-10 w-full" />

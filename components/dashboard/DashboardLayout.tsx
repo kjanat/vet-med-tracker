@@ -1,7 +1,7 @@
 "use client";
 
 import { GripVertical, Maximize2, Minimize2, RotateCcw } from "lucide-react";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils/general";
@@ -131,7 +131,7 @@ function WidgetWrapper({
 			}}
 		>
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="text-lg font-medium">{widget.title}</CardTitle>
+				<CardTitle className="font-medium text-lg">{widget.title}</CardTitle>
 				<div className="flex items-center gap-1">
 					<Button
 						variant="ghost"

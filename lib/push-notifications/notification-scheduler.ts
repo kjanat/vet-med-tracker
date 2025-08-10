@@ -3,22 +3,22 @@
  * Calculates and schedules push notifications for medication regimens
  */
 
-import cron from "node-cron";
+import { and, eq, gte, lte, or } from "drizzle-orm";
 import { DateTime } from "luxon";
+import cron from "node-cron";
 import type { db } from "@/db/drizzle";
 import {
-	notificationQueue,
-	vetmedRegimens as regimens,
 	vetmedAnimals as animals,
 	vetmedMemberships as memberships,
+	notificationQueue,
+	vetmedRegimens as regimens,
 	vetmedUsers as users,
 } from "@/db/schema";
-import { and, eq, gte, lte, or } from "drizzle-orm";
 import { PushNotificationService } from "./push-service";
 import {
+	type MissedDose,
 	RegimenCalculator,
 	type ScheduledDose,
-	type MissedDose,
 } from "./regimen-calculator";
 
 export class NotificationScheduler {

@@ -3,13 +3,13 @@
  * Tests inventory calculations and medication adherence tracking
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useDaysOfSupply } from "@/hooks/inventory/useDaysOfSupply";
 import {
+	testAnimal,
 	testInventoryItem,
 	testRegimen,
-	testAnimal,
 } from "@/tests/helpers/test-fixtures";
 
 // Mock tRPC

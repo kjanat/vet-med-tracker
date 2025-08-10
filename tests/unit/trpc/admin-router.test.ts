@@ -5,19 +5,19 @@
 
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { adminRouter } from "@/server/api/routers/admin";
 import { mockDb, resetMockDb } from "@/tests/helpers/mock-db";
+import {
+	testAdministration,
+	testAnimal,
+	testConfig,
+	testRegimen,
+} from "@/tests/helpers/test-fixtures";
 import {
 	createAuthenticatedContext,
 	createMockContext,
 	mockSession,
 } from "@/tests/helpers/trpc-utils";
-import { adminRouter } from "@/server/api/routers/admin";
-import {
-	testConfig,
-	testAdministration,
-	testAnimal,
-	testRegimen,
-} from "@/tests/helpers/test-fixtures";
 
 describe("adminRouter", () => {
 	beforeEach(() => {

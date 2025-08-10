@@ -143,7 +143,7 @@ function UpcomingDosesWidgetContent({
 							key={day.date}
 							className={`flex items-center justify-between rounded-lg border p-2 ${
 								day.isToday
-									? "bg-blue-50 border-blue-200 dark:bg-blue-950/20"
+									? "border-blue-200 bg-blue-50 dark:bg-blue-950/20"
 									: ""
 							}`}
 						>

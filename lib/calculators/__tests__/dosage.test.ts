@@ -2,11 +2,11 @@
  * Unit tests for the Dosage Calculator Engine
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
+	type AnimalInfo,
 	DosageCalculator,
 	type MedicationData,
-	type AnimalInfo,
 } from "../dosage";
 
 // Test medication data

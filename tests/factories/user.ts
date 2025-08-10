@@ -3,8 +3,8 @@
  */
 
 import type { NewUser } from "@/db/schema";
-import { random, person, location } from "./utils/random";
 import { dates } from "./utils/dates";
+import { location, person, random } from "./utils/random";
 
 // User factory function
 export function createUser(overrides: Partial<NewUser> = {}): NewUser {

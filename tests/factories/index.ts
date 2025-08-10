@@ -11,20 +11,19 @@
  * - createTestScenario().withHousehold().withAnimals(3).build() - Complex scenarios
  */
 
-// Re-export all factories
-export * from "./user";
-export * from "./household";
-export * from "./animal";
-export * from "./medication";
-export * from "./regimen";
 export * from "./administration";
-export * from "./inventory";
-export * from "./notification";
+export * from "./animal";
 export * from "./audit";
 export * from "./builders";
+export * from "./household";
+export * from "./inventory";
+export * from "./medication";
+export * from "./notification";
+export * from "./regimen";
 export * from "./scenarios";
-
-// Utility exports
-export * from "./utils/random";
+// Re-export all factories
+export * from "./user";
 export * from "./utils/dates";
 export * from "./utils/medical";
+// Utility exports
+export * from "./utils/random";

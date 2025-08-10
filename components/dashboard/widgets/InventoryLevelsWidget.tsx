@@ -3,8 +3,8 @@
 import { AlertTriangle, Package, TrendingDown } from "lucide-react";
 import { useMemo } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
-import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
+import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
 import { Progress } from "@/components/ui/progress";
 import { useInventoryMetrics } from "@/hooks/dashboard/useDashboardData";
 import { WidgetErrorBoundary } from "./WidgetErrorBoundary";

@@ -5,32 +5,32 @@
  * Use these examples as a reference for creating test data in your tests.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
-import { testDb, cleanDatabase } from "@/tests/helpers/db-utils";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-	users,
-	households,
+	administrations,
 	animals,
+	households,
+	inventoryItems,
 	medications,
 	regimens,
-	administrations,
-	inventoryItems,
+	users,
 } from "@/db/schema";
+import { cleanDatabase, testDb } from "@/tests/helpers/db-utils";
 
 // Import factories
 import {
-	createUser,
-	createHousehold,
-	createAnimal,
-	createMedication,
-	UserBuilder,
-	TestScenarioBuilder,
-	ComplianceDataBuilder,
-	quickScenarios,
-	complexScenarios,
-	medicationPresets,
-	animalPresets,
 	administrationPresets,
+	animalPresets,
+	ComplianceDataBuilder,
+	complexScenarios,
+	createAnimal,
+	createHousehold,
+	createMedication,
+	createUser,
+	medicationPresets,
+	quickScenarios,
+	TestScenarioBuilder,
+	UserBuilder,
 } from "./index";
 
 // Example 1: Simple Unit Test Data

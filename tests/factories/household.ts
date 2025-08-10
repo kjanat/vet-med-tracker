@@ -3,8 +3,8 @@
  */
 
 import type { NewHousehold, NewMembership } from "@/db/schema";
-import { random, location } from "./utils/random";
 import { dates } from "./utils/dates";
+import { location, random } from "./utils/random";
 
 // Household factory function
 export function createHousehold(
