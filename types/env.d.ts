@@ -5,13 +5,10 @@ declare namespace NodeJS {
 		DATABASE_URL_UNPOOLED?: string;
 		DATABASE_URL_POOLED?: string;
 
-		// Authentication (Clerk)
-		NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: string;
-		CLERK_SECRET_KEY: string;
-		NEXT_PUBLIC_CLERK_SIGN_IN_URL?: string;
-		NEXT_PUBLIC_CLERK_SIGN_UP_URL?: string;
-		NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL?: string;
-		NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL?: string;
+		// Authentication (Stack Auth)
+		NEXT_PUBLIC_STACK_PROJECT_ID: string;
+		NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: string;
+		STACK_SECRET_SERVER_KEY: string;
 
 		// Application
 		NODE_ENV: "development" | "production" | "test";

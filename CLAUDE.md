@@ -13,7 +13,7 @@ VetMed Tracker is a Progressive Web App (PWA) for managing veterinary medication
 - **Styling**: Tailwind CSS v4 (using new @import syntax in globals.css)
 - **UI Components**: shadcn/ui components with Radix UI primitives
 - **Database**: PostgreSQL with Drizzle ORM (Neon hosting)
-- **Authentication**: Clerk (managed authentication service)
+- **Authentication**: Stack Auth (managed authentication service)
 - **API Layer**: tRPC for type-safe APIs
 - **State Management**: React Context (AppProvider) + React Query
 - **Forms**: React Hook Form with Zod validation
@@ -109,13 +109,13 @@ lib/                 # Utilities and shared logic
 ### Key Architecture Patterns
 
 1. **App Router Structure**:
-   - Protected routes under `app/(authed)/` require Clerk authentication
+   - Protected routes under `app/(authed)/` require Stack Auth authentication
    - Nested layouts for shared UI components
    - Parallel routes for modals and overlays
 
 2. **Authentication Flow**:
-   - Clerk handles all auth (OAuth, email/password, social)
-   - Middleware protects routes via `clerkMiddleware`
+   - Stack Auth handles all auth (OAuth, email/password, social)
+   - Middleware protects routes via Stack Auth
    - Users synced to database on first login via webhook
    - Multi-household support with role-based access (OWNER, CAREGIVER, VETREADONLY)
 
@@ -182,7 +182,7 @@ lib/                 # Utilities and shared logic
 
 ### Key Entities
 
-- **User**: Authenticated user via Clerk
+- **User**: Authenticated user via Stack Auth
 - **Household**: Organization unit (family, clinic, shelter)
 - **Membership**: User's role in household (OWNER, CAREGIVER, VETREADONLY)
 - **Animal**: Pet/patient with medical information
@@ -257,10 +257,10 @@ appRouter
 ### Creating a Protected Page
 ```typescript
 // app/(authed)/(app)/feature/page.tsx
-import { auth } from "@clerk/nextjs/server";
+import { stackServerApp } from "@/stack";
 
 export default async function FeaturePage() {
-  const { userId } = await auth();
+  const user = await stackServerApp.getUser({ or: "redirect" });
   // Page content
 }
 ```

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { animals, households, memberships, regimens } from "@/db/schema";
 import { appRouter } from "@/server/api/routers/_app";
+import { StackAuthTestUtils, TEST_USERS } from "../mocks/stack-auth";
 import {
 	seedTestData,
 	setupTestDatabase,
@@ -9,7 +10,7 @@ import {
 } from "@/tests/helpers/db-utils";
 import {
 	createAuthenticatedContext,
-	mockSession,
+	type TestSession,
 } from "@/tests/helpers/trpc-utils";
 
 describe("Administration Workflow Integration", () => {
@@ -18,6 +19,7 @@ describe("Administration Workflow Integration", () => {
 	let testData: Awaited<ReturnType<typeof seedTestData>>;
 
 	beforeEach(async () => {
+		StackAuthTestUtils.reset();
 		testData = await seedTestData();
 	});
 
@@ -26,14 +28,17 @@ describe("Administration Workflow Integration", () => {
 			if (!testData.animal || !testData.household || !testData.user) {
 				throw new Error("Test data missing required entities");
 			}
-			const ctx = await createAuthenticatedContext({
-				...mockSession,
+			const mockSession: TestSession = {
 				subject: testData.user.id,
 				access: {
 					householdId: testData.household.id,
 					role: "CAREGIVER",
 				},
-			});
+				type: "session_token",
+				exp: Date.now() + 3600000,
+			};
+
+			const ctx = await createAuthenticatedContext(mockSession);
 
 			const caller = appRouter.createCaller(ctx);
 
@@ -127,14 +132,17 @@ describe("Administration Workflow Integration", () => {
 			if (!testData.animal || !testData.household || !testData.user) {
 				throw new Error("Test data missing required entities");
 			}
-			const ctx = await createAuthenticatedContext({
-				...mockSession,
+			const mockSession: TestSession = {
 				subject: testData.user.id,
 				access: {
 					householdId: testData.household.id,
 					role: "CAREGIVER",
 				},
-			});
+				type: "session_token",
+				exp: Date.now() + 3600000,
+			};
+
+			const ctx = await createAuthenticatedContext(mockSession);
 
 			const caller = appRouter.createCaller(ctx);
 
@@ -193,14 +201,17 @@ describe("Administration Workflow Integration", () => {
 			if (!testData.animal || !testData.household || !testData.user) {
 				throw new Error("Test data missing required entities");
 			}
-			const ctx = await createAuthenticatedContext({
-				...mockSession,
+			const mockSession: TestSession = {
 				subject: testData.user.id,
 				access: {
 					householdId: testData.household.id,
 					role: "CAREGIVER",
 				},
-			});
+				type: "session_token",
+				exp: Date.now() + 3600000,
+			};
+
+			const ctx = await createAuthenticatedContext(mockSession);
 
 			const caller = appRouter.createCaller(ctx);
 
@@ -246,14 +257,17 @@ describe("Administration Workflow Integration", () => {
 			if (!testData.animal || !testData.household || !testData.user) {
 				throw new Error("Test data missing required entities");
 			}
-			const ctx = await createAuthenticatedContext({
-				...mockSession,
+			const mockSession: TestSession = {
 				subject: testData.user.id,
 				access: {
 					householdId: testData.household.id,
 					role: "CAREGIVER",
 				},
-			});
+				type: "session_token",
+				exp: Date.now() + 3600000,
+			};
+
+			const ctx = await createAuthenticatedContext(mockSession);
 
 			const caller = appRouter.createCaller(ctx);
 
@@ -295,14 +309,17 @@ describe("Administration Workflow Integration", () => {
 			if (!testData.animal || !testData.household || !testData.user) {
 				throw new Error("Test data missing required entities");
 			}
-			const ctx = await createAuthenticatedContext({
-				...mockSession,
+			const mockSession: TestSession = {
 				subject: testData.user.id,
 				access: {
 					householdId: testData.household.id,
 					role: "OWNER",
 				},
-			});
+				type: "session_token",
+				exp: Date.now() + 3600000,
+			};
+
+			const ctx = await createAuthenticatedContext(mockSession);
 
 			const caller = appRouter.createCaller(ctx);
 
@@ -381,14 +398,17 @@ describe("Administration Workflow Integration", () => {
 			)[0]!;
 
 			// Try to access other household's animal
-			const ctx = await createAuthenticatedContext({
-				...mockSession,
+			const mockSession: TestSession = {
 				subject: testData.user.id,
 				access: {
 					householdId: testData.household.id,
 					role: "OWNER",
 				},
-			});
+				type: "session_token",
+				exp: Date.now() + 3600000,
+			};
+
+			const ctx = await createAuthenticatedContext(mockSession);
 
 			const caller = appRouter.createCaller(ctx);
 

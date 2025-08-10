@@ -57,7 +57,7 @@ export default function CookiesPage() {
 							</p>
 							<ul className="list-disc space-y-1 pl-6">
 								<li>
-									<code>__clerk_*</code> - Authentication and security
+									<code>__session_*</code> - Authentication and security
 								</li>
 								<li>
 									<code>selectedHouseholdId</code> - Your current household

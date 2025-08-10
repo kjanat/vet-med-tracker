@@ -594,7 +594,7 @@ export async function checkExternalServices(): Promise<ComponentHealth> {
 
 	try {
 		// Placeholder for external service checks
-		// Future: Clerk, push notification services, etc.
+		// Future: Stack Auth, push notification services, etc.
 		const responseTime = Date.now() - start;
 
 		return {

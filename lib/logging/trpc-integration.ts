@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import type { ClerkContext } from "@/server/api/trpc";
+import type { Context } from "@/server/api/trpc";
 import {
 	type AuditEventType,
 	AuditSeverity,
@@ -13,7 +13,7 @@ import {
 } from "./trpc-middleware";
 
 /**
- * Enhanced tRPC middleware that integrates with existing Clerk context
+ * Enhanced tRPC middleware that integrates with existing Stack Auth context
  */
 export const enhancedLoggingMiddleware = createTRPCLoggingMiddleware({
 	logRequests: true,
@@ -33,12 +33,12 @@ export const auditMiddleware = async ({
 	path,
 	input,
 }: {
-	ctx: ClerkContext;
-	next: () => Promise<{ data: unknown; ctx: ClerkContext }>;
+	ctx: Context;
+	next: () => Promise<{ data: unknown; ctx: Context }>;
 	path: string;
 	input: unknown;
 }) => {
-	// Create logging context with user information from Clerk
+	// Create logging context with user information from Stack Auth
 	const loggingContext = await logger.createContext(`trpc.${path}`, {
 		trpc: true,
 		path,
@@ -156,7 +156,7 @@ export const trpcAudit = {
 	 * Log medication administration with audit trail
 	 */
 	async logMedicationAdministration(
-		ctx: ClerkContext,
+		ctx: Context,
 		animalId: string,
 		regimenId: string,
 		administrationId: string,
@@ -188,7 +188,7 @@ export const trpcAudit = {
 	 * Log data changes with before/after values
 	 */
 	async logDataChange(
-		ctx: ClerkContext,
+		ctx: Context,
 		eventType: AuditEventType,
 		targetId: string,
 		targetType: string,
@@ -227,7 +227,7 @@ export const trpcAudit = {
 	 * Log security events from tRPC context
 	 */
 	async logSecurityEvent(
-		ctx: ClerkContext,
+		ctx: Context,
 		_eventType: AuditEventType,
 		metadata?: Record<string, unknown>,
 		correlationId?: string,
@@ -252,7 +252,7 @@ export const trpcAudit = {
 	 * Log permission denied events
 	 */
 	async logPermissionDenied(
-		ctx: ClerkContext,
+		ctx: Context,
 		resource: string,
 		action: string,
 		correlationId?: string,
@@ -274,7 +274,7 @@ export const trpcAudit = {
 	 * Create logging context from tRPC context
 	 */
 	async createContextFromTRPC(
-		ctx: ClerkContext,
+		ctx: Context,
 		operation: string,
 	): Promise<string> {
 		const loggingContext = await getTRPCLoggingContext(
@@ -297,7 +297,7 @@ export const trpcDb = {
 	 * Log database operations with performance tracking
 	 */
 	async logOperation<T>(
-		ctx: ClerkContext,
+		ctx: Context,
 		operation: string,
 		tableName: string,
 		fn: () => Promise<T>,
@@ -343,7 +343,7 @@ export const trpcDb = {
 	 * Log queries with parameter sanitization
 	 */
 	async logQuery<T>(
-		ctx: ClerkContext,
+		ctx: Context,
 		queryName: string,
 		parameters: Record<string, unknown>,
 		fn: () => Promise<T>,

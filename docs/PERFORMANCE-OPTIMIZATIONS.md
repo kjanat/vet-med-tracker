@@ -150,14 +150,14 @@ const setSelectedHousehold = useCallback((household: Household | null) => {
 #### Smart Backend Synchronization
 ```tsx
 const updateVetMedPreferences = useCallback(async (updates: Partial<VetMedPreferences>) => {
-  if (!clerkUser) throw new Error("User not loaded");
+  if (!stackUser) throw new Error("User not loaded");
   
   const newPreferences = { ...state.preferences, ...updates };
   
-  // Update Clerk immediately for responsiveness
-  await clerkUser.update({
-    unsafeMetadata: {
-      ...clerkUser.unsafeMetadata,
+  // Update Stack Auth immediately for responsiveness
+  await stackUser.update({
+    clientMetadata: {
+      ...stackUser.clientMetadata,
       vetMedPreferences: newPreferences,
     },
   });
@@ -176,7 +176,7 @@ const updateVetMedPreferences = useCallback(async (updates: Partial<VetMedPrefer
     console.warn("Failed to sync preferences to backend:", error);
     // Could implement retry logic here
   }
-}, [clerkUser, state.preferences]);
+}, [stackUser, state.preferences]);
 ```
 
 **Benefits**:
@@ -197,7 +197,7 @@ interface LoadingStates {
 
 // Independent loading states prevent blocking
 const { data: householdData } = trpc.household.list.useQuery(undefined, {
-  enabled: isLoaded && !!clerkUser,
+  enabled: isLoaded && !!stackUser,
 });
 ```
 

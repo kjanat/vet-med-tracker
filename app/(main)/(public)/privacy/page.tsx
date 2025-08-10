@@ -189,7 +189,7 @@ export default function PrivacyPage() {
 					<p className="mb-4">Our Service integrates with:</p>
 					<ul className="mb-4 list-disc space-y-2 pl-6">
 						<li>
-							<strong>Clerk:</strong> For authentication services
+							<strong>Stack Auth:</strong> For authentication services
 						</li>
 						<li>
 							<strong>Analytics providers:</strong> To understand usage patterns

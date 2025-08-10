@@ -49,25 +49,23 @@ This document summarizes the comprehensive production deployment configuration c
 
 ### 6. **CI/CD Pipeline (GitHub Actions)**
 
-#### Production Deployment (`deploy-production.yml`)
-- **Triggers**: Push to main/master, manual dispatch
-- **Steps**:
-  1. Pre-deployment validation (type check, lint, audit)
-  2. Test execution with Neon test database
-  3. Database backup creation
-  4. Production migration execution
-  5. Application build and deployment
-  6. Post-deployment health verification
-  7. Performance and feature flag validation
-
-#### Staging Deployment (`deploy-staging.yml`)
-- **Triggers**: Push to development/staging, pull requests
-- **Features**:
+#### Integrated Platform Deployments
+- **Vercel Integration**: Automatic deployments via Vercel's GitHub integration
+  - Production deployments on main/master branch pushes
   - Preview deployments for pull requests
-  - Staging database migrations
-  - Smoke test execution
-  - PR comment updates with deployment info
-  - Experimental feature testing
+  - Zero-configuration deployment with build optimization
+
+- **Neon Database Integration**: Automatic database branching via Neon's GitHub integration
+  - Preview database branches for pull requests
+  - Automatic schema migrations
+  - Database cleanup on PR closure
+
+#### Remaining Custom Workflows
+- **Code Quality** (`code_quality.yml`) - Lint, type check, and code quality validation
+- **Testing** (`test.yml`) - Unit and integration test execution
+- **Visual Regression** (`visual-regression.yml`) - UI change detection
+- **Claude Code Review** (`claude-code-review.yml`) - AI-powered code review
+- **Rollback** (`rollback.yml`) - Emergency deployment rollback capability
 
 #### Rollback Workflow (`rollback.yml`)
 - **Types**: Vercel only, database only, full rollback

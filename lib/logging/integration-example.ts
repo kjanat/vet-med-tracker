@@ -1,7 +1,7 @@
 /**
  * Integration Example: How to integrate the logging system with existing tRPC setup
  *
- * This file shows how to modify the existing clerk-init.ts to include logging middleware
+ * This file shows how to modify the existing trpc.ts to include logging middleware
  * without breaking the current functionality.
  */
 
@@ -268,7 +268,7 @@ export const publicProcedure = t.procedure
 	.use(connectionMiddleware)
 	.use(loggingMiddleware);
 
-// Protected procedure - requires Clerk authentication
+// Protected procedure - requires Stack Auth authentication
 export const protectedProcedure = t.procedure
 	// @ts-expect-error - Connection middleware type compatibility issue
 	.use(connectionMiddleware)

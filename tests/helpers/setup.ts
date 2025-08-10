@@ -1,10 +1,18 @@
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
+import { StackAuthTestUtils } from "../mocks/stack-auth";
 
 // Cleanup after each test
 afterEach(() => {
 	cleanup();
+	// Reset Stack Auth mocks after each test
+	StackAuthTestUtils.reset();
+});
+
+// Setup Stack Auth mocks before each test
+beforeEach(() => {
+	StackAuthTestUtils.initialize();
 });
 
 // Mock window.matchMedia
@@ -41,6 +49,17 @@ vi.mock("next/navigation", () => ({
 	usePathname() {
 		return "/";
 	},
+}));
+
+// Mock Stack Auth module
+vi.mock("@stackframe/stack", () => {
+	const { stackAuthMocks } = require("../mocks/stack-auth");
+	return stackAuthMocks["@stackframe/stack"];
+});
+
+// Mock the Stack server app
+vi.mock("../../stack", () => ({
+	stackServerApp: StackAuthTestUtils.getMockStackServerApp(),
 }));
 
 // Mock environment variables

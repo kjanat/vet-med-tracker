@@ -1,9 +1,10 @@
 import type * as schema from "@/db/schema";
 import type { Context } from "@/server/api/trpc";
 import { createTestDatabase } from "./test-db";
+import { createMockUser, type MockStackUser } from "../mocks/stack-auth";
 
 /**
- * Create a test context for tRPC that bypasses Clerk authentication
+ * Create a test context for tRPC that uses Stack Auth mocks
  * This is specifically for integration tests that need to test the API logic
  * without dealing with actual authentication
  */
@@ -25,18 +26,27 @@ export function createTestTRPCContext(options: {
 		updatedAt: membership?.updatedAt || new Date().toISOString(),
 	};
 
+	// Create Stack Auth mock user based on database user
+	const stackUser: MockStackUser = createMockUser({
+		id: user.id,
+		displayName: user.name || "",
+		primaryEmail: user.email,
+		profileImageUrl: user.image,
+		clientMetadata: {
+			onboardingComplete: true,
+			vetMedPreferences: {
+				defaultTimezone: "America/New_York",
+				preferredUnits: "metric",
+			},
+		},
+	});
+
 	return {
 		db,
 		headers: new Headers(),
 		requestedHouseholdId: household.id,
-		// Mock Stack Auth user
-		stackUser: {
-			id: user.id,
-			primaryEmail: user.email,
-			displayName: user.name || "",
-			profileImageUrl: user.image,
-			clientMetadata: {},
-		} as any,
+		// Stack Auth user
+		stackUser,
 		// Database user
 		dbUser: user,
 		currentHouseholdId: household.id,

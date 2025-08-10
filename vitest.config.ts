@@ -13,7 +13,8 @@ export default defineConfig({
 	test: {
 		environment: "jsdom",
 		globals: true,
-		setupFiles: "./tests/helpers/setup.ts",
+		setupFiles: ["./tests/helpers/setup.ts"],
+		globalSetup: ["./tests/setup/database.ts"],
 		include: ["**/*.test.{ts,tsx}"],
 		exclude: [
 			"**/node_modules/**",
@@ -38,12 +39,25 @@ export default defineConfig({
 		// Set NODE_ENV to test for environment variable loading
 		env: {
 			NODE_ENV: "test",
+			// Test database configuration
+			TEST_DB_HOST: "localhost",
+			TEST_DB_PORT: "5432",
+			TEST_DB_USER: "postgres",
+			TEST_DB_PASSWORD: "postgres",
+			TEST_DB_NAME: "vet_med_test",
 		},
 		// Environment variables are already loaded from .env.development via @next/env above
 		// No need to duplicate them here - just use process.env directly
 		// Increase timeout for database operations
 		testTimeout: 30000,
 		hookTimeout: 30000,
+		// Allow each test suite to reset database state
+		pool: "forks",
+		poolOptions: {
+			forks: {
+				singleFork: true, // Use single fork for database consistency
+			},
+		},
 	},
 	resolve: {
 		alias: {

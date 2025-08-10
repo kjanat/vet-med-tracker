@@ -14,7 +14,7 @@ import {
 	useUserPreferencesContext,
 } from "../app-provider-consolidated";
 
-// Mock Clerk
+// Mock Stack Auth
 vi.mock("@stackframe/stack", () => ({
 	useUser: () => ({
 		user: {

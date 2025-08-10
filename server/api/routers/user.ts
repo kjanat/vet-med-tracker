@@ -265,7 +265,7 @@ export const userRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			// Update preferences in database
 			if (!ctx.dbUser.stackUserId) {
-				throw new Error("User must have a Clerk ID to update preferences");
+				throw new Error("User must have a Stack Auth ID to update preferences");
 			}
 			await updateUserPreferences(
 				ctx.dbUser.stackUserId,

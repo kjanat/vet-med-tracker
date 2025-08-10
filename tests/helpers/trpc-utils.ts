@@ -1,10 +1,10 @@
 import { expect, vi } from "vitest";
 import { appRouter } from "@/server/api/routers/_app";
 import type { Context } from "@/server/api/trpc";
-import { ClerkMockHelpers } from "./clerk-test-utils";
+import { StackAuthTestUtils, TEST_USERS, createMockUser, type MockStackUser } from "../mocks/stack-auth";
 import { mockDb } from "./mock-db";
 
-// Define test session type to match Clerk expectations
+// Define test session type for Stack Auth compatibility
 export interface TestSession {
 	subject: string;
 	access: {
@@ -15,8 +15,16 @@ export interface TestSession {
 	exp: number;
 }
 
-// Mock session using Clerk test mode patterns
-export const mockSession: TestSession = ClerkMockHelpers.createTestSession();
+// Mock session using Stack Auth test utilities
+export const mockSession: TestSession = {
+	subject: TEST_USERS.OWNER.id,
+	access: {
+		householdId: "test-household-123",
+		role: "OWNER",
+	},
+	type: "session_token",
+	exp: Date.now() + 3600000, // 1 hour from now
+};
 
 // Create mock context for testing
 export async function createMockContext(
@@ -57,28 +65,37 @@ export async function createAuthenticatedContext(
 		email: "test@example.com",
 		image: null,
 		emailVerified: null,
-		createdAt: new Date(),
-		updatedAt: new Date(),
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
 	};
 
-	// Mock membership data
+	// Mock membership data  
 	const mockMembership = {
 		id: `membership-${session.subject}`,
 		userId: session.subject,
 		householdId: session.access.householdId,
 		role: session.access.role as "OWNER" | "CAREGIVER" | "VETREADONLY",
-		createdAt: new Date(),
-		updatedAt: new Date(),
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
 	};
 
-	// Mock Stack Auth user context
-	const mockStackUser = {
+	// Create Stack Auth mock user
+	const mockStackUser: MockStackUser = createMockUser({
 		id: session.subject,
 		displayName: "Test User",
 		primaryEmail: "test@example.com",
 		profileImageUrl: null,
-		clientMetadata: {},
-	};
+		clientMetadata: {
+			onboardingComplete: true,
+			vetMedPreferences: {
+				defaultTimezone: "America/New_York",
+				role: session.access.role,
+			},
+		},
+	});
+
+	// Set the mock user in StackAuthTestUtils for consistency
+	StackAuthTestUtils.setMockUser(mockStackUser);
 
 	return createMockContext({
 		...overrides,

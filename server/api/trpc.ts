@@ -337,7 +337,3 @@ export const ownerProcedure = householdProcedure.use(async ({ ctx, next }) => {
 // Export types
 export type AppRouter = ReturnType<typeof createTRPCRouter>;
 
-// Backward compatibility exports (temporary during migration)
-export type ClerkContext = Context;
-export type ClerkAppRouter = AppRouter;
-export const createClerkTRPCContext = createTRPCContext;

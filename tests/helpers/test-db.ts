@@ -1,38 +1,48 @@
 import { randomUUID } from "node:crypto";
-import { neon } from "@neondatabase/serverless";
 import { eq, inArray } from "drizzle-orm";
-import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
 import type { db } from "@/db/drizzle";
 import * as schema from "@/db/schema";
+import { 
+	getTestDatabase, 
+	resetTestDatabase, 
+	initializeTestDatabase,
+	closeTestDatabase,
+	checkTestDatabaseHealth 
+} from "./test-db-setup";
 
-// For integration tests, we'll use a test-specific schema or database
-// This requires a test database URL in your environment
+// Create test database instance using local PostgreSQL
 export function createTestDatabase(): typeof db {
-	const testDatabaseUrl =
-		process.env.TEST_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
+	console.log("🔧 Creating test database connection with local PostgreSQL");
+	return getTestDatabase();
+}
 
-	if (!testDatabaseUrl) {
-		throw new Error(
-			"TEST_DATABASE_URL or DATABASE_URL_UNPOOLED must be set for integration tests",
-		);
-	}
+/**
+ * Initialize test database before running tests
+ */
+export async function setupTestDatabase(): Promise<typeof db> {
+	await initializeTestDatabase();
+	return getTestDatabase();
+}
 
-	// Always use Neon HTTP driver to match the main application database type
-	// This ensures type compatibility with ClerkContext
-	console.log(
-		"Using Neon HTTP driver for tests:",
-		testDatabaseUrl.split("@")[1]?.split("?")[0],
-	);
-	const sql = neon(testDatabaseUrl, {
-		disableWarningInBrowsers: true,
-	});
-	const testDb = drizzleHttp(sql, {
-		schema,
-		logger: false, // Disable logging in tests
-	});
+/**
+ * Reset database state between test suites
+ */
+export async function resetTestDatabaseState(): Promise<void> {
+	await resetTestDatabase();
+}
 
-	// Type assertion to ensure compatibility with main db type
-	return testDb as typeof db;
+/**
+ * Close test database connections after tests
+ */
+export async function teardownTestDatabase(): Promise<void> {
+	await closeTestDatabase();
+}
+
+/**
+ * Check if test database is healthy
+ */
+export async function isTestDatabaseHealthy(): Promise<boolean> {
+	return await checkTestDatabaseHealth();
 }
 
 // Test data factories

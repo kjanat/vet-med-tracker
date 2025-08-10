@@ -67,7 +67,7 @@ describe("Rate Limiting Integration Tests", () => {
 	});
 
 	describe("tRPC Context Integration", () => {
-		it("should work with Clerk context format", async () => {
+		it("should work with Stack Auth context format", async () => {
 			const middleware = createRateLimitMiddleware<TestContext>();
 			const mockNext = vi.fn().mockResolvedValue("success");
 

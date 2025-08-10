@@ -8,7 +8,7 @@ export default function DebugSyncPage() {
 			<h1 className="mb-6 font-bold text-2xl">Debug User Sync</h1>
 			<p className="mb-8 text-muted-foreground">
 				This page helps diagnose and fix user synchronization issues between
-				Clerk authentication and the application database.
+				Stack Auth and the application database.
 			</p>
 			<SyncStatus />
 
@@ -18,7 +18,7 @@ export default function DebugSyncPage() {
 				</h2>
 				<ol className="list-inside list-decimal space-y-2 text-sm text-yellow-800 dark:text-yellow-200">
 					<li>
-						Check if your Clerk user appears in the &quot;Clerk User&quot;
+						Check if your Stack user appears in the &quot;Stack User&quot;
 						section
 					</li>
 					<li>Check if you have a corresponding &quot;Database User&quot;</li>

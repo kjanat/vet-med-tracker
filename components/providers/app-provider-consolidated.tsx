@@ -544,7 +544,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 	// USER & AUTH MANAGEMENT
 	// =============================================================================
 
-	// Convert Clerk user to internal user format
+	// Convert Stack user to internal user format
 	const convertStackUser = useCallback(
 		(stackUser: StackUserForConversion): User => ({
 			id: stackUser.id,
@@ -624,7 +624,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 	// PREFERENCES MANAGEMENT
 	// =============================================================================
 
-	// Load preferences from Clerk user metadata
+	// Load preferences from Stack user metadata
 	useEffect(() => {
 		if (stackUser?.clientMetadata) {
 			const vetMedPrefs = stackUser.clientMetadata
