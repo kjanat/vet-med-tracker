@@ -34,7 +34,7 @@ import {
 } from "@/lib/infrastructure/health/checks";
 
 // Mock external dependencies
-vi.mock("@/lib/db-monitoring", () => ({
+vi.mock("@/lib/infrastructure/db-monitoring", () => ({
 	comprehensiveHealthCheck: vi.fn(),
 	checkDatabaseHealth: vi.fn(),
 	testRawConnection: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock("@/lib/redis/client", () => ({
 	checkRedisHealth: vi.fn(),
 }));
 
-vi.mock("@/lib/circuit-breaker", () => ({
+vi.mock("@/lib/infrastructure/circuit-breaker", () => ({
 	CircuitState: {
 		CLOSED: "CLOSED",
 		OPEN: "OPEN",
@@ -72,7 +72,7 @@ vi.mock("@/lib/redis/circuit-breaker", () => ({
 	checkAllCircuitBreakers: vi.fn(),
 }));
 
-vi.mock("@/lib/connection-queue", () => ({
+vi.mock("@/lib/infrastructure/connection-queue", () => ({
 	getAllQueueStats: vi.fn(),
 }));
 

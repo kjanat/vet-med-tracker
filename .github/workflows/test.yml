@@ -46,6 +46,9 @@ jobs:
         env:
           DATABASE_URL: ${{ inputs.database_url || 'postgresql://postgres:postgres@localhost:5432/vetmed_test' }}
           DATABASE_URL_UNPOOLED: ${{ inputs.database_url_unpooled || 'postgresql://postgres:postgres@localhost:5432/vetmed_test' }}
+          NEXT_PUBLIC_STACK_PROJECT_ID: test-stack-project-id
+          NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: test-stack-client-key
+          STACK_SECRET_SERVER_KEY: test-stack-server-key
         run: |
           # Use db:push for local PostgreSQL, skip for external (already migrated)
           if [[ -z "${{ inputs.database_url }}" ]]; then
@@ -64,6 +67,9 @@ jobs:
           OPENAUTH_CLIENT_ID: test-client-id
           OPENAUTH_CLIENT_SECRET: test-client-secret
           OPENAUTH_ISSUER: https://auth.example.com
+          NEXT_PUBLIC_STACK_PROJECT_ID: test-stack-project-id
+          NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: test-stack-client-key
+          STACK_SECRET_SERVER_KEY: test-stack-server-key
         run: pnpm test:integration
 
       - name: Install Playwright browsers
@@ -78,6 +84,9 @@ jobs:
           OPENAUTH_CLIENT_ID: test-client-id
           OPENAUTH_CLIENT_SECRET: test-client-secret
           OPENAUTH_ISSUER: https://auth.example.com
+          NEXT_PUBLIC_STACK_PROJECT_ID: test-stack-project-id
+          NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: test-stack-client-key
+          STACK_SECRET_SERVER_KEY: test-stack-server-key
         run: pnpm test:e2e
 
       - uses: actions/upload-artifact@v4
