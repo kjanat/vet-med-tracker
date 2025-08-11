@@ -1,15 +1,46 @@
 {
+	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"buildCommand": "pnpm build",
 	"devCommand": "pnpm dev",
-	"installCommand": "pnpm install",
+	"installCommand": "pnpm install --frozen-lockfile",
 	"framework": "nextjs",
 	"regions": ["iad1"],
 	"functions": {
 		"app/api/**/*.ts": {
-			"maxDuration": 30
+			"maxDuration": 30,
+			"memory": 1024
+		},
+		"app/api/trpc/[trpc]/route.ts": {
+			"maxDuration": 60,
+			"memory": 1024
+		},
+		"app/api/health/route.ts": {
+			"maxDuration": 10,
+			"memory": 512
 		}
 	},
 	"headers": [
+		{
+			"source": "/(.*)",
+			"headers": [
+				{
+					"key": "X-Frame-Options",
+					"value": "DENY"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				},
+				{
+					"key": "X-XSS-Protection",
+					"value": "1; mode=block"
+				},
+				{
+					"key": "Referrer-Policy",
+					"value": "strict-origin-when-cross-origin"
+				}
+			]
+		},
 		{
 			"source": "/api/health",
 			"headers": [
@@ -31,6 +62,73 @@
 					"value": "/"
 				}
 			]
+		},
+		{
+			"source": "/sw.js",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=0, must-revalidate"
+				},
+				{
+					"key": "Service-Worker-Allowed",
+					"value": "/"
+				}
+			]
+		},
+		{
+			"source": "/manifest.json",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=3600, s-maxage=3600"
+				}
+			]
+		},
+		{
+			"source": "/_next/static/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				}
+			]
+		},
+		{
+			"source": "/(.*).ico",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=86400, s-maxage=86400"
+				}
+			]
+		},
+		{
+			"source": "/(.*).webp",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, s-maxage=31536000"
+				}
+			]
+		},
+		{
+			"source": "/(.*).png",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, s-maxage=31536000"
+				}
+			]
+		},
+		{
+			"source": "/(.*).jpg",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, s-maxage=31536000"
+				}
+			]
 		}
 	],
 	"rewrites": [
@@ -45,12 +143,21 @@
 	],
 	"env": {
 		"NODE_ENV": "production",
-		"ENABLE_NOTIFICATION_SCHEDULER": "true"
+		"ENABLE_NOTIFICATION_SCHEDULER": "true",
+		"NEXT_TELEMETRY_DISABLED": "1"
 	},
 	"crons": [
 		{
 			"path": "/api/notifications/scheduler",
 			"schedule": "0 9 * * *"
 		}
-	]
+	],
+	"github": {
+		"enabled": true,
+		"autoAlias": true,
+		"silent": true
+	},
+	"outputFileTracing": true,
+	"cleanUrls": true,
+	"trailingSlash": false
 }

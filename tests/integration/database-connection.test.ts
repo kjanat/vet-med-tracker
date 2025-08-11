@@ -3,14 +3,14 @@
  * This test verifies that the local PostgreSQL test database setup works correctly
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
 import { eq } from "drizzle-orm";
-import { 
-	createTestDatabase, 
-	testFactories,
-	resetTestDatabaseState,
-} from "../helpers/test-db";
+import { beforeEach, describe, expect, it } from "vitest";
 import * as schema from "@/db/schema";
+import {
+	createTestDatabase,
+	resetTestDatabaseState,
+	testFactories,
+} from "../helpers/test-db";
 
 describe("Database Connection", () => {
 	const db = createTestDatabase();
@@ -35,10 +35,13 @@ describe("Database Connection", () => {
 			name: "Test User",
 		});
 
-		const [insertedUser] = await db.insert(schema.users).values({
-			id: "test-user-123",
-			...testUserData,
-		}).returning();
+		const [insertedUser] = await db
+			.insert(schema.users)
+			.values({
+				id: "test-user-123",
+				...testUserData,
+			})
+			.returning();
 
 		expect(insertedUser).toBeDefined();
 		expect(insertedUser?.email).toBe("test@example.com");
@@ -58,29 +61,38 @@ describe("Database Connection", () => {
 
 	it("should handle foreign key relationships correctly", async () => {
 		// Create a user
-		const [user] = await db.insert(schema.users).values({
-			id: "fk-test-user",
-			...testFactories.user({
-				email: "fk-test@example.com",
-				name: "FK Test User",
-			}),
-		}).returning();
+		const [user] = await db
+			.insert(schema.users)
+			.values({
+				id: "fk-test-user",
+				...testFactories.user({
+					email: "fk-test@example.com",
+					name: "FK Test User",
+				}),
+			})
+			.returning();
 
 		// Create a household
-		const [household] = await db.insert(schema.households).values({
-			...testFactories.household({
-				name: "FK Test Household",
-			}),
-		}).returning();
+		const [household] = await db
+			.insert(schema.households)
+			.values({
+				...testFactories.household({
+					name: "FK Test Household",
+				}),
+			})
+			.returning();
 
 		// Create membership (foreign key relationship)
-		const [membership] = await db.insert(schema.memberships).values({
-			...testFactories.membership({
-				userId: user!.id,
-				householdId: household!.id,
-				role: "OWNER",
-			}),
-		}).returning();
+		const [membership] = await db
+			.insert(schema.memberships)
+			.values({
+				...testFactories.membership({
+					userId: user!.id,
+					householdId: household!.id,
+					role: "OWNER",
+				}),
+			})
+			.returning();
 
 		expect(membership).toBeDefined();
 		expect(membership?.userId).toBe(user!.id);
@@ -97,7 +109,10 @@ describe("Database Connection", () => {
 			})
 			.from(schema.memberships)
 			.innerJoin(schema.users, eq(schema.users.id, schema.memberships.userId))
-			.innerJoin(schema.households, eq(schema.households.id, schema.memberships.householdId))
+			.innerJoin(
+				schema.households,
+				eq(schema.households.id, schema.memberships.householdId),
+			)
 			.where(eq(schema.memberships.id, membership!.id));
 
 		expect(membershipWithRelations).toHaveLength(1);
@@ -116,8 +131,8 @@ describe("Database Connection", () => {
 			ORDER BY table_name
 		`);
 
-		const tableNames = tableQuery.rows.map(row => row.table_name);
-		
+		const tableNames = tableQuery.rows.map((row) => row.table_name);
+
 		// Check that we have the expected vetmed_ prefixed tables
 		expect(tableNames).toContain("vetmed_users");
 		expect(tableNames).toContain("vetmed_households");

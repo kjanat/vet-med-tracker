@@ -1,0 +1,178 @@
+# Branch Protection Rules Configuration
+# This file documents the recommended branch protection settings for the repository.
+# These rules should be applied via GitHub Settings > Branches
+
+main:
+  protection_rules:
+    # Require pull request reviews before merging
+    required_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: false
+      require_last_push_approval: false
+    
+    # Status checks that must pass before merging
+    required_status_checks:
+      strict: true  # Require branches to be up to date before merging
+      contexts:
+        - "Code Quality"
+        - "Build"
+        - "Tests (unit)"
+        - "Tests (integration)"
+        - "E2E Tests (chromium)"
+        - "CI Summary"
+    
+    # Enforce all configured restrictions for administrators
+    enforce_admins: false
+    
+    # Restrict who can push to the branch
+    restrictions:
+      users: []
+      teams: []
+      apps: []
+    
+    # Allow force pushes
+    allow_force_pushes: false
+    
+    # Allow deletions
+    allow_deletions: false
+    
+    # Require conversation resolution before merging
+    required_conversation_resolution: true
+    
+    # Require signed commits
+    required_signatures: false
+    
+    # Include administrators
+    include_administrators: false
+    
+    # Require linear history
+    required_linear_history: false
+    
+    # Lock branch
+    lock_branch: false
+    
+    # Allow fork syncing
+    allow_fork_syncing: true
+
+master:
+  protection_rules:
+    # Same as main branch
+    required_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: false
+      require_last_push_approval: false
+    
+    required_status_checks:
+      strict: true
+      contexts:
+        - "Code Quality"
+        - "Build"
+        - "Tests (unit)"
+        - "Tests (integration)"
+        - "E2E Tests (chromium)"
+        - "CI Summary"
+    
+    enforce_admins: false
+    allow_force_pushes: false
+    allow_deletions: false
+    required_conversation_resolution: true
+    required_signatures: false
+    include_administrators: false
+    required_linear_history: false
+    lock_branch: false
+    allow_fork_syncing: true
+
+development:
+  protection_rules:
+    # Less strict rules for development branch
+    required_reviews:
+      required_approving_review_count: 0  # No reviews required
+      dismiss_stale_reviews: false
+      require_code_owner_reviews: false
+      require_last_push_approval: false
+    
+    required_status_checks:
+      strict: false  # Don't require branch to be up to date
+      contexts:
+        - "Code Quality"
+        - "Build"
+    
+    enforce_admins: false
+    allow_force_pushes: true  # Allow force pushes for development
+    allow_deletions: false
+    required_conversation_resolution: false
+    required_signatures: false
+    include_administrators: false
+    required_linear_history: false
+    lock_branch: false
+    allow_fork_syncing: true
+
+# Deployment environments configuration
+environments:
+  production:
+    # Production deployment rules
+    protection_rules:
+      - required_reviewers:
+          users: []
+          teams: []
+      - wait_timer: 0  # No wait time
+      - prevent_self_review: true
+      - deployment_branch_policy:
+          protected_branches: true
+          custom_branch_policies:
+            - main
+            - master
+    
+    # Environment secrets (configure in GitHub Settings)
+    secrets:
+      - NEXT_PUBLIC_STACK_PROJECT_ID
+      - NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY
+      - STACK_SECRET_SERVER_KEY
+      - DATABASE_URL
+      - DATABASE_URL_UNPOOLED
+      - REDIS_URL
+      - SENTRY_DSN
+      - SENTRY_AUTH_TOKEN
+      - TURBO_TOKEN
+      - TURBO_TEAM
+  
+  preview:
+    # Preview deployment rules (for PRs)
+    protection_rules:
+      - required_reviewers:
+          users: []
+          teams: []
+      - wait_timer: 0
+      - prevent_self_review: false
+      - deployment_branch_policy:
+          protected_branches: false
+          custom_branch_policies: []
+    
+    # Preview environment uses same secrets as production
+    secrets_inherit_from: production
+
+# Automated setup script (optional - requires GitHub CLI)
+setup_script: |
+  #!/bin/bash
+  
+  # This script can be used to automatically configure branch protection rules
+  # Requires: gh CLI tool and appropriate permissions
+  
+  REPO="owner/repo"  # Replace with your repository
+  
+  # Main branch protection
+  gh api repos/$REPO/branches/main/protection \
+    --method PUT \
+    --field required_status_checks='{"strict":true,"contexts":["Code Quality","Build","Tests (unit)","Tests (integration)","E2E Tests (chromium)","CI Summary"]}' \
+    --field enforce_admins=false \
+    --field required_pull_request_reviews='{"required_approving_review_count":1,"dismiss_stale_reviews":true}' \
+    --field restrictions=null \
+    --field allow_force_pushes=false \
+    --field allow_deletions=false \
+    --field required_conversation_resolution=true \
+    --field lock_branch=false \
+    --field allow_fork_syncing=true
+  
+  echo "Branch protection rules configured successfully"

@@ -1,7 +1,12 @@
 import { expect, vi } from "vitest";
 import { appRouter } from "@/server/api/routers/_app";
 import type { Context } from "@/server/api/trpc";
-import { StackAuthTestUtils, TEST_USERS, createMockUser, type MockStackUser } from "../mocks/stack-auth";
+import {
+	createMockUser,
+	type MockStackUser,
+	StackAuthTestUtils,
+	TEST_USERS,
+} from "../mocks/stack-auth";
 import { mockDb } from "./mock-db";
 
 // Define test session type for Stack Auth compatibility
@@ -69,7 +74,7 @@ export async function createAuthenticatedContext(
 		updatedAt: new Date().toISOString(),
 	};
 
-	// Mock membership data  
+	// Mock membership data
 	const mockMembership = {
 		id: `membership-${session.subject}`,
 		userId: session.subject,

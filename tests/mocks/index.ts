@@ -5,14 +5,13 @@
 
 // Stack Auth Mocks
 export * from "./stack-auth";
-export { default as StackAuthMocks } from "./stack-auth";
-
 // Re-export commonly used test utilities
 export {
-  StackAuthTestUtils,
-  StackAuthPlaywrightHelpers,
-  createMockUser,
-  createMockSession,
-  TEST_USERS,
-  stackAuthMocks,
+	createMockSession,
+	createMockUser,
+	default as StackAuthMocks,
+	StackAuthPlaywrightHelpers,
+	StackAuthTestUtils,
+	stackAuthMocks,
+	TEST_USERS,
 } from "./stack-auth";

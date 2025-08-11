@@ -26,7 +26,7 @@ async function verifyTestDatabase() {
 
 	// Test connection
 	const connectionUrl = `postgres://${config.user}:${config.password}@${config.host}:${config.port}/${config.database}`;
-	
+
 	let sql;
 	try {
 		sql = postgres(connectionUrl, {
@@ -40,7 +40,9 @@ async function verifyTestDatabase() {
 		console.log("🔌 Testing database connection...");
 		const result = await sql`SELECT 1 as test, version() as pg_version`;
 		console.log("✅ Connection successful!");
-		console.log(`   PostgreSQL Version: ${result[0].pg_version.split(' on ')[0]}`);
+		console.log(
+			`   PostgreSQL Version: ${result[0].pg_version.split(" on ")[0]}`,
+		);
 
 		// Test table existence
 		console.log("🗂️  Checking for tables...");
@@ -54,7 +56,7 @@ async function verifyTestDatabase() {
 
 		if (tables.length > 0) {
 			console.log(`✅ Found ${tables.length} vetmed_ tables:`);
-			tables.forEach(table => {
+			tables.forEach((table) => {
 				console.log(`   - ${table.table_name}`);
 			});
 		} else {
@@ -66,7 +68,7 @@ async function verifyTestDatabase() {
 	} catch (error) {
 		console.error("❌ Database verification failed:");
 		console.error(`   Error: ${error.message}`);
-		
+
 		if (error.message.includes("does not exist")) {
 			console.log("\n💡 To fix this:");
 			console.log("   1. Ensure PostgreSQL is running");
@@ -76,7 +78,7 @@ async function verifyTestDatabase() {
 			console.log("   1. Start PostgreSQL service");
 			console.log("   2. Check connection settings");
 		}
-		
+
 		return false;
 	} finally {
 		if (sql) {
@@ -87,15 +89,17 @@ async function verifyTestDatabase() {
 
 // Run verification
 verifyTestDatabase()
-	.then(success => {
+	.then((success) => {
 		if (success) {
-			console.log("\n🎉 Test database setup verification completed successfully!");
+			console.log(
+				"\n🎉 Test database setup verification completed successfully!",
+			);
 		} else {
 			console.log("\n💥 Test database verification failed!");
 			process.exit(1);
 		}
 	})
-	.catch(error => {
+	.catch((error) => {
 		console.error("Unhandled error during verification:", error);
 		process.exit(1);
 	});

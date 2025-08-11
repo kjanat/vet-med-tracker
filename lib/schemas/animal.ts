@@ -7,8 +7,8 @@ import {
 // Define the animal schema for form validation with enhanced security
 export const animalFormSchema = createSecurityValidator(
 	z.object({
-		name: secureSchemas.safeString(100).min(1, "Name is required"),
-		species: secureSchemas.safeString(50).min(1, "Species is required"),
+		name: secureSchemas.safeString(100),
+		species: secureSchemas.safeString(50),
 		breed: secureSchemas.safeString(100).optional(),
 		sex: z.enum(["Male", "Female"]).optional(),
 		neutered: z.boolean(),
@@ -38,8 +38,8 @@ export const animalFormSchema = createSecurityValidator(
 export const animalApiSchema = z.object({
 	id: secureSchemas.uuid.optional(),
 	householdId: secureSchemas.uuid,
-	name: secureSchemas.safeString(100).min(1, "Name is required"),
-	species: secureSchemas.safeString(50).min(1, "Species is required"),
+	name: secureSchemas.safeString(100),
+	species: secureSchemas.safeString(50),
 	breed: secureSchemas.safeString(100).optional(),
 	sex: z.enum(["Male", "Female"]).optional(),
 	neutered: z.boolean(),

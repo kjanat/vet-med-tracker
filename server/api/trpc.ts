@@ -336,4 +336,3 @@ export const ownerProcedure = householdProcedure.use(async ({ ctx, next }) => {
 
 // Export types
 export type AppRouter = ReturnType<typeof createTRPCRouter>;
-

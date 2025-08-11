@@ -2,11 +2,11 @@
 
 /**
  * Test Database Initialization Script
- * 
+ *
  * This script initializes the test database for development and CI environments.
  * It creates the database if it doesn't exist, runs migrations, and optionally
  * seeds it with test data.
- * 
+ *
  * Usage:
  *   pnpm run db:test:init
  *   pnpm run db:test:init --seed
@@ -15,12 +15,12 @@
 
 import { parseArgs } from "node:util";
 import {
-	createTestDatabase,
-	runTestMigrations,
-	resetTestDatabase,
-	closeTestDatabase,
 	checkTestDatabaseHealth,
+	closeTestDatabase,
+	createTestDatabase,
 	getTestDatabaseInfo,
+	resetTestDatabase,
+	runTestMigrations,
 	TEST_DB_CONFIG,
 } from "../tests/helpers/test-db-setup";
 
@@ -34,7 +34,7 @@ interface Args {
 
 async function seedTestDatabase(): Promise<void> {
 	console.log("🌱 Seeding test database with sample data...");
-	
+
 	try {
 		const { getTestDatabase } = await import("../tests/helpers/test-db-setup");
 		const { testFactories } = await import("../tests/helpers/test-db");
@@ -42,20 +42,26 @@ async function seedTestDatabase(): Promise<void> {
 		const schema = await import("../db/schema");
 
 		// Create a test user
-		const testUser = await db.insert(schema.users).values({
-			id: "test-user-1",
-			...testFactories.user({
-				email: "test@example.com",
-				name: "Test User",
-			}),
-		}).returning();
+		const testUser = await db
+			.insert(schema.users)
+			.values({
+				id: "test-user-1",
+				...testFactories.user({
+					email: "test@example.com",
+					name: "Test User",
+				}),
+			})
+			.returning();
 
 		// Create a test household
-		const testHousehold = await db.insert(schema.households).values({
-			...testFactories.household({
-				name: "Test Household",
-			}),
-		}).returning();
+		const testHousehold = await db
+			.insert(schema.households)
+			.values({
+				...testFactories.household({
+					name: "Test Household",
+				}),
+			})
+			.returning();
 
 		// Create membership
 		await db.insert(schema.memberships).values({
@@ -67,22 +73,28 @@ async function seedTestDatabase(): Promise<void> {
 		});
 
 		// Create a test animal
-		const testAnimal = await db.insert(schema.animals).values({
-			...testFactories.animal({
-				name: "Buddy",
-				species: "Dog",
-				householdId: testHousehold[0]!.id,
-			}),
-		}).returning();
+		const testAnimal = await db
+			.insert(schema.animals)
+			.values({
+				...testFactories.animal({
+					name: "Buddy",
+					species: "Dog",
+					householdId: testHousehold[0]!.id,
+				}),
+			})
+			.returning();
 
 		// Create a test medication
-		const testMedication = await db.insert(schema.medicationCatalog).values({
-			...testFactories.medication({
-				genericName: "Test Medicine",
-				route: "ORAL",
-				form: "TABLET",
-			}),
-		}).returning();
+		const testMedication = await db
+			.insert(schema.medicationCatalog)
+			.values({
+				...testFactories.medication({
+					genericName: "Test Medicine",
+					route: "ORAL",
+					form: "TABLET",
+				}),
+			})
+			.returning();
 
 		// Create a test regimen
 		await db.insert(schema.regimens).values({
@@ -97,7 +109,6 @@ async function seedTestDatabase(): Promise<void> {
 		console.log(`   - Household: ${testHousehold[0]!.name}`);
 		console.log(`   - Animal: ${testAnimal[0]!.name}`);
 		console.log(`   - Medication: ${testMedication[0]!.genericName}`);
-		
 	} catch (error) {
 		console.error("Failed to seed test database:", error);
 		throw error;
@@ -106,9 +117,9 @@ async function seedTestDatabase(): Promise<void> {
 
 async function healthCheck(): Promise<boolean> {
 	console.log("🏥 Checking test database health...");
-	
+
 	const isHealthy = await checkTestDatabaseHealth();
-	
+
 	if (isHealthy) {
 		console.log("✅ Test database is healthy");
 		return true;
@@ -208,14 +219,15 @@ async function main(): Promise<void> {
 
 		// Step 5: Health check
 		const isHealthy = await healthCheck();
-		
+
 		if (!isHealthy) {
-			console.error("❌ Database initialization completed but health check failed");
+			console.error(
+				"❌ Database initialization completed but health check failed",
+			);
 			process.exit(1);
 		}
 
 		console.log("🎉 Test database initialization completed successfully!");
-		
 	} catch (error) {
 		console.error("❌ Test database initialization failed:", error);
 		process.exit(1);

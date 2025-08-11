@@ -49,7 +49,9 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 
 	// State management
 	const defaultPeriod = PERIOD_OPTIONS[1]; // Last 30 days
-	const [selectedPeriod, setSelectedPeriod] = useState<Period>(defaultPeriod);
+	const [selectedPeriod, setSelectedPeriod] = useState<Period | undefined>(
+		defaultPeriod,
+	);
 	const [dateRange, setDateRange] = useState<DateRange>(() =>
 		getDateRangeFromPeriod(defaultPeriod),
 	);

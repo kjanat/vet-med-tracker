@@ -92,16 +92,16 @@ export async function createTestDatabase(): Promise<void> {
  */
 export async function runTestMigrations(): Promise<void> {
 	console.log("🔄 Running test database migrations...");
-	
+
 	try {
 		// Import and run migrations using drizzle-kit programmatically
 		const { migrate } = await import("drizzle-orm/postgres-js/migrator");
 		const db = getTestDatabase();
-		
+
 		await migrate(db, {
 			migrationsFolder: "./drizzle",
 		});
-		
+
 		console.log("✅ Test database migrations completed");
 	} catch (error) {
 		console.error("Failed to run test migrations:", error);
@@ -114,10 +114,10 @@ export async function runTestMigrations(): Promise<void> {
  */
 export async function resetTestDatabase(): Promise<void> {
 	const db = getTestDatabase();
-	
+
 	try {
 		console.log("🗑️  Resetting test database...");
-		
+
 		// Get all table names with vetmed_ prefix
 		const tablesResult = await testSql!`
 			SELECT table_name 
@@ -126,20 +126,22 @@ export async function resetTestDatabase(): Promise<void> {
 			AND table_name LIKE 'vetmed_%'
 			ORDER BY table_name
 		`;
-		
+
 		if (tablesResult.length > 0) {
-			const tableNames = tablesResult.map(row => `"${row.table_name}"`).join(', ');
-			
+			const tableNames = tablesResult
+				.map((row) => `"${row.table_name}"`)
+				.join(", ");
+
 			// Disable foreign key checks temporarily
 			await testSql!`SET session_replication_role = replica`;
-			
+
 			// Truncate all tables
 			await testSql!.unsafe(`TRUNCATE TABLE ${tableNames} CASCADE`);
-			
+
 			// Re-enable foreign key checks
 			await testSql!`SET session_replication_role = DEFAULT`;
 		}
-		
+
 		console.log("✅ Test database reset completed");
 	} catch (error) {
 		console.error("Failed to reset test database:", error);

@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { animals, households, memberships, regimens } from "@/db/schema";
 import { appRouter } from "@/server/api/routers/_app";
-import { StackAuthTestUtils, TEST_USERS } from "../mocks/stack-auth";
 import {
 	seedTestData,
 	setupTestDatabase,
@@ -12,6 +11,7 @@ import {
 	createAuthenticatedContext,
 	type TestSession,
 } from "@/tests/helpers/trpc-utils";
+import { StackAuthTestUtils, TEST_USERS } from "../mocks/stack-auth";
 
 describe("Administration Workflow Integration", () => {
 	setupTestDatabase();

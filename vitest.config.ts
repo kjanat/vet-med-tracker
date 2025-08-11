@@ -15,11 +15,12 @@ export default defineConfig({
 		globals: true,
 		setupFiles: ["./tests/helpers/setup.ts"],
 		globalSetup: ["./tests/setup/database.ts"],
-		include: ["**/*.test.{ts,tsx}"],
+		include: ["tests/**/*.test.{ts,tsx}", "**/*.test.{ts,tsx}"],
 		exclude: [
 			"**/node_modules/**",
 			"**/dist/**",
 			"**/tests/e2e/**", // E2E tests handled by Playwright
+			"**/.next/**",
 		],
 		coverage: {
 			provider: "v8",

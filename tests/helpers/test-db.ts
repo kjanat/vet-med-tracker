@@ -2,12 +2,12 @@ import { randomUUID } from "node:crypto";
 import { eq, inArray } from "drizzle-orm";
 import type { db } from "@/db/drizzle";
 import * as schema from "@/db/schema";
-import { 
-	getTestDatabase, 
-	resetTestDatabase, 
-	initializeTestDatabase,
+import {
+	checkTestDatabaseHealth,
 	closeTestDatabase,
-	checkTestDatabaseHealth 
+	getTestDatabase,
+	initializeTestDatabase,
+	resetTestDatabase,
 } from "./test-db-setup";
 
 // Create test database instance using local PostgreSQL

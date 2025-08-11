@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { StackAuthTestUtils, TEST_USERS } from "../mocks/stack-auth";
 import {
 	createAuthenticatedContext,
 	createMockContext,
 	type TestSession,
 } from "../helpers/trpc-utils";
+import { StackAuthTestUtils, TEST_USERS } from "../mocks/stack-auth";
 
 describe("Authentication Context", () => {
 	beforeEach(() => {

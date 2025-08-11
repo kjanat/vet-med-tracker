@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Testing
+tests/
+coverage/
+.vitest/
+playwright-report/
+test-results/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Development
+.env.local
+.env.development
+.env.test
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+.husky/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Build artifacts (local only)
+.turbo/
+.next/cache/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+
+# Scripts
+scripts/
+seed.ts
+
+# Monitoring
+.sentryclirc
+
+# Other
+.dockerignore
+Dockerfile
+docker-compose*.yml

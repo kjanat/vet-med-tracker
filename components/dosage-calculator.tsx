@@ -198,14 +198,6 @@ export function DosageCalculator() {
 				animals.find((a) => a.id === watchedValues.animalId)
 			),
 			retry: false,
-			onError: (error: unknown) => {
-				console.error("Calculation failed:", error);
-				toast({
-					title: "Calculation Error",
-					description: "Failed to calculate dosage. Please check your inputs.",
-					variant: "destructive",
-				});
-			},
 		},
 	);
 

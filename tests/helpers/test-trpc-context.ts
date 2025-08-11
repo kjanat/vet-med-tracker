@@ -1,7 +1,7 @@
 import type * as schema from "@/db/schema";
 import type { Context } from "@/server/api/trpc";
-import { createTestDatabase } from "./test-db";
 import { createMockUser, type MockStackUser } from "../mocks/stack-auth";
+import { createTestDatabase } from "./test-db";
 
 /**
  * Create a test context for tRPC that uses Stack Auth mocks

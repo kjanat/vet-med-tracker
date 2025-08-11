@@ -28,7 +28,7 @@ function UpcomingDosesWidgetContent({
 				if (!acc[dose.animalName]) {
 					acc[dose.animalName] = [];
 				}
-				acc[dose.animalName].push(dose);
+				acc[dose.animalName]?.push(dose);
 				return acc;
 			},
 			{} as Record<string, typeof upcomingData.upcomingDoses>,

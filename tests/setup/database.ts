@@ -1,16 +1,16 @@
 /**
  * Test Database Setup and Teardown
- * 
+ *
  * This module provides setup and teardown functions for test database
  * to be used with Vitest's globalSetup and globalTeardown hooks.
  */
 
 import {
+	checkTestDatabaseHealth,
+	closeTestDatabase,
+	getTestDatabaseInfo,
 	initializeTestDatabase,
 	resetTestDatabase,
-	closeTestDatabase,
-	checkTestDatabaseHealth,
-	getTestDatabaseInfo,
 } from "../helpers/test-db-setup";
 
 /**
@@ -19,23 +19,22 @@ import {
  */
 export async function setupDatabase(): Promise<void> {
 	console.log("🚀 Setting up test database...");
-	
+
 	try {
 		// Initialize test database (create DB, run migrations)
 		await initializeTestDatabase();
-		
+
 		// Verify database is healthy
 		const isHealthy = await checkTestDatabaseHealth();
 		if (!isHealthy) {
 			throw new Error("Test database health check failed after setup");
 		}
-		
+
 		const info = getTestDatabaseInfo();
 		console.log("✅ Test database setup completed:");
 		console.log(`   Database: ${info.config.database}`);
 		console.log(`   Host: ${info.config.host}:${info.config.port}`);
 		console.log(`   Connected: ${info.isConnected ? "✅" : "❌"}`);
-		
 	} catch (error) {
 		console.error("❌ Test database setup failed:", error);
 		throw error;
@@ -48,7 +47,7 @@ export async function setupDatabase(): Promise<void> {
  */
 export async function teardownDatabase(): Promise<void> {
 	console.log("🔌 Tearing down test database...");
-	
+
 	try {
 		await closeTestDatabase();
 		console.log("✅ Test database teardown completed");
@@ -78,7 +77,7 @@ export async function verifyTestDatabaseReady(): Promise<void> {
 	const isHealthy = await checkTestDatabaseHealth();
 	if (!isHealthy) {
 		throw new Error(
-			"Test database is not ready. Please run 'pnpm db:test:init' first."
+			"Test database is not ready. Please run 'pnpm db:test:init' first.",
 		);
 	}
 }
@@ -99,12 +98,5 @@ export async function teardown(): Promise<void> {
 	await teardownDatabase();
 }
 
-// Export setup and teardown functions for Vitest
-export default {
-	setup,
-	teardown,
-	setupDatabase,
-	teardownDatabase,
-	resetDatabaseState,
-	verifyTestDatabaseReady,
-};
+// Export setup function as default for Vitest globalSetup
+export default setup;
