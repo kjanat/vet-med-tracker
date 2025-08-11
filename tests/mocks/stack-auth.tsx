@@ -237,10 +237,12 @@ export const MockUserButton = ({ user }: { user?: MockStackUser }) => (
 					alt={user.displayName || "User"}
 				/>
 				<span>{user.displayName || user.primaryEmail}</span>
-				<button onClick={() => user.signOut()}>Sign Out</button>
+				<button type="button" onClick={() => user.signOut()}>
+					Sign Out
+				</button>
 			</div>
 		) : (
-			<button>Sign In</button>
+			<button type="button">Sign In</button>
 		)}
 	</div>
 );

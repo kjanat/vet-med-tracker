@@ -242,6 +242,19 @@ export function PhotoUploader({
 	}, [disabled]);
 
 	/**
+	 * Handle keyboard events to open file picker
+	 */
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent) => {
+			if ((e.key === "Enter" || e.key === " ") && !disabled) {
+				e.preventDefault();
+				fileInputRef.current?.click();
+			}
+		},
+		[disabled],
+	);
+
+	/**
 	 * Handle drag over
 	 */
 	const handleDragOver = useCallback(
@@ -330,9 +343,10 @@ export function PhotoUploader({
 			</div>
 
 			{/* Upload Area */}
-			<div
+			<button
+				type="button"
 				ref={dropRef}
-				className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+				className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
 					isDragOver
 						? "border-primary bg-primary/5"
 						: "border-muted-foreground/25 hover:border-muted-foreground/50"
@@ -341,9 +355,12 @@ export function PhotoUploader({
           ${state.error ? "border-destructive/50 bg-destructive/5" : ""}
         `}
 				onClick={handleClick}
+				onKeyDown={handleKeyDown}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
+				disabled={disabled}
+				aria-label="Upload photo by clicking or dragging and dropping"
 			>
 				{/* Clear button for existing photo */}
 				{state.preview && !isLoading && (
@@ -410,7 +427,7 @@ export function PhotoUploader({
 						<p className="text-destructive text-xs">{state.error}</p>
 					</div>
 				)}
-			</div>
+			</button>
 
 			{/* File info */}
 			{state.originalFile && (

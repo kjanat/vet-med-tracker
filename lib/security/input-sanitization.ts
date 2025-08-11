@@ -76,7 +76,19 @@ export function sanitizeFileName(filename: string): string {
 	let sanitized = filename.replace(securityPatterns.pathTraversal, "");
 
 	// Remove potentially dangerous characters
-	sanitized = sanitized.replace(/[<>:"/\\|?*\x00-\x1f]/g, "");
+	// File system reserved characters: < > : " / \ | ? *
+	sanitized = sanitized.replace(/[<>:"/\\|?*]/g, "");
+
+	// Remove control characters using filter instead of regex with control character ranges
+	// This avoids the noControlCharactersInRegex lint rule while still providing security
+	sanitized = sanitized
+		.split("")
+		.filter((char) => {
+			const code = char.charCodeAt(0);
+			// Filter out ASCII control characters (0-31) which can break filenames
+			return code > 31 || char === " "; // Allow space (32) but not other control chars
+		})
+		.join("");
 
 	// Limit length and ensure safe characters only
 	return sanitized.slice(0, 255).trim();

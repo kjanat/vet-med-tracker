@@ -60,8 +60,8 @@ function InventoryLevelsWidgetContent({
 				if (!item.inUse) return false;
 
 				const isLowStock =
-					item.unitsRemaining && item.quantityUnits
-						? item.unitsRemaining / item.quantityUnits <= 0.2
+					item.unitsRemaining && item.unitsTotal
+						? item.unitsRemaining / item.unitsTotal <= 0.2
 						: false;
 
 				const isExpiringSoon = item.expiresOn
@@ -75,8 +75,8 @@ function InventoryLevelsWidgetContent({
 			})
 			.map((item) => {
 				const percentRemaining =
-					item.unitsRemaining && item.quantityUnits
-						? Math.round((item.unitsRemaining / item.quantityUnits) * 100)
+					item.unitsRemaining && item.unitsTotal
+						? Math.round((item.unitsRemaining / item.unitsTotal) * 100)
 						: 0;
 
 				const daysUntilExpiry = item.expiresOn
@@ -88,7 +88,7 @@ function InventoryLevelsWidgetContent({
 
 				return {
 					id: item.id,
-					medicationName: item.medication?.genericName || "Unknown",
+					medicationName: item.genericName || "Unknown",
 					animalName: item.assignedAnimalName,
 					percentRemaining,
 					unitsRemaining: item.unitsRemaining || 0,

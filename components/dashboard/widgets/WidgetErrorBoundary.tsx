@@ -231,7 +231,7 @@ export function withWidgetErrorBoundary<T extends Record<string, any>>(
 			maxRetries={options?.maxRetries}
 			fallback={options?.fallback}
 		>
-			<Component {...props} ref={ref} />
+			<Component {...(props as T)} />
 		</WidgetErrorBoundary>
 	));
 

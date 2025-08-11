@@ -77,7 +77,6 @@ export function CoSignerSelect({
 			<PopoverTrigger asChild>
 				<Button
 					variant="outline"
-					role="combobox"
 					aria-expanded={open}
 					aria-label="Select co-signer"
 					className={cn(

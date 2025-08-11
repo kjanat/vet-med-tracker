@@ -317,11 +317,10 @@ export function DashboardLayout({
 
 			{/* Fullscreen backdrop */}
 			{fullscreenWidget && (
-				<div
+				<button
+					type="button"
 					className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
 					onClick={() => setFullscreenWidget(null)}
-					role="button"
-					tabIndex={-1}
 					onKeyDown={(e) => {
 						if (e.key === "Enter" || e.key === " ") {
 							setFullscreenWidget(null);

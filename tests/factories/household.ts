@@ -246,20 +246,30 @@ export const householdUtils = {
 		type: "family" | "clinic" | "rescue" | "shelter" = "family",
 	) => {
 		const templates = {
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: These are intentional template placeholders replaced by .replace() method
 			family: ["${surname} Family", "${surname} Household", "The ${surname}s"],
 			clinic: [
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} Animal Hospital",
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} Veterinary Clinic",
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} Pet Care Center",
 			],
 			rescue: [
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} Animal Rescue",
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} Pet Rescue",
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} Second Chances",
 			],
 			shelter: [
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} Animal Shelter",
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} Humane Society",
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
 				"${name} SPCA",
 			],
 		};

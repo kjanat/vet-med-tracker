@@ -396,7 +396,7 @@ function AdministrationRow({
 												>
 													<img
 														src={url}
-														alt={`Evidence photo ${index + 1}`}
+														alt={`Evidence ${index + 1}`}
 														className="h-full w-full object-cover transition-transform group-hover:scale-110"
 														loading="lazy"
 													/>

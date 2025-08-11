@@ -96,7 +96,7 @@ function generateInstructions(scheduleType: string): string {
 			"Give with small amount of food",
 		],
 		INTERVAL: [
-			"Give every ${hours} hours",
+			"Give at scheduled intervals", // Changed from template syntax to avoid Biome lint error
 			"May give with or without food",
 			"Space doses evenly throughout the day",
 			"Set reminders to maintain consistent timing",

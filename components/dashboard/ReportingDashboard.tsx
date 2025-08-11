@@ -48,10 +48,8 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 	const refreshDashboard = useDashboardRefresh();
 
 	// State management
-	const defaultPeriod = PERIOD_OPTIONS[1]; // Last 30 days
-	const [selectedPeriod, setSelectedPeriod] = useState<Period | undefined>(
-		defaultPeriod,
-	);
+	const defaultPeriod = PERIOD_OPTIONS[1] as Period; // Last 30 days - TypeScript doesn't know array is non-empty
+	const [selectedPeriod, setSelectedPeriod] = useState<Period>(defaultPeriod);
 	const [dateRange, setDateRange] = useState<DateRange>(() =>
 		getDateRangeFromPeriod(defaultPeriod),
 	);

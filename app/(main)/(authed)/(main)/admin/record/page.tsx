@@ -1180,7 +1180,7 @@ function PhotoEvidenceUploader({
 						<div key={index} className="relative">
 							<img
 								src={url}
-								alt={`Evidence photo ${index + 1}`}
+								alt={`Evidence ${index + 1}`}
 								className="h-20 w-full rounded-md border object-cover"
 							/>
 							<Button

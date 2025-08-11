@@ -85,6 +85,7 @@ const PhotoUploader: React.FC<{
 					<div key={photo.id} data-testid={`photo-${photo.id}`}>
 						<img src={photo.url} alt={photo.originalName} />
 						<button
+							type="button"
 							onClick={() => handleDelete(photo.id)}
 							data-testid={`delete-${photo.id}`}
 						>

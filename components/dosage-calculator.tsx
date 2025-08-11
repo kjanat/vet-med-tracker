@@ -130,7 +130,7 @@ export function DosageCalculator() {
 		useState<DosageResult | null>(null);
 	const [selectedMedication, setSelectedMedication] = useState<{
 		genericName: string;
-		brandName?: string;
+		brandName?: string | null;
 	} | null>(null);
 	const [calculationHistory, setCalculationHistory] = useState<
 		CalculationHistoryItem[]
@@ -474,7 +474,7 @@ export function DosageCalculator() {
 									<Form {...form}>
 										<form className="space-y-4">
 											{/* Animal Selection */}
-											<FormField
+											<FormField<DosageCalculatorForm>
 												control={form.control}
 												name="animalId"
 												render={({ field }) => (
@@ -482,7 +482,7 @@ export function DosageCalculator() {
 														<FormLabel>Animal</FormLabel>
 														<FormControl>
 															<Select
-																value={field.value}
+																value={String(field.value)}
 																onValueChange={field.onChange}
 															>
 																<SelectTrigger>
@@ -507,7 +507,7 @@ export function DosageCalculator() {
 
 											{/* Weight Input */}
 											<div className="grid grid-cols-2 gap-4">
-												<FormField
+												<FormField<DosageCalculatorForm>
 													control={form.control}
 													name="weight"
 													render={({ field }) => (
@@ -531,7 +531,7 @@ export function DosageCalculator() {
 														</FormItem>
 													)}
 												/>
-												<FormField
+												<FormField<DosageCalculatorForm>
 													control={form.control}
 													name="weightUnit"
 													render={({ field }) => (
@@ -539,7 +539,7 @@ export function DosageCalculator() {
 															<FormLabel>Unit</FormLabel>
 															<FormControl>
 																<Select
-																	value={field.value}
+																	value={String(field.value)}
 																	onValueChange={field.onChange}
 																>
 																	<SelectTrigger>
@@ -558,7 +558,7 @@ export function DosageCalculator() {
 											</div>
 
 											{/* Medication Selection */}
-											<FormField
+											<FormField<DosageCalculatorForm>
 												control={form.control}
 												name="medicationId"
 												render={({ field }) => (
@@ -566,10 +566,13 @@ export function DosageCalculator() {
 														<FormLabel>Medication</FormLabel>
 														<FormControl>
 															<MedicationSearch
-																value={field.value}
+																value={String(field.value || "")}
 																onChange={(medicationId, medication) => {
 																	field.onChange(medicationId);
-																	setSelectedMedication(medication);
+																	setSelectedMedication({
+																		genericName: medication.genericName,
+																		brandName: medication.brandName,
+																	});
 																}}
 																householdId={selectedHousehold?.id}
 																placeholder="Search medications..."
@@ -582,7 +585,7 @@ export function DosageCalculator() {
 											/>
 
 											{/* Route Selection */}
-											<FormField
+											<FormField<DosageCalculatorForm>
 												control={form.control}
 												name="route"
 												render={({ field }) => (
@@ -590,7 +593,7 @@ export function DosageCalculator() {
 														<FormLabel>Route (Optional)</FormLabel>
 														<FormControl>
 															<Select
-																value={field.value || ""}
+																value={String(field.value || "")}
 																onValueChange={field.onChange}
 															>
 																<SelectTrigger>
@@ -614,7 +617,7 @@ export function DosageCalculator() {
 											/>
 
 											{/* Target Unit Selection */}
-											<FormField
+											<FormField<DosageCalculatorForm>
 												control={form.control}
 												name="targetUnit"
 												render={({ field }) => (
@@ -622,7 +625,7 @@ export function DosageCalculator() {
 														<FormLabel>Display Unit</FormLabel>
 														<FormControl>
 															<Select
-																value={field.value}
+																value={String(field.value)}
 																onValueChange={field.onChange}
 															>
 																<SelectTrigger>
@@ -643,7 +646,7 @@ export function DosageCalculator() {
 											/>
 
 											{/* Custom Adjustments */}
-											<FormField
+											<FormField<DosageCalculatorForm>
 												control={form.control}
 												name="customAdjustment"
 												render={({ field }) => (

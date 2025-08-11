@@ -34,11 +34,18 @@ pnpm start        # Start production server
 pnpm preview      # Build and start production locally
 
 # Code Quality
-pnpm check        # Run Biome checks
-pnpm check:write  # Run Biome with auto-fix (or: biome check --write)
-pnpm lint         # Run Biome lint + Next.js lint
-pnpm format       # Format code with Biome
-pnpm typecheck    # Type check with TypeScript
+pnpm lint            # Run Biome lint + Next.js lint
+pnpm typecheck       # Type check with TypeScript
+biome check          # Run Biome checks
+biome check --write  # Run Biome with auto-fix (or: biome check --write)
+biome format --write # Format code with Biome
+
+# Specialized code quality commands
+biome lint --only=category/rule  # Limits the output of the linter to category/rule issues, e.g. `suspicious/noArrayIndexKey`
+biome check --reporter=summary   # Only shows the summary of what rule violations, the amount of them, and whether they are errors, warnings, or just information level issues
+biome check --reporter=github    # Formats the output in a github actions-friendly way. This is a compact summary of each issue, also reccomended for use by LLM's as it outputs less tokens, and densely provides all data.
+biome check --diagnostic-level=<info|warn|error> # The level of diagnostics to show.
+biome <check|lint|format> --help # Displays help information
 
 # Database Management
 pnpm db:generate  # Generate Drizzle migrations
@@ -48,18 +55,18 @@ pnpm db:studio    # Open Drizzle Studio GUI
 pnpm db:seed      # Seed database with test data
 
 # Testing
-pnpm test         # Run unit tests
-pnpm test:watch   # Run tests in watch mode
+pnpm test          # Run unit tests
+pnpm test:watch    # Run tests in watch mode
 pnpm test:coverage # Run tests with coverage
-pnpm test:e2e     # Run Playwright E2E tests
-pnpm test:e2e:ui  # Run Playwright with UI mode
+pnpm test:e2e      # Run Playwright E2E tests
+pnpm test:e2e:ui   # Run Playwright with UI mode
 ```
 
 ## Architecture Overview
 
 ### Directory Structure
 
-```
+```tree
 app/
 ├── (authed)/        # Protected routes requiring authentication
 │   ├── (app)/       # Main app routes with shared layout
@@ -109,35 +116,41 @@ lib/                 # Utilities and shared logic
 ### Key Architecture Patterns
 
 1. **App Router Structure**:
+
    - Protected routes under `app/(authed)/` require Stack Auth authentication
    - Nested layouts for shared UI components
    - Parallel routes for modals and overlays
 
 2. **Authentication Flow**:
+
    - Stack Auth handles all auth (OAuth, email/password, social)
    - Middleware protects routes via Stack Auth
    - Users synced to database on first login via webhook
    - Multi-household support with role-based access (OWNER, CAREGIVER, VETREADONLY)
 
 3. **Database Architecture**:
-   - All tables prefixed with `vetmed_` 
+
+   - All tables prefixed with `vetmed_`
    - Drizzle ORM with PostgreSQL (Neon)
    - Three database branches: production, development, test
    - Schema-first approach with type generation
 
 4. **tRPC API Layer**:
+
    - Type-safe API with automatic TypeScript inference
    - Procedures with Zod validation
    - Middleware for authentication and authorization
    - Household-scoped data access
 
 5. **Offline-First PWA**:
+
    - Service Worker at `/public/sw.js`
    - IndexedDB for offline queue (`useOfflineQueue` hook)
    - Optimistic UI updates with eventual consistency
    - Idempotency keys prevent duplicate submissions
 
 6. **State Management**:
+
    - Global state via `AppProvider` (household, animal selection)
    - Server state with React Query + tRPC
    - Form state with React Hook Form
@@ -146,11 +159,13 @@ lib/                 # Utilities and shared logic
 ### Code Organization Patterns
 
 1. **Feature-Based Hook Organization**:
+
    - Hooks are organized by feature domain (inventory, history, admin, etc.)
    - Shared hooks in `hooks/shared/` for cross-cutting concerns
    - Tests co-located with their hooks
 
 2. **Clear Library Structure**:
+
    - `lib/infrastructure/` - System-level code (middleware, circuit breakers, health checks)
    - `lib/utils/` - Pure utility functions (no side effects)
    - `lib/schemas/` - Zod schemas organized by feature
@@ -159,21 +174,25 @@ lib/                 # Utilities and shared logic
 ### Critical Implementation Details
 
 1. **TypeScript Path Aliases**:
+
    - `@/*` maps to project root
    - `@/db/*` for database files
    - `@/trpc/*` for tRPC server files
 
 2. **Tailwind CSS v4**:
+
    - Configuration in `app/globals.css` using @theme syntax
    - No traditional tailwind.config.js file
    - CSS variables for theming and dark mode
 
 3. **Multi-Tenancy**:
+
    - Household-based data isolation
    - Role-based access control per household
    - Resource-level authorization checks
 
 4. **Time Management**:
+
    - All timestamps stored in UTC
    - Display in animal's home timezone
    - Each animal has configurable timezone
@@ -194,7 +213,7 @@ lib/                 # Utilities and shared logic
 ### tRPC Router Structure
 
 ```typescript
-appRouter
+appRouter/
 ├── animal        // Animal CRUD operations
 ├── household     // Household management
 ├── regimen       // Medication schedules
@@ -233,6 +252,7 @@ appRouter
 ## Development Workflow
 
 1. **Feature Development**:
+
    - Create/modify Drizzle schema
    - Generate types with `pnpm db:generate`
    - Implement tRPC router with Zod validation
@@ -241,12 +261,14 @@ appRouter
    - Write tests for critical paths
 
 2. **Database Changes**:
+
    - Modify `db/schema.ts`
    - Run `pnpm db:generate` to create migration
    - Test with `pnpm db:push` (development branch)
    - Apply to production via migration
 
 3. **API Development**:
+
    - Add router in `server/api/routers/`
    - Use appropriate procedure (public, protected, household, owner)
    - Add to `_app.ts` router
@@ -255,6 +277,7 @@ appRouter
 ## Common Patterns
 
 ### Creating a Protected Page
+
 ```typescript
 // app/(authed)/(app)/feature/page.tsx
 import { stackServerApp } from "@/stack";
@@ -266,6 +289,7 @@ export default async function FeaturePage() {
 ```
 
 ### Adding a tRPC Procedure
+
 ```typescript
 // server/api/routers/feature.ts
 import { z } from "zod";
@@ -281,6 +305,7 @@ export const featureRouter = createTRPCRouter({
 ```
 
 ### Using tRPC in Components
+
 ```typescript
 import { trpc } from "@/server/trpc/client";
 
@@ -291,6 +316,7 @@ function Component() {
 ```
 
 ### Using Feature-Organized Hooks
+
 ```typescript
 // Import feature-specific hooks
 import { useHistoryFilters } from "@/hooks/history/useHistoryFilters";
@@ -303,6 +329,7 @@ import { useToast } from "@/hooks/shared/use-toast";
 ```
 
 ### Using Organized Utilities
+
 ```typescript
 // Import infrastructure code
 import { withCircuitBreaker } from "@/lib/infrastructure/circuit-breaker";
@@ -326,6 +353,7 @@ When handling large-scale refactoring or complex multi-phase projects, adopt a *
 #### When to Use Delegation Workflow
 
 Use this approach for:
+
 - **Major refactors** affecting >30% of the codebase
 - **Multi-phase projects** with distinct deliverables
 - **Complex architectural changes** requiring coordination
@@ -335,6 +363,7 @@ Use this approach for:
 #### Project Manager Responsibilities
 
 As the PM, you should:
+
 1. **Create comprehensive task breakdowns** for all phases
 2. **Orchestrate parallel sub-agents** for independent tasks
 3. **Monitor progress** and coordinate dependencies
@@ -362,24 +391,28 @@ As the PM, you should:
 This project successfully used the delegation workflow to achieve 62% complexity reduction:
 
 1. **Phase 1: Quick Wins** (22% reduction)
+
    - Task 1.1: Remove duplicate components → Frontend specialist
    - Task 1.2: Clean up unused endpoints → Backend specialist
    - Task 1.3: Consolidate mobile detection → UI specialist
    - Task 1.4: Remove test utilities → Testing specialist
 
 2. **Phase 2: Provider Consolidation** (42% total reduction)
+
    - Task 2.1: Design consolidated provider → Architecture specialist
    - Task 2.2: Implement new provider → Frontend specialist
    - Task 2.3: Migrate components → Migration specialist
    - Task 2.4: Update tests → Testing specialist
 
 3. **Phase 3: Structure Refactor** (62% final reduction)
+
    - Task 3.1: Component reorganization → Frontend specialist
    - Task 3.2: Route flattening → Architecture specialist
    - Task 3.3: tRPC cleanup → Backend specialist
    - Task 3.4: Naming standardization → Code quality specialist
 
 4. **Validation Phase**
+
    - Validation 1: TypeScript checking → TypeScript specialist
    - Validation 2: Linting → Code quality specialist
    - Validation 3: Build verification → Build specialist
@@ -389,6 +422,7 @@ This project successfully used the delegation workflow to achieve 62% complexity
 #### Quality Gates
 
 Each phase must pass these gates before proceeding:
+
 1. ✅ **No TypeScript errors** (`pnpm typecheck`)
 2. ✅ **Clean linting** (`pnpm lint`)
 3. ✅ **Successful build** (`pnpm build`)
@@ -398,7 +432,8 @@ Each phase must pass these gates before proceeding:
 #### Sub-Agent Instructions Template
 
 When spawning sub-agents, provide:
-```
+
+```markdown
 You are a [specialization] specialist. Your task is to:
 
 1. [Specific objective]
@@ -420,6 +455,7 @@ Execute this task and report results with:
 #### Success Metrics
 
 Track these metrics throughout the refactor:
+
 - **Complexity reduction**: Target vs achieved
 - **File count changes**: Additions vs deletions
 - **Import path updates**: Number of files affected

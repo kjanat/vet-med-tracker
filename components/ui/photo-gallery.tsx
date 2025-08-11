@@ -900,12 +900,22 @@ function PhotoGridItem({
 
 	const showImage = !enableLazyLoading || isVisible;
 
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter" || e.key === " ") {
+			e.preventDefault();
+			onOpenLightbox(index);
+		}
+	};
+
 	return (
 		<div ref={itemRef} className="group relative">
 			{/* Photo container */}
-			<div
-				className="relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted transition-all duration-200 hover:ring-2 hover:ring-primary hover:ring-offset-2"
+			<button
+				type="button"
+				className="relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted transition-all duration-200 hover:ring-2 hover:ring-primary hover:ring-offset-2 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
 				onClick={() => onOpenLightbox(index)}
+				onKeyDown={handleKeyDown}
+				aria-label={`Open photo ${index + 1} in lightbox`}
 			>
 				{/* Primary indicator */}
 				{photo.isPrimary && (
@@ -969,7 +979,7 @@ function PhotoGridItem({
 					enableLazyLoading ? (
 						<LazyImage
 							src={photo.thumbnailUrl || photo.url}
-							alt={photo.caption || `Photo ${index + 1}`}
+							alt={photo.caption || `Image ${index + 1}`}
 							width={400}
 							height={400}
 							className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
@@ -977,7 +987,7 @@ function PhotoGridItem({
 					) : (
 						<ProgressiveImage
 							src={photo.thumbnailUrl || photo.url}
-							alt={photo.caption || `Photo ${index + 1}`}
+							alt={photo.caption || `Image ${index + 1}`}
 							width={400}
 							height={400}
 							className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
@@ -991,7 +1001,7 @@ function PhotoGridItem({
 
 				{/* Hover overlay */}
 				<div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
-			</div>
+			</button>
 
 			{/* Caption */}
 			{showCaption && photo.caption && (
