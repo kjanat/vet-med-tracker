@@ -60,7 +60,9 @@ function InventoryLevelsWidgetContent({
 				if (!item.inUse) return false;
 
 				const isLowStock =
-					item.unitsRemaining && item.unitsTotal
+					item.unitsRemaining !== null &&
+					item.unitsRemaining !== undefined &&
+					item.unitsTotal
 						? item.unitsRemaining / item.unitsTotal <= 0.2
 						: false;
 
@@ -75,14 +77,19 @@ function InventoryLevelsWidgetContent({
 			})
 			.map((item) => {
 				const percentRemaining =
-					item.unitsRemaining && item.unitsTotal
+					item.unitsRemaining !== null &&
+					item.unitsRemaining !== undefined &&
+					item.unitsTotal
 						? Math.round((item.unitsRemaining / item.unitsTotal) * 100)
 						: 0;
 
 				const daysUntilExpiry = item.expiresOn
-					? Math.ceil(
-							(new Date(item.expiresOn).getTime() - Date.now()) /
-								(1000 * 60 * 60 * 24),
+					? Math.max(
+							0,
+							Math.ceil(
+								(new Date(item.expiresOn).getTime() - Date.now()) /
+									(1000 * 60 * 60 * 24),
+							),
 						)
 					: null;
 
@@ -98,22 +105,17 @@ function InventoryLevelsWidgetContent({
 				};
 			})
 			.sort((a, b) => {
-				// Sort by urgency: low stock + expiring soon first, then low stock, then expiring soon
-				if (
-					a.isLowStock &&
-					a.isExpiringSoon &&
-					!(b.isLowStock && b.isExpiringSoon)
-				)
-					return -1;
-				if (
-					!(a.isLowStock && a.isExpiringSoon) &&
-					b.isLowStock &&
-					b.isExpiringSoon
-				)
-					return 1;
-				if (a.isLowStock && !b.isLowStock) return -1;
-				if (!a.isLowStock && b.isLowStock) return 1;
-				return a.percentRemaining - b.percentRemaining;
+				// Calculate urgency score: higher score = more urgent
+				const getUrgencyScore = (item: typeof a) => {
+					let score = 0;
+					if (item.isLowStock) score += 100;
+					if (item.isExpiringSoon) score += 50;
+					// Add percentage remaining (inverted) for fine-grained sorting
+					score += 100 - item.percentRemaining;
+					return score;
+				};
+
+				return getUrgencyScore(b) - getUrgencyScore(a); // Sort by urgency descending
 			});
 
 		return {
@@ -186,8 +188,8 @@ function InventoryLevelsWidgetContent({
 									paddingAngle={2}
 									dataKey="value"
 								>
-									{processedData.stockDistribution.map((entry, index) => (
-										<Cell key={`cell-${index}`} fill={entry.color} />
+									{processedData.stockDistribution.map((entry) => (
+										<Cell key={`cell-${entry.name}`} fill={entry.color} />
 									))}
 								</Pie>
 							</PieChart>
@@ -236,7 +238,9 @@ function InventoryLevelsWidgetContent({
 										)}
 										{item.isExpiringSoon && item.daysUntilExpiry !== null && (
 											<Badge variant="secondary" className="text-xs">
-												{item.daysUntilExpiry}d
+												{item.daysUntilExpiry === 0
+													? "Expired"
+													: `${item.daysUntilExpiry}d`}
 											</Badge>
 										)}
 									</div>

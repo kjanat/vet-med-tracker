@@ -28,8 +28,8 @@ export default function DosageCalculatorLoading() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							{/* Form fields */}
-							{Array.from({ length: 6 }).map((_, i) => (
-								<div key={i} className="space-y-2">
+							{Array.from({ length: 6 }, (_, i) => (
+								<div key={`form-field-${i}`} className="space-y-2">
 									<Skeleton className="h-4 w-24" />
 									<Skeleton className="h-10 w-full" />
 								</div>

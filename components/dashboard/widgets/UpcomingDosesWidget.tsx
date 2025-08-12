@@ -39,9 +39,10 @@ function UpcomingDosesWidgetContent({
 			const date = new Date();
 			date.setDate(date.getDate() + index);
 
-			// Simulate dose distribution throughout the week
+			// Simulate dose distribution throughout the week with deterministic variation
 			const baseDoses = Math.floor(upcomingData.totalUpcomingDoses / 7);
-			const variation = Math.floor(Math.random() * baseDoses * 0.3);
+			// Create deterministic variation based on day index for consistent results
+			const variation = Math.floor((index * 37) % (baseDoses * 0.3 + 1)); // Simple deterministic variation
 			const dailyCount = baseDoses + (index % 2 === 0 ? variation : -variation);
 
 			return {

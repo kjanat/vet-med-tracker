@@ -90,13 +90,18 @@ export function SignaturePad({
 				clientX = touchEvent.touches[0]?.clientX || 0;
 				clientY = touchEvent.touches[0]?.clientY || 0;
 				// Many browsers support pressure on touch events
-				pressure = (touchEvent.touches[0] as any).force || 0.5;
+				const touch = touchEvent.touches[0];
+				pressure = typeof touch?.force === "number" ? touch.force : 0.5;
 			} else {
 				const mouseEvent = event as MouseEvent;
 				clientX = mouseEvent.clientX;
 				clientY = mouseEvent.clientY;
 				// Some browsers support pressure on pointer events
-				pressure = (mouseEvent as any).pressure || 0.5;
+				if (window.PointerEvent && mouseEvent instanceof PointerEvent) {
+					pressure = mouseEvent.pressure || 0.5;
+				} else {
+					pressure = 0.5;
+				}
 			}
 
 			return {
@@ -126,6 +131,7 @@ export function SignaturePad({
 			// Single point - draw a dot
 			const point = stroke.points[0];
 			if (point) {
+				ctx.fillStyle = stroke.color;
 				ctx.arc(point.x, point.y, stroke.width / 2, 0, 2 * Math.PI);
 				ctx.fill();
 			}
@@ -199,8 +205,14 @@ export function SignaturePad({
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 
-		canvas.width = canvasSize.width;
-		canvas.height = canvasSize.height;
+		// HiDPI/Retina clarity: scale backing store and transform context
+		const dpr =
+			typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+		canvas.width = Math.floor(canvasSize.width * dpr);
+		canvas.height = Math.floor(canvasSize.height * dpr);
+		const ctx = canvas.getContext("2d");
+		if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
 		redrawCanvas();
 	}, [canvasSize, redrawCanvas]);
 

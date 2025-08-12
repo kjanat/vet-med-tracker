@@ -68,7 +68,6 @@ export default function RootLayout({
 								links={[
 									{ href: "#main-content", label: "Skip to main content" },
 									{ href: "#main-navigation", label: "Skip to navigation" },
-									{ href: "#search", label: "Skip to search" },
 								]}
 							/>
 							<TRPCProvider>{children}</TRPCProvider>

@@ -157,7 +157,6 @@
 		"autoAlias": true,
 		"silent": true
 	},
-	"outputFileTracing": true,
 	"cleanUrls": true,
 	"trailingSlash": false
 }

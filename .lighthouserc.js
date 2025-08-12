@@ -10,7 +10,7 @@ module.exports = {
 				// Core Web Vitals
 				"first-contentful-paint": ["warn", { maxNumericValue: 2000 }],
 				"largest-contentful-paint": ["error", { maxNumericValue: 2500 }],
-				"first-input-delay": ["error", { maxNumericValue: 100 }],
+				"interaction-to-next-paint": ["error", { maxNumericValue: 200 }],
 				"cumulative-layout-shift": ["error", { maxNumericValue: 0.1 }],
 				"speed-index": ["warn", { maxNumericValue: 3000 }],
 				"time-to-interactive": ["warn", { maxNumericValue: 3000 }],

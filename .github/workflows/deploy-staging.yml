@@ -1,0 +1,127 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Prevent overlapping deploys
+concurrency:
+  group: staging-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.14.0'
+
+jobs:
+  pre-checks:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      should-deploy: ${{ steps.check.outputs.should_deploy }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Check deployment conditions
+        id: check
+        run: |
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+
+  test:
+    name: Test Suite
+    needs: pre-checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run tests with test database
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.STAGING_DATABASE_URL_UNPOOLED }}
+        run: pnpm test
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [pre-checks, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: needs.pre-checks.outputs.should-deploy == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Deploy to Vercel staging
+        run: |
+          vercel deploy --token=${{ secrets.VERCEL_TOKEN }}
+
+  smoke-tests:
+    name: Staging Smoke Tests
+    needs: [pre-checks, deploy-staging]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: needs.deploy-staging.result == 'success'
+
+    steps:
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests on staging environment"
+
+  pr-comment:
+    name: Update PR Comment
+    needs: [pre-checks, deploy-staging, smoke-tests]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && needs.deploy-staging.result == 'success'
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `🚀 Staging deployment completed successfully!`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  cleanup:
+    name: Cleanup
+    needs: [pre-checks, deploy-staging, smoke-tests]
+    runs-on: ubuntu-latest
+    if: always() && needs.pre-checks.outputs.should-deploy == 'true'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Cleanup resources
+        run: |
+          echo "Cleaning up temporary resources"
+

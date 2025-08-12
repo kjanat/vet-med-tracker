@@ -4,7 +4,13 @@ export const DB_VERSION = 1;
 
 export interface QueuedMutation {
 	id: string;
-	type: "admin.create" | "inventory.update" | "inventory.markAsInUse";
+	type:
+		| "admin.create"
+		| "admin.undo"
+		| "admin.delete"
+		| "admin.cosign"
+		| "inventory.update"
+		| "inventory.markAsInUse";
 	payload: unknown;
 	timestamp: number;
 	retries: number;

@@ -1,5 +1,3 @@
-"use client";
-
 import { LazyReportingDashboard } from "@/components/optimized/LazyComponents";
 
 export default function ReportsPage() {

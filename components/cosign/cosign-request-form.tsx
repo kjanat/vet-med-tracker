@@ -63,6 +63,7 @@ export function CoSignRequestForm({
 
 	const form = useForm<CoSignRequestForm>({
 		resolver: zodResolver(cosignRequestSchema),
+		mode: "onChange",
 		defaultValues: {
 			cosignerId: "",
 		},

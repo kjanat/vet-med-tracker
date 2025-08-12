@@ -4,6 +4,7 @@ import { useUser } from "@stackframe/stack";
 import { Bell, Clock, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -19,23 +20,38 @@ import { Switch } from "@/components/ui/switch";
 import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
 import { BROWSER_ZONE } from "@/utils/timezone-helpers";
 
-interface VetMedPreferences {
-	defaultTimezone: string;
-	preferredPhoneNumber: string;
-	emergencyContactName: string;
-	emergencyContactPhone: string;
-	notificationPreferences: {
-		emailReminders: boolean;
-		smsReminders: boolean;
-		pushNotifications: boolean;
-		reminderLeadTime: number; // minutes before due time
-	};
-	displayPreferences: {
-		use24HourTime: boolean;
-		temperatureUnit: "celsius" | "fahrenheit";
-		weightUnit: "kg" | "lbs";
-	};
-}
+const VetMedPreferencesSchema = z.object({
+	defaultTimezone: z.string().default(BROWSER_ZONE || "America/New_York"),
+	preferredPhoneNumber: z.string().default(""),
+	emergencyContactName: z.string().default(""),
+	emergencyContactPhone: z.string().default(""),
+	notificationPreferences: z
+		.object({
+			emailReminders: z.boolean().default(true),
+			smsReminders: z.boolean().default(false),
+			pushNotifications: z.boolean().default(true),
+			reminderLeadTime: z.number().int().min(5).max(1440).default(30),
+		})
+		.default({
+			emailReminders: true,
+			smsReminders: false,
+			pushNotifications: true,
+			reminderLeadTime: 30,
+		}),
+	displayPreferences: z
+		.object({
+			use24HourTime: z.boolean().default(false),
+			temperatureUnit: z.enum(["celsius", "fahrenheit"]).default("fahrenheit"),
+			weightUnit: z.enum(["kg", "lbs"]).default("lbs"),
+		})
+		.default({
+			use24HourTime: false,
+			temperatureUnit: "fahrenheit",
+			weightUnit: "lbs",
+		}),
+});
+
+type VetMedPreferences = z.infer<typeof VetMedPreferencesSchema>;
 
 const defaultPreferences: VetMedPreferences = {
 	defaultTimezone: BROWSER_ZONE || "America/New_York",
@@ -63,9 +79,10 @@ export default function VetMedPreferencesPage() {
 
 	useEffect(() => {
 		if (user) {
-			// Load preferences from user's unsafe metadata
-			const savedPreferences = user.clientMetadata
-				.vetMedPreferences as VetMedPreferences;
+			// Load preferences from user's client metadata (validated)
+			const raw = user.clientMetadata?.vetMedPreferences;
+			const parsed = VetMedPreferencesSchema.safeParse(raw);
+			const savedPreferences = parsed.success ? parsed.data : undefined;
 			if (savedPreferences) {
 				setPreferences({ ...defaultPreferences, ...savedPreferences });
 			}

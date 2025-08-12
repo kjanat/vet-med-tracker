@@ -75,7 +75,7 @@ const HTML_ENTITIES: Record<string, string> = {
 
 // Dangerous JavaScript patterns
 const XSS_PATTERNS = [
-	/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+	/<script\b[^<]*(?:(?!<\/script\s*>)<[^<]*)*<\/script\s*>/gi,
 	/javascript:/gi,
 	/on\w+\s*=/gi, // Event handlers
 	/<iframe/gi,

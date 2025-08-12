@@ -1,6 +1,14 @@
 # Branch Protection Rules Configuration
-# This file documents the recommended branch protection settings for the repository.
-# These rules should be applied via GitHub Settings > Branches
+# 
+# IMPORTANT: This file is DOCUMENTATION ONLY. GitHub does not automatically enforce these rules.
+# 
+# To apply these rules, you must:
+# 1. Run the automation script below (requires GitHub CLI and admin permissions)
+# 2. Use a GitHub Action workflow (place in .github/workflows/) that calls the gh CLI
+# 3. Manually configure via GitHub Settings > Branches
+# 
+# For automation, create a workflow in .github/workflows/ that runs the setup_script below
+# with appropriate GITHUB_TOKEN permissions and repository admin access.
 
 main:
   protection_rules:
@@ -165,14 +173,23 @@ setup_script: |
   # Main branch protection
   gh api repos/$REPO/branches/main/protection \
     --method PUT \
-    --field required_status_checks='{"strict":true,"contexts":["Code Quality","Build","Tests (unit)","Tests (integration)","E2E Tests (chromium)","CI Summary"]}' \
-    --field enforce_admins=false \
-    --field required_pull_request_reviews='{"required_approving_review_count":1,"dismiss_stale_reviews":true}' \
-    --field restrictions=null \
-    --field allow_force_pushes=false \
-    --field allow_deletions=false \
-    --field required_conversation_resolution=true \
-    --field lock_branch=false \
-    --field allow_fork_syncing=true
+    --input - <<'JSON'
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["Code Quality","Build","Tests (unit)","Tests (integration)","E2E Tests (chromium)","CI Summary"]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true
+  },
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_conversation_resolution": true,
+  "lock_branch": false
+}
+JSON
   
   echo "Branch protection rules configured successfully"

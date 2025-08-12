@@ -1,7 +1,7 @@
 "use client";
 
 import { BarChart3, Download, RefreshCw, Settings } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 // Use lazy loading for heavy chart components
 import {
 	LazyAdministrationTimelineWidget,
@@ -35,6 +35,7 @@ import {
 	type Period,
 	useDashboardRefresh,
 } from "@/hooks/dashboard/useDashboardData";
+import { useToast } from "@/hooks/shared/use-toast";
 import { DashboardLayout, type DashboardWidget } from "./DashboardLayout";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { UpcomingDosesWidget } from "./widgets/UpcomingDosesWidget";
@@ -46,9 +47,14 @@ interface ReportingDashboardProps {
 export function ReportingDashboard({ className }: ReportingDashboardProps) {
 	const { selectedHousehold } = useApp();
 	const refreshDashboard = useDashboardRefresh();
+	const { toast } = useToast();
+	const [lastUpdatedAt, setLastUpdatedAt] = useState<Date>(new Date());
 
 	// State management
-	const defaultPeriod = PERIOD_OPTIONS[1] as Period; // Last 30 days - TypeScript doesn't know array is non-empty
+	const DEFAULT_PERIOD_VALUE = "30d"; // Last 30 days
+	const defaultPeriod =
+		PERIOD_OPTIONS.find((p) => p.value === DEFAULT_PERIOD_VALUE) ??
+		PERIOD_OPTIONS[0]!;
 	const [selectedPeriod, setSelectedPeriod] = useState<Period>(defaultPeriod);
 	const [dateRange, setDateRange] = useState<DateRange>(() =>
 		getDateRangeFromPeriod(defaultPeriod),
@@ -66,6 +72,7 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 	// Handle dashboard refresh
 	const handleRefresh = useCallback(() => {
 		refreshDashboard();
+		setLastUpdatedAt(new Date());
 
 		// Fire analytics event
 		if (typeof window !== "undefined") {
@@ -75,6 +82,15 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 				}),
 			);
 		}
+	}, [refreshDashboard]);
+
+	// Auto-refresh every 5 minutes
+	useEffect(() => {
+		const id = setInterval(() => {
+			refreshDashboard();
+			setLastUpdatedAt(new Date());
+		}, 5 * 60000);
+		return () => clearInterval(id);
 	}, [refreshDashboard]);
 
 	// Handle export functionality
@@ -89,13 +105,13 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 				);
 			}
 
-			// In a real implementation, you would trigger the export here
-			console.log(`Exporting dashboard as ${format}`, { dateRange });
-
-			// For now, just show a notification
-			alert(`Export as ${format.toUpperCase()} would start here`);
+			toast({
+				title: "Export started",
+				description: `Generating ${format.toUpperCase()} for selected range...`,
+			});
+			// TODO: trigger server-side export job and show progress
 		},
-		[dateRange],
+		[dateRange, toast],
 	);
 
 	// Define dashboard widgets
@@ -269,7 +285,7 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 
 					<div className="text-muted-foreground text-sm">
 						{widgets.length} widgets • Last updated:{" "}
-						{new Date().toLocaleTimeString()}
+						{lastUpdatedAt.toLocaleTimeString()}
 					</div>
 				</div>
 
@@ -277,7 +293,7 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 			</div>
 
 			{/* Dashboard Grid */}
-			<DashboardLayout widgets={widgets} columns={3} gap={4} />
+			<DashboardLayout widgets={widgets} gap={4} />
 
 			{/* Footer */}
 			<div className="mt-8 text-center text-muted-foreground text-sm">

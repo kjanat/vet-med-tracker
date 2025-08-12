@@ -60,12 +60,13 @@ This document summarizes the comprehensive production deployment configuration c
   - Automatic schema migrations
   - Database cleanup on PR closure
 
-#### Remaining Custom Workflows
-- **Code Quality** (`code_quality.yml`) - Lint, type check, and code quality validation
-- **Testing** (`test.yml`) - Unit and integration test execution
-- **Visual Regression** (`visual-regression.yml`) - UI change detection
-- **Claude Code Review** (`claude-code-review.yml`) - AI-powered code review
-- **Rollback** (`rollback.yml`) - Emergency deployment rollback capability
+#### Consolidated CI/CD Workflow
+- **CI/CD Pipeline** (`ci-cd.yml`) - Comprehensive pipeline with jobs:
+  - `lint-and-type-check` - Code quality validation
+  - `test` - Unit and integration test execution  
+  - `visual-regression` - UI change detection
+  - `ai-code-review` - AI-powered code review
+  - `rollback` - Emergency deployment rollback capability
 
 #### Rollback Workflow (`rollback.yml`)
 - **Types**: Vercel only, database only, full rollback

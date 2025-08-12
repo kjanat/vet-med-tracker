@@ -26,10 +26,14 @@ import {
 import { cn } from "@/lib/utils/general";
 
 // Helper function to format date range
-function formatDateRange(from: Date | undefined, to: Date | undefined): string {
-	if (!from) return "Select dates";
-	if (!to) return format(from, "MMM d, yyyy");
-	return `${format(from, "MMM d")} - ${format(to, "MMM d, yyyy")}`;
+function formatDateRange(from: Date, to: Date): string {
+	if (from.toDateString() === to.toDateString()) {
+		return format(from, "MMM d, yyyy");
+	}
+	if (from.getFullYear() === to.getFullYear()) {
+		return `${format(from, "MMM d")} - ${format(to, "MMM d, yyyy")}`;
+	}
+	return `${format(from, "MMM d, yyyy")} - ${format(to, "MMM d, yyyy")}`;
 }
 
 interface DateRangeSelectorProps {
@@ -70,10 +74,12 @@ export function DateRangeSelector({
 		if (onPeriodChange) {
 			const customPeriod: Period = {
 				label: "Custom",
-				value: "7d", // Fallback value
-				days: Math.ceil(
-					(tempToDate.getTime() - tempFromDate.getTime()) /
-						(1000 * 60 * 60 * 24),
+				value: "custom",
+				days: Math.max(
+					1,
+					Math.ceil(
+						(tempToDate.getTime() - tempFromDate.getTime()) / 86400000, // ms in a day
+					),
 				),
 			};
 			onPeriodChange(customPeriod);
@@ -84,18 +90,6 @@ export function DateRangeSelector({
 		setTempFromDate(dateRange.from);
 		setTempToDate(dateRange.to);
 		setIsDatePickerOpen(true);
-	};
-
-	const formatDateRange = (from: Date, to: Date) => {
-		if (from.toDateString() === to.toDateString()) {
-			return format(from, "MMM d, yyyy");
-		}
-
-		if (from.getFullYear() === to.getFullYear()) {
-			return `${format(from, "MMM d")} - ${format(to, "MMM d, yyyy")}`;
-		}
-
-		return `${format(from, "MMM d, yyyy")} - ${format(to, "MMM d, yyyy")}`;
 	};
 
 	// Check if current range matches any period
@@ -143,7 +137,14 @@ export function DateRangeSelector({
 			{/* Custom Date Range Picker */}
 			<Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
 				<PopoverTrigger asChild>
-					{!showPeriodSelector && (
+					{showPeriodSelector ? (
+						<button
+							type="button"
+							tabIndex={-1}
+							aria-hidden
+							className="sr-only"
+						/>
+					) : (
 						<Button variant="outline" className="w-auto gap-2">
 							<CalendarIcon className="h-4 w-4" />
 							{formatDateRange(dateRange.from, dateRange.to)}
@@ -154,23 +155,25 @@ export function DateRangeSelector({
 					<div className="p-4">
 						<div className="space-y-4">
 							<div className="space-y-2">
-								<label className="font-medium text-sm">From Date</label>
+								<div className="font-medium text-sm">From Date</div>
 								<Calendar
 									mode="single"
 									selected={tempFromDate}
 									onSelect={(date) => date && setTempFromDate(date)}
 									className="rounded-md border"
+									aria-label="Select from date"
 								/>
 							</div>
 
 							<div className="space-y-2">
-								<label className="font-medium text-sm">To Date</label>
+								<div className="font-medium text-sm">To Date</div>
 								<Calendar
 									mode="single"
 									selected={tempToDate}
 									onSelect={(date) => date && setTempToDate(date)}
 									disabled={(date) => date < tempFromDate}
 									className="rounded-md border"
+									aria-label="Select to date"
 								/>
 							</div>
 						</div>

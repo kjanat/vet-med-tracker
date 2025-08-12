@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import {
 	AnimalFormDialog,
@@ -25,6 +26,7 @@ import { formatTimeLocal } from "@/utils/tz";
 export default function DashboardPage() {
 	const { selectedAnimal, animals, selectedHousehold, households } = useApp();
 	const { openAnimalForm } = useAnimalFormDialog();
+	const router = useRouter();
 
 	// Fetch due regimens
 	const { data: dueRegimens, isLoading } = trpc.regimen.listDue.useQuery(
@@ -59,6 +61,7 @@ export default function DashboardPage() {
 			.slice(0, 3)
 			.map((regimen) => ({
 				id: regimen.id,
+				animalId: regimen.animalId,
 				animal: regimen.animalName,
 				medication: `${regimen.medicationName} ${regimen.strength}`,
 				dueTime: regimen.targetTime
@@ -223,7 +226,7 @@ export default function DashboardPage() {
 						) : (
 							nextActions.map((action) => {
 								const foundAnimal = animals.find(
-									(a) => a.name === action.animal,
+									(a) => a.id === action.animalId,
 								);
 								return (
 									<div
@@ -258,9 +261,11 @@ export default function DashboardPage() {
 										<Button
 											size="sm"
 											className="w-20 shrink-0"
-											onClick={() => {
-												window.location.href = `/admin/record?regimenId=${action.id}&from=home`;
-											}}
+											onClick={() =>
+												router.push(
+													`/admin/record?regimenId=${action.id}&from=home`,
+												)
+											}
 										>
 											Record
 										</Button>

@@ -33,13 +33,19 @@ const recordBulkAdministrationSchema = z.object({
   householdId: z.string().uuid(),
   animalIds: z.array(z.string().uuid()).min(1).max(50), // Reasonable batch size limit
   regimenId: z.string().uuid(),
-  administeredAt: z.string().datetime().optional(),
+  administeredAt: z.string().datetime().optional()
+    .transform((v) => (v ? new Date(v).toISOString() : undefined)),
   inventorySourceId: z.string().uuid().optional(),
   notes: z.string().optional(),
   site: z.string().optional(),
   dose: z.string().optional(),
   allowOverride: z.boolean().default(false),
-  idempotencyKey: z.string(), // Base key, suffixed per animal
+  // Derive server-side to enforce consistency and prevent spoofing:
+  // `${animalId}:${regimenId}:${scheduledSlotLocalDay}:${index}`
+  idempotencyKey: z.string().regex(
+    /^[0-9a-f-]+:[0-9a-f-]+:\d{4}-\d{2}-\d{2}:\d+$/,
+    "Invalid idempotency key format",
+  ),
   // ... other administration fields
 });
 ```
@@ -127,11 +133,31 @@ export function BulkRecordingForm({ open, onOpenChange }: BulkRecordingFormProps
 
 ```typescript
 export function useBulkRecording() {
+  const offlineQueue = useOfflineQueue();
+  const mutation = trpc.admin.recordBulk.useMutation({
+    onSuccess: (data) => {
+      // Optimistic UI updates
+      toast.success(`Successfully recorded ${data.successes.length} administrations`);
+    },
+    onError: (error) => {
+      // Queue for offline retry
+      offlineQueue.add({
+        type: 'bulk-recording',
+        payload: lastRecordingAttempt,
+        retryCount: 0,
+      });
+      toast.error('Failed to record - queued for retry when online');
+    },
+  });
+
   return {
-    recordBulkAdministration,
-    isRecording,
+    recordBulkAdministration: mutation.mutate,
+    isRecording: mutation.isLoading,
     selectedCount,
     canRecord,
+    // Offline queue integration
+    queuedCount: offlineQueue.getQueuedCount('bulk-recording'),
+    retry: offlineQueue.retryAll,
   };
 }
 ```
@@ -169,6 +195,9 @@ export function useBulkRecording() {
 - **Loading States**: Clear feedback during operations
 - **Toast Notifications**: Success and error notifications
 - **Mobile Responsive**: Works across all device sizes
+- **Offline Support**: useOfflineQueue integration for offline recording
+- **Optimistic UI**: React Query mutation hooks for immediate feedback
+- **Retry Logic**: Automatic retry mechanism for failed operations
 
 ### 6. **Security & Compliance**
 - **Household Scoping**: All operations scoped to user's household

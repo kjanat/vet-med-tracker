@@ -38,7 +38,10 @@ export function PublicHeader() {
 				</Link>
 
 				{/* Desktop Navigation */}
-				<nav className="mx-auto hidden items-center gap-6 md:flex">
+				<nav
+					id="main-navigation"
+					className="mx-auto hidden items-center gap-6 md:flex"
+				>
 					{navigation.map((item) => (
 						<Link
 							key={item.name}

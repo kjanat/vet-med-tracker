@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isFeatureEnabled } from "@/lib/feature-flags";
+import { type FeatureFlags, isFeatureEnabled } from "@/lib/feature-flags";
 
 /**
  * Monitoring endpoint for collecting application metrics and telemetry
@@ -68,7 +68,7 @@ function getMemoryStats() {
 function getFeatureStatus() {
 	try {
 		// This would normally come from your feature flag service
-		const allFeatures = [
+		const allFeatures: (keyof FeatureFlags)[] = [
 			"pushNotifications",
 			"bulkOperations",
 			"advancedReporting",
@@ -84,11 +84,9 @@ function getFeatureStatus() {
 			"systemMetrics",
 		];
 
-		const enabled = allFeatures.filter((feature) =>
-			isFeatureEnabled(feature as any),
-		);
+		const enabled = allFeatures.filter((feature) => isFeatureEnabled(feature));
 		const disabled = allFeatures.filter(
-			(feature) => !isFeatureEnabled(feature as any),
+			(feature) => !isFeatureEnabled(feature),
 		);
 
 		return { enabled, disabled };

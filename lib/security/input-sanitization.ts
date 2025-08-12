@@ -13,7 +13,7 @@ export const securityPatterns = {
 
 	// XSS patterns
 	xssPatterns: [
-		/<script[^>]*>.*?<\/script>/gi,
+		/<script\b[^<]*(?:(?!<\/script\s*>)<[^<]*)*<\/script\s*>/gi,
 		/javascript:/gi,
 		/on\w+\s*=/gi,
 		/<iframe[^>]*>.*?<\/iframe>/gi,

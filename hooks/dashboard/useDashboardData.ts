@@ -12,7 +12,7 @@ export interface DateRange {
 
 export interface Period {
 	label: string;
-	value: "7d" | "30d" | "90d" | "12m";
+	value: "7d" | "30d" | "90d" | "12m" | "custom";
 	days: number;
 }
 

@@ -99,6 +99,7 @@ Successfully implemented a comprehensive bulk selection infrastructure for the V
 - Export selected items to CSV
 - Custom action support with flexible API
 - Progress feedback and error handling
+- **CSV Export Security**: Cells starting with =, +, -, or @ are sanitized by prepending a single quote to prevent spreadsheet formula injection
 
 ### ✅ Accessibility
 - ARIA labels for all interactive elements
@@ -122,12 +123,15 @@ Successfully implemented a comprehensive bulk selection infrastructure for the V
 ### State Management Architecture
 ```typescript
 interface BulkSelectionContextType {
-  selectedIds: Set<string>;              // O(1) lookup performance
+  selectedIds: Set<string>;              // O(1) lookup performance - always create new Set on updates
   selectionCount: number;                // Cached count
   availableIds: string[];                // All selectable items
   isAllSelected: boolean;                // Computed state
   isPartiallySelected: boolean;          // Computed state
-  // ... methods
+  // Methods that preserve immutability:
+  toggle: (id: string) => void;          // Creates new Set(oldSet) then add/delete
+  selectAll: () => void;                 // Creates new Set(availableIds)
+  clearSelection: () => void;            // Creates new Set()
 }
 ```
 

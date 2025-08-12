@@ -1,6 +1,7 @@
 "use client";
 
 import { GripVertical, Maximize2, Minimize2, RotateCcw } from "lucide-react";
+import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,6 @@ export interface DashboardWidget {
 
 interface DashboardLayoutProps {
 	widgets: DashboardWidget[];
-	columns?: number;
 	gap?: number;
 	className?: string;
 }
@@ -120,12 +120,12 @@ function WidgetWrapper({
 		<Card
 			className={cn(
 				"relative transition-all duration-300",
-				isFullscreen && "fixed inset-4 z-50 shadow-2xl",
+				isFullscreen && "pointer-events-auto fixed inset-4 z-50 shadow-2xl",
 				isCollapsed && "overflow-hidden",
 				className,
 			)}
 			style={{
-				gridArea: isFullscreen ? "unset" : `widget-${index}`,
+				gridArea: isFullscreen ? "unset" : widget.gridArea || `widget-${index}`,
 				minWidth: widget.minWidth || "auto",
 				minHeight: isCollapsed ? "auto" : widget.minHeight || 300,
 			}}
@@ -184,7 +184,6 @@ function WidgetWrapper({
 
 export function DashboardLayout({
 	widgets,
-	columns: _columns = 3,
 	gap = 4,
 	className,
 }: DashboardLayoutProps) {
@@ -219,15 +218,28 @@ export function DashboardLayout({
 		return () => window.removeEventListener("resize", updateBreakpoint);
 	}, []);
 
-	// Initialize default collapsed states
+	// Initialize default collapsed states, preserving user choices
 	useEffect(() => {
-		const defaultCollapsed = new Set<string>();
-		widgets.forEach((widget) => {
-			if (!widget.defaultExpanded) {
-				defaultCollapsed.add(widget.id);
+		setCollapsedWidgets((prev) => {
+			const newCollapsed = new Set(prev);
+
+			// Add defaults for new widgets that aren't expanded by default
+			widgets.forEach((widget) => {
+				if (!widget.defaultExpanded && !prev.has(widget.id)) {
+					newCollapsed.add(widget.id);
+				}
+			});
+
+			// Remove widgets that no longer exist
+			const widgetIds = new Set(widgets.map((w) => w.id));
+			for (const widgetId of prev) {
+				if (!widgetIds.has(widgetId)) {
+					newCollapsed.delete(widgetId);
+				}
 			}
+
+			return newCollapsed;
 		});
-		setCollapsedWidgets(defaultCollapsed);
 	}, [widgets]);
 
 	const toggleWidgetCollapse = useCallback((widgetId: string) => {
@@ -246,24 +258,20 @@ export function DashboardLayout({
 		setFullscreenWidget((prev) => (prev === widgetId ? null : widgetId));
 	}, []);
 
-	const refreshWidget = useCallback(
-		(widgetId: string) => {
-			setRefreshKeys((prev) => ({
-				...prev,
-				[widgetId]: (prev[widgetId] || 0) + 1,
-			}));
-
-			// Fire custom event for widget refresh
+	const refreshWidget = useCallback((widgetId: string) => {
+		setRefreshKeys((prev) => {
+			const nextKey = (prev[widgetId] ?? 0) + 1;
+			const next = { ...prev, [widgetId]: nextKey };
 			if (typeof window !== "undefined") {
 				window.dispatchEvent(
 					new CustomEvent("dashboard:widget-refresh", {
-						detail: { widgetId, refreshKey: refreshKeys[widgetId] || 0 },
+						detail: { widgetId, refreshKey: nextKey },
 					}),
 				);
 			}
-		},
-		[refreshKeys],
-	);
+			return next;
+		});
+	}, []);
 
 	const gridConfig = GRID_CONFIGURATIONS[currentBreakpoint];
 	const templateAreas = gridConfig.templateAreas(widgets);

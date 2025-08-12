@@ -4,6 +4,7 @@ import { useUser } from "@stackframe/stack";
 import { Home, MapPin, Plus, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,27 +26,29 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { BROWSER_ZONE } from "@/utils/timezone-helpers";
 
-interface HouseholdSettings {
-	primaryHouseholdName: string;
-	defaultLocation: {
-		address: string;
-		city: string;
-		state: string;
-		zipCode: string;
-		timezone: string;
-	};
-	householdRoles: string[];
-	preferredVeterinarian: {
-		name: string;
-		phone: string;
-		address: string;
-	};
-	inventoryPreferences: {
-		lowStockThreshold: number;
-		autoReorderEnabled: boolean;
-		expirationWarningDays: number;
-	};
-}
+const HouseholdSettingsSchema = z.object({
+	primaryHouseholdName: z.string().default(""),
+	defaultLocation: z.object({
+		address: z.string().default(""),
+		city: z.string().default(""),
+		state: z.string().min(2).max(2).default(""),
+		zipCode: z.string().default(""),
+		timezone: z.string().default(BROWSER_ZONE || "America/New_York"),
+	}),
+	householdRoles: z.array(z.string()).default(["Owner", "Primary Caregiver"]),
+	preferredVeterinarian: z.object({
+		name: z.string().default(""),
+		phone: z.string().default(""),
+		address: z.string().default(""),
+	}),
+	inventoryPreferences: z.object({
+		lowStockThreshold: z.number().int().min(1).default(7),
+		autoReorderEnabled: z.boolean().default(false),
+		expirationWarningDays: z.number().int().min(1).default(30),
+	}),
+});
+
+type HouseholdSettings = z.infer<typeof HouseholdSettingsSchema>;
 
 const defaultSettings: HouseholdSettings = {
 	primaryHouseholdName: "",
@@ -130,9 +133,10 @@ export default function HouseholdSettingsPage() {
 
 	useEffect(() => {
 		if (user) {
-			// Load settings from user's client metadata
-			const savedSettings = user.clientMetadata
-				?.householdSettings as HouseholdSettings;
+			// Load settings from user's client metadata (validated)
+			const raw = user.clientMetadata?.householdSettings;
+			const parsed = HouseholdSettingsSchema.safeParse(raw);
+			const savedSettings = parsed.success ? parsed.data : undefined;
 			if (savedSettings) {
 				setSettings({ ...defaultSettings, ...savedSettings });
 			}
@@ -209,8 +213,7 @@ export default function HouseholdSettingsPage() {
 		}));
 	};
 
-	const isLoaded = true; // Stack Auth loads synchronously
-	if (!isLoaded) {
+	if (user === undefined) {
 		return <div className="p-6">Loading household settings...</div>;
 	}
 

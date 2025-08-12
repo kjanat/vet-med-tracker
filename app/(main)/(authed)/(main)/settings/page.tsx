@@ -24,8 +24,27 @@ export default function SettingsPage() {
 			<div className="grid gap-4 md:grid-cols-2">
 				{settingsTabs.map((tab) => {
 					const Icon = tab.icon as LucideIcon;
+
+					// Skip tabs without valid paths
+					if (!tab.path) {
+						return (
+							<Card
+								key={tab.title}
+								className="h-full cursor-not-allowed opacity-50"
+							>
+								<CardHeader>
+									<CardTitle className="flex items-center gap-2">
+										{Icon && <Icon className="h-5 w-5" />}
+										{tab.title} (Coming Soon)
+									</CardTitle>
+									<CardDescription>{tab.description}</CardDescription>
+								</CardHeader>
+							</Card>
+						);
+					}
+
 					return (
-						<Link key={tab.path} href={tab.path || "#"}>
+						<Link key={tab.path} href={tab.path}>
 							<Card className="h-full transition-colors hover:bg-accent">
 								<CardHeader>
 									<CardTitle className="flex items-center gap-2">

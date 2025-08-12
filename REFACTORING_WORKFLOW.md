@@ -25,8 +25,8 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 **Goal**: Restore testing capabilities with Stack Auth
 
 ### Task 1.1: Create Test Authentication Mock System
-- [ ] Create `tests/mocks/stack-auth.ts` for Stack Auth mocking
-- [ ] Implement mock user/session providers
+- [ ] Install & configure `pgmock` in `tests/mocks/stack-auth.ts` to simulate Stack Auth's DB layer
+- [ ] Implement mock user/session providers (pair with MSW/WireMock for HTTP/session mocking)
 - [ ] Add test user factory with Stack Auth schema
 - **Dependencies**: None
 - **Priority**: P0
@@ -45,14 +45,14 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - [ ] Update `tests/helpers/test-trpc-context.ts` for Stack Auth
 - [ ] Fix all integration tests in `tests/integration/`
 - [ ] Remove Clerk-specific test code
-- [ ] Add Stack Auth session mocking
+- [ ] Use MSW (or equivalent) to mock auth requests/tokens alongside pgmock for DB
 - **Dependencies**: 1.1, 1.2
 - **Priority**: P0
 - **Estimated**: 6h
 
 ### Task 1.4: Fix E2E Test Infrastructure
 - [ ] Update Playwright config for Stack Auth
-- [ ] Create E2E auth helpers
+- [ ] Create E2E auth helpers (integrate pgmock plus MSW/Testcontainers to simulate login flows)
 - [ ] Fix `tests/e2e/offline/offline-sync.test.ts`
 - [ ] Add E2E test database seeding
 - **Dependencies**: 1.1, 1.2
@@ -309,6 +309,18 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - [ ] Code maintainability enhanced
 - [ ] Documentation completeness
 - [ ] Reduced technical debt
+
+## Phase 0: Baseline Measurement [P0]
+**Timeline**: 0.5 days  
+**Goal**: Establish current state metrics
+
+### Task 0.1: Measure Current State
+- [ ] Run Lighthouse audit on production
+- [ ] Measure current bundle size precisely
+- [ ] Document current build times
+- [ ] Count actual TypeScript errors
+- **Priority**: P0
+- **Estimated**: 2h
 
 ---
 

@@ -136,11 +136,11 @@ function MedicationDistributionWidgetContent({
 								outerRadius={isFullscreen ? 120 : 80}
 								paddingAngle={2}
 								dataKey="count"
-								label={({ percentage }) => `${percentage}%`}
+								label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
 								labelLine={false}
 							>
-								{chartData.map((entry, index) => (
-									<Cell key={`cell-${index}`} fill={entry.color} />
+								{chartData.map((entry) => (
+									<Cell key={`cell-${entry.name}`} fill={entry.color} />
 								))}
 							</Pie>
 							<Tooltip content={customTooltip} />

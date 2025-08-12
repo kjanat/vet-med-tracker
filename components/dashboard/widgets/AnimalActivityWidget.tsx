@@ -31,22 +31,24 @@ function AnimalActivityWidgetContent({
 	const rankedAnimals = useMemo(() => {
 		if (!animalData) return [];
 
-		return animalData.map((animal, index) => ({
-			...animal,
-			rank: index + 1,
-			complianceColor:
-				animal.complianceRate >= 90
-					? "text-green-600"
-					: animal.complianceRate >= 80
-						? "text-orange-600"
-						: "text-red-600",
-			complianceBadgeVariant:
-				animal.complianceRate >= 90
-					? ("default" as const)
-					: animal.complianceRate >= 80
-						? ("secondary" as const)
-						: ("destructive" as const),
-		}));
+		return animalData
+			.sort((a, b) => b.complianceRate - a.complianceRate) // Sort by compliance rate descending
+			.map((animal, index) => ({
+				...animal,
+				rank: index + 1,
+				complianceColor:
+					animal.complianceRate >= 90
+						? "text-green-600"
+						: animal.complianceRate >= 80
+							? "text-orange-600"
+							: "text-red-600",
+				complianceBadgeVariant:
+					animal.complianceRate >= 90
+						? ("default" as const)
+						: animal.complianceRate >= 80
+							? ("secondary" as const)
+							: ("destructive" as const),
+			}));
 	}, [animalData]);
 
 	// Calculate summary stats

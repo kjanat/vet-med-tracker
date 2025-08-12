@@ -66,9 +66,11 @@ function ComplianceRateWidgetContent({
 			const date = new Date(dateRange.from);
 			date.setDate(date.getDate() + i);
 
-			// Mock trend data based on actual compliance rate with some variation
+			// Mock trend data based on actual compliance rate with deterministic variation
 			const baseRate = complianceData.complianceRate;
-			const variation = (Math.random() - 0.5) * 20;
+			// Create deterministic variation based on date to ensure consistent results
+			const seed = date.getTime() % 1000;
+			const variation = (seed / 1000 - 0.5) * 20; // -10 to +10 variation
 			const complianceRate = Math.max(0, Math.min(100, baseRate + variation));
 			const onTimeRate = Math.max(
 				0,

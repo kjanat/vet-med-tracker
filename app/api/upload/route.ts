@@ -19,7 +19,7 @@ const FILE_SIGNATURES = {
 	"image/jpeg": [0xff, 0xd8, 0xff],
 	"image/jpg": [0xff, 0xd8, 0xff],
 	"image/png": [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-	"image/webp": [0x52, 0x49, 0x46, 0x46], // "RIFF"
+	"image/webp": [0x52, 0x49, 0x46, 0x46], // "RIFF" (further check in code)
 } as const;
 
 // Response schemas
@@ -58,6 +58,31 @@ function createSuccessResponse(
 	return NextResponse.json(data, { status: 200 });
 }
 
+// CORS helpers
+function getAllowedOrigins(): string[] {
+	return process.env.NODE_ENV === "production"
+		? [process.env.NEXT_PUBLIC_APP_URL || "https://vetmed-tracker.vercel.app"]
+		: ["http://localhost:3000", "http://127.0.0.1:3000"];
+}
+
+function pickOrigin(request: NextRequest, allowed: string[]): string {
+	const reqOrigin = request.headers.get("origin") || "";
+	return allowed.includes(reqOrigin)
+		? reqOrigin
+		: allowed[0] || "http://localhost:3000";
+}
+
+function withCors<T>(
+	request: NextRequest,
+	res: NextResponse<T>,
+): NextResponse<T> {
+	const origin = pickOrigin(request, getAllowedOrigins());
+	res.headers.set("Access-Control-Allow-Origin", origin);
+	res.headers.set("Access-Control-Allow-Credentials", "true");
+	res.headers.set("Vary", "Origin");
+	return res;
+}
+
 /**
  * Validate file by magic numbers (file signature)
  */
@@ -70,9 +95,17 @@ async function validateFileSignature(file: File): Promise<boolean> {
 
 	// Check if file starts with expected magic numbers
 	for (let i = 0; i < signature.length; i++) {
-		if (bytes[i] !== signature[i]) {
-			return false;
-		}
+		if (bytes[i] !== signature[i]) return false;
+	}
+
+	// Extra check for WEBP: "WEBP" at bytes 8-11
+	if (file.type === "image/webp") {
+		return (
+			bytes[8] === 0x57 && // W
+			bytes[9] === 0x45 && // E
+			bytes[10] === 0x42 && // B
+			bytes[11] === 0x50 // P
+		);
 	}
 
 	return true;
@@ -156,18 +189,22 @@ async function validateFile(
 /**
  * Generate a secure, unique filename
  */
-function generateFileName(originalName: string, userId: string): string {
+function generateFileName(
+	_originalName: string,
+	userId: string,
+	contentType: string,
+): string {
 	const timestamp = Date.now();
 	const randomString = crypto.randomUUID().replace(/-/g, "").substring(0, 12);
-	const sanitizedOriginal = sanitizeFileName(originalName);
-	const fileExtension =
-		sanitizedOriginal.split(".").pop()?.toLowerCase() || "jpg";
 
-	// Ensure the extension is in our allowed list
-	const allowedExtensions = ["jpeg", "jpg", "png", "webp"];
-	const safeExtension = allowedExtensions.includes(fileExtension)
-		? fileExtension
-		: "jpg";
+	// Derive safe extension from validated MIME type
+	const extFromMime: Record<string, string> = {
+		"image/jpeg": "jpg",
+		"image/jpg": "jpg",
+		"image/png": "png",
+		"image/webp": "webp",
+	};
+	const safeExtension = extFromMime[contentType] ?? "jpg";
 
 	return `animals/${userId.replace(/[^a-zA-Z0-9]/g, "")}/${timestamp}_${randomString}.${safeExtension}`;
 }
@@ -216,10 +253,9 @@ export async function POST(request: NextRequest) {
 				{ endpoint: "/api/upload" },
 			);
 
-			return createErrorResponse(
-				"Authentication required",
-				401,
-				"UNAUTHORIZED",
+			return withCors(
+				request,
+				createErrorResponse("Authentication required", 401, "UNAUTHORIZED"),
 			);
 		}
 
@@ -236,13 +272,19 @@ export async function POST(request: NextRequest) {
 				{ error: error instanceof Error ? error.message : String(error) },
 			);
 
-			return createErrorResponse("Invalid form data", 400, "INVALID_REQUEST");
+			return withCors(
+				request,
+				createErrorResponse("Invalid form data", 400, "INVALID_REQUEST"),
+			);
 		}
 
 		const file = formData.get("file") as File | null;
 
 		if (!file) {
-			return createErrorResponse("No file provided", 400, "NO_FILE");
+			return withCors(
+				request,
+				createErrorResponse("No file provided", 400, "NO_FILE"),
+			);
 		}
 
 		// Check for multiple files (security measure)
@@ -256,10 +298,13 @@ export async function POST(request: NextRequest) {
 				{ fileCount: allFiles.length, maxAllowed: MAX_FILES_PER_REQUEST },
 			);
 
-			return createErrorResponse(
-				`Maximum ${MAX_FILES_PER_REQUEST} file(s) allowed per request`,
-				400,
-				"TOO_MANY_FILES",
+			return withCors(
+				request,
+				createErrorResponse(
+					`Maximum ${MAX_FILES_PER_REQUEST} file(s) allowed per request`,
+					400,
+					"TOO_MANY_FILES",
+				),
 			);
 		}
 
@@ -273,11 +318,18 @@ export async function POST(request: NextRequest) {
 				user.id,
 			);
 
-			return createErrorResponse(validation.error!, 400, "INVALID_FILE");
+			return withCors(
+				request,
+				createErrorResponse(
+					validation.error || "File validation failed",
+					400,
+					"INVALID_FILE",
+				),
+			);
 		}
 
-		// Generate unique filename
-		const fileName = generateFileName(file.name, user.id);
+		// Generate unique filename (derive extension from validated MIME)
+		const fileName = generateFileName(file.name, user.id, file.type);
 
 		// Store the file
 		const { url } = await storeFile(file, fileName);
@@ -297,12 +349,15 @@ export async function POST(request: NextRequest) {
 		);
 
 		// Return success response
-		return createSuccessResponse({
-			url,
-			fileName,
-			size: file.size,
-			contentType: file.type,
-		});
+		return withCors(
+			request,
+			createSuccessResponse({
+				url,
+				fileName,
+				size: file.size,
+				contentType: file.type,
+			}),
+		);
 	} catch (error) {
 		console.error("Upload error:", error);
 
@@ -314,32 +369,42 @@ export async function POST(request: NextRequest) {
 		});
 
 		if (error instanceof Error) {
-			return createErrorResponse(
-				"Upload failed due to server error",
-				500,
-				"UPLOAD_ERROR",
+			return withCors(
+				request,
+				createErrorResponse(
+					"Upload failed due to server error",
+					500,
+					"UPLOAD_ERROR",
+				),
 			);
 		}
 
-		return createErrorResponse("Internal server error", 500, "INTERNAL_ERROR");
+		return withCors(
+			request,
+			createErrorResponse("Internal server error", 500, "INTERNAL_ERROR"),
+		);
 	}
 }
 
 /**
  * OPTIONS handler for CORS support (restrictive)
  */
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
 	// In production, restrict to specific origins
 	const allowedOrigins =
 		process.env.NODE_ENV === "production"
 			? [process.env.NEXT_PUBLIC_APP_URL || "https://vetmed-tracker.vercel.app"]
 			: ["http://localhost:3000", "http://127.0.0.1:3000"];
 
+	const reqOrigin = request.headers.get("origin") || "";
+	const origin = allowedOrigins.includes(reqOrigin)
+		? reqOrigin
+		: allowedOrigins[0];
+
 	return new Response(null, {
 		status: 200,
 		headers: {
-			"Access-Control-Allow-Origin":
-				allowedOrigins[0] || "http://localhost:3000",
+			"Access-Control-Allow-Origin": origin || "http://localhost:3000",
 			"Access-Control-Allow-Methods": "POST, OPTIONS",
 			"Access-Control-Allow-Headers":
 				"Content-Type, Authorization, X-Requested-With",

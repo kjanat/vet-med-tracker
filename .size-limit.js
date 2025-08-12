@@ -25,13 +25,13 @@ module.exports = [
 	},
 	{
 		name: "Admin record page",
-		path: ".next/static/chunks/app/(main)/(authed)/(main)/admin/record/page-*.js",
+		path: ".next/static/chunks/app/**/admin/record/page-*.js",
 		limit: "95 KB",
 		webpack: false,
 	},
 	{
 		name: "Reports page",
-		path: ".next/static/chunks/app/(authed)/(app)/dashboard/reports/page-*.js",
+		path: ".next/static/chunks/app/**/reports/page-*.js",
 		limit: "85 KB",
 		webpack: false,
 	},

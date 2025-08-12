@@ -43,10 +43,13 @@ function AnimalTable() {
 
 	// Set available IDs for bulk selection when animals data changes
 	React.useEffect(() => {
-		if (animals.length > 0) {
-			setAvailableIds(animals.map((animal) => animal.id));
-		}
+		setAvailableIds(animals.map((a) => a.id));
 	}, [animals, setAvailableIds]);
+
+	// Clear selection when household changes to avoid cross-household selections
+	React.useEffect(() => {
+		setAvailableIds([]);
+	}, [selectedHouseholdId, setAvailableIds]);
 
 	if (isLoading) {
 		return <div>Loading animals...</div>;

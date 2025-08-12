@@ -1,5 +1,3 @@
-"use client";
-
 export default function CookiesPage() {
 	return (
 		<div className="container mx-auto max-w-4xl px-4 py-12">
@@ -7,7 +5,7 @@ export default function CookiesPage() {
 
 			<div className="prose prose-sm dark:prose-invert max-w-none [&_code]:rounded [&_code]:bg-muted/30 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[13px] [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-semibold [&_h2]:text-xl [&_h3]:mt-4 [&_h3]:mb-1.5 [&_h3]:font-semibold [&_h3]:text-lg [&_li]:mb-1 [&_p]:mb-2.5 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:mb-2.5 [&_ul]:ml-6 [&_ul]:list-disc">
 				<p className="mb-6 text-muted-foreground">
-					Last updated: {new Date().toLocaleDateString()}
+					Last updated: December 15, 2024
 				</p>
 
 				<section className="mb-6">

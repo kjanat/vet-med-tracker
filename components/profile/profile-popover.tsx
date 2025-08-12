@@ -4,6 +4,7 @@ import { useUser } from "@stackframe/stack";
 import { Edit, Loader2, Mail, MapPin, User as UserIcon } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,6 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/server/trpc/client";
-import { toast } from "sonner";
 
 interface ProfilePopoverProps {
 	children: React.ReactNode;
@@ -25,10 +25,10 @@ interface ProfilePopoverProps {
 	side?: "top" | "right" | "bottom" | "left";
 }
 
-export function ProfilePopover({ 
-	children, 
-	align = "end", 
-	side = "bottom" 
+export function ProfilePopover({
+	children,
+	align = "end",
+	side = "bottom",
 }: ProfilePopoverProps) {
 	const user = useUser();
 	const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +44,7 @@ export function ProfilePopover({
 	// tRPC queries
 	const { data: profile, isLoading } = trpc.user.getProfile.useQuery(
 		undefined,
-		{ enabled: isOpen }
+		{ enabled: isOpen },
 	);
 
 	const updateProfileMutation = trpc.user.updateProfile.useMutation({
@@ -74,25 +74,26 @@ export function ProfilePopover({
 		await updateProfileMutation.mutateAsync(profileData);
 	};
 
-	const userInitials = user?.displayName
-		?.split(" ")
-		.map((n) => n[0])
-		.join("")
-		.toUpperCase() || "U";
+	const userInitials =
+		user?.displayName
+			?.split(" ")
+			.map((n) => n[0])
+			.join("")
+			.toUpperCase() || "U";
 
 	return (
 		<Popover open={isOpen} onOpenChange={setIsOpen}>
 			<PopoverTrigger asChild>{children}</PopoverTrigger>
-			<PopoverContent 
-				className="w-[400px] p-0" 
-				align={align} 
+			<PopoverContent
+				className="w-[400px] p-0"
+				align={align}
 				side={side}
 				sideOffset={8}
 			>
 				<div className="space-y-4">
 					{/* Header */}
 					<div className="relative h-24 bg-gradient-to-r from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20">
-						<div className="absolute -bottom-10 left-6">
+						<div className="-bottom-10 absolute left-6">
 							<Avatar className="h-20 w-20 border-4 border-background">
 								<AvatarImage
 									src={user?.profileImageUrl || undefined}
@@ -142,9 +143,7 @@ export function ProfilePopover({
 							)}
 						</div>
 
-						{profile?.bio && (
-							<p className="mt-3 text-sm">{profile.bio}</p>
-						)}
+						{profile?.bio && <p className="mt-3 text-sm">{profile.bio}</p>}
 					</div>
 
 					<Separator />
@@ -156,7 +155,7 @@ export function ProfilePopover({
 								<TabsTrigger value="info">Info</TabsTrigger>
 								<TabsTrigger value="preferences">Preferences</TabsTrigger>
 							</TabsList>
-							
+
 							<TabsContent value="info" className="mt-4 space-y-4">
 								{isLoading ? (
 									<div className="flex items-center justify-center py-8">
@@ -200,7 +199,7 @@ export function ProfilePopover({
 												/>
 											</div>
 										</div>
-										
+
 										<div>
 											<Label htmlFor="pronouns" className="text-xs">
 												Pronouns
@@ -304,7 +303,7 @@ export function ProfilePopover({
 									</div>
 								)}
 							</TabsContent>
-							
+
 							<TabsContent value="preferences" className="mt-4 space-y-4">
 								<div className="space-y-3">
 									<div>
@@ -326,7 +325,7 @@ export function ProfilePopover({
 										</p>
 									</div>
 								</div>
-								
+
 								<Button
 									variant="outline"
 									size="sm"

@@ -58,7 +58,7 @@ export function ChartWidgetSkeleton({
 							<Skeleton
 								key={i}
 								className="w-8 bg-muted-foreground/20"
-								style={{ height: `${Math.random() * 60 + 20}%` }}
+								style={{ height: `${((i * 13) % 60) + 20}%` }}
 							/>
 						))}
 					</div>

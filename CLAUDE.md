@@ -271,8 +271,9 @@ appRouter/
 
    - Add router in `server/api/routers/`
    - Use appropriate procedure (public, protected, household, owner)
-   - Add to `_app.ts` router
-   - Types auto-generated for client
+   - Add the router to `server/api/root.ts` (appRouter)
+   - Export `AppRouter` type from `server/api/root.ts`
+   - Generate/types are inferred on the client via your trpc client setup
 
 ## Common Patterns
 

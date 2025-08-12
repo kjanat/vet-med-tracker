@@ -2,10 +2,11 @@
 version: 2
 
 discovery:
-  # Disable network idle detection since we handle loading states explicitly
+  # Network idle is 2000ms; adjust comment accordingly (see below)
   network-idle-timeout: 2000
-  allowed-hostname: localhost
-  allowed-hostname: 127.0.0.1
+  allowed-hostnames:
+    - localhost
+    - 127.0.0.1
 
 snapshot:
   # Test multiple responsive breakpoints
@@ -48,11 +49,9 @@ agent:
     # Network idle timeout for asset loading
     network-idle-timeout: 2000
     
-    # Request patterns to ignore
-    request-headers-to-record:
-      - authorization
-      - x-percy-token
-      
+    # Request headers to add for authentication
+    request-headers:
+      Authorization: "Bearer test-token"
     # Ignore dynamic API calls in snapshots
     allowed-hostnames:
       - localhost
@@ -71,7 +70,6 @@ ignore-regions:
   
   # Charts and graphs (they have animations)
   - selector: '.recharts-wrapper'
-    threshold: 0.1
   
   # Photo upload previews (file-dependent)
   - selector: '[data-testid="photo-preview"]'

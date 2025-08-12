@@ -5,8 +5,8 @@ const webpush = require("web-push");
 const vapidKeys = webpush.generateVAPIDKeys();
 
 console.log("=== VAPID Keys Generated ===");
-console.log("Public Key:", vapidKeys.publicKey);
-console.log("Private Key:", vapidKeys.privateKey);
+console.log("Public Key:", "[REDACTED - see .env.local]");
+console.log("Private Key:", "[REDACTED - see .env.local]");
 console.log("");
 console.log("=== Add to .env.local ===");
 console.log(`VAPID_PUBLIC_KEY="${vapidKeys.publicKey}"`);

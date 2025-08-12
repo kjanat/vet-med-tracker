@@ -3,8 +3,8 @@
 import { Bell, ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/providers/app-provider-consolidated";
 import { ProfilePopover } from "@/components/profile/profile-popover";
+import { useAuth } from "@/components/providers/app-provider-consolidated";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -86,11 +86,8 @@ export function NavUser() {
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<ProfilePopover
-								align="start"
-								side="right"
-							>
-								<DropdownMenuItem 
+							<ProfilePopover align="start" side="right">
+								<DropdownMenuItem
 									onSelect={(e) => e.preventDefault()}
 									className="cursor-pointer"
 								>

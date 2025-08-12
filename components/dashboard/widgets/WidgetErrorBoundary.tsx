@@ -37,11 +37,13 @@ class WidgetErrorBoundaryClass extends React.Component<
 		};
 	}
 
-	static getDerivedStateFromError(error: Error): WidgetErrorBoundaryState {
+	static getDerivedStateFromError(
+		error: Error,
+	): Partial<WidgetErrorBoundaryState> {
 		return {
 			hasError: true,
 			error,
-			retryCount: 0,
+			// Don't reset retryCount here - it should preserve the existing count
 		};
 	}
 

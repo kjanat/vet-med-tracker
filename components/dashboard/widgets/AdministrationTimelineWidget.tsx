@@ -68,13 +68,16 @@ function AdministrationTimelineWidgetContent({
 		if (!timelineData) return null;
 
 		return timelineData.reduce(
-			(acc, day) => ({
-				totalOnTime: acc.totalOnTime + day.onTime,
-				totalLate: acc.totalLate + day.late,
-				totalMissed: acc.totalMissed + day.missed,
-				totalDoses: acc.totalDoses + day.total,
-				activeDays: acc.activeDays + (day.total > 0 ? 1 : 0),
-			}),
+			(acc, day) => {
+				const dayTotal = day.total ?? day.onTime + day.late + day.missed;
+				return {
+					totalOnTime: acc.totalOnTime + day.onTime,
+					totalLate: acc.totalLate + day.late,
+					totalMissed: acc.totalMissed + day.missed,
+					totalDoses: acc.totalDoses + dayTotal,
+					activeDays: acc.activeDays + (dayTotal > 0 ? 1 : 0),
+				};
+			},
 			{
 				totalOnTime: 0,
 				totalLate: 0,

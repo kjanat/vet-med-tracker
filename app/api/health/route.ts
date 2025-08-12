@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
 	type ComponentHealth,
@@ -35,23 +36,6 @@ const RATE_LIMIT_CONFIG = {
  * Simple rate limiting for health check endpoint
  */
 const requestTimestamps = new Map<string, number[]>();
-
-// Periodically clean up old entries to prevent memory leaks
-if (typeof setInterval !== "undefined") {
-	setInterval(() => {
-		const now = Date.now();
-		for (const [clientId, timestamps] of requestTimestamps.entries()) {
-			const recentTimestamps = timestamps.filter(
-				(timestamp) => now - timestamp < RATE_LIMIT_CONFIG.window,
-			);
-			if (recentTimestamps.length === 0) {
-				requestTimestamps.delete(clientId);
-			} else {
-				requestTimestamps.set(clientId, recentTimestamps);
-			}
-		}
-	}, RATE_LIMIT_CONFIG.cleanupInterval);
-}
 
 function isRateLimited(clientId: string): boolean {
 	const now = Date.now();
@@ -95,12 +79,14 @@ function isRateLimited(clientId: string): boolean {
  * Extract client identifier for rate limiting
  */
 function getClientId(request: Request): string {
-	return (
-		request.headers.get("x-forwarded-for") ||
+	const xff = request.headers.get("x-forwarded-for");
+	const ip =
+		xff?.split(",")[0]?.trim() ||
+		request.headers.get("cf-connecting-ip") ||
 		request.headers.get("x-real-ip") ||
 		request.headers.get("user-agent") ||
-		"anonymous"
-	);
+		"anonymous";
+	return createHash("sha256").update(ip).digest("hex");
 }
 
 /**
@@ -151,7 +137,9 @@ interface SimpleHealthResult {
 	timestamp: Date;
 	uptime: number;
 	checks: {
+		application: boolean;
 		database: boolean;
+		redis: boolean;
 	};
 }
 

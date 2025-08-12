@@ -88,7 +88,12 @@ class ErrorTrackingService {
 	 * Generate unique session ID
 	 */
 	private generateSessionId(): string {
-		return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		// Use crypto.randomUUID() for cryptographically secure random IDs
+		if (typeof crypto !== "undefined" && crypto.randomUUID) {
+			return `session_${Date.now()}_${crypto.randomUUID()}`;
+		}
+		// Fallback for environments without crypto.randomUUID()
+		return `session_${Date.now()}_${Date.now().toString(36)}`;
 	}
 
 	/**

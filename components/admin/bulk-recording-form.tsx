@@ -123,8 +123,9 @@ export function BulkRecordingForm({
 		for (const animalData of animalsWithRegimens) {
 			for (const regimen of animalData.regimens) {
 				const key = regimen.id;
-				if (regimenCounts.has(key)) {
-					regimenCounts.get(key)!.count += 1;
+				const existing = regimenCounts.get(key);
+				if (existing) {
+					existing.count += 1;
 				} else {
 					regimenCounts.set(key, { count: 1, regimen });
 				}
@@ -147,7 +148,17 @@ export function BulkRecordingForm({
 		setResults([]);
 
 		try {
-			const idempotencyKey = `bulk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+			// Normalize to the minute for stability (adjust granularity as needed)
+			const normalizedIso = new Date(
+				new Date(data.administeredAt).setSeconds(0, 0),
+			).toISOString();
+			const idempotencyKey = [
+				"bulk",
+				selectedHouseholdId,
+				Array.from(selectedIds).sort().join(","),
+				data.regimenId,
+				normalizedIso,
+			].join(":");
 
 			const result = await bulkRecordMutation.mutateAsync({
 				householdId: selectedHouseholdId,
@@ -215,7 +226,19 @@ export function BulkRecordingForm({
 
 		try {
 			const data = form.getValues();
-			const idempotencyKey = `retry-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+			const normalizedIso = new Date(
+				new Date(data.administeredAt).setSeconds(0, 0),
+			).toISOString();
+			const idempotencyKey = [
+				"bulk-retry",
+				selectedHouseholdId || "",
+				failedResults
+					.map((r) => r.animalId)
+					.sort()
+					.join(","),
+				data.regimenId,
+				normalizedIso,
+			].join(":");
 
 			const result = await bulkRecordMutation.mutateAsync({
 				householdId: selectedHouseholdId || "",

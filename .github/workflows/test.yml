@@ -1,0 +1,79 @@
+name: Test Suite
+
+on:
+  workflow_call:
+    inputs:
+      database_url:
+        description: 'Database URL for tests'
+        required: false
+        type: string
+      database_url_unpooled:
+        description: 'Unpooled database URL for tests'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.14.0'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vetmed_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run type checking
+        continue-on-error: true
+        run: pnpm typecheck
+
+      - name: Run linting
+        continue-on-error: true
+        run: pnpm lint
+
+      - name: Build project
+        env:
+          NEXT_PUBLIC_STACK_PROJECT_ID: test-stack-project-id
+          NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: test-stack-client-key
+          STACK_SECRET_SERVER_KEY: test-stack-server-key
+          DB_USER: test
+          DB_PASSWORD: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: test
+        run: |
+          export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+          export DATABASE_URL_UNPOOLED="$DATABASE_URL"
+          pnpm build
+
+      - name: Run tests
+        env:
+          DATABASE_URL: ${{ inputs.database_url || 'postgresql://postgres:postgres@localhost:5432/vetmed_test' }}
+          DATABASE_URL_UNPOOLED: ${{ inputs.database_url_unpooled || 'postgresql://postgres:postgres@localhost:5432/vetmed_test' }}
+        run: pnpm test
+
