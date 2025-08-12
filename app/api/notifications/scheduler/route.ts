@@ -9,7 +9,15 @@ import { db } from "@/db/drizzle";
 import { getNotificationScheduler } from "@/lib/push-notifications/notification-scheduler";
 import { stackServerApp } from "@/stack";
 
-const scheduler = getNotificationScheduler(db);
+// Lazy initialization to prevent build-time errors
+let scheduler: ReturnType<typeof getNotificationScheduler> | null = null;
+
+function getScheduler() {
+	if (!scheduler) {
+		scheduler = getNotificationScheduler(db);
+	}
+	return scheduler;
+}
 
 // Force dynamic rendering and disable caching for status endpoint
 export const dynamic = "force-dynamic";
@@ -21,7 +29,7 @@ const BodySchema = z.object({
 
 export async function GET() {
 	try {
-		const status = scheduler.getStatus();
+		const status = getScheduler().getStatus();
 		return NextResponse.json(status, {
 			headers: { "cache-control": "no-store" },
 		});
@@ -82,23 +90,23 @@ export async function POST(request: NextRequest) {
 
 		switch (action) {
 			case "start":
-				scheduler.start();
+				getScheduler().start();
 				return NextResponse.json({
 					success: true,
 					message: "Scheduler started",
 				});
 
 			case "stop":
-				scheduler.stop();
+				getScheduler().stop();
 				return NextResponse.json({
 					success: true,
 					message: "Scheduler stopped",
 				});
 
 			case "restart":
-				scheduler.stop();
+				getScheduler().stop();
 				await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
-				scheduler.start();
+				getScheduler().start();
 				return NextResponse.json({
 					success: true,
 					message: "Scheduler restarted",

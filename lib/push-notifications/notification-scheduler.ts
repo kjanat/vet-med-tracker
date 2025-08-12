@@ -37,6 +37,10 @@ export class NotificationScheduler {
 			return;
 		}
 
+		if (!this.pushService.isEnabled()) {
+			console.warn("Push notifications are disabled - VAPID keys not configured. Scheduler will run but won't send notifications.");
+		}
+
 		console.log("Starting notification scheduler...");
 
 		// Schedule medication reminders every 5 minutes

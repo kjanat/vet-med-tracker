@@ -15,16 +15,18 @@ interface VAPIDConfig {
 
 /**
  * Get VAPID configuration from environment variables
+ * Returns null if VAPID keys are not configured (for optional push notifications)
  */
-export function getVAPIDConfig(): VAPIDConfig {
+export function getVAPIDConfig(): VAPIDConfig | null {
 	const publicKey = process.env.VAPID_PUBLIC_KEY;
 	const privateKey = process.env.VAPID_PRIVATE_KEY;
 	const subject = process.env.VAPID_SUBJECT || "mailto:admin@vetmedtracker.com";
 
 	if (!publicKey || !privateKey) {
-		throw new Error(
-			"VAPID keys not configured. Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in your environment variables.",
+		console.warn(
+			"VAPID keys not configured. Push notifications will be disabled. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to enable.",
 		);
+		return null;
 	}
 
 	return {
@@ -36,14 +38,16 @@ export function getVAPIDConfig(): VAPIDConfig {
 
 /**
  * Get public VAPID key for client-side subscription
+ * Returns null if not configured
  */
-export function getPublicVAPIDKey(): string {
+export function getPublicVAPIDKey(): string | null {
 	const publicKey = process.env.VAPID_PUBLIC_KEY;
 
 	if (!publicKey) {
-		throw new Error(
-			"VAPID public key not configured. Please set VAPID_PUBLIC_KEY in your environment variables.",
+		console.warn(
+			"VAPID public key not configured. Push notifications will be disabled.",
 		);
+		return null;
 	}
 
 	return publicKey;

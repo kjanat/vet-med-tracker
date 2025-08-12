@@ -32,6 +32,7 @@ export interface SendNotificationOptions {
 export class PushNotificationService {
 	private db: typeof db;
 	private initialized = false;
+	private enabled = false;
 
 	constructor(db: typeof db) {
 		this.db = db;
@@ -43,16 +44,32 @@ export class PushNotificationService {
 
 		try {
 			const vapidConfig = getVAPIDConfig();
+			if (!vapidConfig) {
+				// VAPID keys not configured, push notifications disabled
+				this.enabled = false;
+				this.initialized = true;
+				return;
+			}
+			
 			webpush.setVapidDetails(
 				vapidConfig.subject,
 				vapidConfig.publicKey,
 				vapidConfig.privateKey,
 			);
+			this.enabled = true;
 			this.initialized = true;
 		} catch (error) {
 			console.error("Failed to initialize web push:", error);
-			throw error;
+			this.enabled = false;
+			this.initialized = true;
 		}
+	}
+
+	/**
+	 * Check if push notifications are enabled
+	 */
+	public isEnabled(): boolean {
+		return this.enabled;
 	}
 
 	/**
@@ -63,6 +80,10 @@ export class PushNotificationService {
 		payload: PushNotificationPayload,
 		options: SendNotificationOptions = {},
 	): Promise<{ success: boolean; error?: string }> {
+		if (!this.enabled) {
+			return { success: false, error: "Push notifications disabled - VAPID keys not configured" };
+		}
+		
 		try {
 			await webpush.sendNotification(
 				{
