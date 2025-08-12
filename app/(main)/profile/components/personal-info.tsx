@@ -350,12 +350,12 @@ export default function PersonalInfoSection() {
 
 			{/* Profile Completion Status */}
 			{!currentProfile?.profileCompletedAt && (
-				<Card className="border-blue-200 bg-blue-50">
+				<Card className="border-primary/20 bg-primary/5">
 					<CardHeader>
-						<CardTitle className="text-blue-900">
+						<CardTitle>
 							Complete Your Profile
 						</CardTitle>
-						<CardDescription className="text-blue-700">
+						<CardDescription>
 							Adding profile information helps other household members know more
 							about you. All fields are optional - fill in only what you're
 							comfortable sharing.

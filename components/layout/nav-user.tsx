@@ -4,6 +4,7 @@ import { Bell, ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/app-provider-consolidated";
+import { ProfilePopover } from "@/components/profile/profile-popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -85,10 +86,18 @@ export function NavUser() {
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem onClick={() => router.push("/profile")}>
-								<User />
-								Profile
-							</DropdownMenuItem>
+							<ProfilePopover
+								align="start"
+								side="right"
+							>
+								<DropdownMenuItem 
+									onSelect={(e) => e.preventDefault()}
+									className="cursor-pointer"
+								>
+									<User />
+									Profile
+								</DropdownMenuItem>
+							</ProfilePopover>
 							<DropdownMenuItem onClick={() => router.push("/settings")}>
 								<Settings />
 								Settings
