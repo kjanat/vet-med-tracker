@@ -119,8 +119,8 @@ const EmergencyContactsCard = ({
 				</div>
 				<div className="rounded-lg border p-3 sm:p-4">
 					<div className="font-medium text-base sm:text-lg">Owner</div>
-					<div className="font-bold text-lg sm:text-xl">John Smith</div>
-					<div className="text-base sm:text-lg">(555) 123-4567</div>
+					<div className="font-bold text-lg sm:text-xl">Not specified</div>
+					<div className="text-base sm:text-lg">Not specified</div>
 				</div>
 			</div>
 		</CardContent>
@@ -249,7 +249,7 @@ const calculateAge = (dob: Date | string | null) => {
 export default function EmergencyCardPage() {
 	const params = useParams();
 	const animalId = params.id as string;
-	const { selectedHousehold } = useApp();
+	const { selectedHousehold, selectedAnimal } = useApp();
 
 	// Fetch animal data
 	const { data: animalResponse, isLoading: animalLoading } =
@@ -280,6 +280,13 @@ export default function EmergencyCardPage() {
 	// TODO: Fetch regimens once tRPC endpoint exists
 	const regimens: EmergencyRegimen[] = [];
 	const regimensLoading = false;
+
+	// Get timezone from fetched animal data, then selected animal, then household, then UTC
+	const timezone =
+		animalResponse?.timezone ||
+		selectedAnimal?.timezone ||
+		selectedHousehold?.timezone ||
+		"UTC";
 
 	const handlePrint = () => window.print();
 	const isLoading = animalLoading || regimensLoading;
@@ -336,8 +343,9 @@ export default function EmergencyCardPage() {
 					{/* Footer */}
 					<div className="border-t pt-4 text-center text-muted-foreground text-sm">
 						<p>
-							Generated on {new Date().toLocaleDateString()} • Keep this card
-							updated
+							Generated on{" "}
+							{new Date().toLocaleDateString("en-US", { timeZone: timezone })} •
+							Keep this card updated
 						</p>
 						<p className="mt-2">
 							In case of emergency, contact your veterinarian immediately

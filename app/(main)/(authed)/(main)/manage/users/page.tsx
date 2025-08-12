@@ -19,9 +19,13 @@ import { Input } from "@/components/ui/input";
 import { trpc } from "@/server/trpc/client";
 
 export default function UsersPage() {
-	const { selectedHousehold } = useApp();
+	const { selectedHousehold, selectedAnimal } = useApp();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [, setInvitingUser] = useState(false);
+
+	// Get timezone from animal or household context
+	const timezone =
+		selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
 
 	// Get household members
 	const { data: members, isLoading } = trpc.household.getMembers.useQuery(
@@ -130,7 +134,11 @@ export default function UsersPage() {
 												{member.user.email}
 											</p>
 											<p className="mt-1 text-muted-foreground text-xs">
-												Joined {new Date(member.createdAt).toLocaleDateString()}
+												Joined{" "}
+												{new Date(member.createdAt).toLocaleDateString(
+													"en-US",
+													{ timeZone: timezone },
+												)}
 											</p>
 										</div>
 									</div>

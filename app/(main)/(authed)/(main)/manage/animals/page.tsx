@@ -49,6 +49,7 @@ function NoHouseholdState() {
 // Animal list component
 function AnimalList({
 	animals,
+	timezone,
 }: {
 	animals: Array<{
 		id: string;
@@ -56,6 +57,7 @@ function AnimalList({
 		species: string;
 		pendingMeds: number;
 	}>;
+	timezone: string;
 }) {
 	const { openAnimalForm } = useAnimalFormDialog();
 	const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +71,7 @@ function AnimalList({
 		// Convert minimal animal to full Animal type - in a real app, we'd fetch full animal data here
 		const fullAnimal = {
 			...animal,
-			timezone: "America/New_York", // Default timezone
+			timezone: animal.timezone || timezone, // Use animal's timezone or fallback to household timezone
 			allergies: [],
 			conditions: [],
 		};
@@ -184,7 +186,11 @@ function AnimalList({
 
 // Main page component
 export default function AnimalsPage() {
-	const { animals, selectedHousehold } = useApp();
+	const { animals, selectedHousehold, selectedAnimal } = useApp();
+
+	// Get timezone from animal or household context
+	const timezone =
+		selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
 
 	// Determine which content to render
 	let content: React.ReactNode;
@@ -193,7 +199,7 @@ export default function AnimalsPage() {
 	} else if (animals.length === 0) {
 		content = <WelcomeState />;
 	} else {
-		content = <AnimalList animals={animals} />;
+		content = <AnimalList animals={animals} timezone={timezone} />;
 	}
 
 	return (

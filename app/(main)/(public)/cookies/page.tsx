@@ -68,13 +68,19 @@ export default function CookiesPage() {
 						</div>
 
 						<div>
-							<h3>Performance Cookies</h3>
+							<h3>Performance and Storage Technologies</h3>
 							<p className="mb-2">
 								These help us understand how visitors interact with our website.
+								Note that some technologies listed below are not cookies but
+								related browser storage mechanisms.
 							</p>
 							<ul className="list-disc space-y-1 pl-6">
-								<li>Service Worker cache data for offline functionality</li>
-								<li>IndexedDB for offline data storage</li>
+								<li>
+									Service Worker cache data for offline functionality (not a
+									cookie)
+								</li>
+								<li>IndexedDB for offline data storage (not a cookie)</li>
+								<li>Analytics cookies for usage tracking</li>
 							</ul>
 						</div>
 					</div>

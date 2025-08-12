@@ -28,6 +28,10 @@ export default function DashboardPage() {
 	const { openAnimalForm } = useAnimalFormDialog();
 	const router = useRouter();
 
+	// Get timezone from animal or household context
+	const timezone =
+		selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
+
 	// Fetch due regimens
 	const { data: dueRegimens, isLoading } = trpc.regimen.listDue.useQuery(
 		{
@@ -65,7 +69,7 @@ export default function DashboardPage() {
 				animal: regimen.animalName,
 				medication: `${regimen.medicationName} ${regimen.strength}`,
 				dueTime: regimen.targetTime
-					? formatTimeLocal(new Date(regimen.targetTime), "America/New_York")
+					? formatTimeLocal(new Date(regimen.targetTime), timezone)
 					: "As needed",
 				status: regimen.isOverdue
 					? ("overdue" as const)
@@ -74,7 +78,7 @@ export default function DashboardPage() {
 						: ("upcoming" as const),
 				route: regimen.route,
 			}));
-	}, [dueRegimens]);
+	}, [dueRegimens, timezone]);
 
 	// Calculate stats
 	const todayStats = useMemo(() => {
@@ -139,7 +143,7 @@ export default function DashboardPage() {
 		// Convert minimal animal to full Animal type for SingleAnimalView
 		const fullAnimal = {
 			...selectedAnimal,
-			timezone: "America/New_York", // Default timezone
+			timezone: selectedAnimal.timezone || timezone, // Use animal's timezone or fallback to calculated timezone
 			allergies: [],
 			conditions: [],
 		};

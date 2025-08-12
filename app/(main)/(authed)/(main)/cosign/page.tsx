@@ -8,6 +8,7 @@ import {
 	FileSignature,
 	X,
 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { SignaturePad } from "@/components/cosign/signature-pad";
 import { useApp } from "@/components/providers/app-provider-consolidated";
@@ -37,6 +38,7 @@ import { getAvatarColor } from "@/lib/utils/avatar-utils";
 import { cn } from "@/lib/utils/general";
 import { trpc } from "@/server/trpc/client";
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex co-signing logic with multiple states
 export default function CoSignPage() {
 	const { selectedHousehold } = useApp();
 	const { toast } = useToast();
@@ -342,7 +344,35 @@ export default function CoSignPage() {
 }
 
 interface RequestCardProps {
-	item: any; // TODO: Type this properly based on tRPC response
+	item: {
+		request: {
+			id: string;
+			status: string;
+			createdAt: string;
+			expiresAt: string;
+			signedAt?: string | null;
+			rejectionReason?: string | null;
+			signature?: string | null;
+		};
+		medication: {
+			genericName: string;
+			brandName?: string | null;
+		};
+		animal: {
+			name: string;
+		};
+		requester: {
+			name: string | null;
+			email: string | null;
+			image?: string | null;
+		};
+		administration?: {
+			actualDose: string;
+		};
+		regimen?: {
+			route: string;
+		};
+	};
 	formatUserName: (
 		user: { name: string | null; email: string | null } | null,
 	) => string;
@@ -388,12 +418,14 @@ function PendingRequestCard({
 						<div className="grid grid-cols-2 gap-4 text-sm">
 							<div>
 								<span className="font-medium">Dose:</span>
-								<span className="ml-2">{item.administration.actualDose}</span>
+								<span className="ml-2">
+									{item.administration?.actualDose || "N/A"}
+								</span>
 							</div>
 							<div>
 								<span className="font-medium">Route:</span>
 								<span className="ml-2 capitalize">
-									{item.regimen.route.toLowerCase()}
+									{item.regimen?.route?.toLowerCase() || "N/A"}
 								</span>
 							</div>
 							<div>
@@ -483,7 +515,9 @@ function HistoryRequestCard({ item, formatUserName }: RequestCardProps) {
 				<div className="mb-4 flex items-start justify-between">
 					<div className="flex-1">
 						<div className="mb-2 flex items-center gap-2">
-							<Badge variant={config?.color as any}>
+							<Badge
+								variant={config?.color as "success" | "destructive" | "warning"}
+							>
 								<IconComponent className="mr-1 h-3 w-3" />
 								{item.request.status.charAt(0).toUpperCase() +
 									item.request.status.slice(1)}
@@ -550,11 +584,13 @@ function HistoryRequestCard({ item, formatUserName }: RequestCardProps) {
 						<div className="space-y-2">
 							<p className="font-medium text-sm">Digital Signature:</p>
 							<div className="rounded-md border bg-white p-2">
-								<img
+								<Image
 									src={item.request.signature}
 									alt="Digital signature"
 									className="h-auto max-w-full"
 									style={{ maxHeight: "60px" }}
+									width={200}
+									height={60}
 								/>
 							</div>
 						</div>

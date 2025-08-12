@@ -50,7 +50,7 @@ export class PushNotificationService {
 				this.initialized = true;
 				return;
 			}
-			
+
 			webpush.setVapidDetails(
 				vapidConfig.subject,
 				vapidConfig.publicKey,
@@ -81,9 +81,12 @@ export class PushNotificationService {
 		options: SendNotificationOptions = {},
 	): Promise<{ success: boolean; error?: string }> {
 		if (!this.enabled) {
-			return { success: false, error: "Push notifications disabled - VAPID keys not configured" };
+			return {
+				success: false,
+				error: "Push notifications disabled - VAPID keys not configured",
+			};
 		}
-		
+
 		try {
 			await webpush.sendNotification(
 				{

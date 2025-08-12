@@ -34,7 +34,7 @@ interface BreakerStatusResponse {
  * Returns current status of all circuit breakers for monitoring dashboards.
  * No authentication required for external monitoring tools.
  */
-export async function GET(): Promise<NextResponse<BreakerStatusResponse>> {
+export async function GET(): Promise<NextResponse> {
 	try {
 		// Get metrics from all circuit breakers
 		const databaseMetrics = databaseCircuitBreaker.getMetrics();
@@ -56,7 +56,7 @@ export async function GET(): Promise<NextResponse<BreakerStatusResponse>> {
 		const totalCount = breakers.length;
 		const healthy = healthyCount === totalCount;
 
-		const response: BreakerStatusResponse = {
+		const response = {
 			timestamp: new Date().toISOString(),
 			service: "vet-med-tracker",
 			version: "1.0.0",
@@ -71,7 +71,7 @@ export async function GET(): Promise<NextResponse<BreakerStatusResponse>> {
 				healthyCount,
 				totalCount,
 			},
-		};
+		} satisfies BreakerStatusResponse;
 
 		// Create response with appropriate headers
 		const nextResponse = NextResponse.json(response, {

@@ -2,7 +2,7 @@
 
 import { differenceInDays } from "date-fns";
 import { AlertTriangle, Package, Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { InventoryErrorBoundary } from "@/components/error-boundary-page";
 import { InventoryFormDialog } from "@/components/forms/inventory-form-dialog";
 import { AddItemButton } from "@/components/inventory/add-item-button";
@@ -55,11 +55,11 @@ function InventoryContent() {
 	const utils = trpc.useUtils();
 
 	// Fire page view event
-	useState(() => {
+	useEffect(() => {
 		if (typeof window !== "undefined") {
 			window.dispatchEvent(new CustomEvent("inventory_view"));
 		}
-	});
+	}, []);
 
 	// Fetch household data to determine loading state
 	const { isLoading: isLoadingHouseholds } = trpc.household.list.useQuery(

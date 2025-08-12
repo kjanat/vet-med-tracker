@@ -420,6 +420,7 @@ function useURLParams(
 async function handleOfflineAdministration(
 	state: RecordState,
 	selectedHousehold: { id: string } | null,
+	timezone: string,
 	enqueue: (
 		type: "admin.create" | "inventory.update" | "inventory.markAsInUse",
 		payload: unknown,
@@ -428,7 +429,7 @@ async function handleOfflineAdministration(
 ) {
 	if (!state.selectedRegimen || !selectedHousehold) return;
 
-	const payload = createAdminPayload(state, selectedHousehold.id);
+	const payload = createAdminPayload(state, selectedHousehold.id, timezone);
 	await enqueue("admin.create", payload, payload.idempotencyKey);
 
 	if (state.inventorySourceId) {
@@ -452,6 +453,7 @@ async function handleOfflineAdministration(
 async function handleOnlineAdministration(
 	state: RecordState,
 	selectedHousehold: { id: string } | null,
+	timezone: string,
 	createAdminMutation: ReturnType<typeof trpc.admin.create.useMutation>,
 	updateInventoryMutation: ReturnType<
 		typeof trpc.inventory.updateQuantity.useMutation
@@ -459,7 +461,7 @@ async function handleOnlineAdministration(
 ) {
 	if (!state.selectedRegimen || !selectedHousehold) return;
 
-	const payload = createAdminPayload(state, selectedHousehold.id);
+	const payload = createAdminPayload(state, selectedHousehold.id, timezone);
 	await createAdminMutation.mutateAsync(payload);
 
 	if (state.inventorySourceId) {
@@ -487,7 +489,8 @@ function resetRecordState(state: RecordState) {
 function RecordContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const { animals, selectedHousehold, refreshPendingMeds } = useApp();
+	const { animals, selectedHousehold, selectedAnimal, refreshPendingMeds } =
+		useApp();
 	const { isOnline, enqueue } = useOfflineQueue();
 	const state = useRecordState();
 	const { isMobile, isTablet } = useResponsive();
@@ -505,6 +508,10 @@ function RecordContent() {
 	// Handle URL params for pre-filling
 	useURLParams(state, dueRegimens);
 
+	// Get timezone from animal or household context
+	const timezone =
+		selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
+
 	const handleRegimenSelect = (regimen: DueRegimen) => {
 		state.setSelectedRegimen(regimen);
 		state.setSelectedAnimalId(regimen.animalId);
@@ -519,11 +526,17 @@ function RecordContent() {
 
 		try {
 			if (!isOnline) {
-				await handleOfflineAdministration(state, selectedHousehold, enqueue);
+				await handleOfflineAdministration(
+					state,
+					selectedHousehold,
+					timezone,
+					enqueue,
+				);
 			} else {
 				await handleOnlineAdministration(
 					state,
 					selectedHousehold,
+					timezone,
 					createAdminMutation,
 					updateInventoryMutation,
 				);
@@ -585,7 +598,9 @@ function RecordContent() {
 
 	// Desktop layout (original)
 	if (state.step === "success") {
-		return <SuccessStep isOnline={isOnline} router={router} />;
+		return (
+			<SuccessStep isOnline={isOnline} router={router} timezone={timezone} />
+		);
 	}
 
 	if (state.step === "confirm" && state.selectedRegimen) {
@@ -624,6 +639,7 @@ function RegimenCard({
 	regimen: DueRegimen;
 	onSelect: (regimen: DueRegimen) => void;
 }) {
+	const { selectedAnimal, selectedHousehold } = useApp();
 	const animal = {
 		id: regimen.animalId,
 		name: regimen.animalName,
@@ -632,8 +648,11 @@ function RegimenCard({
 		pendingMeds: 0,
 	};
 
+	// Get timezone from animal or household context
+	const timezone =
+		selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
 	const timeDisplay = regimen.targetTime
-		? formatTimeLocal(new Date(regimen.targetTime), "America/New_York")
+		? formatTimeLocal(new Date(regimen.targetTime), timezone)
 		: "As needed";
 
 	return (
@@ -672,11 +691,12 @@ function RegimenCard({
 function createAdminPayload(
 	state: ReturnType<typeof useRecordState>,
 	householdId: string,
+	timezone: string,
 ) {
 	if (!state.selectedRegimen) throw new Error("No regimen selected");
 
 	const now = new Date();
-	const localDay = localDayISO(now, "America/New_York"); // TODO: Use animal's timezone
+	const localDay = localDayISO(now, timezone);
 	const idempotencyKey = adminKey(
 		state.selectedRegimen.animalId,
 		state.selectedRegimen.id,
@@ -723,9 +743,11 @@ function getGroupedRegimens(
 function SuccessStep({
 	isOnline,
 	router,
+	timezone = "UTC",
 }: {
 	isOnline: boolean;
 	router: ReturnType<typeof useRouter>;
+	timezone?: string;
 }) {
 	return (
 		<div className="mx-auto max-w-md space-y-6">
@@ -741,7 +763,7 @@ function SuccessStep({
 						Recorded Successfully
 					</h1>
 					<p className="text-muted-foreground">
-						Recorded at {formatTimeLocal(new Date(), "America/New_York")} by You
+						Recorded at {formatTimeLocal(new Date(), timezone)} by You
 						{!isOnline && " (will sync when online)"}
 					</p>
 				</div>

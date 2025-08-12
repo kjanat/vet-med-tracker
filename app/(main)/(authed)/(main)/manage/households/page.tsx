@@ -17,8 +17,13 @@ import { useToast } from "@/hooks/shared/use-toast";
 import { trpc } from "@/server/trpc/client";
 
 export default function HouseholdsPage() {
-	const { user, selectedHousehold, setSelectedHousehold } = useApp();
+	const { user, selectedHousehold, selectedAnimal, setSelectedHousehold } =
+		useApp();
 	const { toast } = useToast();
+
+	// Get timezone from animal or household context
+	const timezone =
+		selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
 	const [, setCreatingHousehold] = useState(false);
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 	const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
@@ -124,7 +129,7 @@ export default function HouseholdsPage() {
 
 		setEditingHouseholdId(householdId);
 		setEditedName(membership.household.name);
-		setEditedTimezone(membership.household.timezone || "America/New_York");
+		setEditedTimezone(membership.household.timezone || timezone);
 		setIsEditDialogOpen(true);
 	};
 

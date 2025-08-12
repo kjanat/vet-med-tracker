@@ -1,6 +1,7 @@
 "use client";
 
 import { endOfMonth, parseISO, startOfMonth } from "date-fns";
+import { DateTime } from "luxon";
 import { Suspense, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { FilterBar } from "@/components/history/filter-bar";
@@ -18,8 +19,12 @@ import { localDayISO } from "@/utils/tz";
 function HistoryContent() {
 	const { filters } = useHistoryFilters();
 	const [currentMonth, setCurrentMonth] = useState(new Date());
-	const { selectedHousehold } = useApp();
+	const { selectedHousehold, selectedAnimal } = useApp();
 	const { enqueue, isOnline } = useOfflineQueue();
+
+	// Get timezone from animal or household context
+	const timezone =
+		selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
 
 	// Fetch household data to determine loading state
 	const { isLoading: isLoadingHouseholds } = trpc.household.list.useQuery(
@@ -37,8 +42,14 @@ function HistoryContent() {
 	} = trpc.admin.list.useQuery(
 		{
 			householdId: selectedHousehold?.id || "",
-			startDate: `${filters.from}T00:00:00.000Z`,
-			endDate: `${filters.to}T23:59:59.999Z`,
+			startDate: DateTime.fromISO(`${filters.from}T00:00:00`, {
+				zone: timezone,
+			})
+				.toUTC()
+				.toISO(),
+			endDate: DateTime.fromISO(`${filters.to}T23:59:59`, { zone: timezone })
+				.toUTC()
+				.toISO(),
 		},
 		{
 			enabled: !!selectedHousehold?.id,
@@ -104,7 +115,7 @@ function HistoryContent() {
 		const groups = new Map<string, AdministrationRecord[]>();
 
 		filteredRecords.forEach((record) => {
-			const localDay = localDayISO(record.recordedAt, "America/New_York");
+			const localDay = localDayISO(record.recordedAt, timezone);
 			if (!groups.has(localDay)) {
 				groups.set(localDay, []);
 			}
@@ -119,7 +130,7 @@ function HistoryContent() {
 				),
 			}))
 			.sort((a, b) => b.date.getTime() - a.date.getTime());
-	}, [filteredRecords]);
+	}, [filteredRecords, timezone]);
 
 	// Generate daily counts for calendar view
 	const dailyCounts = useMemo(() => {
@@ -141,7 +152,7 @@ function HistoryContent() {
 		>();
 
 		monthRecords.forEach((record) => {
-			const dayKey = localDayISO(record.recordedAt, "America/New_York");
+			const dayKey = localDayISO(record.recordedAt, timezone);
 			if (!counts.has(dayKey)) {
 				counts.set(dayKey, { total: 0, onTime: 0, late: 0, missed: 0, prn: 0 });
 			}
@@ -171,7 +182,7 @@ function HistoryContent() {
 			date: parseISO(dateStr),
 			...count,
 		}));
-	}, [filteredRecords, currentMonth]);
+	}, [filteredRecords, currentMonth, timezone]);
 
 	const utils = trpc.useUtils();
 

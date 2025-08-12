@@ -54,7 +54,7 @@ export default function PrivacyPage() {
 							<ul className="list-disc space-y-2 pl-6">
 								<li>Device information (type, operating system)</li>
 								<li>Browser type and version</li>
-								<li>IP address (anonymized)</li>
+								<li>IP address</li>
 								<li>Usage patterns and feature interactions</li>
 								<li>Error logs and performance data</li>
 							</ul>
@@ -90,9 +90,9 @@ export default function PrivacyPage() {
 						<li>Secure cloud infrastructure with regular backups</li>
 					</ul>
 					<p className="mb-4">
-						Your data is stored on secure servers in [specify region]. We retain
-						your data for as long as your account is active or as needed to
-						provide services.
+						Your data is stored on secure servers in the United States. We
+						retain your data for as long as your account is active or as needed
+						to provide services.
 					</p>
 				</section>
 
@@ -176,9 +176,9 @@ export default function PrivacyPage() {
 				<section className="mb-6">
 					<h2>International Data Transfers</h2>
 					<p className="mb-4">
-						If you access our Service from outside [your country], your
-						information may be transferred to and processed in [your country].
-						By using our Service, you consent to these transfers.
+						If you access our Service from outside the United States, your
+						information may be transferred to and processed in the United
+						States. By using our Service, you consent to these transfers.
 					</p>
 				</section>
 
@@ -239,8 +239,6 @@ export default function PrivacyPage() {
 								privacy@vetmedtracker.com
 							</a>
 						</li>
-						<li>Address: [Your Company Address]</li>
-						<li>Data Protection Officer: [Name/Contact if applicable]</li>
 					</ul>
 				</section>
 			</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import {
 	AlertCircle,
 	AlertTriangle,
@@ -10,6 +10,7 @@ import {
 	Printer,
 	TrendingUp,
 } from "lucide-react";
+import { DateTime } from "luxon";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
@@ -383,25 +384,54 @@ export default function AnimalReportPage() {
 	const animalId = params.id as string;
 
 	// Get selected household from context (secure)
-	const { selectedHousehold } = useApp();
+	const { selectedHousehold, selectedAnimal } = useApp();
 	const selectedHouseholdId = selectedHousehold?.id || "";
+
+	// First fetch the animal to get its timezone
+	const { data: animalData } = trpc.animal.getById.useQuery(
+		{
+			id: animalId,
+			householdId: selectedHouseholdId,
+		},
+		{
+			enabled: !!selectedHouseholdId && !!animalId,
+		},
+	);
+
+	// Get timezone from fetched animal data, then selected animal, then household, then UTC
+	const timezone =
+		animalData?.timezone ||
+		selectedAnimal?.timezone ||
+		selectedHousehold?.timezone ||
+		"UTC";
 
 	// Memoize the report dates to prevent continuous re-renders
 	const reportPeriod = useMemo(() => {
-		const reportDate = new Date();
+		// Get current date in animal's timezone
+		const now = DateTime.now().setZone(timezone);
+		const thirtyDaysAgo = now.minus({ days: 30 });
+
 		return {
-			from: subDays(reportDate, 30),
-			to: reportDate,
+			from: thirtyDaysAgo.toJSDate(),
+			to: now.toJSDate(),
 		};
-	}, []); // Empty deps means this only runs once on mount
+	}, [timezone]); // Re-calculate when timezone changes
 
 	// Memoize the ISO strings to prevent query key changes
 	const queryDates = useMemo(
 		() => ({
-			startDate: reportPeriod.from.toISOString(),
-			endDate: reportPeriod.to.toISOString(),
+			startDate: DateTime.fromJSDate(reportPeriod.from)
+				.setZone(timezone)
+				.startOf("day")
+				.toUTC()
+				.toISO(),
+			endDate: DateTime.fromJSDate(reportPeriod.to)
+				.setZone(timezone)
+				.endOf("day")
+				.toUTC()
+				.toISO(),
 		}),
-		[reportPeriod],
+		[reportPeriod, timezone],
 	);
 
 	// Query the report data with retry and staleTime settings

@@ -51,8 +51,9 @@ export default function TermsPage() {
 					<p className="mb-4">
 						The Service is designed solely to help track medication
 						administrations as prescribed by your veterinarian. We do not
-						provide medical advice, dosing calculations, or treatment
-						recommendations.
+						provide medical advice, treatment recommendations, or dosage
+						calculations. Any dosage calculator features are informational tools
+						only and should never replace professional veterinary guidance.
 					</p>
 				</section>
 
@@ -161,8 +162,8 @@ export default function TermsPage() {
 					<h2>12. Governing Law</h2>
 					<p className="mb-4">
 						These Terms shall be governed by and construed in accordance with
-						the laws of the jurisdiction in which VetMed Tracker operates,
-						without regard to its conflict of law provisions.
+						the laws of the State of California, United States, without regard
+						to its conflict of law provisions.
 					</p>
 				</section>
 
@@ -181,7 +182,6 @@ export default function TermsPage() {
 								legal@vetmedtracker.com
 							</a>
 						</li>
-						<li>Address: [Your Company Address]</li>
 					</ul>
 				</section>
 			</div>
