@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { timedOperations } from "@/db/drizzle";
 import {
@@ -7,7 +7,6 @@ import {
 	inventoryItems,
 	medicationCatalog,
 	regimens,
-	suggestions,
 } from "@/db/schema";
 import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 

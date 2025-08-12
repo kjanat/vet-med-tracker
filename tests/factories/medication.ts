@@ -5,7 +5,7 @@
 import type { NewMedicationCatalog } from "@/db/schema";
 import { dates } from "./utils/dates";
 import { dosage, medications } from "./utils/medical";
-import { medical, random } from "./utils/random";
+import { random } from "./utils/random";
 
 // Medication factory function
 export function createMedication(
@@ -221,7 +221,7 @@ function generateBreedConsiderations(medicationName: string): any {
 			multiplier: 0.5,
 			additionalWarnings: ["MDR1 gene sensitivity - use with extreme caution"],
 		};
-		considerations["collie"] = {
+		considerations.collie = {
 			multiplier: 0.5,
 			additionalWarnings: ["MDR1 gene sensitivity - use with extreme caution"],
 		};

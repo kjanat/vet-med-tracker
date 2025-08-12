@@ -11,7 +11,7 @@ import {
 	createAuthenticatedContext,
 	type TestSession,
 } from "@/tests/helpers/trpc-utils";
-import { StackAuthTestUtils, TEST_USERS } from "../mocks/stack-auth";
+import { StackAuthTestUtils } from "../mocks/stack-auth";
 
 describe("Administration Workflow Integration", () => {
 	setupTestDatabase();

@@ -69,8 +69,8 @@ function testServiceWorkerConfig() {
 	console.log("\n⚙️ Testing Service Worker Configuration...");
 
 	try {
-		const fs = require("fs");
-		const path = require("path");
+		const fs = require("node:fs");
+		const path = require("node:path");
 
 		// Check if service worker exists
 		const swPath = path.join(process.cwd(), "public", "sw.js");

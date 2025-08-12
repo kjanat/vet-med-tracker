@@ -47,6 +47,20 @@ export function usePhotoUpload({
 	});
 
 	/**
+	 * Update sync statistics
+	 */
+	const updateStats = useCallback(async () => {
+		if (!state.storageSupported) return;
+
+		try {
+			const stats = await getPhotoSyncStats();
+			setState((prev) => ({ ...prev, stats }));
+		} catch (error) {
+			console.error("Failed to get photo sync stats:", error);
+		}
+	}, [state.storageSupported]);
+
+	/**
 	 * Initialize storage and check support
 	 */
 	useEffect(() => {
@@ -65,46 +79,7 @@ export function usePhotoUpload({
 		};
 
 		initialize();
-	}, []);
-
-	/**
-	 * Handle online/offline status changes
-	 */
-	useEffect(() => {
-		const handleOnline = () => {
-			setState((prev) => ({ ...prev, isOnline: true }));
-			// Trigger sync when back online
-			syncPhotos();
-		};
-
-		const handleOffline = () => {
-			setState((prev) => ({ ...prev, isOnline: false }));
-		};
-
-		if (typeof window !== "undefined") {
-			window.addEventListener("online", handleOnline);
-			window.addEventListener("offline", handleOffline);
-
-			return () => {
-				window.removeEventListener("online", handleOnline);
-				window.removeEventListener("offline", handleOffline);
-			};
-		}
-	}, []);
-
-	/**
-	 * Update sync statistics
-	 */
-	const updateStats = useCallback(async () => {
-		if (!state.storageSupported) return;
-
-		try {
-			const stats = await getPhotoSyncStats();
-			setState((prev) => ({ ...prev, stats }));
-		} catch (error) {
-			console.error("Failed to get photo sync stats:", error);
-		}
-	}, [state.storageSupported]);
+	}, [updateStats]);
 
 	/**
 	 * Upload photo directly or store offline

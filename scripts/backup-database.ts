@@ -124,7 +124,7 @@ async function cleanupOldBackups(config: BackupConfig): Promise<void> {
  */
 async function verifyBackup(
 	backupPath: string,
-	databaseUrl: string,
+	_databaseUrl: string,
 ): Promise<boolean> {
 	// This is a basic verification - in production, you might want more thorough checks
 	try {

@@ -3,7 +3,6 @@ import {
 	fillTestForm,
 	mockAuthenticatedUser,
 	mockHouseholdData,
-	STABLE_CSS,
 	setupMedicationTestData,
 	takeVisualSnapshot,
 	testComponentStates,

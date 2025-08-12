@@ -17,7 +17,7 @@
  *   bun scripts/fix-user-sync.ts --validate-stack  # Validate Stack Auth IDs
  */
 
-import { and, eq, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { db } from "../db/drizzle";
 import { vetmedUsers } from "../db/schema";
 
@@ -137,10 +137,10 @@ async function checkAndFixUser(email: string) {
 		console.log(`  ID: ${colors.dim}${user.id}${colors.reset}`);
 		console.log(`  Email: ${user.email}`);
 		console.log(
-			`  Name: ${user.name || colors.dim + "(not set)" + colors.reset}`,
+			`  Name: ${user.name || `${colors.dim}(not set)${colors.reset}`}`,
 		);
 		console.log(
-			`  Stack User ID: ${user.stackUserId || colors.yellow + "(missing - orphaned)" + colors.reset}`,
+			`  Stack User ID: ${user.stackUserId || `${colors.yellow}(missing - orphaned)${colors.reset}`}`,
 		);
 		console.log(`  Created: ${colors.dim}${user.createdAt}${colors.reset}`);
 
@@ -161,7 +161,7 @@ async function checkAndFixUser(email: string) {
 		console.log();
 
 		// Check if we should delete the user
-		const readline = require("readline");
+		const readline = require("node:readline");
 		const rl = readline.createInterface({
 			input: process.stdin,
 			output: process.stdout,
@@ -215,7 +215,7 @@ async function checkOrphanedUsers() {
 		console.log(`  ${colors.dim}•${colors.reset} ${user.email}`);
 		console.log(`    ID: ${colors.dim}${user.id}${colors.reset}`);
 		console.log(
-			`    Type: ${isTestUser ? colors.yellow + "Test/Seed User" : colors.cyan + "Real User"}${colors.reset}`,
+			`    Type: ${isTestUser ? `${colors.yellow}Test/Seed User` : `${colors.cyan}Real User`}${colors.reset}`,
 		);
 		console.log(`    Created: ${colors.dim}${user.createdAt}${colors.reset}`);
 		console.log();
@@ -254,9 +254,9 @@ async function checkAllUsers() {
 		const hasStackId = !!user.stackUserId;
 
 		let status = "";
-		if (isTestUser) status = colors.yellow + " [TEST]" + colors.reset;
-		if (!hasStackId) status += colors.red + " [ORPHANED]" + colors.reset;
-		if (hasStackId) status += colors.green + " [SYNCED]" + colors.reset;
+		if (isTestUser) status = `${colors.yellow} [TEST]${colors.reset}`;
+		if (!hasStackId) status += `${colors.red} [ORPHANED]${colors.reset}`;
+		if (hasStackId) status += `${colors.green} [SYNCED]${colors.reset}`;
 
 		console.log(`  ${user.email}${status}`);
 		if (!hasStackId) {
@@ -400,7 +400,7 @@ async function cleanTestUsers() {
 		console.log(`  ${colors.dim}•${colors.reset} ${user.email}`);
 	});
 
-	const readline = require("readline");
+	const readline = require("node:readline");
 	const rl = readline.createInterface({
 		input: process.stdin,
 		output: process.stdout,

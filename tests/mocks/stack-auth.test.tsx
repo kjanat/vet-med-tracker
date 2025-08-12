@@ -4,7 +4,6 @@
  */
 
 import { render, screen } from "@testing-library/react";
-import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	AuthTestScenarios,
@@ -18,7 +17,6 @@ import {
 	MockSignUp,
 	MockStackProvider,
 	MockStackTheme,
-	type MockStackUser,
 	MockUserButton,
 	StackAuthTestUtils,
 	TEST_USERS,

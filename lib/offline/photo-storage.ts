@@ -4,7 +4,7 @@
  * Uses the existing IndexedDB setup from the project
  */
 
-import { openDB as _openOfflineDB, checkIndexedDBSupport } from "./db";
+import { checkIndexedDBSupport } from "./db";
 
 export interface OfflinePhoto {
 	id: string;

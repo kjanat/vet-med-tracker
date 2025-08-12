@@ -3,7 +3,7 @@
  * Tests inventory calculations and medication adherence tracking
  */
 
-import { act, renderHook } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useDaysOfSupply } from "@/hooks/inventory/useDaysOfSupply";
 import {

@@ -905,7 +905,7 @@ export const regimenRouter = createTRPCRouter({
 				if (!animalRegimens.has(row.animalId)) {
 					animalRegimens.set(row.animalId, []);
 				}
-				animalRegimens.get(row.animalId)!.push(row);
+				animalRegimens.get(row.animalId)?.push(row);
 			}
 
 			// Convert to the expected format

@@ -192,38 +192,6 @@ export function PhotoGallery({
 		};
 	}, [enableLazyLoading]);
 
-	// Keyboard navigation
-	useEffect(() => {
-		if (!lightbox.isOpen) return;
-
-		const handleKeyDown = (event: KeyboardEvent) => {
-			switch (event.key) {
-				case "Escape":
-					closeLightbox();
-					break;
-				case "ArrowLeft":
-					navigatePhoto(-1);
-					break;
-				case "ArrowRight":
-					navigatePhoto(1);
-					break;
-				case "+":
-				case "=":
-					zoomIn();
-					break;
-				case "-":
-					zoomOut();
-					break;
-				case "0":
-					resetZoom();
-					break;
-			}
-		};
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [lightbox.isOpen, lightbox.currentIndex]);
-
 	/**
 	 * Open lightbox at specific photo index
 	 */
@@ -310,6 +278,45 @@ export function PhotoGallery({
 			panY: 0,
 		}));
 	}, []);
+
+	// Keyboard navigation
+	useEffect(() => {
+		if (!lightbox.isOpen) return;
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			switch (event.key) {
+				case "Escape":
+					closeLightbox();
+					break;
+				case "ArrowLeft":
+					navigatePhoto(-1);
+					break;
+				case "ArrowRight":
+					navigatePhoto(1);
+					break;
+				case "+":
+				case "=":
+					zoomIn();
+					break;
+				case "-":
+					zoomOut();
+					break;
+				case "0":
+					resetZoom();
+					break;
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [
+		lightbox.isOpen,
+		closeLightbox,
+		navigatePhoto,
+		resetZoom,
+		zoomIn,
+		zoomOut,
+	]);
 
 	/**
 	 * Handle touch start for swipe gestures
@@ -419,8 +426,6 @@ export function PhotoGallery({
 			swipe.isDragging,
 			swipe.startX,
 			swipe.startY,
-			lightbox.lastPanX,
-			lightbox.lastPanY,
 			touch.initialDistance,
 			touch.initialZoom,
 		],

@@ -33,7 +33,7 @@ export const random = {
 	arrayElement: <T>(array: T[]): T =>
 		array[Math.floor(seededRandom() * array.length)],
 	arrayElements: <T>(array: T[], count = 1): T[] => {
-		const result: T[] = [];
+		const _result: T[] = [];
 		const shuffled = [...array].sort(() => seededRandom() - 0.5);
 		return shuffled.slice(0, Math.min(count, array.length));
 	},

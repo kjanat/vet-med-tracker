@@ -17,8 +17,6 @@ import {
 } from "@/components/ui/chart";
 import {
 	type DateRange,
-	getDateRangeFromPeriod,
-	PERIOD_OPTIONS,
 	useComplianceData,
 } from "@/hooks/dashboard/useDashboardData";
 import { WidgetErrorBoundary } from "./WidgetErrorBoundary";

@@ -1,14 +1,6 @@
 "use client";
 
-import {
-	FileText,
-	Grid,
-	LayoutGrid,
-	List,
-	Plus,
-	Search,
-	Trash2,
-} from "lucide-react";
+import { FileText, LayoutGrid, List, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { BulkSelectionProvider } from "@/components/providers/bulk-selection-provider";

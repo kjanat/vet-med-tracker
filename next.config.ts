@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
 	experimental: {
 		// ppr: "incremental",
 		reactCompiler: true,
-		typedRoutes: true,
+		typedRoutes: false,
 		// optimizeCss: true, // Disable for now due to critters issue
 		optimizePackageImports: [
 			"lucide-react",

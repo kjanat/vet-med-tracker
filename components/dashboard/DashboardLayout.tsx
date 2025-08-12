@@ -28,7 +28,7 @@ const GRID_CONFIGURATIONS = {
 	mobile: {
 		columns: 1,
 		templateAreas: (widgets: DashboardWidget[]) =>
-			widgets.map((w, i) => `"widget-${i}"`).join(" "),
+			widgets.map((_w, i) => `"widget-${i}"`).join(" "),
 	},
 	tablet: {
 		columns: 2,

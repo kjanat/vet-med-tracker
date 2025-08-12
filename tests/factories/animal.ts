@@ -346,7 +346,7 @@ export const animalUtils = {
 	calculateAppropriateWeight: (
 		species: string,
 		ageYears: number,
-		breed?: string,
+		_breed?: string,
 	): number => {
 		const baseWeight = animal.weight(species);
 

@@ -12,4 +12,13 @@ export const stackServerApp = new StackServerApp({
 		// Add error page for rate limits
 		error: "/auth-error",
 	},
+	// Add offline mode handling
+	fetchOptions: {
+		cache: "no-store",
+		next: {
+			revalidate: 0,
+		},
+	},
+	// Skip network check on server-side
+	skipServerSideNetworkCheck: true,
 });

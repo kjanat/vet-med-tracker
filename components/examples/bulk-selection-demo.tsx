@@ -5,7 +5,7 @@
  * This component demonstrates various use cases and customization options.
  */
 
-import { Archive, Download, Plus, Search, Share, Trash2 } from "lucide-react";
+import { Archive, Plus, Search, Share } from "lucide-react";
 import { useState } from "react";
 import { BulkSelectionProvider } from "@/components/providers/bulk-selection-provider";
 import { Badge } from "@/components/ui/badge";
@@ -108,7 +108,7 @@ function BulkSelectionDemoContent() {
 	const { selectedItems, selectionCount } = useBulkSelectionIntegration({
 		data: filteredData,
 		getItemId: (item) => item.id,
-		onSelectionChange: (selectedItems, selectedIds) => {
+		onSelectionChange: (selectedItems, _selectedIds) => {
 			console.log("Selection changed:", {
 				count: selectedItems.length,
 				items: selectedItems,
@@ -408,7 +408,7 @@ function BulkSelectionDemoContent() {
 				emptyMessage="No tasks found. Try adjusting your search."
 				rowClassName={
 					highlightSelected
-						? (item, isSelected) =>
+						? (_item, isSelected) =>
 								isSelected ? "bg-primary/5 border-primary/20" : ""
 						: undefined
 				}

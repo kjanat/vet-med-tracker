@@ -6,15 +6,7 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-	administrations,
-	animals,
-	households,
-	inventoryItems,
-	medications,
-	regimens,
-	users,
-} from "@/db/schema";
+import { animals, households, users } from "@/db/schema";
 import { cleanDatabase, testDb } from "@/tests/helpers/db-utils";
 
 // Import factories
@@ -170,7 +162,7 @@ describe("Example 4: Pre-built Scenarios", () => {
 describe("Example 5: Compliance Testing", () => {
 	it("generates realistic compliance patterns", () => {
 		// Create a regimen first
-		const user = createUser();
+		const _user = createUser();
 		const household = createHousehold();
 		const animal = animalPresets.healthyDog(household.id!);
 		const medication = medicationPresets.amoxicillin();

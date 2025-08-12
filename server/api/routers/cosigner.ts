@@ -1,12 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNull, lt, or } from "drizzle-orm";
+import { and, eq, lt, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import {
 	administrations,
 	animals,
 	cosignRequests,
-	cosignStatusEnum,
 	medicationCatalog,
 	memberships,
 	type NewCosignRequest,
@@ -263,7 +262,7 @@ export const cosignerRouter = createTRPCRouter({
 			}
 
 			// Verify cosigner
-			const cosignerData = await verifyCosigner(
+			const _cosignerData = await verifyCosigner(
 				ctx.db,
 				input.cosignerId,
 				input.householdId,

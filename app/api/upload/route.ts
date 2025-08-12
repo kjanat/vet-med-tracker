@@ -177,7 +177,7 @@ function generateFileName(originalName: string, userId: string): string {
  * For now, we'll return a mock URL structure
  */
 async function storeFile(
-	file: File,
+	_file: File,
 	fileName: string,
 ): Promise<{ url: string }> {
 	// TODO: Implement actual file storage

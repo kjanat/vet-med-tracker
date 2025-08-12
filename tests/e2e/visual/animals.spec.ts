@@ -3,7 +3,6 @@ import {
 	fillTestForm,
 	mockAuthenticatedUser,
 	mockHouseholdData,
-	STABLE_CSS,
 	takeVisualSnapshot,
 	testComponentStates,
 	testResponsiveView,

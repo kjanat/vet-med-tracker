@@ -3,11 +3,7 @@ import webpush from "web-push";
 import { z } from "zod";
 import { notifications, pushSubscriptions } from "@/db/schema";
 import { getVAPIDConfig } from "@/lib/push-notifications/vapid-config";
-import {
-	pushNotificationPayloadSchema,
-	pushSubscriptionSchema,
-	pushSubscriptionWithDeviceSchema,
-} from "@/lib/schemas/push-notifications";
+import { pushSubscriptionWithDeviceSchema } from "@/lib/schemas/push-notifications";
 import {
 	createTRPCRouter,
 	householdProcedure,

@@ -5,7 +5,7 @@
  * This demonstrates the minimal changes needed to add bulk selection to existing components.
  */
 
-import { Download, Trash2 } from "lucide-react";
+import { Download } from "lucide-react";
 import { BulkSelectionProvider } from "@/components/providers/bulk-selection-provider";
 import { BulkSelectionCheckbox } from "@/components/ui/bulk-selection-checkbox";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ interface ExistingTableProps {
 }
 
 // This is how your existing table might look BEFORE adding bulk selection
-function ExistingTableOriginal({ data, onEdit }: ExistingTableProps) {
+function _ExistingTableOriginal({ data, onEdit }: ExistingTableProps) {
 	return (
 		<Table>
 			<TableHeader>

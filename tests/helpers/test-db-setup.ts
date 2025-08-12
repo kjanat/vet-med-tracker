@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import type { db } from "@/db/drizzle";
@@ -113,7 +112,7 @@ export async function runTestMigrations(): Promise<void> {
  * Reset the test database by truncating all tables
  */
 export async function resetTestDatabase(): Promise<void> {
-	const db = getTestDatabase();
+	const _db = getTestDatabase();
 
 	try {
 		console.log("🗑️  Resetting test database...");
@@ -185,7 +184,7 @@ export async function closeTestDatabase(): Promise<void> {
  */
 export async function checkTestDatabaseHealth(): Promise<boolean> {
 	try {
-		const db = getTestDatabase();
+		const _db = getTestDatabase();
 		await testSql!`SELECT 1 as health_check`;
 		return true;
 	} catch (error) {

@@ -9,7 +9,7 @@
  *   node scripts/manage-rate-limits.js clear-ip <ip>  # Clear specific IP
  */
 
-const https = require("https");
+const https = require("node:https");
 
 // Load from environment or use defaults
 const API_URL =
@@ -33,12 +33,14 @@ async function upstashRequest(path, method = "GET") {
 
 		const req = https.request(options, (res) => {
 			let data = "";
-			res.on("data", (chunk) => (data += chunk));
+			res.on("data", (chunk) => {
+				data += chunk;
+			});
 			res.on("end", () => {
 				try {
 					const result = JSON.parse(data);
 					resolve(result);
-				} catch (e) {
+				} catch (_e) {
 					resolve({ error: data });
 				}
 			});
@@ -67,7 +69,7 @@ async function checkStatus() {
 			`/scan/0/match/${encodeURIComponent(pattern)}/count/100`,
 		);
 
-		if (result.result && result.result[1] && result.result[1].length > 0) {
+		if (result.result?.[1] && result.result[1].length > 0) {
 			console.log(`📊 ${pattern.replace(":*", "")} limits:`);
 
 			for (const key of result.result[1]) {
@@ -111,7 +113,7 @@ async function clearAll() {
 			`/scan/0/match/${encodeURIComponent(pattern)}/count/100`,
 		);
 
-		if (result.result && result.result[1] && result.result[1].length > 0) {
+		if (result.result?.[1] && result.result[1].length > 0) {
 			for (const key of result.result[1]) {
 				const delResult = await upstashRequest(
 					`/del/${encodeURIComponent(key)}`,

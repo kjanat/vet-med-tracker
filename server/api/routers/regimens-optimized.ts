@@ -10,15 +10,12 @@
  */
 
 import { TRPCError } from "@trpc/server";
-import { and, eq, gte, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
 	vetmedAdministrations as administrations,
 	vetmedAnimals as animals,
-	vetmedMedicationCatalog as medicationCatalog,
-	type NewRegimen,
 	vetmedRegimens as regimens,
-	scheduleTypeEnum,
 } from "@/db/schema";
 import {
 	createTRPCRouter,
@@ -572,7 +569,7 @@ export const regimensOptimizedRouter = createTRPCRouter({
 					diagnostics.queryPerformance[testQuery.name] = Math.round(
 						endTime - startTime,
 					);
-				} catch (error) {
+				} catch (_error) {
 					diagnostics.queryPerformance[testQuery.name] = -1;
 				}
 			}

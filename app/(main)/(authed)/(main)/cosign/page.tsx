@@ -9,7 +9,6 @@ import {
 	X,
 } from "lucide-react";
 import { useState } from "react";
-import { CoSignStatusIndicator as _CoSignStatusIndicator } from "@/components/cosign/cosign-status-indicator";
 import { SignaturePad } from "@/components/cosign/signature-pad";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,7 +16,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-	CardHeader as _CardHeader,
 	Card,
 	CardContent,
 	CardDescription,

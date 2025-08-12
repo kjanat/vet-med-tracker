@@ -221,7 +221,7 @@ export function SignaturePad({
 	useEffect(() => {
 		const signature = exportSignature();
 		onSignatureChange(signature);
-	}, [strokes, exportSignature, onSignatureChange]);
+	}, [exportSignature, onSignatureChange]);
 
 	// Start drawing
 	const startDrawing = useCallback(

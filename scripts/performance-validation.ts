@@ -15,13 +15,9 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
-	vetmedAdministrations as administrations,
 	vetmedAnimals as animals,
 	vetmedHouseholds as households,
-	vetmedInventoryItems as inventoryItems,
-	vetmedMedicationCatalog as medicationCatalog,
 	vetmedRegimens as regimens,
-	vetmedUsers as users,
 } from "../db/schema";
 
 // Database connection
@@ -54,7 +50,6 @@ interface PerformanceReport {
 class PerformanceValidator {
 	private results: BenchmarkResult[] = [];
 	private testHouseholdId: string = "";
-	private testAnimalIds: string[] = [];
 	private testRegimenIds: string[] = [];
 
 	async initialize() {
@@ -76,9 +71,9 @@ class PerformanceValidator {
 				})
 				.returning({ id: households.id });
 
-			this.testHouseholdId = newHousehold[0]!.id;
+			this.testHouseholdId = newHousehold[0]?.id;
 		} else {
-			this.testHouseholdId = testHouseholds[0]!.id;
+			this.testHouseholdId = testHouseholds[0]?.id;
 		}
 
 		console.log(`📝 Using test household: ${this.testHouseholdId}`);
@@ -164,7 +159,7 @@ class PerformanceValidator {
 	private async runSingleBenchmark(
 		name: string,
 		query: any,
-		description: string,
+		_description: string,
 	) {
 		const iterations = 3;
 		const executionTimes: number[] = [];
@@ -444,7 +439,7 @@ class PerformanceValidator {
 					);
 				}
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Ignore parsing errors
 		}
 

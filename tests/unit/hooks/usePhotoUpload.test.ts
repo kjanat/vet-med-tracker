@@ -5,7 +5,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePhotoUpload } from "@/hooks/offline/usePhotoUpload";
-import { testConfig } from "@/tests/helpers/test-fixtures";
 
 // Mock dependencies
 vi.mock("@/lib/utils/image-compression", () => ({
@@ -154,7 +153,7 @@ describe("usePhotoUpload", () => {
 		await act(async () => {
 			try {
 				await result.current.uploadPhoto(testFile);
-			} catch (error) {
+			} catch (_error) {
 				// Expected to throw
 			}
 		});
@@ -171,7 +170,7 @@ describe("usePhotoUpload", () => {
 		await act(async () => {
 			try {
 				await result.current.uploadPhoto(largeFile);
-			} catch (error) {
+			} catch (_error) {
 				// Expected to throw
 			}
 		});
@@ -187,7 +186,7 @@ describe("usePhotoUpload", () => {
 		await act(async () => {
 			try {
 				await result.current.uploadPhoto(textFile);
-			} catch (error) {
+			} catch (_error) {
 				// Expected to throw
 			}
 		});
@@ -370,7 +369,7 @@ describe("usePhotoUpload", () => {
 		await act(async () => {
 			try {
 				await result.current.uploadPhoto(createMockFile("test1.jpg", 1024));
-			} catch (error) {
+			} catch (_error) {
 				// Expected
 			}
 		});

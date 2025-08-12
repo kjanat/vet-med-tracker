@@ -66,8 +66,8 @@ async function seedTestDatabase(): Promise<void> {
 		// Create membership
 		await db.insert(schema.memberships).values({
 			...testFactories.membership({
-				userId: testUser[0]!.id,
-				householdId: testHousehold[0]!.id,
+				userId: testUser[0]?.id,
+				householdId: testHousehold[0]?.id,
 				role: "OWNER",
 			}),
 		});
@@ -79,7 +79,7 @@ async function seedTestDatabase(): Promise<void> {
 				...testFactories.animal({
 					name: "Buddy",
 					species: "Dog",
-					householdId: testHousehold[0]!.id,
+					householdId: testHousehold[0]?.id,
 				}),
 			})
 			.returning();
@@ -99,16 +99,16 @@ async function seedTestDatabase(): Promise<void> {
 		// Create a test regimen
 		await db.insert(schema.regimens).values({
 			...testFactories.regimen({
-				animalId: testAnimal[0]!.id,
-				medicationId: testMedication[0]!.id,
+				animalId: testAnimal[0]?.id,
+				medicationId: testMedication[0]?.id,
 			}),
 		});
 
 		console.log("✅ Test database seeded successfully");
-		console.log(`   - User: ${testUser[0]!.email}`);
-		console.log(`   - Household: ${testHousehold[0]!.name}`);
-		console.log(`   - Animal: ${testAnimal[0]!.name}`);
-		console.log(`   - Medication: ${testMedication[0]!.genericName}`);
+		console.log(`   - User: ${testUser[0]?.email}`);
+		console.log(`   - Household: ${testHousehold[0]?.name}`);
+		console.log(`   - Animal: ${testAnimal[0]?.name}`);
+		console.log(`   - Medication: ${testMedication[0]?.genericName}`);
 	} catch (error) {
 		console.error("Failed to seed test database:", error);
 		throw error;

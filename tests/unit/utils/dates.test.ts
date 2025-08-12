@@ -2,15 +2,12 @@
  * Unit tests for date utilities
  */
 
-import { DateTime } from "luxon";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Import the date utility functions (these would need to be created in lib/utils/dates.ts)
 import {
-	addDays,
 	calculateNextDose,
 	convertToTimezone,
-	endOfDay,
 	formatDate,
 	formatDateTime,
 	formatDuration,
@@ -21,7 +18,6 @@ import {
 	isOverdue,
 	isSameDay,
 	parseFrequency,
-	startOfDay,
 } from "@/lib/utils/dates";
 
 describe("Date Utilities", () => {

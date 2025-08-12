@@ -283,7 +283,7 @@ export function useUpcomingDoses() {
 	const { selectedHousehold } = useApp();
 
 	// Calculate next 7 days range
-	const dateRange = useMemo(() => {
+	const _dateRange = useMemo(() => {
 		const from = new Date();
 		const to = new Date();
 		to.setDate(to.getDate() + 7);

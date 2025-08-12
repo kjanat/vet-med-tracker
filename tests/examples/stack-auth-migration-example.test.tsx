@@ -3,14 +3,11 @@
  * Shows how to migrate existing Clerk-based tests to Stack Auth
  */
 
-import { render, screen } from "@testing-library/react";
-import React from "react";
+import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
 	AuthTestScenarios,
 	ClerkToStackMigrationHelpers,
-	createAuthenticatedTRPCContext,
-	type MockStackUser,
 	mockServerAuth,
 	renderWithAuthenticatedUser,
 	renderWithUnauthenticatedUser,

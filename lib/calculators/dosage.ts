@@ -3,11 +3,7 @@
  * Provides accurate, species-specific dosage calculations with safety validation
  */
 
-import {
-	DosageConverter,
-	VetUnitUtils,
-	WeightConverter,
-} from "./unit-conversions";
+import { VetUnitUtils, WeightConverter } from "./unit-conversions";
 
 export type WeightUnit = "kg" | "lbs";
 export type SafetyLevel = "safe" | "caution" | "danger";
@@ -297,7 +293,7 @@ export class DosageCalculator {
 		if (medication.contraindications && animal.conditions) {
 			const contraindicated = medication.contraindications.some(
 				(contraindication) =>
-					animal.conditions!.some((condition) =>
+					animal.conditions?.some((condition) =>
 						condition.toLowerCase().includes(contraindication.toLowerCase()),
 					),
 			);
@@ -449,13 +445,13 @@ export class DosageCalculator {
 		const ageInYears = animal.ageYears || 0;
 
 		// Check pediatric adjustments
-		const pediatricAdj = medication.ageAdjustments?.["pediatric"];
+		const pediatricAdj = medication.ageAdjustments?.pediatric;
 		if (pediatricAdj && ageInMonths < (pediatricAdj.minAgeMonths || 6)) {
 			return { ...pediatricAdj, multiplier: pediatricAdj.multiplier };
 		}
 
 		// Check geriatric adjustments
-		const geriatricAdj = medication.ageAdjustments?.["geriatric"];
+		const geriatricAdj = medication.ageAdjustments?.geriatric;
 		if (geriatricAdj && ageInYears >= (geriatricAdj.minAgeYears || 7)) {
 			return { ...geriatricAdj, multiplier: geriatricAdj.multiplier };
 		}

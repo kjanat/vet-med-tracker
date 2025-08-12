@@ -16,7 +16,6 @@ import {
 import {
 	createAuthenticatedContext,
 	createMockContext,
-	mockSession,
 } from "@/tests/helpers/trpc-utils";
 
 describe("adminRouter", () => {

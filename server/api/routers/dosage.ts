@@ -17,7 +17,6 @@ import {
 	WeightConverter,
 } from "@/lib/calculators/unit-conversions";
 import {
-	batchDosageInputSchema,
 	batchDosageResultSchema,
 	conversionResultSchema,
 	convertDosageInputSchema,
@@ -31,7 +30,6 @@ import {
 } from "@/lib/schemas/dosage";
 import {
 	createTRPCRouter,
-	householdProcedure,
 	ownerProcedure,
 	protectedProcedure,
 } from "@/server/api/trpc";
@@ -313,7 +311,7 @@ export const dosageRouter = createTRPCRouter({
 				});
 
 				// Compare proposed dose to recommended range
-				const proposedDosePerKg =
+				const _proposedDosePerKg =
 					proposedDoseMg /
 					WeightConverter.toKg(animal.weight, animal.weightUnit);
 				const isWithinRange =

@@ -11,7 +11,6 @@ import {
 	renderWithProviders,
 	selectOption,
 } from "@/tests/helpers/rtl-utils";
-import { testAnimals, testMedications } from "@/tests/helpers/test-fixtures";
 
 // Mock the dosage calculator module
 vi.mock("@/lib/calculators/dosage", () => ({
@@ -76,7 +75,7 @@ describe("DosageCalculator Component", () => {
 		await fillFormField("Breed", "Golden Retriever");
 
 		// Mock medication selection
-		const medicationField = screen.getByLabelText(/medication/i);
+		const _medicationField = screen.getByLabelText(/medication/i);
 		await fillFormField("Medication", "Amoxicillin");
 
 		// Submit the form
@@ -192,7 +191,7 @@ describe("DosageCalculator Component", () => {
 		await fillFormField("Breed", "Golden Retriever");
 
 		// Click reset
-		const resetButton = screen.getByRole("button", { name: /reset/i });
+		const _resetButton = screen.getByRole("button", { name: /reset/i });
 		await clickButton("Reset");
 
 		// Check that fields are cleared
@@ -284,7 +283,7 @@ describe("DosageCalculator Component", () => {
 	it("provides helpful medication suggestions", async () => {
 		renderWithProviders(<DosageCalculator />);
 
-		const medicationField = screen.getByLabelText(/medication/i);
+		const _medicationField = screen.getByLabelText(/medication/i);
 
 		// Start typing to trigger suggestions
 		await fillFormField("Medication", "Amox");

@@ -772,10 +772,10 @@ export const adminRouter = createTRPCRouter({
 			}
 
 			// Validate inventory item if provided
-			let inventoryItem = null;
+			let _inventoryItem = null;
 			if (input.inventorySourceId) {
 				try {
-					inventoryItem = await verifyInventoryItem(
+					_inventoryItem = await verifyInventoryItem(
 						ctx.db,
 						input.inventorySourceId,
 						input.householdId,

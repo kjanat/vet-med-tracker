@@ -117,7 +117,7 @@ describe("PhotoUploader Component", () => {
 
 		renderWithProviders(<PhotoUploader />);
 
-		const fileInput = screen.getByTestId("file-input");
+		const _fileInput = screen.getByTestId("file-input");
 		await uploadFile("file-input", mockFile);
 
 		expect(mockUploadPhoto).toHaveBeenCalledWith(mockFile);
@@ -222,7 +222,7 @@ describe("PhotoUploader Component", () => {
 
 		renderWithProviders(<PhotoUploader />);
 
-		const deleteButton = screen.getByTestId("delete-photo-1");
+		const _deleteButton = screen.getByTestId("delete-photo-1");
 		await clickButton("Delete");
 
 		expect(mockDeletePhoto).toHaveBeenCalledWith("photo-1");
@@ -254,7 +254,7 @@ describe("PhotoUploader Component", () => {
 
 		renderWithProviders(<PhotoUploader onUploadComplete={mockOnComplete} />);
 
-		const fileInput = screen.getByTestId("file-input");
+		const _fileInput = screen.getByTestId("file-input");
 		await uploadFile("file-input", mockFile);
 
 		await waitFor(() => {
@@ -268,7 +268,7 @@ describe("PhotoUploader Component", () => {
 
 		renderWithProviders(<PhotoUploader />);
 
-		const fileInput = screen.getByTestId("file-input");
+		const _fileInput = screen.getByTestId("file-input");
 		await uploadFile("file-input", mockFile);
 
 		// Should not crash the component

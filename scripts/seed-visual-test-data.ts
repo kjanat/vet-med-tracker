@@ -5,7 +5,6 @@
  * This script creates consistent data for reliable visual testing
  */
 
-import { hashSync } from "bcrypt";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {

@@ -157,7 +157,7 @@ function getErrorMetrics(): MonitoringMetrics["errors"] {
 /**
  * Main monitoring endpoint
  */
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
 	const startTime = Date.now();
 
 	try {

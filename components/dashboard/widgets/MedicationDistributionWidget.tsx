@@ -3,11 +3,7 @@
 import { useMemo } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Badge } from "@/components/ui/badge";
-import {
-	type ChartConfig,
-	ChartContainer,
-	ChartTooltipContent,
-} from "@/components/ui/chart";
+import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
 import { useMedicationDistribution } from "@/hooks/dashboard/useDashboardData";
 import { WidgetErrorBoundary } from "./WidgetErrorBoundary";
 import { WidgetSkeletons } from "./WidgetSkeletons";
@@ -79,7 +75,7 @@ function MedicationDistributionWidgetContent({
 	// Create chart config dynamically
 	const chartConfig = useMemo(() => {
 		const config: ChartConfig = {};
-		chartData.forEach((item, index) => {
+		chartData.forEach((item, _index) => {
 			config[item.name] = {
 				label: item.name,
 				color: item.color,
@@ -155,7 +151,7 @@ function MedicationDistributionWidgetContent({
 
 			{/* Legend with detailed info */}
 			<div className="space-y-2">
-				{chartData.map((item, index) => (
+				{chartData.map((item, _index) => (
 					<div
 						key={item.name}
 						className="flex items-center justify-between gap-2"

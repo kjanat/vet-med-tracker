@@ -15,7 +15,6 @@ import { and, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
 	vetmedAdministrations as administrations,
-	type adminStatusEnum,
 	vetmedAnimals as animals,
 	vetmedInventoryItems as inventoryItems,
 	vetmedMedicationCatalog as medicationCatalog,
@@ -24,7 +23,6 @@ import {
 	vetmedUsers as users,
 } from "@/db/schema";
 import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
-import { createAuditLog } from "@/server/utils/audit-log";
 
 // Optimized list query with strategic JOINs and covering indexes
 const optimizedListQuery = {
@@ -211,7 +209,7 @@ const performanceMonitoring = {
 	// Database connection pool monitoring
 	checkConnectionHealth: async (db: typeof import("@/db/drizzle").db) => {
 		try {
-			const result = await db.execute(sql`SELECT 1 as health_check`);
+			const _result = await db.execute(sql`SELECT 1 as health_check`);
 			return { healthy: true, latency: 0 };
 		} catch (error) {
 			console.error("Database health check failed:", error);

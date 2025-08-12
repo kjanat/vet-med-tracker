@@ -3,17 +3,11 @@
  * Calculates and schedules push notifications for medication regimens
  */
 
-import { and, eq, gte, lte, or } from "drizzle-orm";
+import { and, eq, gte, lte } from "drizzle-orm";
 import { DateTime } from "luxon";
 import cron from "node-cron";
 import type { db } from "@/db/drizzle";
-import {
-	vetmedAnimals as animals,
-	vetmedMemberships as memberships,
-	notificationQueue,
-	vetmedRegimens as regimens,
-	vetmedUsers as users,
-} from "@/db/schema";
+import { notificationQueue } from "@/db/schema";
 import { PushNotificationService } from "./push-service";
 import {
 	type MissedDose,
@@ -279,7 +273,7 @@ export class NotificationScheduler {
 	 */
 	private async sendMissedDoseNotification(dose: MissedDose): Promise<void> {
 		try {
-			const result = await this.pushService.sendMedicationReminder(
+			const _result = await this.pushService.sendMedicationReminder(
 				dose.userId,
 				{
 					type: "medication_reminder",

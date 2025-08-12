@@ -104,11 +104,11 @@ export function PerformanceMonitor({
 					"navigation",
 				],
 			});
-		} catch (e) {
+		} catch (_e) {
 			// Fallback for browsers that don't support all entry types
 			try {
 				observer.observe({ entryTypes: ["paint"] });
-			} catch (e2) {
+			} catch (_e2) {
 				// Silent fail
 			}
 		}
@@ -204,7 +204,7 @@ export function useResourceTiming() {
 
 		try {
 			observer.observe({ entryTypes: ["resource"] });
-		} catch (e) {
+		} catch (_e) {
 			// Silent fail for unsupported browsers
 		}
 
@@ -214,7 +214,7 @@ export function useResourceTiming() {
 
 // Combined performance monitoring hook
 export function usePerformanceMonitoring(
-	options: PerformanceMonitorProps = {},
+	_options: PerformanceMonitorProps = {},
 ) {
 	useBundleAnalytics();
 	useResourceTiming();

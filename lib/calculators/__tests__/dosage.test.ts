@@ -71,7 +71,7 @@ const mockCollie: AnimalInfo = {
 	ageYears: 3,
 };
 
-const mockPuppyCollie: AnimalInfo = {
+const _mockPuppyCollie: AnimalInfo = {
 	species: "dog",
 	breed: "Collie",
 	weight: 15,
@@ -319,7 +319,7 @@ describe("DosageCalculator", () => {
 
 			// Should apply species (0.8), breed (0.5), age (0.8), and route (0.7) adjustments
 			const expectedMultiplier = 0.8 * 0.5 * 0.8 * 0.7;
-			const expectedDose = 15 * 15 * expectedMultiplier; // = 50.400000000000006
+			const _expectedDose = 15 * 15 * expectedMultiplier; // = 50.400000000000006
 			// Calculator rounds to vet precision (1 decimal place for mg)
 			expect(result.dose).toBe(50.4);
 			expect(result.appliedAdjustments).toHaveLength(4);

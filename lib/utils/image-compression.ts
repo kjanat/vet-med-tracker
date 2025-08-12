@@ -221,7 +221,7 @@ export async function compressImage(
 		// Create new file from compressed blob
 		const compressedFile = new File(
 			[compressedBlob],
-			file.name.replace(/\.[^/.]+$/, "") + ".jpg", // Always use .jpg for compressed images
+			`${file.name.replace(/\.[^/.]+$/, "")}.jpg`, // Always use .jpg for compressed images
 			{ type: finalOptions.format },
 		);
 

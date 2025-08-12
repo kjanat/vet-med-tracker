@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileText, Plus, Search, Trash2 } from "lucide-react";
+import { FileText, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";

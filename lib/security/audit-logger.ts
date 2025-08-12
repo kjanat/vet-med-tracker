@@ -187,7 +187,7 @@ class ConsoleAuditLogger implements AuditLogger {
 		});
 	}
 
-	async query(filters: AuditQueryFilters): Promise<AuditEvent[]> {
+	async query(_filters: AuditQueryFilters): Promise<AuditEvent[]> {
 		// In a real implementation, this would query the audit database
 		console.warn("Audit query not implemented in console logger");
 		return [];
@@ -385,7 +385,7 @@ export function createAuditMiddleware() {
 	}) {
 		const startTime = Date.now();
 		const userId = ctx.dbUser?.id;
-		const clientIp =
+		const _clientIp =
 			ctx.headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
 		try {

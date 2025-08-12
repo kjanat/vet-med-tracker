@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
+import { trpc } from "@/server/trpc/client";
 import { BROWSER_ZONE } from "@/utils/timezone-helpers";
 
 interface OnboardingData {
@@ -68,9 +69,17 @@ export function WelcomeFlow() {
 		}
 	};
 
+	const createHouseholdMutation = trpc.households.create.useMutation();
+
 	const completeOnboarding = async () => {
 		setIsLoading(true);
 		try {
+			// Create household in database
+			const household = await createHouseholdMutation.mutateAsync({
+				name: data.householdName,
+				timezone: data.timezone,
+			});
+
 			// Update VetMed preferences
 			await updateVetMedPreferences({
 				defaultTimezone: data.timezone,
@@ -88,8 +97,9 @@ export function WelcomeFlow() {
 				},
 			});
 
-			// Update household settings
+			// Update household settings with the created household ID
 			await updateHouseholdSettings({
+				primaryHouseholdId: household.id,
 				primaryHouseholdName: data.householdName,
 				defaultLocation: {
 					address: "",
