@@ -8,10 +8,10 @@ import { stackServerApp } from "./stack";
  * 1. Security headers (CSP, HSTS, XSS protection, etc.)
  * 2. Authentication via Stack Auth
  * 3. Basic request routing protection
- * 4. Rate limiting for public endpoints
+ * 4. Rate limiting for public endpoints (in-memory fallback)
  *
- * Connection safeguards (rate limiting, circuit breakers, connection pools)
- * are handled in the tRPC middleware layer which runs in Node.js runtime
+ * Note: Redis-based rate limiting is handled in the auth handler
+ * This in-memory rate limiting serves as a fallback
  */
 
 // Security headers configuration
@@ -27,11 +27,12 @@ const securityHeaders = {
 	// Content Security Policy
 	"Content-Security-Policy": [
 		"default-src 'self'",
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://js.pusher.com",
+		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://js.pusher.com https://va.vercel-scripts.com",
 		"style-src 'self' 'unsafe-inline'",
 		"img-src 'self' data: blob: https:",
 		"font-src 'self' data:",
-		"connect-src 'self' https://api.stripe.com wss://ws-*.pusher.com https://*.stack-auth.com",
+		// Note: CSP doesn't support wildcard subdomains like ws-*, using specific regions
+		"connect-src 'self' https://api.stripe.com wss://ws.pusher.com wss://ws-us2.pusher.com wss://ws-us3.pusher.com wss://ws-eu.pusher.com wss://ws-ap1.pusher.com wss://ws-ap2.pusher.com https://*.stack-auth.com https://vitals.vercel-insights.com",
 		"frame-src https://js.stripe.com",
 		"object-src 'none'",
 		"base-uri 'self'",
@@ -116,12 +117,14 @@ export default async function middleware(req: NextRequest) {
 		rateLimit = rateLimits.public;
 	}
 
-	// Skip rate limiting for health checks and static files
+	// Skip rate limiting for health checks, static files, and auth handlers
+	// Auth handlers have their own Redis-based rate limiting
 	const skipRateLimit =
 		req.nextUrl.pathname === "/api/health" ||
 		req.nextUrl.pathname === "/api/breaker-status" ||
 		req.nextUrl.pathname.startsWith("/_next") ||
-		req.nextUrl.pathname.includes(".");
+		req.nextUrl.pathname.includes(".") ||
+		req.nextUrl.pathname.startsWith("/handler/"); // Skip for auth - handled by Redis
 
 	// Apply rate limiting
 	if (!skipRateLimit && !checkRateLimit(clientIp, rateLimit)) {
