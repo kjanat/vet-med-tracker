@@ -20,38 +20,6 @@ function seededRandom() {
 
 // Basic random utilities
 export const random = {
-  uuid: () => randomUUID(),
-
-  // Numbers
-  int: (min = 0, max = 100) =>
-    Math.floor(seededRandom() * (max - min + 1)) + min,
-  float: (min = 0, max = 100, precision = 2) => {
-    const num = seededRandom() * (max - min) + min;
-    return parseFloat(num.toFixed(precision));
-  },
-
-  // Arrays
-  arrayElement: <T>(array: T[]): T =>
-    array[Math.floor(seededRandom() * array.length)],
-  arrayElements: <T>(array: T[], count = 1): T[] => {
-    const _result: T[] = [];
-    const shuffled = [...array].sort(() => seededRandom() - 0.5);
-    return shuffled.slice(0, Math.min(count, array.length));
-  },
-
-  // Weighted selection
-  weightedArrayElement: <T>(items: Array<{ weight: number; value: T }>): T => {
-    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
-    let randomWeight = seededRandom() * totalWeight;
-
-    for (const item of items) {
-      randomWeight -= item.weight;
-      if (randomWeight <= 0) return item.value;
-    }
-    return items[items.length - 1].value;
-  },
-
-  // Strings
   alphaNumeric: (length = 10) => {
     const chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -62,16 +30,55 @@ export const random = {
     return result;
   },
 
-  // Booleans
-  boolean: (probability = 0.5) => seededRandom() < probability,
+  // Numbers
+  arrayElement: <T>(array: T[]): T => {
+    if (array.length === 0) {
+      throw new Error("Cannot select element from empty array");
+    }
+    return array[Math.floor(seededRandom() * array.length)]!;
+  },
+  arrayElements: <T>(array: T[], count = 1): T[] => {
+    const _result: T[] = [];
+    const shuffled = [...array].sort(() => seededRandom() - 0.5);
+    return shuffled.slice(0, Math.min(count, array.length));
+  },
 
-  // Dates
-  dateRecent: (days = 7) =>
-    new Date(Date.now() - seededRandom() * days * 24 * 60 * 60 * 1000),
+  // Arrays
+  boolean: (probability = 0.5) => seededRandom() < probability,
   dateFuture: (days = 7) =>
     new Date(Date.now() + seededRandom() * days * 24 * 60 * 60 * 1000),
+
+  // Weighted selection
   datePast: (years = 1) =>
     new Date(Date.now() - seededRandom() * years * 365 * 24 * 60 * 60 * 1000),
+
+  // Strings
+  dateRecent: (days = 7) =>
+    new Date(Date.now() - seededRandom() * days * 24 * 60 * 60 * 1000),
+
+  // Booleans
+  float: (min = 0, max = 100, precision = 2) => {
+    const num = seededRandom() * (max - min) + min;
+    return parseFloat(num.toFixed(precision));
+  },
+
+  // Dates
+  int: (min = 0, max = 100) =>
+    Math.floor(seededRandom() * (max - min + 1)) + min,
+  uuid: () => randomUUID(),
+  weightedArrayElement: <T>(items: Array<{ weight: number; value: T }>): T => {
+    if (items.length === 0) {
+      throw new Error("Cannot select element from empty array");
+    }
+    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+    let randomWeight = seededRandom() * totalWeight;
+
+    for (const item of items) {
+      randomWeight -= item.weight;
+      if (randomWeight <= 0) return item.value;
+    }
+    return items[items.length - 1]!.value;
+  },
 };
 
 // Person data

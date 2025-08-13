@@ -24,7 +24,7 @@ export function createAdministration(
     caregiverId: random.uuid(), // Should be overridden with actual caregiver ID
     scheduledFor: scheduledFor.toISOString(),
     recordedAt: recordedAt.toISOString(),
-    status: status as any,
+    status: status as "ON_TIME" | "LATE" | "VERY_LATE" | "MISSED" | "PRN",
     sourceItemId: random.boolean(0.6) ? random.uuid() : null, // 60% linked to inventory
     site: generateSite(
       overrides.route ||

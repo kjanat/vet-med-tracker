@@ -1,35 +1,40 @@
 "use client";
 
 import {
-    AlertTriangle,
-    Calendar,
-    CheckCircle,
-    Clock,
-    Download,
-    Filter,
-    Keyboard,
-    Plus,
-    RotateCcw,
-    Search,
-    SortAsc,
-    SortDesc,
-    Upload,
+  AlertTriangle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Download,
+  Filter,
+  Keyboard,
+  Plus,
+  RotateCcw,
+  Search,
+  SortAsc,
+  SortDesc,
+  Upload,
 } from "lucide-react";
-import {useState} from "react";
-import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuShortcut,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {Input} from "@/components/ui/input";
-import {Separator} from "@/components/ui/separator";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DesktopProductivityToolbarProps {
   searchQuery: string;

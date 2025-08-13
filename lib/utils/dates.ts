@@ -3,7 +3,7 @@
  * Handles timezone conversions, dose scheduling, and formatting
  */
 
-import {DateTime, type DateTimeMaybeValid} from "luxon";
+import { DateTime, type DateTimeMaybeValid } from "luxon";
 
 export type FrequencyCode =
   | "SID"

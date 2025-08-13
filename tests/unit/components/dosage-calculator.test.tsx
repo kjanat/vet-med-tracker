@@ -4,7 +4,7 @@
 
 import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import DosageCalculator from "@/components/dosage-calculator";
+import { DosageCalculator } from "@/components/dosage-calculator";
 import {
   clickButton,
   fillFormField,
@@ -296,35 +296,26 @@ describe("DosageCalculator Component", () => {
 
   it("displays loading state during calculation", async () => {
     // Mock a slow calculation
-    mockCalculate.mockImplementation(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(
-            () =>
-              resolve({
-                dose: 450,
-                unit: "mg",
-                frequency: "Twice daily",
-                minDose: 300,
-                maxDose: 600,
-                safetyLevel: "safe",
-                calculationMethod: "standard",
-                weightInKg: 30,
-                baseDoseMgKg: 15,
-                finalDoseMgKg: 15,
-                appliedAdjustments: [],
-                warnings: [],
-                alternativeFormats: [],
-                dailyInfo: {
-                  dosesPerDay: 2,
-                  totalDailyDose: 900,
-                  timeBetweenDoses: "12 hours",
-                },
-              }),
-            100,
-          ),
-        ),
-    );
+    mockCalculate.mockResolvedValue({
+      dose: 450,
+      unit: "mg",
+      frequency: "Twice daily",
+      minDose: 300,
+      maxDose: 600,
+      safetyLevel: "safe",
+      calculationMethod: "standard",
+      weightInKg: 30,
+      baseDoseMgKg: 15,
+      finalDoseMgKg: 15,
+      appliedAdjustments: [],
+      warnings: [],
+      alternativeFormats: [],
+      dailyInfo: {
+        dosesPerDay: 2,
+        totalDailyDose: 900,
+        timeBetweenDoses: "12 hours",
+      },
+    });
 
     renderWithProviders(<DosageCalculator />);
 

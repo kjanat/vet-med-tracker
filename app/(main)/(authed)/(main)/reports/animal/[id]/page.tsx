@@ -420,16 +420,18 @@ export default function AnimalReportPage() {
   // Memoize the ISO strings to prevent query key changes
   const queryDates = useMemo(
     () => ({
-      startDate: DateTime.fromJSDate(reportPeriod.from)
-        .setZone(timezone)
-        .startOf("day")
-        .toUTC()
-        .toISO(),
-      endDate: DateTime.fromJSDate(reportPeriod.to)
-        .setZone(timezone)
-        .endOf("day")
-        .toUTC()
-        .toISO(),
+      startDate:
+        DateTime.fromJSDate(reportPeriod.from)
+          .setZone(timezone)
+          .startOf("day")
+          .toUTC()
+          .toISO() || undefined,
+      endDate:
+        DateTime.fromJSDate(reportPeriod.to)
+          .setZone(timezone)
+          .endOf("day")
+          .toUTC()
+          .toISO() || undefined,
     }),
     [reportPeriod, timezone],
   );

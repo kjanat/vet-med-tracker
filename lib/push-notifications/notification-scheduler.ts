@@ -22,10 +22,10 @@ export class NotificationScheduler {
   private jobs: Map<string, ReturnType<typeof cron.schedule>> = new Map();
   private isRunning = false;
 
-  constructor(db: typeof db) {
-    this.db = db;
-    this.pushService = new PushNotificationService(db);
-    this.regimenCalculator = new RegimenCalculator(db);
+  constructor(database: typeof db) {
+    this.db = database;
+    this.pushService = new PushNotificationService(database);
+    this.regimenCalculator = new RegimenCalculator(database);
   }
 
   /**
@@ -215,6 +215,7 @@ export class NotificationScheduler {
     }
 
     // Check if we already sent a notification for this dose
+    // Check if we already sent a notification for this dose
     const existing = await this.db
       .select()
       .from(notificationQueue)
@@ -224,11 +225,13 @@ export class NotificationScheduler {
           eq(notificationQueue.type, "medication_reminder"),
           gte(
             notificationQueue.scheduledFor,
-            dose.scheduledTime.minus({ minutes: 30 }).toISO(),
+            dose.scheduledTime.minus({ minutes: 30 }).toISO() ??
+              dose.scheduledTime.toString(),
           ),
           lte(
             notificationQueue.scheduledFor,
-            dose.scheduledTime.plus({ minutes: 30 }).toISO(),
+            dose.scheduledTime.plus({ minutes: 30 }).toISO() ??
+              dose.scheduledTime.toString(),
           ),
         ),
       )
@@ -260,17 +263,14 @@ export class NotificationScheduler {
 
       // Log the notification in the queue
       await this.db.insert(notificationQueue).values({
+        householdId: dose.householdId,
         userId: dose.userId,
         type: "medication_reminder",
-        scheduledFor: dose.scheduledTime.toISO(),
+        title: `${dose.animalName} Medication Reminder`,
+        body: `Time to give ${dose.medicationName} to ${dose.animalName}`,
+        scheduledFor:
+          dose.scheduledTime.toISO() || dose.scheduledTime.toString(),
         sentAt: new Date().toISOString(),
-        metadata: {
-          animalId: dose.animalId,
-          regimenId: dose.regimenId,
-          medicationName: dose.medicationName,
-          sent: result.sent,
-          failed: result.failed,
-        },
       });
 
       console.log(
@@ -319,9 +319,11 @@ export class NotificationScheduler {
 // Export singleton instance
 let schedulerInstance: NotificationScheduler | null = null;
 
-export function getNotificationScheduler(db: typeof db): NotificationScheduler {
+export function getNotificationScheduler(
+  database: typeof db,
+): NotificationScheduler {
   if (!schedulerInstance) {
-    schedulerInstance = new NotificationScheduler(db);
+    schedulerInstance = new NotificationScheduler(database);
   }
   return schedulerInstance;
 }

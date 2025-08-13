@@ -312,3 +312,63 @@ export async function resetApiCallCounts(page: Page) {
     };
   });
 }
+
+/**
+ * Select an animal from the dropdown
+ */
+export async function selectAnimal(page: Page, animalName: string) {
+  await page.getByTestId("animal-selector").click();
+  await page.getByText(animalName).click();
+}
+
+/**
+ * Select a regimen from the dropdown
+ */
+export async function selectRegimen(page: Page, regimenName: string) {
+  await page.getByTestId("regimen-selector").click();
+  await page.getByText(regimenName).click();
+}
+
+/**
+ * Hold and release the record button to record an administration
+ */
+export async function holdRecordButton(page: Page, holdDuration = 3000) {
+  const recordButton = page.getByTestId("record-button");
+  await recordButton.press("Space");
+  await page.waitForTimeout(holdDuration);
+  await recordButton.press("Space"); // Release
+}
+
+/**
+ * Complete full administration recording flow
+ */
+export async function recordAdministration(
+  page: Page,
+  animalName: string,
+  regimenName: string,
+  options?: {
+    inventorySource?: string;
+    holdDuration?: number;
+    waitAfter?: number;
+  },
+) {
+  const {
+    inventorySource,
+    holdDuration = 3000,
+    waitAfter = 1000,
+  } = options || {};
+
+  await selectAnimal(page, animalName);
+  await selectRegimen(page, regimenName);
+
+  if (inventorySource) {
+    await page.getByTestId("inventory-source").click();
+    await page.getByText(inventorySource).click();
+  }
+
+  await holdRecordButton(page, holdDuration);
+
+  if (waitAfter > 0) {
+    await page.waitForTimeout(waitAfter);
+  }
+}

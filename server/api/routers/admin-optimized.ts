@@ -153,7 +153,11 @@ const optimizedBulkOperations = {
 
   // Batch insert administrations for optimal performance
   batchInsertAdministrations: async (
-    db: typeof import("@/db/drizzle").db | Parameters<Parameters<typeof import("@/db/drizzle").db.transaction>[0]>[0],
+    db:
+      | typeof import("@/db/drizzle").db
+      | Parameters<
+          Parameters<typeof import("@/db/drizzle").db.transaction>[0]
+        >[0],
     administrationRecords: NewAdministration[],
   ) => {
     // Use single batch insert instead of individual inserts

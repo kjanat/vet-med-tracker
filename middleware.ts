@@ -68,7 +68,7 @@ function getRateLimitKey(req: NextRequest): string {
   // Use forwarded IP, fallback to connection IP, then to 'unknown'
   const forwarded = req.headers.get("x-forwarded-for");
   const realIp = req.headers.get("x-real-ip");
-  return forwarded?.split(",")[0]?.trim() || realIp || req.ip || "unknown";
+  return forwarded?.split(",")[0]?.trim() || realIp || "unknown";
 }
 
 function checkRateLimit(

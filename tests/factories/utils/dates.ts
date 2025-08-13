@@ -92,8 +92,10 @@ export const dates = {
   // Format helpers for database
   toDateString: (date: Date) => date.toISOString().split("T")[0],
   toISOString: (date: Date) => date.toISOString(),
-  toTimeString: (date: Date) =>
-    date.toTimeString().split(" ")[0].substring(0, 5), // HH:MM format
+  toTimeString: (date: Date) => {
+    const timePart = date.toTimeString().split(" ")[0];
+    return timePart ? timePart.substring(0, 5) : "00:00"; // HH:MM format
+  },
 
   // Common date ranges for test scenarios
   ranges: {
@@ -125,40 +127,40 @@ export const dates = {
 // Time generation for medication schedules
 export const times = {
   // Common medication times
-  morning: "08:00",
-  noon: "12:00",
-  evening: "18:00",
   bedtime: "22:00",
+  bid: () => ["08:00", "20:00"],
+  businessHours: () => {
+    const hour = random.int(8, 17); // 8 AM to 5 PM
+    const minute = random.arrayElement([0, 15, 30, 45]);
+    return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+  },
+  evening: "18:00",
 
   // Generate BID (twice daily) times
-  bid: () => ["08:00", "20:00"],
-
-  // Generate TID (three times daily) times
-  tid: () => ["08:00", "14:00", "20:00"],
-
-  // Generate QID (four times daily) times
-  qid: () => ["06:00", "12:00", "18:00", "24:00"],
-
-  // Generate times based on interval
   intervalTimes: (intervalHours: number, startTime = "08:00") => {
     const times: string[] = [startTime];
     const [startHour, startMinute] = startTime.split(":").map(Number);
-    let currentHour = startHour;
+    let currentHour: number = startHour ?? 0;
 
     for (let i = 1; i < Math.floor(24 / intervalHours); i++) {
-      currentHour = (currentHour + intervalHours) % 24;
+      currentHour = (intervalHours + currentHour) % 24;
       times.push(
-        `${currentHour.toString().padStart(2, "0")}:${startMinute.toString().padStart(2, "0")}`,
+        `${currentHour.toString().padStart(2, "0")}:${(startMinute || 0).toString().padStart(2, "0")}`,
       );
     }
 
     return times;
   },
 
+  // Generate TID (three times daily) times
+  morning: "08:00",
+
+  // Generate QID (four times daily) times
+  noon: "12:00",
+
+  // Generate times based on interval
+  qid: () => ["06:00", "12:00", "18:00", "24:00"],
+
   // Random time within business hours
-  businessHours: () => {
-    const hour = random.int(8, 17); // 8 AM to 5 PM
-    const minute = random.arrayElement([0, 15, 30, 45]);
-    return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-  },
+  tid: () => ["08:00", "14:00", "20:00"],
 };

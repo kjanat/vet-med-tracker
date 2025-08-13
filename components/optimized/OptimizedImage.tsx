@@ -143,17 +143,17 @@ export function OptimizedPhotoGalleryImage({
   src,
   alt,
   className,
-  onClick,
+  onClickAction,
 }: {
   src: string;
   alt: string;
   className?: string;
-  onClick?: () => void;
+  onClickAction?: () => void;
 }) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === "Enter" || e.key === " ") && onClick) {
+    if ((e.key === "Enter" || e.key === " ") && onClickAction) {
       e.preventDefault();
-      onClick();
+      onClickAction();
     }
   };
 
@@ -161,7 +161,7 @@ export function OptimizedPhotoGalleryImage({
     <button
       type="button"
       className={cn("cursor-pointer", className)}
-      onClick={onClick}
+      onClick={onClickAction}
       onKeyDown={handleKeyDown}
       aria-label="Open image in full view"
     >

@@ -1,10 +1,14 @@
 import { expect, test } from "@playwright/test";
 import {
+  holdRecordButton,
   mockOfflineQueue,
   mockTRPCMutations,
+  recordAdministration,
+  selectAnimal,
+  selectRegimen,
   simulateOffline,
   simulateOnline,
-} from "../helpers/offline-helpers";
+} from "@/tests/helpers/offline-helpers";
 
 test.describe("Offline Queue Sync Integration", () => {
   test.beforeEach(async ({ page }) => {
@@ -21,17 +25,9 @@ test.describe("Offline Queue Sync Integration", () => {
     await simulateOffline(page);
 
     // Step 2: Record an administration
-    await page.getByTestId("animal-selector").click();
-    await page.getByText("Buddy").click();
-
-    await page.getByTestId("regimen-selector").click();
-    await page.getByText("Amoxicillin 250mg").click();
-
-    // Hold the record button
-    const recordButton = page.getByTestId("record-button");
-    await recordButton.press("Space");
-    await page.waitForTimeout(3000); // Wait for 3-second hold
-    await recordButton.press("Space"); // Release
+    await recordAdministration(page, "Buddy", "Amoxicillin 250mg", {
+      waitAfter: 0, // Don't wait after for this test
+    });
 
     // Verify offline notification
     await expect(
@@ -63,19 +59,7 @@ test.describe("Offline Queue Sync Integration", () => {
 
     // Record multiple administrations
     for (let i = 0; i < 3; i++) {
-      await page.getByTestId("animal-selector").click();
-      await page.getByText("Buddy").click();
-
-      await page.getByTestId("regimen-selector").click();
-      await page.getByText("Amoxicillin 250mg").click();
-
-      const recordButton = page.getByTestId("record-button");
-      await recordButton.press("Space");
-      await page.waitForTimeout(3000);
-      await recordButton.press("Space");
-
-      // Wait for success state to reset
-      await page.waitForTimeout(1000);
+      await recordAdministration(page, "Buddy", "Amoxicillin 250mg");
     }
 
     // Verify 3 pending changes
@@ -112,16 +96,9 @@ test.describe("Offline Queue Sync Integration", () => {
     // Go offline and record
     await simulateOffline(page);
 
-    await page.getByTestId("animal-selector").click();
-    await page.getByText("Buddy").click();
-
-    await page.getByTestId("regimen-selector").click();
-    await page.getByText("Amoxicillin 250mg").click();
-
-    const recordButton = page.getByTestId("record-button");
-    await recordButton.press("Space");
-    await page.waitForTimeout(3000);
-    await recordButton.press("Space");
+    await recordAdministration(page, "Buddy", "Amoxicillin 250mg", {
+      waitAfter: 0,
+    });
 
     // Go online - first sync will fail
     await simulateOnline(page);
@@ -154,19 +131,10 @@ test.describe("Offline Queue Sync Integration", () => {
     await simulateOffline(page);
 
     // Record with inventory source
-    await page.getByTestId("animal-selector").click();
-    await page.getByText("Buddy").click();
-
-    await page.getByTestId("regimen-selector").click();
-    await page.getByText("Amoxicillin 250mg").click();
-
-    await page.getByTestId("inventory-source").click();
-    await page.getByText("Amoxicillin 250mg - Bottle #1").click();
-
-    const recordButton = page.getByTestId("record-button");
-    await recordButton.press("Space");
-    await page.waitForTimeout(3000);
-    await recordButton.press("Space");
+    await recordAdministration(page, "Buddy", "Amoxicillin 250mg", {
+      inventorySource: "Amoxicillin 250mg - Bottle #1",
+      waitAfter: 0,
+    });
 
     // Go online and wait for sync
     await simulateOnline(page);
@@ -192,18 +160,7 @@ test.describe("Offline Queue Sync Integration", () => {
 
     // Record 2 administrations
     for (let i = 0; i < 2; i++) {
-      await page.getByTestId("animal-selector").click();
-      await page.getByText("Buddy").click();
-
-      await page.getByTestId("regimen-selector").click();
-      await page.getByText("Amoxicillin 250mg").click();
-
-      const recordButton = page.getByTestId("record-button");
-      await recordButton.press("Space");
-      await page.waitForTimeout(3000);
-      await recordButton.press("Space");
-
-      await page.waitForTimeout(1000);
+      await recordAdministration(page, "Buddy", "Amoxicillin 250mg");
     }
 
     // Open sync status popup
@@ -224,16 +181,9 @@ test.describe("Offline Queue Sync Integration", () => {
     // Go offline and record
     await simulateOffline(page);
 
-    await page.getByTestId("animal-selector").click();
-    await page.getByText("Buddy").click();
-
-    await page.getByTestId("regimen-selector").click();
-    await page.getByText("Amoxicillin 250mg").click();
-
-    const recordButton = page.getByTestId("record-button");
-    await recordButton.press("Space");
-    await page.waitForTimeout(3000);
-    await recordButton.press("Space");
+    await recordAdministration(page, "Buddy", "Amoxicillin 250mg", {
+      waitAfter: 0,
+    });
 
     // Verify 1 pending
     await expect(page.getByTestId("sync-status")).toContainText("1");
@@ -264,24 +214,12 @@ test.describe("Offline Queue Sync Integration", () => {
     await simulateOffline(page);
 
     // Record the same administration twice with same idempotency key
-    const recordAdmin = async () => {
-      await page.getByTestId("animal-selector").click();
-      await page.getByText("Buddy").click();
-
-      await page.getByTestId("regimen-selector").click();
-      await page.getByText("Amoxicillin 250mg").click();
-
-      const recordButton = page.getByTestId("record-button");
-      await recordButton.press("Space");
-      await page.waitForTimeout(3000);
-      await recordButton.press("Space");
-    };
-
-    await recordAdmin();
-    await page.waitForTimeout(1000);
+    await recordAdministration(page, "Buddy", "Amoxicillin 250mg");
 
     // Try to record again (should use same idempotency key for same day/slot)
-    await recordAdmin();
+    await recordAdministration(page, "Buddy", "Amoxicillin 250mg", {
+      waitAfter: 0,
+    });
 
     // Go online
     await simulateOnline(page);

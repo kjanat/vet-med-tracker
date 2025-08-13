@@ -638,6 +638,7 @@ export const cosignerRouter = createTRPCRouter({
         .select({
           request: cosignRequests,
           administration: administrations,
+          regimen: regimens,
           animal: animals,
           medication: medicationCatalog,
           requester: requesterUsers,

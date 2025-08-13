@@ -42,14 +42,16 @@ function HistoryContent() {
   } = trpc.admin.list.useQuery(
     {
       householdId: selectedHousehold?.id || "",
-      startDate: DateTime.fromISO(`${filters.from}T00:00:00`, {
-        zone: timezone,
-      })
-        .toUTC()
-        .toISO(),
-      endDate: DateTime.fromISO(`${filters.to}T23:59:59`, { zone: timezone })
-        .toUTC()
-        .toISO(),
+      startDate:
+        DateTime.fromISO(`${filters.from}T00:00:00`, {
+          zone: timezone,
+        })
+          .toUTC()
+          .toISO() || undefined,
+      endDate:
+        DateTime.fromISO(`${filters.to}T23:59:59`, { zone: timezone })
+          .toUTC()
+          .toISO() || undefined,
     },
     {
       enabled: !!selectedHousehold?.id,

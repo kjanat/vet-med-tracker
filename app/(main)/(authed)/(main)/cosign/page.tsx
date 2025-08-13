@@ -57,7 +57,11 @@ export default function CoSignPage() {
   } = trpc.cosigner.listPending.useQuery(
     { householdId: selectedHousehold?.id || "" },
     { enabled: !!selectedHousehold?.id },
-  );
+  ) as {
+    data: BaseRequestItem[] | undefined;
+    refetch: () => void;
+    isLoading: boolean;
+  };
 
   const {
     data: allRequests,
@@ -66,7 +70,11 @@ export default function CoSignPage() {
   } = trpc.cosigner.listAll.useQuery(
     { householdId: selectedHousehold?.id || "" },
     { enabled: !!selectedHousehold?.id },
-  );
+  ) as {
+    data: RequestItemWithCosigner[] | undefined;
+    refetch: () => void;
+    isLoading: boolean;
+  };
 
   // Mutations
   const approveMutation = trpc.cosigner.approve.useMutation({
@@ -343,36 +351,81 @@ export default function CoSignPage() {
   );
 }
 
-interface RequestCardProps {
-  item: {
-    request: {
-      id: string;
-      status: string;
-      createdAt: string;
-      expiresAt: string;
-      signedAt?: string | null;
-      rejectionReason?: string | null;
-      signature?: string | null;
-    };
-    medication: {
-      genericName: string;
-      brandName?: string | null;
-    };
-    animal: {
-      name: string;
-    };
-    requester: {
-      name: string | null;
-      email: string | null;
-      image?: string | null;
-    };
-    administration?: {
-      actualDose: string;
-    };
-    regimen?: {
-      route: string;
-    };
+type BaseRequestItem = {
+  request: {
+    id: string;
+    administrationId: string;
+    requesterId: string;
+    cosignerId: string;
+    householdId: string;
+    status: "pending" | "approved" | "rejected" | "expired";
+    signature: string | null;
+    signedAt: string | null;
+    rejectionReason: string | null;
+    expiresAt: string;
+    createdAt: string;
+    updatedAt: string;
   };
+  medication: {
+    id: string;
+    genericName: string;
+    brandName: string | null;
+    [key: string]: any;
+  };
+  animal: {
+    id: string;
+    name: string;
+    [key: string]: any;
+  };
+  requester: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    image?: string | null;
+    [key: string]: any;
+  };
+  administration: {
+    id: string;
+    regimenId: string;
+    animalId: string;
+    householdId: string;
+    caregiverId: string;
+    scheduledFor: string | null;
+    recordedAt: string;
+    status: "ON_TIME" | "LATE" | "VERY_LATE" | "MISSED" | "PRN";
+    sourceItemId: string | null;
+    site: string | null;
+    dose: string | null;
+    notes: string | null;
+    mediaUrls: string[] | null;
+    coSignUserId: string | null;
+    coSignedAt: string | null;
+    coSignNotes: string | null;
+    adverseEvent: boolean;
+    adverseEventDescription: string | null;
+    idempotencyKey: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  regimen: {
+    id: string;
+    route: string | null;
+    [key: string]: any;
+  };
+};
+
+type RequestItemWithCosigner = BaseRequestItem & {
+  cosigner: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    image?: string | null;
+    [key: string]: any;
+  } | null;
+};
+
+interface RequestCardProps {
+  item: BaseRequestItem | RequestItemWithCosigner;
   formatUserName: (
     user: { name: string | null; email: string | null } | null,
   ) => string;
@@ -419,13 +472,13 @@ function PendingRequestCard({
               <div>
                 <span className="font-medium">Dose:</span>
                 <span className="ml-2">
-                  {item.administration?.actualDose || "N/A"}
+                  {item.administration.dose || "N/A"}
                 </span>
               </div>
               <div>
                 <span className="font-medium">Route:</span>
                 <span className="ml-2 capitalize">
-                  {item.regimen?.route?.toLowerCase() || "N/A"}
+                  {item.regimen.route?.toLowerCase() || "N/A"}
                 </span>
               </div>
               <div>

@@ -5,7 +5,7 @@
  * including automatic error capture, user context, and feature flag reporting.
  */
 
-import {getClientFeatureFlags} from "@/lib/feature-flags";
+import { getClientFeatureFlags } from "@/lib/feature-flags";
 
 export interface ErrorReport {
   error: string;

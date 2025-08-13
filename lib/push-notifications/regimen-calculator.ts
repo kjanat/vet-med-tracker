@@ -33,6 +33,7 @@ export interface RegimenSchedule {
 }
 
 export interface ScheduledDose {
+  householdId: string;
   regimenId: string;
   animalId: string;
   animalName: string;
