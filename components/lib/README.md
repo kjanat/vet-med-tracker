@@ -1,6 +1,7 @@
 # UI Component Library
 
-This directory contains pure UI components organized by functional category. These are reusable, stateless components that focus on presentation and user interaction patterns.
+This directory contains pure UI components organized by functional category. These are reusable, stateless components
+that focus on presentation and user interaction patterns.
 
 ## Directory Structure
 
@@ -17,7 +18,9 @@ lib/
 ## Categories
 
 ### Forms (`/forms`)
+
 Components for user input and form handling:
+
 - `form.tsx` - Form field management and validation
 - `input.tsx` - Text input component
 - `textarea.tsx` - Multi-line text input
@@ -28,7 +31,9 @@ Components for user input and form handling:
 - `switch.tsx` - Toggle switch component
 
 ### Feedback (`/feedback`)
+
 Components for communicating status and providing user feedback:
+
 - `alert.tsx` - Alert messages
 - `alert-dialog.tsx` - Confirmation and alert dialogs
 - `toast.tsx` - Toast notifications
@@ -36,12 +41,16 @@ Components for communicating status and providing user feedback:
 - `loading-skeleton.tsx` - Loading placeholder components
 
 ### Navigation (`/navigation`)
+
 Components for navigation and wayfinding:
+
 - `breadcrumb.tsx` - Breadcrumb navigation
 - `tabs.tsx` - Tabbed navigation interface
 
 ### Data Display (`/data-display`)
+
 Components for displaying data and content:
+
 - `table.tsx` - Data tables
 - `card.tsx` - Content cards
 - `badge.tsx` - Status badges and labels
@@ -50,7 +59,9 @@ Components for displaying data and content:
 - `aspect-ratio.tsx` - Aspect ratio containers
 
 ### Overlays (`/overlays`)
+
 Components that appear above other content:
+
 - `dialog.tsx` - Modal dialogs
 - `popover.tsx` - Contextual popovers
 - `tooltip.tsx` - Hover tooltips

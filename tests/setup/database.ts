@@ -6,11 +6,11 @@
  */
 
 import {
-	checkTestDatabaseHealth,
-	closeTestDatabase,
-	getTestDatabaseInfo,
-	initializeTestDatabase,
-	resetTestDatabase,
+  checkTestDatabaseHealth,
+  closeTestDatabase,
+  getTestDatabaseInfo,
+  initializeTestDatabase,
+  resetTestDatabase,
 } from "../helpers/test-db-setup";
 
 /**
@@ -18,27 +18,27 @@ import {
  * Called once before all tests start
  */
 export async function setupDatabase(): Promise<void> {
-	console.log("🚀 Setting up test database...");
+  console.log("🚀 Setting up test database...");
 
-	try {
-		// Initialize test database (create DB, run migrations)
-		await initializeTestDatabase();
+  try {
+    // Initialize test database (create DB, run migrations)
+    await initializeTestDatabase();
 
-		// Verify database is healthy
-		const isHealthy = await checkTestDatabaseHealth();
-		if (!isHealthy) {
-			throw new Error("Test database health check failed after setup");
-		}
+    // Verify database is healthy
+    const isHealthy = await checkTestDatabaseHealth();
+    if (!isHealthy) {
+      throw new Error("Test database health check failed after setup");
+    }
 
-		const info = getTestDatabaseInfo();
-		console.log("✅ Test database setup completed:");
-		console.log(`   Database: ${info.config.database}`);
-		console.log(`   Host: ${info.config.host}:${info.config.port}`);
-		console.log(`   Connected: ${info.isConnected ? "✅" : "❌"}`);
-	} catch (error) {
-		console.error("❌ Test database setup failed:", error);
-		throw error;
-	}
+    const info = getTestDatabaseInfo();
+    console.log("✅ Test database setup completed:");
+    console.log(`   Database: ${info.config.database}`);
+    console.log(`   Host: ${info.config.host}:${info.config.port}`);
+    console.log(`   Connected: ${info.isConnected ? "✅" : "❌"}`);
+  } catch (error) {
+    console.error("❌ Test database setup failed:", error);
+    throw error;
+  }
 }
 
 /**
@@ -46,15 +46,15 @@ export async function setupDatabase(): Promise<void> {
  * Called once after all tests complete
  */
 export async function teardownDatabase(): Promise<void> {
-	console.log("🔌 Tearing down test database...");
+  console.log("🔌 Tearing down test database...");
 
-	try {
-		await closeTestDatabase();
-		console.log("✅ Test database teardown completed");
-	} catch (error) {
-		console.error("❌ Test database teardown failed:", error);
-		// Don't throw here to avoid masking test failures
-	}
+  try {
+    await closeTestDatabase();
+    console.log("✅ Test database teardown completed");
+  } catch (error) {
+    console.error("❌ Test database teardown failed:", error);
+    // Don't throw here to avoid masking test failures
+  }
 }
 
 /**
@@ -62,24 +62,24 @@ export async function teardownDatabase(): Promise<void> {
  * Called before each test suite
  */
 export async function resetDatabaseState(): Promise<void> {
-	try {
-		await resetTestDatabase();
-	} catch (error) {
-		console.error("❌ Failed to reset database state:", error);
-		throw error;
-	}
+  try {
+    await resetTestDatabase();
+  } catch (error) {
+    console.error("❌ Failed to reset database state:", error);
+    throw error;
+  }
 }
 
 /**
  * Utility function to verify test database is ready
  */
 export async function verifyTestDatabaseReady(): Promise<void> {
-	const isHealthy = await checkTestDatabaseHealth();
-	if (!isHealthy) {
-		throw new Error(
-			"Test database is not ready. Please run 'pnpm db:test:init' first.",
-		);
-	}
+  const isHealthy = await checkTestDatabaseHealth();
+  if (!isHealthy) {
+    throw new Error(
+      "Test database is not ready. Please run 'pnpm db:test:init' first.",
+    );
+  }
 }
 
 /**
@@ -87,7 +87,7 @@ export async function verifyTestDatabaseReady(): Promise<void> {
  * Called once before all tests start
  */
 export async function setup(): Promise<void> {
-	await setupDatabase();
+  await setupDatabase();
 }
 
 /**
@@ -95,7 +95,7 @@ export async function setup(): Promise<void> {
  * Called once after all tests complete
  */
 export async function teardown(): Promise<void> {
-	await teardownDatabase();
+  await teardownDatabase();
 }
 
 // Export setup function as default for Vitest globalSetup

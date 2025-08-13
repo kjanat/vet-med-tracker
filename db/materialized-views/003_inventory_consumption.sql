@@ -2,7 +2,8 @@
 -- Optimizes inventory tracking, reorder points, and consumption forecasting
 -- Expected performance improvement: >70% for inventory analytics
 
-CREATE MATERIALIZED VIEW mv_inventory_consumption AS
+CREATE
+MATERIALIZED VIEW mv_inventory_consumption AS
 WITH consumption_calc AS (
   SELECT
     ii.household_id,
@@ -86,86 +87,74 @@ WITH consumption_calc AS (
     DATE_TRUNC('week', a.recorded_at)
 )
 
-SELECT 
-  household_id,
-  medication_id,
-  assigned_animal_id,
-  month,
-  week,
-  
-  -- Aggregated consumption metrics
-  SUM(doses_consumed) as total_doses_consumed,
-  AVG(avg_daily_consumption) as avg_daily_consumption_rate,
-  
-  -- Inventory status summary
-  COUNT(*) as inventory_items_count,
-  COUNT(*) FILTER (WHERE stock_status = 'OUT_OF_STOCK') as out_of_stock_items,
-  COUNT(*) FILTER (WHERE stock_status = 'CRITICAL') as critical_stock_items,
-  COUNT(*) FILTER (WHERE stock_status = 'LOW') as low_stock_items,
-  
-  -- Supply projections
-  MIN(estimated_days_supply) as min_days_supply,
-  AVG(estimated_days_supply) as avg_days_supply,
-  MAX(estimated_days_supply) as max_days_supply,
-  
-  -- Expiration risk
-  COUNT(*) FILTER (
-    WHERE expires_on IS NOT NULL 
+SELECT household_id,
+       medication_id,
+       assigned_animal_id, month, week,
+
+       -- Aggregated consumption metrics
+    SUM (doses_consumed) as total_doses_consumed, AVG (avg_daily_consumption) as avg_daily_consumption_rate,
+
+       -- Inventory status summary
+    COUNT (*) as inventory_items_count, COUNT (*) FILTER (WHERE stock_status = 'OUT_OF_STOCK') as out_of_stock_items, COUNT (*) FILTER (WHERE stock_status = 'CRITICAL') as critical_stock_items, COUNT (*) FILTER (WHERE stock_status = 'LOW') as low_stock_items,
+
+       -- Supply projections
+    MIN (estimated_days_supply) as min_days_supply, AVG (estimated_days_supply) as avg_days_supply, MAX (estimated_days_supply) as max_days_supply,
+
+       -- Expiration risk
+    COUNT (*) FILTER (
+    WHERE expires_on IS NOT NULL
     AND expires_on <= CURRENT_DATE + INTERVAL '30 days'
-  ) as expiring_soon_count,
-  
-  COUNT(*) FILTER (
-    WHERE expires_on IS NOT NULL 
+    ) as expiring_soon_count, COUNT (*) FILTER (
+    WHERE expires_on IS NOT NULL
     AND expires_on <= CURRENT_DATE
-  ) as expired_items_count,
-  
-  -- Usage patterns
-  SUM(units_remaining) as total_units_remaining,
-  SUM(total_units) as total_units_capacity,
-  
-  -- Calculated metrics
-  ROUND(
-    (SUM(total_units) - SUM(units_remaining))::numeric / 
-    NULLIF(SUM(total_units), 0) * 100, 2
-  ) as utilization_rate,
-  
-  -- Data freshness
-  NOW() as last_updated
+    ) as expired_items_count,
+
+       -- Usage patterns
+    SUM (units_remaining) as total_units_remaining, SUM (total_units) as total_units_capacity,
+
+       -- Calculated metrics
+    ROUND(
+    (SUM (total_units) - SUM (units_remaining)):: numeric /
+    NULLIF (SUM (total_units), 0) * 100, 2
+    ) as utilization_rate,
+
+       -- Data freshness
+    NOW() as last_updated
 
 FROM consumption_calc
-WHERE month IS NOT NULL  -- Only include months with actual consumption data
-GROUP BY 
-  household_id,
-  medication_id,
-  assigned_animal_id,
-  month,
-  week
+WHERE month IS NOT NULL -- Only include months with actual consumption data
+GROUP BY
+    household_id,
+    medication_id,
+    assigned_animal_id,
+    month,
+    week
 WITH DATA;
 
 -- Create indexes for optimal query performance
-CREATE UNIQUE INDEX mv_inventory_consumption_pkey 
-ON mv_inventory_consumption (household_id, medication_id, COALESCE(assigned_animal_id, '00000000-0000-0000-0000-000000000000'::uuid), month, COALESCE(week, '1900-01-01'::date));
+CREATE UNIQUE INDEX mv_inventory_consumption_pkey
+    ON mv_inventory_consumption (household_id, medication_id, COALESCE(assigned_animal_id, '00000000-0000-0000-0000-000000000000'::uuid), month, COALESCE(week, '1900-01-01'::date));
 
-CREATE INDEX mv_inventory_consumption_household_idx 
-ON mv_inventory_consumption (household_id);
+CREATE INDEX mv_inventory_consumption_household_idx
+    ON mv_inventory_consumption (household_id);
 
-CREATE INDEX mv_inventory_consumption_medication_idx 
-ON mv_inventory_consumption (medication_id);
+CREATE INDEX mv_inventory_consumption_medication_idx
+    ON mv_inventory_consumption (medication_id);
 
-CREATE INDEX mv_inventory_consumption_animal_idx 
-ON mv_inventory_consumption (assigned_animal_id) WHERE assigned_animal_id IS NOT NULL;
+CREATE INDEX mv_inventory_consumption_animal_idx
+    ON mv_inventory_consumption (assigned_animal_id) WHERE assigned_animal_id IS NOT NULL;
 
-CREATE INDEX mv_inventory_consumption_month_idx 
-ON mv_inventory_consumption (month DESC);
+CREATE INDEX mv_inventory_consumption_month_idx
+    ON mv_inventory_consumption (month DESC);
 
-CREATE INDEX mv_inventory_consumption_low_stock_idx 
-ON mv_inventory_consumption (min_days_supply ASC) WHERE min_days_supply <= 7;
+CREATE INDEX mv_inventory_consumption_low_stock_idx
+    ON mv_inventory_consumption (min_days_supply ASC) WHERE min_days_supply <= 7;
 
-CREATE INDEX mv_inventory_consumption_critical_idx 
-ON mv_inventory_consumption (critical_stock_items DESC) WHERE critical_stock_items > 0;
+CREATE INDEX mv_inventory_consumption_critical_idx
+    ON mv_inventory_consumption (critical_stock_items DESC) WHERE critical_stock_items > 0;
 
-CREATE INDEX mv_inventory_consumption_expiring_idx 
-ON mv_inventory_consumption (expiring_soon_count DESC) WHERE expiring_soon_count > 0;
+CREATE INDEX mv_inventory_consumption_expiring_idx
+    ON mv_inventory_consumption (expiring_soon_count DESC) WHERE expiring_soon_count > 0;
 
 -- Performance hint: This view supports the following query patterns:
 -- 1. Inventory reorder alerts (low stock filtering)

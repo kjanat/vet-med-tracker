@@ -2,7 +2,8 @@
 -- Optimizes animal health analytics, medication variety tracking, and compliance trends
 -- Expected performance improvement: >70% for animal health queries
 
-CREATE MATERIALIZED VIEW mv_animal_health_trends AS
+CREATE
+MATERIALIZED VIEW mv_animal_health_trends AS
 WITH monthly_stats AS (
   SELECT
     a.household_id,
@@ -59,59 +60,40 @@ WITH monthly_stats AS (
     DATE_TRUNC('month', a.recorded_at)
 )
 
-SELECT
-  household_id,
-  animal_id,
-  animal_name,
-  species,
-  breed,
-  month,
-  
-  -- Medication complexity metrics
-  unique_medications,
-  active_regimens,
-  total_administrations,
-  medication_routes_count,
-  primary_route,
-  medication_forms_count,
-  primary_form,
-  
-  -- Compliance calculations
-  ROUND(
-    on_time_count::numeric / NULLIF(total_administrations - prn_count, 0) * 100, 2
-  ) as on_time_rate,
-  
-  ROUND(
-    (on_time_count + late_count)::numeric / NULLIF(total_administrations - prn_count, 0) * 100, 2
-  ) as compliance_rate,
-  
-  ROUND(
-    late_count::numeric / NULLIF(total_administrations - prn_count, 0) * 100, 2
-  ) as late_rate,
-  
-  ROUND(
-    missed_count::numeric / NULLIF(total_administrations - prn_count, 0) * 100, 2
-  ) as missed_rate,
-  
-  -- Health risk indicators
-  adverse_events,
-  ROUND(
-    adverse_events::numeric / NULLIF(total_administrations, 0) * 100, 2
-  ) as adverse_event_rate,
-  
-  high_risk_administrations,
-  ROUND(
-    high_risk_administrations::numeric / NULLIF(total_administrations, 0) * 100, 2
-  ) as high_risk_rate,
-  
-  -- Co-sign compliance
-  cosign_required_doses,
-  cosigned_doses,
-  CASE 
+SELECT household_id,
+       animal_id,
+       animal_name,
+       species,
+       breed, month,
+
+       -- Medication complexity metrics
+    unique_medications, active_regimens, total_administrations, medication_routes_count, primary_route, medication_forms_count, primary_form,
+
+       -- Compliance calculations
+    ROUND(
+    on_time_count:: numeric / NULLIF (total_administrations - prn_count, 0) * 100, 2
+    ) as on_time_rate, ROUND(
+    (on_time_count + late_count):: numeric / NULLIF (total_administrations - prn_count, 0) * 100, 2
+    ) as compliance_rate, ROUND(
+    late_count:: numeric / NULLIF (total_administrations - prn_count, 0) * 100, 2
+    ) as late_rate, ROUND(
+    missed_count:: numeric / NULLIF (total_administrations - prn_count, 0) * 100, 2
+    ) as missed_rate,
+
+       -- Health risk indicators
+    adverse_events, ROUND(
+    adverse_events:: numeric / NULLIF (total_administrations, 0) * 100, 2
+    ) as adverse_event_rate, high_risk_administrations, ROUND(
+    high_risk_administrations:: numeric / NULLIF (total_administrations, 0) * 100, 2
+    ) as high_risk_rate,
+
+       -- Co-sign compliance
+    cosign_required_doses, cosigned_doses, CASE
     WHEN cosign_required_doses > 0 THEN
-      ROUND(cosigned_doses::numeric / cosign_required_doses * 100, 2)
+    ROUND(cosigned_doses:: numeric / cosign_required_doses * 100, 2)
     ELSE 100
-  END as cosign_compliance_rate,
+END
+as cosign_compliance_rate,
   
   -- Schedule complexity analysis
   fixed_schedule_doses,
@@ -136,7 +118,8 @@ SELECT
     WHEN adverse_events > 0 OR missed_rate > 10 OR unique_medications > 5 THEN 'MONITORING'
     WHEN compliance_rate >= 90 AND adverse_events = 0 THEN 'STABLE'
     ELSE 'MODERATE'
-  END as health_status,
+END
+as health_status,
   
   -- Data freshness
   NOW() as last_updated
@@ -145,32 +128,32 @@ FROM monthly_stats
 WITH DATA;
 
 -- Create indexes for optimal query performance
-CREATE UNIQUE INDEX mv_animal_health_trends_pkey 
-ON mv_animal_health_trends (household_id, animal_id, month);
+CREATE UNIQUE INDEX mv_animal_health_trends_pkey
+    ON mv_animal_health_trends (household_id, animal_id, month);
 
-CREATE INDEX mv_animal_health_trends_household_idx 
-ON mv_animal_health_trends (household_id);
+CREATE INDEX mv_animal_health_trends_household_idx
+    ON mv_animal_health_trends (household_id);
 
-CREATE INDEX mv_animal_health_trends_animal_idx 
-ON mv_animal_health_trends (animal_id);
+CREATE INDEX mv_animal_health_trends_animal_idx
+    ON mv_animal_health_trends (animal_id);
 
-CREATE INDEX mv_animal_health_trends_month_idx 
-ON mv_animal_health_trends (month DESC);
+CREATE INDEX mv_animal_health_trends_month_idx
+    ON mv_animal_health_trends (month DESC);
 
-CREATE INDEX mv_animal_health_trends_species_idx 
-ON mv_animal_health_trends (species);
+CREATE INDEX mv_animal_health_trends_species_idx
+    ON mv_animal_health_trends (species);
 
-CREATE INDEX mv_animal_health_trends_compliance_idx 
-ON mv_animal_health_trends (compliance_rate DESC);
+CREATE INDEX mv_animal_health_trends_compliance_idx
+    ON mv_animal_health_trends (compliance_rate DESC);
 
-CREATE INDEX mv_animal_health_trends_health_status_idx 
-ON mv_animal_health_trends (health_status) WHERE health_status IN ('UNSTABLE', 'MONITORING');
+CREATE INDEX mv_animal_health_trends_health_status_idx
+    ON mv_animal_health_trends (health_status) WHERE health_status IN ('UNSTABLE', 'MONITORING');
 
-CREATE INDEX mv_animal_health_trends_complexity_idx 
-ON mv_animal_health_trends (treatment_complexity_score DESC);
+CREATE INDEX mv_animal_health_trends_complexity_idx
+    ON mv_animal_health_trends (treatment_complexity_score DESC);
 
-CREATE INDEX mv_animal_health_trends_adverse_events_idx 
-ON mv_animal_health_trends (adverse_event_rate DESC) WHERE adverse_events > 0;
+CREATE INDEX mv_animal_health_trends_adverse_events_idx
+    ON mv_animal_health_trends (adverse_event_rate DESC) WHERE adverse_events > 0;
 
 -- Performance hint: This view supports the following query patterns:
 -- 1. Animal health dashboard (animal_id filtering)

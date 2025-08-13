@@ -5,8 +5,9 @@ This directory contains materialized views designed to accelerate dashboard and 
 ## Overview
 
 The materialized views pre-compute expensive aggregations and provide consistent sub-second response times for:
+
 - Compliance statistics and heatmaps
-- Medication usage analytics  
+- Medication usage analytics
 - Inventory consumption tracking
 - Animal health trend analysis
 
@@ -15,39 +16,39 @@ The materialized views pre-compute expensive aggregations and provide consistent
 ### Core Views
 
 1. **`mv_compliance_stats`** - Compliance metrics by day/hour
-   - Powers compliance heatmaps and dashboards
-   - Tracks on-time, late, and missed administration rates
-   - Optimized for time-based analysis
+    - Powers compliance heatmaps and dashboards
+    - Tracks on-time, late, and missed administration rates
+    - Optimized for time-based analysis
 
 2. **`mv_medication_usage`** - Medication consumption patterns
-   - Usage trends and dosage analytics
-   - Adverse event tracking
-   - Animal treatment variety metrics
+    - Usage trends and dosage analytics
+    - Adverse event tracking
+    - Animal treatment variety metrics
 
-3. **`mv_inventory_consumption`** - Inventory analytics  
-   - Consumption rates and forecasting
-   - Stock level monitoring
-   - Expiration tracking
+3. **`mv_inventory_consumption`** - Inventory analytics
+    - Consumption rates and forecasting
+    - Stock level monitoring
+    - Expiration tracking
 
 4. **`mv_animal_health_trends`** - Animal health analytics
-   - Treatment complexity scoring
-   - Health status categorization
-   - Month-over-month trend analysis
+    - Treatment complexity scoring
+    - Health status categorization
+    - Month-over-month trend analysis
 
 ### Refresh Strategy
 
 - **CONCURRENT refresh** - No blocking during updates
 - **Automated scheduling** via pg_cron (when available)
 - **Smart refresh intervals** based on data freshness needs:
-  - Compliance stats: Every 15 minutes (business hours)
-  - Medication usage: Every 30 minutes
-  - Inventory: Every hour
-  - Health trends: Every 4 hours
+    - Compliance stats: Every 15 minutes (business hours)
+    - Medication usage: Every 30 minutes
+    - Inventory: Every hour
+    - Health trends: Every 4 hours
 
 ### Performance Monitoring
 
 - **Refresh logging** with performance metrics
-- **Health status monitoring** 
+- **Health status monitoring**
 - **Automated cleanup** of old logs
 - **Admin dashboard** for monitoring and management
 
@@ -139,17 +140,17 @@ SELECT cleanup_mv_refresh_logs();
 
 ### Expected Improvements
 
-| Query Type | Before (avg) | After (avg) | Improvement |
-|------------|--------------|-------------|-------------|
-| Compliance heatmap | 2.5s | 0.3s | **83%** |
-| Medication trends | 1.8s | 0.25s | **86%** |
-| Inventory analytics | 3.2s | 0.4s | **87%** |
-| Animal health summary | 2.1s | 0.28s | **87%** |
+| Query Type            | Before (avg) | After (avg) | Improvement |
+|-----------------------|--------------|-------------|-------------|
+| Compliance heatmap    | 2.5s         | 0.3s        | **83%**     |
+| Medication trends     | 1.8s         | 0.25s       | **86%**     |
+| Inventory analytics   | 3.2s         | 0.4s        | **87%**     |
+| Animal health summary | 2.1s         | 0.28s       | **87%**     |
 
 ### Resource Impact
 
 - **Storage**: +5-10% database size
-- **Refresh overhead**: 15-45 seconds per refresh cycle  
+- **Refresh overhead**: 15-45 seconds per refresh cycle
 - **Memory**: Minimal additional usage
 - **CPU**: Reduced query processing load
 
@@ -253,7 +254,7 @@ SET maintenance_work_mem = '1GB';
 
 1. **Deploy materialized views** alongside existing queries
 2. **A/B test** with a subset of users
-3. **Monitor performance** and correctness  
+3. **Monitor performance** and correctness
 4. **Gradually migrate** endpoints to optimized versions
 5. **Remove old queries** once validated
 
@@ -277,9 +278,10 @@ DROP MATERIALIZED VIEW mv_animal_health_trends CASCADE;
 ### Monitoring Dashboard
 
 Use the admin interface (`admin-mv.ts`) for:
+
 - Real-time refresh status
 - Performance metrics
-- Error analysis  
+- Error analysis
 - Manual refresh triggers
 
 ### Logs and Metrics
@@ -300,7 +302,7 @@ Use the admin interface (`admin-mv.ts`) for:
 ## Files
 
 - `001_compliance_statistics.sql` - Compliance analytics view
-- `002_medication_usage.sql` - Medication usage patterns  
+- `002_medication_usage.sql` - Medication usage patterns
 - `003_inventory_consumption.sql` - Inventory tracking
 - `004_animal_health_trends.sql` - Animal health analytics
 - `refresh_functions.sql` - Refresh automation and monitoring

@@ -1,11 +1,14 @@
 # VetMed Tracker Refactoring Workflow
 
 ## Overview
-Comprehensive refactoring plan to address technical debt accumulated during the 6-week rapid development phase. This workflow prioritizes critical infrastructure fixes while leveraging platform integrations to reduce maintenance burden.
+
+Comprehensive refactoring plan to address technical debt accumulated during the 6-week rapid development phase. This
+workflow prioritizes critical infrastructure fixes while leveraging platform integrations to reduce maintenance burden.
 
 ## Current State Analysis
 
 ### Key Issues Identified
+
 1. **Test Infrastructure**: Broken due to Stack Auth migration from Clerk
 2. **Database Configuration**: Inconsistencies between local PostgreSQL and Neon serverless
 3. **CI/CD Redundancy**: Unnecessary GitHub Actions given Vercel/Neon integrations
@@ -13,6 +16,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 5. **Authentication Layer**: Incomplete Stack Auth migration cleanup
 
 ### Platform Integrations Available
+
 - **Vercel ↔ GitHub**: Automatic preview deployments, production deployments
 - **Neon ↔ GitHub**: Database branching for preview environments
 - **Vercel ↔ Neon**: Automatic environment variable injection
@@ -21,10 +25,12 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ---
 
 ## Phase 1: Critical Test Infrastructure Fixes [P0]
+
 **Timeline**: 2-3 days  
 **Goal**: Restore testing capabilities with Stack Auth
 
 ### Task 1.1: Create Test Authentication Mock System
+
 - [ ] Install & configure `pgmock` in `tests/mocks/stack-auth.ts` to simulate Stack Auth's DB layer
 - [ ] Implement mock user/session providers (pair with MSW/WireMock for HTTP/session mocking)
 - [ ] Add test user factory with Stack Auth schema
@@ -33,6 +39,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 4h
 
 ### Task 1.2: Fix Database Test Configuration
+
 - [ ] Create `tests/helpers/test-db-setup.ts` for local PostgreSQL
 - [ ] Remove Neon serverless driver from test environment
 - [ ] Add proper connection pooling for tests
@@ -42,6 +49,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 3h
 
 ### Task 1.3: Update Integration Tests
+
 - [ ] Update `tests/helpers/test-trpc-context.ts` for Stack Auth
 - [ ] Fix all integration tests in `tests/integration/`
 - [ ] Remove Clerk-specific test code
@@ -51,6 +59,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 6h
 
 ### Task 1.4: Fix E2E Test Infrastructure
+
 - [ ] Update Playwright config for Stack Auth
 - [ ] Create E2E auth helpers (integrate pgmock plus MSW/Testcontainers to simulate login flows)
 - [ ] Fix `tests/e2e/offline/offline-sync.test.ts`
@@ -60,6 +69,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 4h
 
 ### Task 1.5: Create Test Documentation
+
 - [ ] Document test environment setup
 - [ ] Add testing guidelines for Stack Auth
 - [ ] Create test data factories documentation
@@ -68,6 +78,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 2h
 
 **Phase 1 Deliverables**:
+
 - ✅ All integration tests passing
 - ✅ E2E tests functional
 - ✅ Test documentation complete
@@ -76,10 +87,12 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ---
 
 ## Phase 2: CI/CD Pipeline Optimization [P1]
+
 **Timeline**: 1 day  
 **Goal**: Simplify CI/CD leveraging platform integrations
 
 ### Task 2.1: Simplify GitHub Actions
+
 - [ ] Remove redundant deployment workflows
 - [ ] Keep only code quality checks (lint, typecheck)
 - [ ] Remove database setup from CI (use Neon branches)
@@ -89,6 +102,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 2h
 
 ### Task 2.2: Create Local Development Workflow
+
 - [ ] Add `.github/workflows/local-checks.yml` for pre-commit
 - [ ] Create `scripts/pre-push.sh` for local validation
 - [ ] Add husky hooks for automated checks
@@ -97,6 +111,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 2h
 
 ### Task 2.3: Optimize Vercel Configuration
+
 - [ ] Review `vercel.json` settings
 - [ ] Add proper build caching
 - [ ] Configure preview environment variables
@@ -106,6 +121,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 2h
 
 ### Task 2.4: Document Deployment Process
+
 - [ ] Create `DEPLOYMENT.md`
 - [ ] Document Vercel/Neon integration setup
 - [ ] Add troubleshooting guide
@@ -114,6 +130,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 1h
 
 **Phase 2 Deliverables**:
+
 - ✅ Simplified CI/CD pipeline
 - ✅ Faster build times
 - ✅ Clear deployment documentation
@@ -122,10 +139,12 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ---
 
 ## Phase 3: Database Configuration Standardization [P1]
+
 **Timeline**: 1-2 days  
 **Goal**: Consistent database configuration across environments
 
 ### Task 3.1: Create Database Configuration Module
+
 - [ ] Create `lib/db/config.ts` with environment detection
 - [ ] Implement connection string builders
 - [ ] Add connection pool management
@@ -135,6 +154,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 3h
 
 ### Task 3.2: Standardize Migration Process
+
 - [ ] Create `scripts/db-migrate.ts` for all environments
 - [ ] Add migration verification
 - [ ] Implement rollback capabilities
@@ -144,6 +164,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 3h
 
 ### Task 3.3: Fix Seed Data Management
+
 - [ ] Update `db/seed.ts` for Stack Auth
 - [ ] Create environment-specific seeds
 - [ ] Add seed data validation
@@ -153,6 +174,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 2h
 
 ### Task 3.4: Add Database Health Monitoring
+
 - [ ] Enhance `lib/infrastructure/db-monitoring.ts`
 - [ ] Add connection pool metrics
 - [ ] Implement query performance tracking
@@ -162,6 +184,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 3h
 
 **Phase 3 Deliverables**:
+
 - ✅ Unified database configuration
 - ✅ Reliable migrations
 - ✅ Consistent seed data
@@ -170,10 +193,12 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ---
 
 ## Phase 4: Code Quality & Architecture [P2]
+
 **Timeline**: 3-4 days  
 **Goal**: Reduce technical debt and improve maintainability
 
 ### Task 4.1: Complete Stack Auth Migration
+
 - [ ] Remove all Clerk references
 - [ ] Clean up authentication utilities
 - [ ] Standardize auth patterns
@@ -183,6 +208,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 4h
 
 ### Task 4.2: Refactor Provider Architecture
+
 - [ ] Consolidate context providers
 - [ ] Remove redundant state management
 - [ ] Optimize re-renders
@@ -192,6 +218,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 4h
 
 ### Task 4.3: Clean Up API Routes
+
 - [ ] Standardize tRPC procedures
 - [ ] Consolidate validation schemas
 - [ ] Remove duplicate logic
@@ -201,6 +228,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 6h
 
 ### Task 4.4: Component Organization
+
 - [ ] Reorganize `components/` directory
 - [ ] Extract reusable components
 - [ ] Standardize component patterns
@@ -210,6 +238,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 4h
 
 ### Task 4.5: TypeScript Improvements
+
 - [ ] Fix remaining TypeScript errors
 - [ ] Add proper type exports
 - [ ] Remove type assertions
@@ -219,6 +248,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 3h
 
 ### Task 4.6: Performance Optimization
+
 - [ ] Add React.memo where appropriate
 - [ ] Implement code splitting
 - [ ] Optimize bundle size
@@ -228,6 +258,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 4h
 
 **Phase 4 Deliverables**:
+
 - ✅ Clean authentication layer
 - ✅ Optimized provider architecture
 - ✅ Standardized API patterns
@@ -238,10 +269,12 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ---
 
 ## Phase 5: Documentation & Polish [P3]
+
 **Timeline**: 2 days  
 **Goal**: Comprehensive documentation and final polish
 
 ### Task 5.1: Update README
+
 - [ ] Add Stack Auth setup instructions
 - [ ] Update architecture diagram
 - [ ] Refresh screenshots
@@ -251,6 +284,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 2h
 
 ### Task 5.2: Create Developer Documentation
+
 - [ ] Write `CONTRIBUTING.md`
 - [ ] Create `ARCHITECTURE.md`
 - [ ] Add API documentation
@@ -260,6 +294,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 4h
 
 ### Task 5.3: Add Code Comments
+
 - [ ] Document complex functions
 - [ ] Add JSDoc to public APIs
 - [ ] Explain business logic
@@ -269,6 +304,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 3h
 
 ### Task 5.4: Create User Documentation
+
 - [ ] Write feature guides
 - [ ] Add FAQ section
 - [ ] Create troubleshooting guide
@@ -278,6 +314,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 3h
 
 ### Task 5.5: Final Cleanup
+
 - [ ] Remove debug code
 - [ ] Clean up console.logs
 - [ ] Remove commented code
@@ -287,6 +324,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Estimated**: 2h
 
 **Phase 5 Deliverables**:
+
 - ✅ Complete documentation
 - ✅ Clean codebase
 - ✅ Developer onboarding guide
@@ -297,6 +335,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ## Success Metrics
 
 ### Quantitative Metrics
+
 - [ ] Test coverage: >70% (currently: 0% due to broken tests)
 - [ ] TypeScript errors: 0 (currently: ignored)
 - [ ] Build time: <2 minutes (currently: ~3 minutes)
@@ -304,6 +343,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - [ ] Lighthouse score: >90 (currently: not measured)
 
 ### Qualitative Metrics
+
 - [ ] Developer experience improved
 - [ ] Deployment confidence increased
 - [ ] Code maintainability enhanced
@@ -311,10 +351,12 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - [ ] Reduced technical debt
 
 ## Phase 0: Baseline Measurement [P0]
+
 **Timeline**: 0.5 days  
 **Goal**: Establish current state metrics
 
 ### Task 0.1: Measure Current State
+
 - [ ] Run Lighthouse audit on production
 - [ ] Measure current bundle size precisely
 - [ ] Document current build times
@@ -327,16 +369,18 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ## Risk Mitigation
 
 ### High-Risk Areas
+
 1. **Test Infrastructure**: May uncover hidden bugs
-   - Mitigation: Fix incrementally, keep tests disabled until stable
-   
+    - Mitigation: Fix incrementally, keep tests disabled until stable
+
 2. **Database Configuration**: Could affect production
-   - Mitigation: Test thoroughly in preview environments first
-   
+    - Mitigation: Test thoroughly in preview environments first
+
 3. **Authentication Migration**: User-facing changes
-   - Mitigation: Careful testing, feature flags if needed
+    - Mitigation: Careful testing, feature flags if needed
 
 ### Rollback Strategy
+
 - Each phase is independently deployable
 - Git tags for each phase completion
 - Database migrations are reversible
@@ -347,16 +391,19 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ## Implementation Notes
 
 ### Quick Wins (Can do immediately)
+
 - Remove `.github/workflows/neon-preview.yml` (redundant)
 - Simplify `.github/workflows/test.yml`
 - Clean up unused dependencies
 - Remove Clerk environment variables
 
 ### Blocked/Waiting
+
 - Stack Auth documentation improvements (external dependency)
 - Neon branching API stability (platform dependency)
 
 ### Future Considerations
+
 - Consider moving to monorepo structure
 - Evaluate Next.js 15 server components fully
 - Add real-time features with WebSockets
@@ -367,6 +414,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 ## Team Coordination
 
 ### Phase Ownership
+
 - **Phase 1**: Backend/Testing specialist
 - **Phase 2**: DevOps/Infrastructure
 - **Phase 3**: Database/Backend
@@ -374,6 +422,7 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 - **Phase 5**: Technical writer/Documentation
 
 ### Communication
+
 - Daily standup during refactoring
 - Phase completion reviews
 - Slack channel: #vetmed-refactor
@@ -383,13 +432,13 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 
 ## Estimated Timeline
 
-| Phase | Duration | Start | End | Status |
-|-------|----------|-------|-----|---------|
-| Phase 1 | 2-3 days | Day 1 | Day 3 | 🔴 Not Started |
-| Phase 2 | 1 day | Day 4 | Day 4 | 🔴 Not Started |
-| Phase 3 | 1-2 days | Day 5 | Day 6 | 🔴 Not Started |
-| Phase 4 | 3-4 days | Day 7 | Day 10 | 🔴 Not Started |
-| Phase 5 | 2 days | Day 11 | Day 12 | 🔴 Not Started |
+| Phase   | Duration | Start  | End    | Status         |
+|---------|----------|--------|--------|----------------|
+| Phase 1 | 2-3 days | Day 1  | Day 3  | 🔴 Not Started |
+| Phase 2 | 1 day    | Day 4  | Day 4  | 🔴 Not Started |
+| Phase 3 | 1-2 days | Day 5  | Day 6  | 🔴 Not Started |
+| Phase 4 | 3-4 days | Day 7  | Day 10 | 🔴 Not Started |
+| Phase 5 | 2 days   | Day 11 | Day 12 | 🔴 Not Started |
 
 **Total Duration**: 10-12 days
 
@@ -397,8 +446,12 @@ Comprehensive refactoring plan to address technical debt accumulated during the 
 
 ## Conclusion
 
-This refactoring workflow addresses the technical debt accumulated during rapid development while leveraging platform integrations to reduce maintenance burden. The phased approach allows for incremental improvements with minimal risk to production stability.
+This refactoring workflow addresses the technical debt accumulated during rapid development while leveraging platform
+integrations to reduce maintenance burden. The phased approach allows for incremental improvements with minimal risk to
+production stability.
 
-Priority should be given to Phase 1 (Test Infrastructure) as it blocks quality assurance for all other phases. Phase 2 (CI/CD) provides immediate value by reducing complexity. Phases 3-5 can be adjusted based on team capacity and business priorities.
+Priority should be given to Phase 1 (Test Infrastructure) as it blocks quality assurance for all other phases. Phase 2 (
+CI/CD) provides immediate value by reducing complexity. Phases 3-5 can be adjusted based on team capacity and business
+priorities.
 
 Remember: **"Make it work, make it right, make it fast"** - We made it work in 6 weeks, now let's make it right.

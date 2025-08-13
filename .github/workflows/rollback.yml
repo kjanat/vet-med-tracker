@@ -129,7 +129,7 @@ jobs:
   # Vercel application rollback
   rollback-vercel:
     name: Rollback Vercel Deployment
-    needs: [validate, pre-rollback-backup]
+    needs: [ validate, pre-rollback-backup ]
     runs-on: ubuntu-latest
     if: ${{ needs.validate.outputs.rollback_approved == 'true' && (inputs.rollback_type == 'vercel_only' || inputs.rollback_type == 'full_rollback') }}
     permissions:
@@ -191,7 +191,7 @@ jobs:
   # Database rollback
   rollback-database:
     name: Rollback Database
-    needs: [validate, pre-rollback-backup]
+    needs: [ validate, pre-rollback-backup ]
     runs-on: ubuntu-latest
     if: ${{ needs.validate.outputs.rollback_approved == 'true' && (inputs.rollback_type == 'database_only' || inputs.rollback_type == 'full_rollback') }}
     permissions:
@@ -267,7 +267,7 @@ jobs:
   # Post-rollback verification
   verify-rollback:
     name: Verify Rollback
-    needs: [rollback-vercel, rollback-database]
+    needs: [ rollback-vercel, rollback-database ]
     runs-on: ubuntu-latest
     if: ${{ always() && (needs.rollback-vercel.result == 'success' || needs.rollback-database.result == 'success') }}
     permissions:
@@ -324,7 +324,7 @@ jobs:
   # Emergency maintenance mode (if rollback fails)
   emergency-maintenance:
     name: Emergency Maintenance Mode
-    needs: [rollback-vercel, rollback-database, verify-rollback]
+    needs: [ rollback-vercel, rollback-database, verify-rollback ]
     runs-on: ubuntu-latest
     if: ${{ failure() && inputs.emergency == true }}
     permissions:
@@ -354,7 +354,7 @@ jobs:
   # Notifications and cleanup
   notify:
     name: Rollback Notifications
-    needs: [rollback-vercel, rollback-database, verify-rollback, emergency-maintenance]
+    needs: [ rollback-vercel, rollback-database, verify-rollback, emergency-maintenance ]
     runs-on: ubuntu-latest
     if: always()
     permissions:

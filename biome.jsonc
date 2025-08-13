@@ -1,125 +1,133 @@
 {
-	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true,
-		"defaultBranch": "master"
-	},
-	"files": {
-		"ignoreUnknown": true,
-		"includes": [
-			"**",
-			"!.cache",
-			"!.claude",
-			"!logs",
-			"!.next",
-			"!.git",
-			"!node_modules",
-			"!playwright-report",
-			"!sample-components",
-			"!screenshots",
-			"!test-results",
-			"!.vercel",
-			"!.vscode"
-			/* "!drizzle" */
-		]
-	},
-	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab"
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"recommended": true,
-			"complexity": {
-				"noExcessiveCognitiveComplexity": "on"
-			},
-			"nursery": {
-				"useSortedClasses": {
-					"level": "warn",
-					"fix": "safe",
-					"options": {
-						"functions": ["clsx", "cva", "cn"]
-					}
-				}
-			},
-			"suspicious": { "noGlobalIsNan": { "level": "warn", "fix": "safe" } }
-		},
-		"domains": {
-			"next": "all",
-			"project": "recommended",
-			"test": "all"
-		}
-	},
-	"javascript": {
-		"formatter": {
-			"quoteStyle": "double"
-		}
-	},
-	"css": {
-		"formatter": {
-			"enabled": true
-		}
-	},
-	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
-	},
-	"overrides": [
-		{
-			"includes": [
-				"tests/**",
-				"**/*.test.ts",
-				"**/test-*.ts",
-				"**/__tests__/*"
-			],
-			"linter": {
-				"rules": {
-					"suspicious": {
-						"noExplicitAny": "off"
-					},
-					"style": {
-						"noNonNullAssertion": "off"
-					}
-				}
-			}
-		},
-		{
-			"includes": ["db/*", "drizzle.config.ts", "drizzle/*"],
-			"formatter": { "enabled": false },
-			"linter": {
-				"rules": {
-					"style": {
-						"noNonNullAssertion": "off"
-					},
-					"correctness": {
-						"noUnusedImports": "off"
-					}
-				}
-			},
-			"assist": {
-				"actions": {
-					"source": {
-						"organizeImports": "off"
-					}
-				}
-			}
-		},
-		{
-			"includes": ["lib/lazy-load.tsx", "lib/connection-middleware.ts"],
-			"linter": {
-				"rules": {
-					"suspicious": {
-						"noExplicitAny": "off"
-					}
-				}
-			}
-		}
-	]
+  "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "master"
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!.cache",
+      "!.claude",
+      "!logs",
+      "!.next",
+      "!.git",
+      "!node_modules",
+      "!playwright-report",
+      "!sample-components",
+      "!screenshots",
+      "!test-results",
+      "!.vercel",
+      "!.vscode"
+      /* "!drizzle" */
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "on"
+      },
+      "nursery": {
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "safe",
+          "options": {
+            "functions": ["clsx", "cva", "cn"]
+          }
+        }
+      },
+      "suspicious": {
+        "noGlobalIsNan": {
+          "level": "warn",
+          "fix": "safe"
+        }
+      }
+    },
+    "domains": {
+      "next": "all",
+      "project": "recommended",
+      "test": "all"
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
+  },
+  "css": {
+    "formatter": {
+      "enabled": true
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "tests/**",
+        "**/*.test.ts",
+        "**/test-*.ts",
+        "**/__tests__/*"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["db/*", "drizzle.config.ts", "drizzle/*"],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          },
+          "correctness": {
+            "noUnusedImports": "off"
+          }
+        }
+      },
+      "assist": {
+        "actions": {
+          "source": {
+            "organizeImports": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["lib/lazy-load.tsx", "lib/connection-middleware.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    }
+  ]
 }

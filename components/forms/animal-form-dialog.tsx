@@ -11,19 +11,19 @@ import type { Animal } from "@/lib/utils/types";
  * validation, and saving functionality.
  */
 export function AnimalFormDialog() {
-	const { isOpen, editingAnimal, closeForm, saveForm } = useAnimalForm({
-		showSuccessToast: true,
-		autoClose: true,
-	});
+  const { isOpen, editingAnimal, closeForm, saveForm } = useAnimalForm({
+    showSuccessToast: true,
+    autoClose: true,
+  });
 
-	return (
-		<AnimalForm
-			animal={editingAnimal}
-			open={isOpen}
-			onOpenChange={closeForm}
-			onSave={saveForm}
-		/>
-	);
+  return (
+    <AnimalForm
+      animal={editingAnimal}
+      open={isOpen}
+      onOpenChange={closeForm}
+      onSave={saveForm}
+    />
+  );
 }
 
 /**
@@ -33,11 +33,11 @@ export function AnimalFormDialog() {
  * or check its state.
  */
 export function useAnimalFormDialog() {
-	const { openForm, isOpen, isLoading } = useAnimalForm();
+  const { openForm, isOpen, isLoading } = useAnimalForm();
 
-	return {
-		openAnimalForm: (animal?: Animal | null) => openForm(animal),
-		isFormOpen: isOpen,
-		isFormLoading: isLoading,
-	};
+  return {
+    openAnimalForm: (animal?: Animal | null) => openForm(animal),
+    isFormOpen: isOpen,
+    isFormLoading: isLoading,
+  };
 }

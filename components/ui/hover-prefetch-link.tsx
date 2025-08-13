@@ -5,11 +5,11 @@ import type { ComponentProps } from "react";
 import { useState } from "react";
 
 interface HoverPrefetchLinkProps
-	extends Omit<ComponentProps<typeof Link>, "prefetch"> {
-	/**
-	 * Children to render inside the link
-	 */
-	children: React.ReactNode;
+  extends Omit<ComponentProps<typeof Link>, "prefetch"> {
+  /**
+   * Children to render inside the link
+   */
+  children: React.ReactNode;
 }
 
 /**
@@ -24,19 +24,19 @@ interface HoverPrefetchLinkProps
  * ```
  */
 export function HoverPrefetchLink({
-	children,
-	...props
+  children,
+  ...props
 }: HoverPrefetchLinkProps) {
-	const [shouldPrefetch, setShouldPrefetch] = useState(false);
+  const [shouldPrefetch, setShouldPrefetch] = useState(false);
 
-	return (
-		<Link
-			{...props}
-			prefetch={shouldPrefetch}
-			onMouseEnter={() => setShouldPrefetch(true)}
-			onFocus={() => setShouldPrefetch(true)}
-		>
-			{children}
-		</Link>
-	);
+  return (
+    <Link
+      {...props}
+      prefetch={shouldPrefetch}
+      onMouseEnter={() => setShouldPrefetch(true)}
+      onFocus={() => setShouldPrefetch(true)}
+    >
+      {children}
+    </Link>
+  );
 }

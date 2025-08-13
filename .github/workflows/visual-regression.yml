@@ -2,10 +2,10 @@ name: Visual Regression Tests
 
 on:
   pull_request:
-    branches: [master, development]
-    types: [opened, synchronize, reopened]
+    branches: [ master, development ]
+    types: [ opened, synchronize, reopened ]
   push:
-    branches: [master]
+    branches: [ master ]
   # Allow manual triggering
   workflow_dispatch:
     inputs:
@@ -201,7 +201,7 @@ jobs:
   notify:
     name: Notify Team
     runs-on: ubuntu-latest
-    needs: [visual-tests]
+    needs: [ visual-tests ]
     if: always() && (github.event_name == 'push' || github.event_name == 'pull_request')
     permissions:
       contents: read

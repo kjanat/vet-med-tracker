@@ -16,7 +16,7 @@ loadEnvConfig(projectDir);
 
 // Use unpooled connection for seeding
 if (!process.env.DATABASE_URL_UNPOOLED) {
-	throw new Error("DATABASE_URL_UNPOOLED environment variable is not set");
+  throw new Error("DATABASE_URL_UNPOOLED environment variable is not set");
 }
 const sql = neon(process.env.DATABASE_URL_UNPOOLED);
 const db = drizzle(sql, { schema });
@@ -24,55 +24,55 @@ const db = drizzle(sql, { schema });
 const USER_ID = "57513d54-6154-7c30-a38d-12deeed83320";
 
 async function seedHousehold() {
-	try {
-		console.log("Checking for existing household membership...");
+  try {
+    console.log("Checking for existing household membership...");
 
-		// Check if user already has a household
-		const existingMemberships = await db
-			.select()
-			.from(memberships)
-			.where(eq(memberships.userId, USER_ID));
+    // Check if user already has a household
+    const existingMemberships = await db
+      .select()
+      .from(memberships)
+      .where(eq(memberships.userId, USER_ID));
 
-		if (existingMemberships.length > 0) {
-			console.log("User already has household memberships:");
-			console.log(existingMemberships);
-			return;
-		}
+    if (existingMemberships.length > 0) {
+      console.log("User already has household memberships:");
+      console.log(existingMemberships);
+      return;
+    }
 
-		console.log("Creating new household...");
+    console.log("Creating new household...");
 
-		// Create a new household
-		const [newHousehold] = await db
-			.insert(households)
-			.values({
-				name: "My Household",
-			})
-			.returning();
+    // Create a new household
+    const [newHousehold] = await db
+      .insert(households)
+      .values({
+        name: "My Household",
+      })
+      .returning();
 
-		if (!newHousehold) {
-			throw new Error("Failed to create household");
-		}
+    if (!newHousehold) {
+      throw new Error("Failed to create household");
+    }
 
-		console.log("Created household:", newHousehold);
+    console.log("Created household:", newHousehold);
 
-		// Create membership
-		const [newMembership] = await db
-			.insert(memberships)
-			.values({
-				userId: USER_ID,
-				householdId: newHousehold.id,
-				role: "OWNER",
-			})
-			.returning();
+    // Create membership
+    const [newMembership] = await db
+      .insert(memberships)
+      .values({
+        userId: USER_ID,
+        householdId: newHousehold.id,
+        role: "OWNER",
+      })
+      .returning();
 
-		console.log("Created membership:", newMembership);
-		console.log("\nSuccess! User now has a household.");
-	} catch (error) {
-		console.error("Error seeding household:", error);
-		process.exit(1);
-	} finally {
-		process.exit(0);
-	}
+    console.log("Created membership:", newMembership);
+    console.log("\nSuccess! User now has a household.");
+  } catch (error) {
+    console.error("Error seeding household:", error);
+    process.exit(1);
+  } finally {
+    process.exit(0);
+  }
 }
 
 seedHousehold();

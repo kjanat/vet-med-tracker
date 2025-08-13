@@ -2,19 +2,23 @@
 
 ## Current State Analysis
 
-After reviewing the schema, the current tables are not yet at the scale where partitioning would provide significant benefits. Instead, we should focus on improving table design for better maintainability, performance, and scalability.
+After reviewing the schema, the current tables are not yet at the scale where partitioning would provide significant
+benefits. Instead, we should focus on improving table design for better maintainability, performance, and scalability.
 
 ## Identified Issues
 
 ### 1. Over-Normalized Tables
 
 #### `vetmed_users` - Too Many Responsibilities
+
 **Current Issues:**
+
 - Single table handles user auth, profile, preferences, onboarding
 - 35+ columns with mixed concerns
 - Complex JSONB fields for extensibility that could be proper tables
 
 **Proposed Split:**
+
 ```sql
 -- Core user data (authentication & basic info)
 vetmed_users (id, email, name, first_name, last_name, stack_user_id, created_at, updated_at)
@@ -32,12 +36,15 @@ vetmed_emergency_contacts (user_id, contact_name, contact_phone, relationship, c
 ```
 
 #### `vetmed_animals` - Mixed Medical and Basic Data
+
 **Current Issues:**
+
 - Basic animal info mixed with medical records
 - Vet contact info embedded (should be reusable across animals)
 - Array fields for allergies/conditions (should be normalized for reporting)
 
 **Proposed Split:**
+
 ```sql
 -- Core animal information
 vetmed_animals (id, household_id, name, species, breed, sex, neutered, dob, weight_kg, 
@@ -60,12 +67,15 @@ vetmed_animal_veterinarians (animal_id, veterinarian_id, is_primary, relationshi
 ```
 
 #### `vetmed_medication_catalog` - Overly Complex Single Table
+
 **Current Issues:**
+
 - Complex JSONB fields for species/breed/age adjustments
 - Dosage calculations embedded in catalog (should be dynamic)
 - Single table trying to handle all medication complexity
 
 **Proposed Split:**
+
 ```sql
 -- Core medication catalog (simple, focused)
 vetmed_medications (id, generic_name, brand_name, strength, route, form, 
@@ -93,10 +103,12 @@ vetmed_route_adjustments (id, medication_id, route, dose_multiplier,
 ### 2. Notification System Consolidation
 
 **Current Issues:**
+
 - Two separate notification tables with overlapping purposes
 - `vetmed_notifications` vs `vetmed_notification_queue`
 
 **Proposed Consolidation:**
+
 ```sql
 -- Single notification table with status-based workflow
 vetmed_notifications (
@@ -125,17 +137,20 @@ vetmed_notifications (
 ## Recommended Approach
 
 ### Phase 1: Schema Normalization (Current Need)
+
 1. Split over-complex tables into focused, atomic tables
 2. Normalize array fields into proper relational structures
 3. Separate concerns (auth vs profile vs preferences)
 4. Create proper foreign key relationships
 
 ### Phase 2: Performance Optimization (Future Need)
+
 1. Add appropriate indexes based on query patterns
 2. Implement proper database constraints
 3. Optimize JSONB usage where it remains necessary
 
 ### Phase 3: Partitioning (Future Scale)
+
 1. Monitor table growth after normalization
 2. Implement partitioning only when tables reach 10M+ rows
 3. Focus on time-series data (administrations, audit logs)
@@ -143,12 +158,14 @@ vetmed_notifications (
 ## Benefits of This Approach
 
 ### Immediate Benefits
+
 - **Cleaner Data Model**: Each table has a single responsibility
 - **Better Performance**: Smaller tables with focused indexes
 - **Easier Maintenance**: Changes to one concern don't affect others
 - **Improved Queries**: More targeted queries on smaller datasets
 
 ### Future Benefits
+
 - **Scalability**: Easier to scale individual concerns
 - **Flexibility**: Can add features without modifying core tables
 - **Reporting**: Better normalized data for analytics
@@ -157,22 +174,28 @@ vetmed_notifications (
 ## Migration Strategy
 
 ### 1. Backwards Compatibility
+
 - Create new tables alongside existing ones
 - Use views to maintain existing API compatibility
 - Migrate data incrementally
 
 ### 2. Application Layer
+
 - Update Drizzle schema gradually
 - Implement adapter patterns for complex migrations
 - Use feature flags to control rollout
 
 ### 3. Testing
+
 - Comprehensive data migration testing
 - Performance benchmarking before/after
 - API compatibility validation
 
 ## Conclusion
 
-**Current Recommendation**: Focus on schema normalization and proper table design rather than partitioning. The current data volumes don't justify the complexity of partitioning, but the schema design could be significantly improved for better performance and maintainability.
+**Current Recommendation**: Focus on schema normalization and proper table design rather than partitioning. The current
+data volumes don't justify the complexity of partitioning, but the schema design could be significantly improved for
+better performance and maintainability.
 
-**Future Partitioning**: Once normalized tables reach significant scale (10M+ rows), then implement partitioning on the time-series tables (administrations, audit logs, notifications).
+**Future Partitioning**: Once normalized tables reach significant scale (10M+ rows), then implement partitioning on the
+time-series tables (administrations, audit logs, notifications).

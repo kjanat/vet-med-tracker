@@ -3,6 +3,7 @@
 ## Overview
 
 VetMed Tracker uses a comprehensive testing strategy with multiple layers:
+
 - **Unit Tests**: Component and utility function testing with Vitest
 - **Integration Tests**: API and database testing with Vitest
 - **E2E Tests**: User flow testing with Playwright
@@ -258,6 +259,7 @@ test("should record medication", async ({ page }) => {
 ## CI/CD Integration
 
 Tests run automatically on:
+
 - Pull requests (all tests)
 - Main branch pushes (integration + E2E)
 - Nightly schedule (full test suite with visual regression)
@@ -340,6 +342,7 @@ pnpm bundle:size
 
 **Problem**: Integration tests fail with connection error
 **Solution**: Ensure PostgreSQL is running locally:
+
 ```bash
 # macOS
 brew services start postgresql
@@ -355,6 +358,7 @@ net start postgresql
 
 **Problem**: Authentication tests fail
 **Solution**: Ensure mock is properly initialized:
+
 ```typescript
 beforeEach(() => {
   StackAuthTestUtils.reset();
@@ -365,6 +369,7 @@ beforeEach(() => {
 
 **Problem**: Playwright tests timeout
 **Solution**: Increase timeout or check if dev server is running:
+
 ```typescript
 test.setTimeout(60000); // 60 seconds
 ```
@@ -373,6 +378,7 @@ test.setTimeout(60000); // 60 seconds
 
 **Problem**: Test database schema doesn't match application
 **Solution**: Reset and migrate test database:
+
 ```bash
 pnpm db:test:reset
 pnpm db:test:init
@@ -381,6 +387,7 @@ pnpm db:test:init
 ## Contributing
 
 When adding new features:
+
 1. Write unit tests for utilities and components
 2. Write integration tests for API endpoints
 3. Write E2E tests for critical user flows

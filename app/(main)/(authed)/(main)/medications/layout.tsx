@@ -1,9 +1,9 @@
 export default function MedicationsLayout({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	// This layout exists to enable useSelectedLayoutSegment in navigation
-	// for the medications section (inventory, regimens)
-	return <>{children}</>;
+  // This layout exists to enable useSelectedLayoutSegment in navigation
+  // for the medications section (inventory, regimens)
+  return <>{children}</>;
 }

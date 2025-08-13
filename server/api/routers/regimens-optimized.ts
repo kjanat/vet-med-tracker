@@ -13,14 +13,14 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
-	vetmedAdministrations as administrations,
-	vetmedAnimals as animals,
-	vetmedRegimens as regimens,
+  vetmedAdministrations as administrations,
+  vetmedAnimals as animals,
+  vetmedRegimens as regimens,
 } from "@/db/schema";
 import {
-	createTRPCRouter,
-	householdProcedure,
-	protectedProcedure,
+  createTRPCRouter,
+  householdProcedure,
+  protectedProcedure,
 } from "@/server/api/trpc";
 import { createAuditLog } from "@/server/utils/audit-log";
 
@@ -149,7 +149,7 @@ ORDER BY
 
 // Batch validation for multiple regimens
 const batchValidationQueries = {
-	validateMultipleAnimals: (animalIds: string[], householdId: string) => sql`
+  validateMultipleAnimals: (animalIds: string[], householdId: string) => sql`
         SELECT id, name, household_id, timezone
         FROM vetmed_animals 
         WHERE id = ANY(${animalIds})
@@ -157,7 +157,7 @@ const batchValidationQueries = {
             AND deleted_at IS NULL
     `,
 
-	validateMultipleRegimens: (regimenIds: string[]) => sql`
+  validateMultipleRegimens: (regimenIds: string[]) => sql`
         SELECT r.id, r.animal_id, r.active, a.household_id
         FROM vetmed_regimens r
         INNER JOIN vetmed_animals a ON r.animal_id = a.id
@@ -167,7 +167,7 @@ const batchValidationQueries = {
             AND a.deleted_at IS NULL
     `,
 
-	getRegimenSummary: (householdId: string) => sql`
+  getRegimenSummary: (householdId: string) => sql`
         SELECT 
             COUNT(*) as total_regimens,
             COUNT(*) FILTER (WHERE r.active = true) as active_regimens,
@@ -236,313 +236,313 @@ const medicationSearchQuery = (searchTerm: string) => sql`
 `;
 
 export const regimensOptimizedRouter = createTRPCRouter({
-	// Highly optimized due medications query
-	listDueOptimized: protectedProcedure
-		.input(
-			z.object({
-				householdId: z.string().uuid().optional(),
-				animalId: z.string().uuid().optional(),
-				includeUpcoming: z.boolean().default(true),
-			}),
-		)
-		.query(async ({ ctx, input }) => {
-			const householdId = input.householdId || ctx.currentHouseholdId;
-			if (!householdId) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "householdId is required",
-				});
-			}
+  // Highly optimized due medications query
+  listDueOptimized: protectedProcedure
+    .input(
+      z.object({
+        householdId: z.uuid().optional(),
+        animalId: z.uuid().optional(),
+        includeUpcoming: z.boolean().default(true),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const householdId = input.householdId || ctx.currentHouseholdId;
+      if (!householdId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "householdId is required",
+        });
+      }
 
-			const startTime = performance.now();
+      const startTime = performance.now();
 
-			try {
-				// Execute the optimized CTE query
-				const results = await ctx.db.execute(
-					optimizedDueQuery.mapWith({
-						householdId,
-						animalId: input.animalId || null,
-						includeUpcoming: input.includeUpcoming,
-					}),
-				);
+      try {
+        // Execute the optimized CTE query
+        const results = await ctx.db.execute(
+          optimizedDueQuery.mapWith({
+            householdId,
+            animalId: input.animalId || null,
+            includeUpcoming: input.includeUpcoming,
+          }),
+        );
 
-				// Transform results to match expected interface
-				const processedResults = results.rows.map((row: any) => ({
-					id: row.regimen_id,
-					animalId: row.animal_id,
-					animalName: row.animal_name,
-					animalSpecies: row.species,
-					animalPhotoUrl: row.photo_url,
-					medicationName: row.generic_name || row.brand_name || "Unknown",
-					brandName: row.brand_name,
-					route: row.route || row.medication_route,
-					form: row.form,
-					strength: row.strength || "",
-					dose: row.dose || "",
-					targetTime: row.next_due_time,
-					isPRN: row.schedule_type === "PRN",
-					isHighRisk: row.high_risk || false,
-					requiresCoSign: row.requires_co_sign || false,
-					compliance: row.compliance_percentage || 85,
-					section: row.section,
-					isOverdue: row.minutes_until_due < 0,
-					minutesUntilDue: row.minutes_until_due || 0,
-					instructions: row.instructions,
-					prnReason: row.prn_reason,
-					lastAdministration: row.last_admin_id
-						? {
-								id: row.last_admin_id,
-								recordedAt: row.last_admin_recorded_at,
-								status: row.last_admin_status,
-							}
-						: null,
-				}));
+        // Transform results to match expected interface
+        const processedResults = results.rows.map((row: any) => ({
+          id: row.regimen_id,
+          animalId: row.animal_id,
+          animalName: row.animal_name,
+          animalSpecies: row.species,
+          animalPhotoUrl: row.photo_url,
+          medicationName: row.generic_name || row.brand_name || "Unknown",
+          brandName: row.brand_name,
+          route: row.route || row.medication_route,
+          form: row.form,
+          strength: row.strength || "",
+          dose: row.dose || "",
+          targetTime: row.next_due_time,
+          isPRN: row.schedule_type === "PRN",
+          isHighRisk: row.high_risk || false,
+          requiresCoSign: row.requires_co_sign || false,
+          compliance: row.compliance_percentage || 85,
+          section: row.section,
+          isOverdue: row.minutes_until_due < 0,
+          minutesUntilDue: row.minutes_until_due || 0,
+          instructions: row.instructions,
+          prnReason: row.prn_reason,
+          lastAdministration: row.last_admin_id
+            ? {
+                id: row.last_admin_id,
+                recordedAt: row.last_admin_recorded_at,
+                status: row.last_admin_status,
+              }
+            : null,
+        }));
 
-				const endTime = performance.now();
-				const queryTime = endTime - startTime;
+        const endTime = performance.now();
+        const queryTime = endTime - startTime;
 
-				// Log performance metrics
-				if (queryTime > 50) {
-					console.warn(
-						`Slow regimens.listDueOptimized query: ${queryTime.toFixed(2)}ms`,
-					);
-				}
+        // Log performance metrics
+        if (queryTime > 50) {
+          console.warn(
+            `Slow regimens.listDueOptimized query: ${queryTime.toFixed(2)}ms`,
+          );
+        }
 
-				return processedResults;
-			} catch (error) {
-				console.error("Error in listDueOptimized:", error);
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to fetch due medications",
-				});
-			}
-		}),
+        return processedResults;
+      } catch (error) {
+        console.error("Error in listDueOptimized:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch due medications",
+        });
+      }
+    }),
 
-	// Batch regimen operations for improved performance
-	batchOperations: householdProcedure
-		.input(
-			z.object({
-				householdId: z.string().uuid(),
-				operations: z.array(
-					z.object({
-						type: z.enum(["pause", "resume", "delete", "activate"]),
-						regimenId: z.string().uuid(),
-						reason: z.string().optional(),
-					}),
-				),
-			}),
-		)
-		.mutation(async ({ ctx, input }) => {
-			const startTime = performance.now();
-			const results: Array<{
-				regimenId: string;
-				operation: string;
-				success: boolean;
-				error?: string;
-			}> = [];
+  // Batch regimen operations for improved performance
+  batchOperations: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+        operations: z.array(
+          z.object({
+            type: z.enum(["pause", "resume", "delete", "activate"]),
+            regimenId: z.uuid(),
+            reason: z.string().optional(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const startTime = performance.now();
+      const results: Array<{
+        regimenId: string;
+        operation: string;
+        success: boolean;
+        error?: string;
+      }> = [];
 
-			// Validate all regimens in batch
-			const regimenIds = input.operations.map((op) => op.regimenId);
-			const validRegimens = await ctx.db.execute(
-				batchValidationQueries.validateMultipleRegimens(regimenIds),
-			);
+      // Validate all regimens in batch
+      const regimenIds = input.operations.map((op) => op.regimenId);
+      const validRegimens = await ctx.db.execute(
+        batchValidationQueries.validateMultipleRegimens(regimenIds),
+      );
 
-			const validRegimenIds = new Set(
-				validRegimens.rows
-					.filter((r: any) => r.household_id === input.householdId)
-					.map((r: any) => r.id),
-			);
+      const validRegimenIds = new Set(
+        validRegimens.rows
+          .filter((r: any) => r.household_id === input.householdId)
+          .map((r: any) => r.id),
+      );
 
-			// Process operations in transaction
-			await ctx.db.transaction(async (tx) => {
-				for (const operation of input.operations) {
-					try {
-						if (!validRegimenIds.has(operation.regimenId)) {
-							results.push({
-								regimenId: operation.regimenId,
-								operation: operation.type,
-								success: false,
-								error: "Regimen not found or access denied",
-							});
-							continue;
-						}
+      // Process operations in transaction
+      await ctx.db.transaction(async (tx) => {
+        for (const operation of input.operations) {
+          try {
+            if (!validRegimenIds.has(operation.regimenId)) {
+              results.push({
+                regimenId: operation.regimenId,
+                operation: operation.type,
+                success: false,
+                error: "Regimen not found or access denied",
+              });
+              continue;
+            }
 
-						const now = new Date().toISOString();
-						const updateFields: any = { updatedAt: now };
+            const now = new Date().toISOString();
+            const updateFields: any = { updatedAt: now };
 
-						switch (operation.type) {
-							case "pause":
-								updateFields.pausedAt = now;
-								updateFields.pauseReason =
-									operation.reason || "Paused via batch operation";
-								break;
-							case "resume":
-								updateFields.pausedAt = null;
-								updateFields.pauseReason = null;
-								break;
-							case "delete":
-								updateFields.deletedAt = now;
-								updateFields.active = false;
-								break;
-							case "activate":
-								updateFields.active = true;
-								updateFields.pausedAt = null;
-								updateFields.deletedAt = null;
-								break;
-						}
+            switch (operation.type) {
+              case "pause":
+                updateFields.pausedAt = now;
+                updateFields.pauseReason =
+                  operation.reason || "Paused via batch operation";
+                break;
+              case "resume":
+                updateFields.pausedAt = null;
+                updateFields.pauseReason = null;
+                break;
+              case "delete":
+                updateFields.deletedAt = now;
+                updateFields.active = false;
+                break;
+              case "activate":
+                updateFields.active = true;
+                updateFields.pausedAt = null;
+                updateFields.deletedAt = null;
+                break;
+            }
 
-						await tx
-							.update(regimens)
-							.set(updateFields)
-							.where(eq(regimens.id, operation.regimenId));
+            await tx
+              .update(regimens)
+              .set(updateFields)
+              .where(eq(regimens.id, operation.regimenId));
 
-						// Create audit log
-						await createAuditLog(tx, {
-							userId: ctx.dbUser.id,
-							householdId: input.householdId,
-							action: operation.type.toUpperCase(),
-							resourceType: "regimen",
-							resourceId: operation.regimenId,
-							details: { reason: operation.reason },
-						});
+            // Create audit log
+            await createAuditLog(tx, {
+              userId: ctx.dbUser.id,
+              householdId: input.householdId,
+              action: operation.type.toUpperCase(),
+              resourceType: "regimen",
+              resourceId: operation.regimenId,
+              details: { reason: operation.reason },
+            });
 
-						results.push({
-							regimenId: operation.regimenId,
-							operation: operation.type,
-							success: true,
-						});
-					} catch (error) {
-						results.push({
-							regimenId: operation.regimenId,
-							operation: operation.type,
-							success: false,
-							error: error instanceof Error ? error.message : "Unknown error",
-						});
-					}
-				}
-			});
+            results.push({
+              regimenId: operation.regimenId,
+              operation: operation.type,
+              success: true,
+            });
+          } catch (error) {
+            results.push({
+              regimenId: operation.regimenId,
+              operation: operation.type,
+              success: false,
+              error: error instanceof Error ? error.message : "Unknown error",
+            });
+          }
+        }
+      });
 
-			const endTime = performance.now();
-			const processingTime = endTime - startTime;
+      const endTime = performance.now();
+      const processingTime = endTime - startTime;
 
-			return {
-				results,
-				summary: {
-					total: results.length,
-					successful: results.filter((r) => r.success).length,
-					failed: results.filter((r) => !r.success).length,
-					processingTime: Math.round(processingTime),
-				},
-			};
-		}),
+      return {
+        results,
+        summary: {
+          total: results.length,
+          successful: results.filter((r) => r.success).length,
+          failed: results.filter((r) => !r.success).length,
+          processingTime: Math.round(processingTime),
+        },
+      };
+    }),
 
-	// Smart medication search with fuzzy matching
-	searchMedications: protectedProcedure
-		.input(
-			z.object({
-				query: z.string().min(2).max(100),
-				limit: z.number().min(1).max(50).default(10),
-			}),
-		)
-		.query(async ({ ctx, input }) => {
-			const results = await ctx.db.execute(medicationSearchQuery(input.query));
+  // Smart medication search with fuzzy matching
+  searchMedications: protectedProcedure
+    .input(
+      z.object({
+        query: z.string().min(2).max(100),
+        limit: z.number().min(1).max(50).default(10),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const results = await ctx.db.execute(medicationSearchQuery(input.query));
 
-			return results.rows.slice(0, input.limit).map((row: any) => ({
-				id: row.id,
-				name: row.generic_name,
-				brandName: row.brand_name,
-				strength: row.strength,
-				route: row.route,
-				form: row.form,
-				searchRank: row.search_rank || 0,
-				similarity: row.trigram_similarity || 0,
-			}));
-		}),
+      return results.rows.slice(0, input.limit).map((row: any) => ({
+        id: row.id,
+        name: row.generic_name,
+        brandName: row.brand_name,
+        strength: row.strength,
+        route: row.route,
+        form: row.form,
+        searchRank: row.search_rank || 0,
+        similarity: row.trigram_similarity || 0,
+      }));
+    }),
 
-	// Dashboard summary with aggregated statistics
-	getHouseholdSummary: householdProcedure
-		.input(
-			z.object({
-				householdId: z.string().uuid(),
-			}),
-		)
-		.query(async ({ ctx, input }) => {
-			const summaryResult = await ctx.db.execute(
-				batchValidationQueries.getRegimenSummary(input.householdId),
-			);
+  // Dashboard summary with aggregated statistics
+  getHouseholdSummary: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const summaryResult = await ctx.db.execute(
+        batchValidationQueries.getRegimenSummary(input.householdId),
+      );
 
-			const summary = summaryResult.rows[0] as any;
+      const summary = summaryResult.rows[0] as any;
 
-			// Get recent activity (last 7 days)
-			const recentActivity = await ctx.db
-				.select({
-					date: sql<string>`DATE(recorded_at)`,
-					administrations: sql<number>`COUNT(*)`,
-					onTime: sql<number>`COUNT(*) FILTER (WHERE status = 'ON_TIME')`,
-					late: sql<number>`COUNT(*) FILTER (WHERE status IN ('LATE', 'VERY_LATE'))`,
-					missed: sql<number>`COUNT(*) FILTER (WHERE status = 'MISSED')`,
-				})
-				.from(administrations)
-				.innerJoin(animals, eq(administrations.animalId, animals.id))
-				.where(
-					and(
-						eq(animals.householdId, input.householdId),
-						gte(
-							administrations.recordedAt,
-							sql`CURRENT_DATE - INTERVAL '7 days'`,
-						),
-					),
-				)
-				.groupBy(sql`DATE(recorded_at)`)
-				.orderBy(sql`DATE(recorded_at) DESC`)
-				.limit(7);
+      // Get recent activity (last 7 days)
+      const recentActivity = await ctx.db
+        .select({
+          date: sql<string>`DATE(recorded_at)`,
+          administrations: sql<number>`COUNT(*)`,
+          onTime: sql<number>`COUNT(*) FILTER (WHERE status = 'ON_TIME')`,
+          late: sql<number>`COUNT(*) FILTER (WHERE status IN ('LATE', 'VERY_LATE'))`,
+          missed: sql<number>`COUNT(*) FILTER (WHERE status = 'MISSED')`,
+        })
+        .from(administrations)
+        .innerJoin(animals, eq(administrations.animalId, animals.id))
+        .where(
+          and(
+            eq(animals.householdId, input.householdId),
+            gte(
+              administrations.recordedAt,
+              sql`CURRENT_DATE - INTERVAL '7 days'`,
+            ),
+          ),
+        )
+        .groupBy(sql`DATE(recorded_at)`)
+        .orderBy(sql`DATE(recorded_at) DESC`)
+        .limit(7);
 
-			return {
-				regimens: {
-					total: Number(summary?.total_regimens || 0),
-					active: Number(summary?.active_regimens || 0),
-					prn: Number(summary?.prn_regimens || 0),
-					highRisk: Number(summary?.high_risk_regimens || 0),
-				},
-				coverage: {
-					animalsWithRegimens: Number(summary?.animals_with_regimens || 0),
-					uniqueMedications: Number(summary?.unique_medications || 0),
-				},
-				recentActivity: recentActivity.map((activity) => ({
-					date: activity.date,
-					total: activity.administrations,
-					onTime: activity.onTime,
-					late: activity.late,
-					missed: activity.missed,
-					complianceRate:
-						activity.administrations > 0
-							? Math.round((activity.onTime / activity.administrations) * 100)
-							: 0,
-				})),
-				lastUpdated: new Date().toISOString(),
-			};
-		}),
+      return {
+        regimens: {
+          total: Number(summary?.total_regimens || 0),
+          active: Number(summary?.active_regimens || 0),
+          prn: Number(summary?.prn_regimens || 0),
+          highRisk: Number(summary?.high_risk_regimens || 0),
+        },
+        coverage: {
+          animalsWithRegimens: Number(summary?.animals_with_regimens || 0),
+          uniqueMedications: Number(summary?.unique_medications || 0),
+        },
+        recentActivity: recentActivity.map((activity) => ({
+          date: activity.date,
+          total: activity.administrations,
+          onTime: activity.onTime,
+          late: activity.late,
+          missed: activity.missed,
+          complianceRate:
+            activity.administrations > 0
+              ? Math.round((activity.onTime / activity.administrations) * 100)
+              : 0,
+        })),
+        lastUpdated: new Date().toISOString(),
+      };
+    }),
 
-	// Performance diagnostics for regimen queries
-	performanceDiagnostics: householdProcedure
-		.input(
-			z.object({
-				householdId: z.string().uuid(),
-			}),
-		)
-		.query(async ({ ctx, input }) => {
-			const diagnostics = {
-				queryPerformance: {} as Record<string, number>,
-				indexUsage: [] as any[],
-				tableStats: [] as any[],
-				recommendations: [] as string[],
-			};
+  // Performance diagnostics for regimen queries
+  performanceDiagnostics: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const diagnostics = {
+        queryPerformance: {} as Record<string, number>,
+        indexUsage: [] as any[],
+        tableStats: [] as any[],
+        recommendations: [] as string[],
+      };
 
-			// Test query performance
-			const testQueries = [
-				{
-					name: "active_regimens_lookup",
-					query: sql`
+      // Test query performance
+      const testQueries = [
+        {
+          name: "active_regimens_lookup",
+          query: sql`
                         SELECT COUNT(*) 
                         FROM vetmed_regimens r
                         INNER JOIN vetmed_animals a ON r.animal_id = a.id
@@ -550,32 +550,32 @@ export const regimensOptimizedRouter = createTRPCRouter({
                             AND r.active = true 
                             AND r.deleted_at IS NULL
                     `,
-				},
-				{
-					name: "due_medications_calculation",
-					query: optimizedDueQuery.mapWith({
-						householdId: input.householdId,
-						animalId: null,
-						includeUpcoming: true,
-					}),
-				},
-			];
+        },
+        {
+          name: "due_medications_calculation",
+          query: optimizedDueQuery.mapWith({
+            householdId: input.householdId,
+            animalId: null,
+            includeUpcoming: true,
+          }),
+        },
+      ];
 
-			for (const testQuery of testQueries) {
-				const startTime = performance.now();
-				try {
-					await ctx.db.execute(testQuery.query);
-					const endTime = performance.now();
-					diagnostics.queryPerformance[testQuery.name] = Math.round(
-						endTime - startTime,
-					);
-				} catch (_error) {
-					diagnostics.queryPerformance[testQuery.name] = -1;
-				}
-			}
+      for (const testQuery of testQueries) {
+        const startTime = performance.now();
+        try {
+          await ctx.db.execute(testQuery.query);
+          const endTime = performance.now();
+          diagnostics.queryPerformance[testQuery.name] = Math.round(
+            endTime - startTime,
+          );
+        } catch (_error) {
+          diagnostics.queryPerformance[testQuery.name] = -1;
+        }
+      }
 
-			// Get index usage statistics
-			const indexStats = await ctx.db.execute(sql`
+      // Get index usage statistics
+      const indexStats = await ctx.db.execute(sql`
                 SELECT 
                     indexrelname as index_name,
                     idx_scan as scans,
@@ -585,21 +585,21 @@ export const regimensOptimizedRouter = createTRPCRouter({
                     AND (indexrelname LIKE '%regimen%' OR indexrelname LIKE '%admin%')
                 ORDER BY idx_scan DESC
             `);
-			diagnostics.indexUsage = indexStats.rows;
+      diagnostics.indexUsage = indexStats.rows;
 
-			// Performance recommendations
-			if (diagnostics.queryPerformance.due_medications_calculation > 100) {
-				diagnostics.recommendations.push(
-					"Consider partitioning administrations table by date",
-				);
-			}
+      // Performance recommendations
+      if (diagnostics.queryPerformance.due_medications_calculation > 100) {
+        diagnostics.recommendations.push(
+          "Consider partitioning administrations table by date",
+        );
+      }
 
-			if (diagnostics.queryPerformance.active_regimens_lookup > 50) {
-				diagnostics.recommendations.push(
-					"Verify regimens indexes are being used effectively",
-				);
-			}
+      if (diagnostics.queryPerformance.active_regimens_lookup > 50) {
+        diagnostics.recommendations.push(
+          "Verify regimens indexes are being used effectively",
+        );
+      }
 
-			return diagnostics;
-		}),
+      return diagnostics;
+    }),
 });

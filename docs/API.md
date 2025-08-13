@@ -3,6 +3,7 @@
 VetMed Tracker uses tRPC for type-safe API communication. All endpoints are accessible via the tRPC client.
 
 ## Table of Contents
+
 - [Authentication](#authentication)
 - [API Structure](#api-structure)
 - [Core Endpoints](#core-endpoints)
@@ -14,6 +15,7 @@ VetMed Tracker uses tRPC for type-safe API communication. All endpoints are acce
 All API endpoints except public queries require authentication via Stack Auth.
 
 ### Headers
+
 ```typescript
 {
   "Authorization": "Bearer <token>",
@@ -26,6 +28,7 @@ All API endpoints except public queries require authentication via Stack Auth.
 Base URL: `/api/trpc`
 
 All endpoints follow the tRPC convention:
+
 - Queries: `GET /api/trpc/[router].[procedure]`
 - Mutations: `POST /api/trpc/[router].[procedure]`
 
@@ -34,7 +37,9 @@ All endpoints follow the tRPC convention:
 ### Animal Router (`animal`)
 
 #### `animal.list`
+
 Get all animals for a household.
+
 ```typescript
 // Query
 input: { householdId: string }
@@ -42,7 +47,9 @@ output: Animal[]
 ```
 
 #### `animal.get`
+
 Get a specific animal.
+
 ```typescript
 // Query
 input: { id: string }
@@ -50,7 +57,9 @@ output: Animal | null
 ```
 
 #### `animal.create`
+
 Create a new animal.
+
 ```typescript
 // Mutation
 input: {
@@ -67,7 +76,9 @@ output: Animal
 ```
 
 #### `animal.update`
+
 Update an animal.
+
 ```typescript
 // Mutation
 input: {
@@ -80,7 +91,9 @@ output: Animal
 ```
 
 #### `animal.delete`
+
 Delete an animal.
+
 ```typescript
 // Mutation
 input: { id: string }
@@ -90,14 +103,18 @@ output: { success: boolean }
 ### Household Router (`household`)
 
 #### `household.list`
+
 Get user's households.
+
 ```typescript
 // Query
 output: Household[]
 ```
 
 #### `household.create`
+
 Create a new household.
+
 ```typescript
 // Mutation
 input: {
@@ -108,7 +125,9 @@ output: Household
 ```
 
 #### `household.addMember`
+
 Add a member to household.
+
 ```typescript
 // Mutation
 input: {
@@ -122,7 +141,9 @@ output: Membership
 ### Regimen Router (`regimen`)
 
 #### `regimen.list`
+
 Get medication regimens.
+
 ```typescript
 // Query
 input: {
@@ -134,7 +155,9 @@ output: Regimen[]
 ```
 
 #### `regimen.create`
+
 Create a medication schedule.
+
 ```typescript
 // Mutation
 input: {
@@ -152,7 +175,9 @@ output: Regimen
 ```
 
 #### `regimen.pause`
+
 Pause a regimen.
+
 ```typescript
 // Mutation
 input: {
@@ -163,7 +188,9 @@ output: Regimen
 ```
 
 #### `regimen.resume`
+
 Resume a paused regimen.
+
 ```typescript
 // Mutation
 input: { id: string }
@@ -173,7 +200,9 @@ output: Regimen
 ### Administration Router (`admin`)
 
 #### `admin.record`
+
 Record a medication administration.
+
 ```typescript
 // Mutation
 input: {
@@ -190,7 +219,9 @@ output: Administration
 ```
 
 #### `admin.history`
+
 Get administration history.
+
 ```typescript
 // Query
 input: {
@@ -204,7 +235,9 @@ output: Administration[]
 ```
 
 #### `admin.upcoming`
+
 Get upcoming doses.
+
 ```typescript
 // Query
 input: {
@@ -217,7 +250,9 @@ output: UpcomingDose[]
 ### Inventory Router (`inventory`)
 
 #### `inventory.list`
+
 Get household inventory.
+
 ```typescript
 // Query
 input: {
@@ -228,7 +263,9 @@ output: InventoryItem[]
 ```
 
 #### `inventory.add`
+
 Add inventory item.
+
 ```typescript
 // Mutation
 input: {
@@ -244,7 +281,9 @@ output: InventoryItem
 ```
 
 #### `inventory.update`
+
 Update inventory quantity.
+
 ```typescript
 // Mutation
 input: {
@@ -256,7 +295,9 @@ output: InventoryItem
 ```
 
 #### `inventory.checkExpiry`
+
 Check for expiring medications.
+
 ```typescript
 // Query
 input: {
@@ -269,7 +310,9 @@ output: ExpiringItem[]
 ### Medication Router (`medication`)
 
 #### `medication.search`
+
 Search medication catalog.
+
 ```typescript
 // Query
 input: {
@@ -281,7 +324,9 @@ output: Medication[]
 ```
 
 #### `medication.get`
+
 Get medication details.
+
 ```typescript
 // Query
 input: { id: string }
@@ -289,7 +334,9 @@ output: Medication | null
 ```
 
 #### `medication.calculateDosage`
+
 Calculate dosage for an animal.
+
 ```typescript
 // Query
 input: {
@@ -309,7 +356,9 @@ output: {
 ### Insights Router (`insights`)
 
 #### `insights.complianceRate`
+
 Get medication compliance metrics.
+
 ```typescript
 // Query
 input: {
@@ -324,7 +373,9 @@ output: {
 ```
 
 #### `insights.medicationPatterns`
+
 Analyze medication usage patterns.
+
 ```typescript
 // Query
 input: {
@@ -342,7 +393,9 @@ output: {
 ### Reports Router (`reports`)
 
 #### `reports.generate`
+
 Generate reports.
+
 ```typescript
 // Query
 input: {
@@ -392,12 +445,12 @@ API endpoints are rate-limited to prevent abuse:
 
 ### Limits by Operation Type
 
-| Operation | Limit | Window |
-|-----------|-------|--------|
-| Queries | 100 req/min | 1 minute |
-| Mutations | 30 req/min | 1 minute |
-| Critical Operations | 10 req/min | 1 minute |
-| File Uploads | 5 req/min | 1 minute |
+| Operation           | Limit       | Window   |
+|---------------------|-------------|----------|
+| Queries             | 100 req/min | 1 minute |
+| Mutations           | 30 req/min  | 1 minute |
+| Critical Operations | 10 req/min  | 1 minute |
+| File Uploads        | 5 req/min   | 1 minute |
 
 ### Rate Limit Headers
 
@@ -480,12 +533,14 @@ input: {
 ## Testing Endpoints
 
 Use the tRPC panel in development:
+
 ```bash
 # Development only
 http://localhost:3000/api/trpc-panel
 ```
 
 Or test with curl:
+
 ```bash
 # Query
 curl http://localhost:3000/api/trpc/animal.list?input={"householdId":"uuid"}
@@ -523,12 +578,14 @@ const { data, isLoading } = trpc.animal.list.useQuery({
 ## API Versioning
 
 Currently v1 (implicit). Future versions will use:
+
 - URL versioning: `/api/v2/trpc`
 - Header versioning: `X-API-Version: 2`
 
 ## Support
 
 For API issues or questions:
+
 1. Check error messages and codes
 2. Review rate limit headers
 3. Consult this documentation

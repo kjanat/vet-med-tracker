@@ -5,13 +5,13 @@ import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { TestimonialsSection } from "@/components/landing/testimonials-section";
 
 export default function LandingPage() {
-	return (
-		<>
-			<HeroSection />
-			<FeaturesSection />
-			<HowItWorksSection />
-			<TestimonialsSection />
-			<CtaSection />
-		</>
-	);
+  return (
+    <>
+      <HeroSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <TestimonialsSection />
+      <CtaSection />
+    </>
+  );
 }

@@ -2,21 +2,26 @@
 
 ## Overview
 
-Instead of implementing premature table partitioning, we've identified that the current schema would benefit significantly more from proper normalization and atomic table design. This refactoring addresses fundamental design issues that will provide immediate benefits and prepare the system for future scale.
+Instead of implementing premature table partitioning, we've identified that the current schema would benefit
+significantly more from proper normalization and atomic table design. This refactoring addresses fundamental design
+issues that will provide immediate benefits and prepare the system for future scale.
 
 ## 🎯 **Key Problems Solved**
 
 ### 1. **Over-Complex Tables**
+
 - **`vetmed_users`**: 35+ columns mixing auth, profile, preferences, and emergency contacts
 - **`vetmed_animals`**: Mixed basic animal data with medical records and vet contacts
 - **`vetmed_medication_catalog`**: Single table trying to handle all medication complexity with JSONB
 
 ### 2. **Poor Normalization**
+
 - Array fields instead of proper relationships (`allergies`, `conditions`)
 - Embedded JSON instead of relational data
 - Reusable data (veterinarians) embedded in animal records
 
 ### 3. **Redundant Systems**
+
 - Two separate notification tables with overlapping purposes
 - Complex JSONB fields where proper tables would be better
 
@@ -25,6 +30,7 @@ Instead of implementing premature table partitioning, we've identified that the 
 ### **Before & After Comparison**
 
 #### **Users System**
+
 ```sql
 -- BEFORE: One monolithic table
 vetmed_users (35+ columns including auth, profile, preferences, emergency contacts)
@@ -37,6 +43,7 @@ vetmed_emergency_contacts (separate table for security/privacy)
 ```
 
 #### **Animals & Medical Data**
+
 ```sql
 -- BEFORE: Mixed concerns
 vetmed_animals (basic_info + medical_data + vet_info + arrays)
@@ -50,6 +57,7 @@ vetmed_animal_allergies (proper allergy tracking with severity, types)
 ```
 
 #### **Medication System**
+
 ```sql
 -- BEFORE: One complex table with JSONB
 vetmed_medication_catalog (basic_info + complex_jsonb_calculations)
@@ -63,6 +71,7 @@ vetmed_route_adjustments (route-specific modifications)
 ```
 
 #### **Notification System**
+
 ```sql
 -- BEFORE: Two overlapping tables
 vetmed_notifications (in-app notifications)
@@ -75,6 +84,7 @@ vetmed_notifications (unified with status: draft->scheduled->sent->read)
 ## 🚀 **Implementation Steps**
 
 ### **Step 1: Backup & Preparation**
+
 ```bash
 # Since no customers exist, we can force-overwrite safely
 # But let's backup the existing schema structure for reference
@@ -82,12 +92,14 @@ pg_dump --schema-only $DATABASE_URL > schema_backup_$(date +%Y%m%d).sql
 ```
 
 ### **Step 2: Run the Migration**
+
 ```bash
 # Execute the refactoring migration
 psql $DATABASE_URL -f db/migrations/partitioning/004_schema_refactoring_migration.sql
 ```
 
 ### **Step 3: Update Drizzle Schema**
+
 ```bash
 # Replace the existing schema file
 cp db/schema-refactored.ts db/schema.ts
@@ -100,7 +112,9 @@ pnpm db:push:force
 ```
 
 ### **Step 4: Update Application Code**
+
 The refactored schema maintains backward compatibility through aliases:
+
 ```typescript
 // These still work (aliases to new tables)
 export const users = vetmedUsers;
@@ -117,12 +131,14 @@ export const animalAllergies = vetmedAnimalAllergies;
 ## 📊 **Performance Benefits**
 
 ### **Immediate Benefits**
+
 1. **Faster Queries**: Smaller tables mean faster scans and joins
 2. **Better Indexes**: Focused indexes on normalized data
 3. **Reduced I/O**: Query only the data you need
 4. **Improved Cache**: Smaller rows mean better memory utilization
 
 ### **Query Performance Examples**
+
 ```sql
 -- BEFORE: Query 35+ columns to get user preferences
 SELECT * FROM vetmed_users WHERE id = ?;
@@ -141,6 +157,7 @@ WHERE sa.species = 'dog' AND sa.dose_multiplier = 1.2;
 ```
 
 ### **Storage Efficiency**
+
 - **User Table**: ~60% reduction in row size (35 columns → 8 columns)
 - **Animal Table**: ~40% reduction (removed embedded medical data)
 - **Medication**: ~70% reduction (removed complex JSONB fields)
@@ -148,6 +165,7 @@ WHERE sa.species = 'dog' AND sa.dose_multiplier = 1.2;
 ## 🔮 **Future Partitioning Strategy**
 
 ### **When to Partition**
+
 Once the normalized tables reach scale:
 
 1. **`vetmed_administrations`**: When >10M rows (time-series partitioning by `recorded_at`)
@@ -155,6 +173,7 @@ Once the normalized tables reach scale:
 3. **`vetmed_audit_log`**: When >20M rows (time-series partitioning by `timestamp`)
 
 ### **Partitioning Will Be More Effective**
+
 - **Focused Tables**: Partitioning works better on atomic, focused tables
 - **Clear Partition Keys**: Timestamp-based partitioning on normalized time-series data
 - **Better Pruning**: Smaller tables mean more effective partition elimination
@@ -162,6 +181,7 @@ Once the normalized tables reach scale:
 ## 🧪 **Testing Strategy**
 
 ### **Data Integrity Testing**
+
 ```sql
 -- Test foreign key relationships
 SELECT COUNT(*) FROM vetmed_user_preferences up 
@@ -178,6 +198,7 @@ WHERE a.id IS NULL;
 ```
 
 ### **Performance Testing**
+
 ```sql
 -- Test query performance on new structure
 EXPLAIN ANALYZE SELECT * FROM vetmed_user_preferences WHERE user_id = ?;
@@ -188,12 +209,14 @@ EXPLAIN ANALYZE SELECT * FROM vetmed_notifications WHERE user_id = ? AND status 
 ## 📈 **Monitoring & Validation**
 
 ### **Key Metrics to Track**
+
 1. **Query Performance**: Response times on common queries
 2. **Storage Usage**: Database size changes after refactoring
 3. **Index Usage**: Effectiveness of new indexes
 4. **Connection Count**: Resource utilization improvements
 
 ### **Success Criteria**
+
 - ✅ **Query Speed**: >50% improvement on user/animal/medication queries
 - ✅ **Storage Efficiency**: >40% reduction in total table size
 - ✅ **Code Maintainability**: Easier to add new features
@@ -202,12 +225,14 @@ EXPLAIN ANALYZE SELECT * FROM vetmed_notifications WHERE user_id = ? AND status 
 ## 🎉 **Benefits Summary**
 
 ### **Immediate Improvements**
+
 - **Performance**: 50-70% faster queries on normalized data
 - **Maintainability**: Each table has single responsibility
 - **Extensibility**: Easy to add new features without schema changes
 - **Data Quality**: Proper constraints and relationships
 
 ### **Long-term Benefits**
+
 - **Scalability**: Ready for future partitioning when needed
 - **Reporting**: Better data for analytics and insights
 - **Integration**: Easier to add external integrations
@@ -223,6 +248,9 @@ EXPLAIN ANALYZE SELECT * FROM vetmed_notifications WHERE user_id = ? AND status 
 
 ## 📝 **Conclusion**
 
-This schema refactoring provides immediate, substantial benefits that far exceed what table partitioning would offer at the current scale. The normalized structure will perform better, be easier to maintain, and be ready for partitioning when the data volume justifies it.
+This schema refactoring provides immediate, substantial benefits that far exceed what table partitioning would offer at
+the current scale. The normalized structure will perform better, be easier to maintain, and be ready for partitioning
+when the data volume justifies it.
 
-**Recommendation**: Implement this refactoring now, and consider partitioning in the future when individual tables exceed 10M+ rows.
+**Recommendation**: Implement this refactoring now, and consider partitioning in the future when individual tables
+exceed 10M+ rows.

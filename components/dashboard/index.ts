@@ -2,25 +2,25 @@
 
 // Dashboard data hooks
 export {
-	type DateRange,
-	getDateRangeFromPeriod,
-	PERIOD_OPTIONS,
-	type Period,
-	useAdministrationStats,
-	useAnimalActivityData,
-	useComplianceData,
-	useComplianceHeatmapData,
-	useDashboardRefresh,
-	useInventoryMetrics,
-	useMedicationDistribution,
-	useSuggestionsData,
-	useUpcomingDoses,
+  type DateRange,
+  getDateRangeFromPeriod,
+  PERIOD_OPTIONS,
+  type Period,
+  useAdministrationStats,
+  useAnimalActivityData,
+  useComplianceData,
+  useComplianceHeatmapData,
+  useDashboardRefresh,
+  useInventoryMetrics,
+  useMedicationDistribution,
+  useSuggestionsData,
+  useUpcomingDoses,
 } from "@/hooks/dashboard/useDashboardData";
 export { DashboardLayout, type DashboardWidget } from "./DashboardLayout";
 export {
-	CompactDateDisplay,
-	DateRangeSelector,
-	QuickDatePresets,
+  CompactDateDisplay,
+  DateRangeSelector,
+  QuickDatePresets,
 } from "./DateRangeSelector";
 export { ReportingDashboard } from "./ReportingDashboard";
 export { AdministrationTimelineWidget } from "./widgets/AdministrationTimelineWidget";
@@ -32,8 +32,8 @@ export { MedicationDistributionWidget } from "./widgets/MedicationDistributionWi
 export { UpcomingDosesWidget } from "./widgets/UpcomingDosesWidget";
 // Widget utilities
 export {
-	useWidgetError,
-	WidgetErrorBoundary,
-	withWidgetErrorBoundary,
+  useWidgetError,
+  WidgetErrorBoundary,
+  withWidgetErrorBoundary,
 } from "./widgets/WidgetErrorBoundary";
 export { WidgetSkeletons } from "./widgets/WidgetSkeletons";

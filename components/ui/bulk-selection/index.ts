@@ -6,16 +6,16 @@
 
 // Core Context Provider
 export {
-	BulkSelectionProvider,
-	useBulkSelection,
+  BulkSelectionProvider,
+  useBulkSelection,
 } from "@/components/providers/bulk-selection-provider";
 
 // Individual Components
 export { BulkSelectionCheckbox } from "@/components/ui/bulk-selection-checkbox";
 // Complete Table Solution
 export {
-	type BulkSelectionColumn,
-	BulkSelectionTable,
+  type BulkSelectionColumn,
+  BulkSelectionTable,
 } from "@/components/ui/bulk-selection-table";
 export { FloatingActionBar } from "@/components/ui/floating-action-bar";
 export { SelectAllCheckbox } from "@/components/ui/select-all-checkbox";
@@ -25,16 +25,16 @@ export { useBulkSelectionIntegration } from "@/hooks/shared/use-bulk-selection-i
 
 // Re-export common types for convenience
 export type BulkSelectionAction = {
-	icon: React.ComponentType<{ className?: string }>;
-	label: string;
-	onClick: (selectedIds: string[]) => void;
-	variant?:
-		| "default"
-		| "destructive"
-		| "outline"
-		| "secondary"
-		| "ghost"
-		| "link";
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: (selectedIds: string[]) => void;
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
 };
 
 /**

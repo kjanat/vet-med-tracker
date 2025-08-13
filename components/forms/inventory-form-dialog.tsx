@@ -10,14 +10,14 @@ import { useInventoryForm } from "@/hooks/forms/useInventoryForm";
  * validation, and saving functionality.
  */
 export function InventoryFormDialog() {
-	const { isOpen, closeForm, saveForm } = useInventoryForm({
-		showSuccessToast: true,
-		autoClose: true,
-	});
+  const { isOpen, closeForm, saveForm } = useInventoryForm({
+    showSuccessToast: true,
+    autoClose: true,
+  });
 
-	return (
-		<AddItemModal open={isOpen} onOpenChange={closeForm} onAdd={saveForm} />
-	);
+  return (
+    <AddItemModal open={isOpen} onOpenChange={closeForm} onAdd={saveForm} />
+  );
 }
 
 /**
@@ -27,11 +27,11 @@ export function InventoryFormDialog() {
  * or check its state.
  */
 export function useInventoryFormDialog() {
-	const { openForm, isOpen, isLoading } = useInventoryForm();
+  const { openForm, isOpen, isLoading } = useInventoryForm();
 
-	return {
-		openInventoryForm: () => openForm(),
-		isFormOpen: isOpen,
-		isFormLoading: isLoading,
-	};
+  return {
+    openInventoryForm: () => openForm(),
+    isFormOpen: isOpen,
+    isFormLoading: isLoading,
+  };
 }

@@ -2,7 +2,7 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
   workflow_dispatch:
 
 permissions:
@@ -56,7 +56,7 @@ jobs:
 
   backup:
     name: Backup Database
-    needs: [pre-deployment, test]
+    needs: [ pre-deployment, test ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -76,7 +76,7 @@ jobs:
 
   migrate:
     name: Database Migration
-    needs: [pre-deployment, test, backup]
+    needs: [ pre-deployment, test, backup ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -96,7 +96,7 @@ jobs:
 
   deploy:
     name: Deploy to Vercel
-    needs: [pre-deployment, test, backup, migrate]
+    needs: [ pre-deployment, test, backup, migrate ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -114,7 +114,7 @@ jobs:
 
   verify:
     name: Post-deployment Verification
-    needs: [pre-deployment, deploy]
+    needs: [ pre-deployment, deploy ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -126,7 +126,7 @@ jobs:
 
   notify:
     name: Deployment Notification
-    needs: [pre-deployment, deploy, verify]
+    needs: [ pre-deployment, deploy, verify ]
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -5,7 +5,8 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A Progressive Web App (PWA) for managing veterinary medications for pets and animals. Track medications, schedules, and inventory across multiple households with offline support.
+A Progressive Web App (PWA) for managing veterinary medications for pets and animals. Track medications, schedules, and
+inventory across multiple households with offline support.
 
 ## ✨ Features
 
@@ -54,14 +55,17 @@ Access the application at http://localhost:3000
 ### Network Access
 
 To access from other devices on your network:
+
 ```bash
 pnpm dev:host
 ```
+
 Then access at http://YOUR_IP:3000
 
 ## 🛠️ Tech Stack
 
 ### Core
+
 - **Framework**: Next.js 15.4.5 with App Router
 - **Language**: TypeScript with strict mode
 - **Styling**: Tailwind CSS v4
@@ -69,6 +73,7 @@ Then access at http://YOUR_IP:3000
 - **Authentication**: Stack Auth
 
 ### Infrastructure
+
 - **API Layer**: tRPC for type-safe APIs
 - **State Management**: React Context + React Query
 - **Forms**: React Hook Form with Zod validation
@@ -120,6 +125,7 @@ pnpm test:visual
 ## 📦 Available Scripts
 
 ### Development
+
 - `pnpm dev` - Start development server
 - `pnpm dev:turbo` - Start with Turbopack (experimental)
 - `pnpm build` - Build for production
@@ -127,12 +133,14 @@ pnpm test:visual
 - `pnpm preview` - Build and preview production
 
 ### Database
+
 - `pnpm db:generate` - Generate Drizzle migrations
 - `pnpm db:push` - Push schema to database
 - `pnpm db:studio` - Open Drizzle Studio GUI
 - `pnpm db:seed` - Seed database with test data
 
 ### Code Quality
+
 - `pnpm typecheck` - Type check with TypeScript
 - `pnpm lint` - Run linting
 - `pnpm check` - Run Biome checks
@@ -150,6 +158,7 @@ pnpm test:visual
 ### Environment Variables
 
 Required environment variables:
+
 ```env
 # Database
 DATABASE_URL=

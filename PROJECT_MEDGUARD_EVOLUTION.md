@@ -5,6 +5,7 @@
 ### Photo Management System
 
 #### Complete Photo Upload Infrastructure
+
 **Time**: 4 hours
 
 - [ ] Test `/api/upload` endpoint - verify it works with test files
@@ -15,7 +16,8 @@
 
 **Done when**: Can upload photos, see progress, works offline, images compressed
 
-#### Animal Photo Gallery  
+#### Animal Photo Gallery
+
 **Time**: 4 hours
 
 - [ ] Create `PhotoGallery.tsx` with CSS grid layout
@@ -28,6 +30,7 @@
 **Done when**: Gallery shows all photos, can view/delete/set primary, smooth scrolling
 
 #### Administration Photo Evidence
+
 **Time**: 4 hours
 
 - [ ] Add `photo_urls text[]` to administrations table
@@ -43,6 +46,7 @@
 ### Co-signing Workflow
 
 #### Co-signer Backend
+
 **Time**: 3 hours
 
 - [ ] Create tRPC endpoints:
@@ -66,6 +70,7 @@
 **Done when**: API endpoints work, notifications sent, validation enforced
 
 #### Co-signing UI
+
 **Time**: 4 hours
 
 - [ ] Create `CoSignerSelect.tsx` - dropdown of eligible household members
@@ -87,6 +92,7 @@
 ### Bulk Operations
 
 #### Bulk Selection Infrastructure
+
 **Time**: 3 hours
 
 - [ ] Create `BulkSelectionProvider` context:
@@ -105,6 +111,7 @@
 **Done when**: Can select multiple items, see count, bulk actions appear
 
 #### Bulk Administration Recording
+
 **Time**: 4 hours
 
 - [ ] Create bulk tRPC mutation:
@@ -133,6 +140,7 @@
 ### Dosage Calculator
 
 #### Calculation Engine
+
 **Time**: 6 hours
 
 - [ ] Create `DosageCalculator` class:
@@ -154,6 +162,7 @@
 **Done when**: Calculator returns correct doses with safety warnings
 
 #### Calculator UI
+
 **Time**: 6 hours
 
 - [ ] Build `DosageCalculator.tsx` component
@@ -170,6 +179,7 @@
 ### Push Notifications
 
 #### Web Push Setup
+
 **Time**: 6 hours
 
 - [ ] Generate VAPID keys and add to .env
@@ -195,6 +205,7 @@
 **Done when**: Can subscribe to push, notifications arrive on schedule
 
 #### User Preferences
+
 **Time**: 4 hours
 
 - [ ] Add notification settings to user profile page
@@ -209,7 +220,8 @@
 
 ### Reporting Dashboard
 
-#### Dashboard Infrastructure  
+#### Dashboard Infrastructure
+
 **Time**: 6 hours
 
 - [ ] Install and configure Chart.js or Recharts
@@ -226,6 +238,7 @@
 **Done when**: Dashboard layout renders, charts display data
 
 #### Compliance Analytics
+
 **Time**: 5 hours
 
 - [ ] Calculate compliance percentage:
@@ -240,6 +253,7 @@
 **Done when**: Charts show real compliance data, can drill down for details
 
 #### Export Functionality
+
 **Time**: 5 hours
 
 - [ ] Generate PDF using jsPDF:
@@ -262,6 +276,7 @@
 ## Week 4: Database Optimization
 
 ### Table Partitioning
+
 **Time**: 8 hours
 
 - [ ] Create partitioned tables:
@@ -279,6 +294,7 @@
 **Done when**: Tables partitioned, queries faster, auto-maintenance working
 
 ### Materialized Views
+
 **Time**: 8 hours
 
 - [ ] Create compliance stats view:
@@ -299,6 +315,7 @@
 **Done when**: Views created, refreshing automatically, dashboards faster
 
 ### Query Optimization
+
 **Time**: 6 hours
 
 - [ ] Add missing indexes based on slow query log:
@@ -321,6 +338,7 @@
 ## Week 5: Testing
 
 ### Unit Tests
+
 **Time**: 10 hours
 
 Create test files with actual test cases:
@@ -344,6 +362,7 @@ describe('DosageCalculator', () => {
 **Done when**: 80% coverage on business logic, all edge cases tested
 
 ### Visual Regression Tests
+
 **Time**: 8 hours
 
 - [ ] Set up Percy:
@@ -361,6 +380,7 @@ describe('DosageCalculator', () => {
 **Done when**: Visual tests prevent UI regressions, < 5% false positives
 
 ### Test Data Factories
+
 **Time**: 6 hours
 
 ```typescript
@@ -382,6 +402,7 @@ export const createAnimal = (overrides = {}) => ({
 ## Week 6: Launch Prep
 
 ### Bundle Optimization
+
 **Time**: 6 hours
 
 - [ ] Run bundle analyzer, identify large chunks
@@ -396,6 +417,7 @@ export const createAnimal = (overrides = {}) => ({
 **Done when**: Initial bundle < 200KB, Lighthouse score > 95
 
 ### Security Audit
+
 **Time**: 4 hours
 
 - [ ] Run `npm audit fix`
@@ -407,6 +429,7 @@ export const createAnimal = (overrides = {}) => ({
 **Done when**: No high/critical vulnerabilities, permissions enforced
 
 ### Deployment
+
 **Time**: 8 hours
 
 - [ ] Update environment variables in Vercel
@@ -423,6 +446,7 @@ export const createAnimal = (overrides = {}) => ({
 ## Definition of Done Checklist
 
 For each feature:
+
 - [ ] Code works locally
 - [ ] TypeScript has no errors
 - [ ] Tests written and passing
@@ -433,6 +457,7 @@ For each feature:
 - [ ] Code reviewed and approved
 
 For the project:
+
 - [ ] All features implemented and tested
 - [ ] Database queries < 100ms p95
 - [ ] 80% test coverage
@@ -472,6 +497,7 @@ vercel --prod              # Deploy to production
 ## Common Patterns to Follow
 
 ### tRPC Endpoint
+
 ```typescript
 export const myRouter = createTRPCRouter({
   doThing: protectedProcedure
@@ -488,6 +514,7 @@ export const myRouter = createTRPCRouter({
 ```
 
 ### React Component
+
 ```typescript
 export function MyComponent({ data }: Props) {
   const [state, setState] = useState(initialState);
@@ -503,6 +530,7 @@ export function MyComponent({ data }: Props) {
 ```
 
 ### Database Query
+
 ```typescript
 const result = await db
   .select()

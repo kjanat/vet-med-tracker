@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-VetMed Tracker is a Progressive Web App (PWA) for managing veterinary medications for pets and animals. Built with Next.js 15, React 19, TypeScript, and Tailwind CSS v4, it's designed to work offline and provide medication tracking across multiple households and animals.
+VetMed Tracker is a Progressive Web App (PWA) for managing veterinary medications for pets and animals. Built with
+Next.js 15, React 19, TypeScript, and Tailwind CSS v4, it's designed to work offline and provide medication tracking
+across multiple households and animals.
 
 ## Tech Stack
 
@@ -117,85 +119,85 @@ lib/                 # Utilities and shared logic
 
 1. **App Router Structure**:
 
-   - Protected routes under `app/(authed)/` require Stack Auth authentication
-   - Nested layouts for shared UI components
-   - Parallel routes for modals and overlays
+    - Protected routes under `app/(authed)/` require Stack Auth authentication
+    - Nested layouts for shared UI components
+    - Parallel routes for modals and overlays
 
 2. **Authentication Flow**:
 
-   - Stack Auth handles all auth (OAuth, email/password, social)
-   - Middleware protects routes via Stack Auth
-   - Users synced to database on first login via webhook
-   - Multi-household support with role-based access (OWNER, CAREGIVER, VETREADONLY)
+    - Stack Auth handles all auth (OAuth, email/password, social)
+    - Middleware protects routes via Stack Auth
+    - Users synced to database on first login via webhook
+    - Multi-household support with role-based access (OWNER, CAREGIVER, VETREADONLY)
 
 3. **Database Architecture**:
 
-   - All tables prefixed with `vetmed_`
-   - Drizzle ORM with PostgreSQL (Neon)
-   - Three database branches: production, development, test
-   - Schema-first approach with type generation
+    - All tables prefixed with `vetmed_`
+    - Drizzle ORM with PostgreSQL (Neon)
+    - Three database branches: production, development, test
+    - Schema-first approach with type generation
 
 4. **tRPC API Layer**:
 
-   - Type-safe API with automatic TypeScript inference
-   - Procedures with Zod validation
-   - Middleware for authentication and authorization
-   - Household-scoped data access
+    - Type-safe API with automatic TypeScript inference
+    - Procedures with Zod validation
+    - Middleware for authentication and authorization
+    - Household-scoped data access
 
 5. **Offline-First PWA**:
 
-   - Service Worker at `/public/sw.js`
-   - IndexedDB for offline queue (`useOfflineQueue` hook)
-   - Optimistic UI updates with eventual consistency
-   - Idempotency keys prevent duplicate submissions
+    - Service Worker at `/public/sw.js`
+    - IndexedDB for offline queue (`useOfflineQueue` hook)
+    - Optimistic UI updates with eventual consistency
+    - Idempotency keys prevent duplicate submissions
 
 6. **State Management**:
 
-   - Global state via `AppProvider` (household, animal selection)
-   - Server state with React Query + tRPC
-   - Form state with React Hook Form
-   - Offline queue for resilience
+    - Global state via `AppProvider` (household, animal selection)
+    - Server state with React Query + tRPC
+    - Form state with React Hook Form
+    - Offline queue for resilience
 
 ### Code Organization Patterns
 
 1. **Feature-Based Hook Organization**:
 
-   - Hooks are organized by feature domain (inventory, history, admin, etc.)
-   - Shared hooks in `hooks/shared/` for cross-cutting concerns
-   - Tests co-located with their hooks
+    - Hooks are organized by feature domain (inventory, history, admin, etc.)
+    - Shared hooks in `hooks/shared/` for cross-cutting concerns
+    - Tests co-located with their hooks
 
 2. **Clear Library Structure**:
 
-   - `lib/infrastructure/` - System-level code (middleware, circuit breakers, health checks)
-   - `lib/utils/` - Pure utility functions (no side effects)
-   - `lib/schemas/` - Zod schemas organized by feature
-   - Infrastructure concerns separated from business logic
+    - `lib/infrastructure/` - System-level code (middleware, circuit breakers, health checks)
+    - `lib/utils/` - Pure utility functions (no side effects)
+    - `lib/schemas/` - Zod schemas organized by feature
+    - Infrastructure concerns separated from business logic
 
 ### Critical Implementation Details
 
 1. **TypeScript Path Aliases**:
 
-   - `@/*` maps to project root
-   - `@/db/*` for database files
-   - `@/trpc/*` for tRPC server files
+    - `@/*` maps to project root
+    - `@/db/*` for database files
+    - `@/trpc/*` for tRPC server files
 
 2. **Tailwind CSS v4**:
 
-   - Configuration in `app/globals.css` using @theme syntax
-   - No traditional tailwind.config.js file
-   - CSS variables for theming and dark mode
+    - Configuration in `app/globals.css` using @theme syntax
+    - No traditional tailwind.config.js file
+    - CSS variables for theming and dark mode
 
 3. **Multi-Tenancy**:
 
-   - Household-based data isolation
-   - Role-based access control per household
-   - Resource-level authorization checks
+    - Household-based data isolation
+    - Role-based access control per household
+    - Resource-level authorization checks
 
 4. **Time Management**:
 
-   - All timestamps stored in UTC
-   - Display in animal's home timezone
-   - Each animal has configurable timezone
+    - All timestamps stored in UTC
+    - Display in animal's home timezone
+    - Each animal has configurable timezone
 
 ## Core Domain Model
 
@@ -253,27 +255,27 @@ appRouter/
 
 1. **Feature Development**:
 
-   - Create/modify Drizzle schema
-   - Generate types with `pnpm db:generate`
-   - Implement tRPC router with Zod validation
-   - Build UI components using existing patterns
-   - Add offline support if needed
-   - Write tests for critical paths
+    - Create/modify Drizzle schema
+    - Generate types with `pnpm db:generate`
+    - Implement tRPC router with Zod validation
+    - Build UI components using existing patterns
+    - Add offline support if needed
+    - Write tests for critical paths
 
 2. **Database Changes**:
 
-   - Modify `db/schema.ts`
-   - Run `pnpm db:generate` to create migration
-   - Test with `pnpm db:push` (development branch)
-   - Apply to production via migration
+    - Modify `db/schema.ts`
+    - Run `pnpm db:generate` to create migration
+    - Test with `pnpm db:push` (development branch)
+    - Apply to production via migration
 
 3. **API Development**:
 
-   - Add router in `server/api/routers/`
-   - Use appropriate procedure (public, protected, household, owner)
-   - Add the router to `server/api/root.ts` (appRouter)
-   - Export `AppRouter` type from `server/api/root.ts`
-   - Generate/types are inferred on the client via your trpc client setup
+    - Add router in `server/api/routers/`
+    - Use appropriate procedure (public, protected, household, owner)
+    - Add the router to `server/api/root.ts` (appRouter)
+    - Export `AppRouter` type from `server/api/root.ts`
+    - Generate/types are inferred on the client via your trpc client setup
 
 ## Common Patterns
 
@@ -349,7 +351,9 @@ import { inventorySchema } from "@/lib/schemas/inventory";
 
 ### Delegation-First Approach for Major Refactors
 
-When handling large-scale refactoring or complex multi-phase projects, adopt a **Project Manager (PM) role** and delegate all implementation work to specialized sub-agents. This approach has proven highly effective for maintaining clarity, preventing context overload, and ensuring systematic progress.
+When handling large-scale refactoring or complex multi-phase projects, adopt a **Project Manager (PM) role** and
+delegate all implementation work to specialized sub-agents. This approach has proven highly effective for maintaining
+clarity, preventing context overload, and ensuring systematic progress.
 
 #### When to Use Delegation Workflow
 
@@ -393,32 +397,32 @@ This project successfully used the delegation workflow to achieve 62% complexity
 
 1. **Phase 1: Quick Wins** (22% reduction)
 
-   - Task 1.1: Remove duplicate components → Frontend specialist
-   - Task 1.2: Clean up unused endpoints → Backend specialist
-   - Task 1.3: Consolidate mobile detection → UI specialist
-   - Task 1.4: Remove test utilities → Testing specialist
+    - Task 1.1: Remove duplicate components → Frontend specialist
+    - Task 1.2: Clean up unused endpoints → Backend specialist
+    - Task 1.3: Consolidate mobile detection → UI specialist
+    - Task 1.4: Remove test utilities → Testing specialist
 
 2. **Phase 2: Provider Consolidation** (42% total reduction)
 
-   - Task 2.1: Design consolidated provider → Architecture specialist
-   - Task 2.2: Implement new provider → Frontend specialist
-   - Task 2.3: Migrate components → Migration specialist
-   - Task 2.4: Update tests → Testing specialist
+    - Task 2.1: Design consolidated provider → Architecture specialist
+    - Task 2.2: Implement new provider → Frontend specialist
+    - Task 2.3: Migrate components → Migration specialist
+    - Task 2.4: Update tests → Testing specialist
 
 3. **Phase 3: Structure Refactor** (62% final reduction)
 
-   - Task 3.1: Component reorganization → Frontend specialist
-   - Task 3.2: Route flattening → Architecture specialist
-   - Task 3.3: tRPC cleanup → Backend specialist
-   - Task 3.4: Naming standardization → Code quality specialist
+    - Task 3.1: Component reorganization → Frontend specialist
+    - Task 3.2: Route flattening → Architecture specialist
+    - Task 3.3: tRPC cleanup → Backend specialist
+    - Task 3.4: Naming standardization → Code quality specialist
 
 4. **Validation Phase**
 
-   - Validation 1: TypeScript checking → TypeScript specialist
-   - Validation 2: Linting → Code quality specialist
-   - Validation 3: Build verification → Build specialist
-   - Validation 4: Test fixing → Testing specialist
-   - Validation 5: Metrics collection → Analytics specialist
+    - Validation 1: TypeScript checking → TypeScript specialist
+    - Validation 2: Linting → Code quality specialist
+    - Validation 3: Build verification → Build specialist
+    - Validation 4: Test fixing → Testing specialist
+    - Validation 5: Metrics collection → Analytics specialist
 
 #### Quality Gates
 

@@ -7,7 +7,7 @@ Comprehensive factory functions for generating consistent, maintainable test dat
 The factory system provides three levels of test data generation:
 
 1. **Simple Factories** - Basic entity creation with random data
-2. **Builder Pattern** - Fluent API for customized entity creation  
+2. **Builder Pattern** - Fluent API for customized entity creation
 3. **Scenario Builders** - Complex multi-entity relationships and workflows
 
 ## Quick Start
@@ -26,6 +26,7 @@ const medication = createMedication({ genericName: 'Amoxicillin' });
 ### Core Entities
 
 #### User Factory
+
 ```typescript
 import { createUser, UserBuilder, userPresets } from '@/tests/factories';
 
@@ -47,6 +48,7 @@ const veterinarian = userPresets.veterinarian();
 ```
 
 #### Animal Factory
+
 ```typescript
 import { createAnimal, AnimalBuilder, animalPresets } from '@/tests/factories';
 
@@ -68,6 +70,7 @@ const seniorCat = animalPresets.seniorDogWithConditions('household-123');
 ```
 
 #### Medication Factory
+
 ```typescript
 import { createMedication, MedicationBuilder, medicationPresets } from '@/tests/factories';
 
@@ -180,6 +183,7 @@ const poorData = ComplianceDataBuilder.create()
 ## Specialized Factories
 
 ### Administration Factory
+
 ```typescript
 import { AdministrationBuilder, administrationPresets } from '@/tests/factories';
 
@@ -194,6 +198,7 @@ const adverse = administrationPresets.withAdverseEvent(regimenId, animalId, hous
 ```
 
 ### Inventory Factory
+
 ```typescript
 import { InventoryBuilder, inventoryPresets } from '@/tests/factories';
 
@@ -374,18 +379,21 @@ describe('Medication Management Flow', () => {
 ## Best Practices
 
 ### Factory Design
+
 - Use builder patterns for complex entities
 - Provide sensible defaults with override capability
 - Include realistic data distributions
 - Support both minimal and full entity creation
 
 ### Test Data Management
+
 - Use presets for common scenarios
 - Generate fresh data for each test when possible
 - Clean up test data between tests
 - Use consistent IDs for related entities
 
 ### Maintenance
+
 - Update factories when schema changes
 - Add new presets for common test patterns
 - Keep random data realistic and diverse
@@ -394,8 +402,9 @@ describe('Medication Management Flow', () => {
 ## API Reference
 
 ### Core Factories
+
 - `createUser(overrides?)` - User entity factory
-- `createHousehold(overrides?)` - Household entity factory  
+- `createHousehold(overrides?)` - Household entity factory
 - `createAnimal(overrides?)` - Animal entity factory
 - `createMedication(overrides?)` - Medication catalog factory
 - `createRegimen(overrides?)` - Regimen entity factory
@@ -405,6 +414,7 @@ describe('Medication Management Flow', () => {
 - `createAuditLog(overrides?)` - Audit log factory
 
 ### Builders
+
 - `UserBuilder` - Fluent user creation
 - `HouseholdBuilder` - Household with memberships
 - `AnimalBuilder` - Animal with medical history
@@ -416,6 +426,7 @@ describe('Medication Management Flow', () => {
 - `AuditLogBuilder` - Audit trail creation
 
 ### Scenarios
+
 - `TestScenarioBuilder` - Complete multi-entity scenarios
 - `ComplianceDataBuilder` - Medication adherence patterns
 - `quickScenarios.*` - Simple pre-built scenarios
@@ -423,6 +434,7 @@ describe('Medication Management Flow', () => {
 - `testDataGenerators.*` - Specialized data generators
 
 ### Utilities
+
 - `random.*` - Random data generation
 - `person.*` - Person-related data
 - `animal.*` - Animal-related data

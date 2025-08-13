@@ -6,464 +6,464 @@ import { VIEWPORT_CONFIG } from "./config";
 import type { ViewportState } from "./constants";
 
 interface MobileViewportPreviewProps {
-	src: string;
-	state: ViewportState;
+  src: string;
+  state: ViewportState;
 }
 
 export const MobileViewportPreview = memo(function MobileViewportPreview({
-	src,
-	state,
+  src,
+  state,
 }: MobileViewportPreviewProps) {
-	// Initialize scale to 0 - will be set in useEffect
-	const [scale, setScale] = useState(0);
-	const [position, setPosition] = useState({ x: 0, y: 0 });
-	const [isDragging, setIsDragging] = useState(false);
-	const [isPinching, setIsPinching] = useState(false);
-	const [isMouseDragging, setIsMouseDragging] = useState(false);
+  // Initialize scale to 0 - will be set in useEffect
+  const [scale, setScale] = useState(0);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isPinching, setIsPinching] = useState(false);
+  const [isMouseDragging, setIsMouseDragging] = useState(false);
 
-	const containerRef = useRef<HTMLDivElement>(null);
-	const frameRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
 
-	// Refs to store touch state without causing re-renders
-	const touchStateRef = useRef({
-		startX: 0,
-		startY: 0,
-		initialX: 0,
-		initialY: 0,
-		initialDistance: 0,
-		initialScale: 1,
-	});
+  // Refs to store touch state without causing re-renders
+  const touchStateRef = useRef({
+    startX: 0,
+    startY: 0,
+    initialX: 0,
+    initialY: 0,
+    initialDistance: 0,
+    initialScale: 1,
+  });
 
-	// Store fit scale in ref to access in handlers
-	const fitScaleRef = useRef(1);
+  // Store fit scale in ref to access in handlers
+  const fitScaleRef = useRef(1);
 
-	// Calculate scale to fit viewport
-	const calculateFitScale = useCallback(() => {
-		if (!containerRef.current) return 1;
+  // Calculate scale to fit viewport
+  const calculateFitScale = useCallback(() => {
+    if (!containerRef.current) return 1;
 
-		const rect = containerRef.current.getBoundingClientRect();
-		const containerWidth = rect.width;
-		const containerHeight = rect.height;
+    const rect = containerRef.current.getBoundingClientRect();
+    const containerWidth = rect.width;
+    const containerHeight = rect.height;
 
-		// Add padding for better visual appearance
-		const padding = 32;
-		const scaleX = (containerWidth - padding) / state.width;
-		const scaleY = (containerHeight - padding) / state.height;
-		return Math.min(scaleX, scaleY) * 0.95; // 95% to ensure it fits
-	}, [state.width, state.height]);
+    // Add padding for better visual appearance
+    const padding = 32;
+    const scaleX = (containerWidth - padding) / state.width;
+    const scaleY = (containerHeight - padding) / state.height;
+    return Math.min(scaleX, scaleY) * 0.95; // 95% to ensure it fits
+  }, [state.width, state.height]);
 
-	// Update scale when dimensions change (including rotation)
-	useEffect(() => {
-		const newFitScale = calculateFitScale();
-		fitScaleRef.current = newFitScale;
+  // Update scale when dimensions change (including rotation)
+  useEffect(() => {
+    const newFitScale = calculateFitScale();
+    fitScaleRef.current = newFitScale;
 
-		// If we're at fit scale or below, update to new fit scale
-		// If we're zoomed in (scale > old fit scale), maintain zoom level
-		setScale((prevScale) => {
-			// On first load (scale is 0), set to fit scale
-			if (prevScale === 0) {
-				return newFitScale;
-			}
-			// If scale is close to previous fit scale, update to new fit scale
-			if (prevScale <= fitScaleRef.current * 1.1) {
-				return newFitScale;
-			}
-			// Otherwise maintain current scale
-			return prevScale;
-		});
+    // If we're at fit scale or below, update to new fit scale
+    // If we're zoomed in (scale > old fit scale), maintain zoom level
+    setScale((prevScale) => {
+      // On first load (scale is 0), set to fit scale
+      if (prevScale === 0) {
+        return newFitScale;
+      }
+      // If scale is close to previous fit scale, update to new fit scale
+      if (prevScale <= fitScaleRef.current * 1.1) {
+        return newFitScale;
+      }
+      // Otherwise maintain current scale
+      return prevScale;
+    });
 
-		// Always reset position on dimension change to center the view
-		setPosition({ x: 0, y: 0 });
-	}, [calculateFitScale]);
+    // Always reset position on dimension change to center the view
+    setPosition({ x: 0, y: 0 });
+  }, [calculateFitScale]);
 
-	// Double tap detection for mobile
-	const lastTapRef = useRef<number>(0);
-	const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Double tap detection for mobile
+  const lastTapRef = useRef<number>(0);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-	const handleDoubleTap = useCallback(() => {
-		const currentFitScale = calculateFitScale();
+  const handleDoubleTap = useCallback(() => {
+    const currentFitScale = calculateFitScale();
 
-		if (scale > currentFitScale * 1.1) {
-			// If zoomed in, reset to fit
-			setScale(currentFitScale);
-			setPosition({ x: 0, y: 0 });
-		} else {
-			// If at fit scale or below, zoom to 100%
-			setScale(1);
-			setPosition({ x: 0, y: 0 });
-		}
-	}, [scale, calculateFitScale]);
+    if (scale > currentFitScale * 1.1) {
+      // If zoomed in, reset to fit
+      setScale(currentFitScale);
+      setPosition({ x: 0, y: 0 });
+    } else {
+      // If at fit scale or below, zoom to 100%
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [scale, calculateFitScale]);
 
-	// Helper functions to reduce cognitive complexity
-	const handlePinchStart = useCallback(
-		(e: TouchEvent, touches: TouchList) => {
-			e.preventDefault(); // Prevent default only for pinch
-			setIsPinching(true);
-			setIsDragging(false);
+  // Helper functions to reduce cognitive complexity
+  const handlePinchStart = useCallback(
+    (e: TouchEvent, touches: TouchList) => {
+      e.preventDefault(); // Prevent default only for pinch
+      setIsPinching(true);
+      setIsDragging(false);
 
-			const touch0 = touches[0];
-			const touch1 = touches[1];
-			if (touch0 && touch1) {
-				const dx = touch0.clientX - touch1.clientX;
-				const dy = touch0.clientY - touch1.clientY;
-				touchStateRef.current.initialDistance = Math.sqrt(dx * dx + dy * dy);
-				touchStateRef.current.initialScale = scale;
-			}
-		},
-		[scale],
-	);
+      const touch0 = touches[0];
+      const touch1 = touches[1];
+      if (touch0 && touch1) {
+        const dx = touch0.clientX - touch1.clientX;
+        const dy = touch0.clientY - touch1.clientY;
+        touchStateRef.current.initialDistance = Math.sqrt(dx * dx + dy * dy);
+        touchStateRef.current.initialScale = scale;
+      }
+    },
+    [scale],
+  );
 
-	const handlePinchMove = useCallback(
-		(e: TouchEvent, touches: TouchList) => {
-			e.preventDefault();
+  const handlePinchMove = useCallback(
+    (e: TouchEvent, touches: TouchList) => {
+      e.preventDefault();
 
-			const touch0 = touches[0];
-			const touch1 = touches[1];
-			if (!touch0 || !touch1) return;
+      const touch0 = touches[0];
+      const touch1 = touches[1];
+      if (!touch0 || !touch1) return;
 
-			const dx = touch0.clientX - touch1.clientX;
-			const dy = touch0.clientY - touch1.clientY;
-			const distance = Math.sqrt(dx * dx + dy * dy);
+      const dx = touch0.clientX - touch1.clientX;
+      const dy = touch0.clientY - touch1.clientY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
 
-			const scaleFactor = distance / touchStateRef.current.initialDistance;
-			const currentFitScale = calculateFitScale();
-			const minScale = Math.min(
-				currentFitScale,
-				VIEWPORT_CONFIG.mobile.pinchScaleMin,
-			);
-			const newScale = Math.max(
-				minScale,
-				Math.min(
-					VIEWPORT_CONFIG.mobile.pinchScaleMax,
-					touchStateRef.current.initialScale * scaleFactor,
-				),
-			);
+      const scaleFactor = distance / touchStateRef.current.initialDistance;
+      const currentFitScale = calculateFitScale();
+      const minScale = Math.min(
+        currentFitScale,
+        VIEWPORT_CONFIG.mobile.pinchScaleMin,
+      );
+      const newScale = Math.max(
+        minScale,
+        Math.min(
+          VIEWPORT_CONFIG.mobile.pinchScaleMax,
+          touchStateRef.current.initialScale * scaleFactor,
+        ),
+      );
 
-			setScale(newScale);
-		},
-		[calculateFitScale],
-	);
+      setScale(newScale);
+    },
+    [calculateFitScale],
+  );
 
-	const handlePanMove = useCallback(
-		(e: TouchEvent, touch: Touch) => {
-			const deltaX = touch.clientX - touchStateRef.current.startX;
-			const deltaY = touch.clientY - touchStateRef.current.startY;
+  const handlePanMove = useCallback(
+    (e: TouchEvent, touch: Touch) => {
+      const deltaX = touch.clientX - touchStateRef.current.startX;
+      const deltaY = touch.clientY - touchStateRef.current.startY;
 
-			// Only pan if we've moved more than the touch threshold
-			if (
-				Math.abs(deltaX) > VIEWPORT_CONFIG.mobile.touchThreshold ||
-				Math.abs(deltaY) > VIEWPORT_CONFIG.mobile.touchThreshold
-			) {
-				e.preventDefault();
+      // Only pan if we've moved more than the touch threshold
+      if (
+        Math.abs(deltaX) > VIEWPORT_CONFIG.mobile.touchThreshold ||
+        Math.abs(deltaY) > VIEWPORT_CONFIG.mobile.touchThreshold
+      ) {
+        e.preventDefault();
 
-				// Start dragging if not already
-				if (!isDragging) {
-					setIsDragging(true);
-				}
+        // Start dragging if not already
+        if (!isDragging) {
+          setIsDragging(true);
+        }
 
-				setPosition({
-					x: touchStateRef.current.initialX + deltaX,
-					y: touchStateRef.current.initialY + deltaY,
-				});
-			}
-		},
-		[isDragging],
-	);
+        setPosition({
+          x: touchStateRef.current.initialX + deltaX,
+          y: touchStateRef.current.initialY + deltaY,
+        });
+      }
+    },
+    [isDragging],
+  );
 
-	const handleDoubleTapDetection = useCallback(
-		(e: TouchEvent) => {
-			e.preventDefault();
-			handleDoubleTap();
-			lastTapRef.current = 0;
-			if (tapTimeoutRef.current) {
-				clearTimeout(tapTimeoutRef.current);
-				tapTimeoutRef.current = null;
-			}
-		},
-		[handleDoubleTap],
-	);
+  const handleDoubleTapDetection = useCallback(
+    (e: TouchEvent) => {
+      e.preventDefault();
+      handleDoubleTap();
+      lastTapRef.current = 0;
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+        tapTimeoutRef.current = null;
+      }
+    },
+    [handleDoubleTap],
+  );
 
-	const handleSingleTapStart = useCallback(
-		(touches: TouchList) => {
-			const currentTime = Date.now();
-			lastTapRef.current = currentTime;
+  const handleSingleTapStart = useCallback(
+    (touches: TouchList) => {
+      const currentTime = Date.now();
+      lastTapRef.current = currentTime;
 
-			// Clear any existing timeout
-			if (tapTimeoutRef.current) {
-				clearTimeout(tapTimeoutRef.current);
-			}
+      // Clear any existing timeout
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
 
-			// Set timeout to clear tap state
-			tapTimeoutRef.current = setTimeout(() => {
-				lastTapRef.current = 0;
-			}, 300);
+      // Set timeout to clear tap state
+      tapTimeoutRef.current = setTimeout(() => {
+        lastTapRef.current = 0;
+      }, 300);
 
-			// Start tracking for potential pan
-			if (scale > 1) {
-				const touch = touches[0];
-				if (touch) {
-					touchStateRef.current.startX = touch.clientX;
-					touchStateRef.current.startY = touch.clientY;
-					touchStateRef.current.initialX = position.x;
-					touchStateRef.current.initialY = position.y;
-				}
-			}
-		},
-		[scale, position],
-	);
+      // Start tracking for potential pan
+      if (scale > 1) {
+        const touch = touches[0];
+        if (touch) {
+          touchStateRef.current.startX = touch.clientX;
+          touchStateRef.current.startY = touch.clientY;
+          touchStateRef.current.initialX = position.x;
+          touchStateRef.current.initialY = position.y;
+        }
+      }
+    },
+    [scale, position],
+  );
 
-	// Combined touch handler - now simplified
-	const handleTouchStart = useCallback(
-		(e: TouchEvent) => {
-			const touches = e.touches;
+  // Combined touch handler - now simplified
+  const handleTouchStart = useCallback(
+    (e: TouchEvent) => {
+      const touches = e.touches;
 
-			if (touches.length === 2) {
-				handlePinchStart(e, touches);
-			} else if (touches.length === 1 && !isPinching) {
-				const currentTime = Date.now();
-				const tapGap = currentTime - lastTapRef.current;
+      if (touches.length === 2) {
+        handlePinchStart(e, touches);
+      } else if (touches.length === 1 && !isPinching) {
+        const currentTime = Date.now();
+        const tapGap = currentTime - lastTapRef.current;
 
-				if (tapGap < 300 && tapGap > 0) {
-					// Double tap detected
-					handleDoubleTapDetection(e);
-				} else {
-					// Single tap - might be start of pan or just a tap
-					handleSingleTapStart(touches);
-				}
-			}
-		},
-		[
-			isPinching,
-			handlePinchStart,
-			handleDoubleTapDetection,
-			handleSingleTapStart,
-		],
-	);
+        if (tapGap < 300 && tapGap > 0) {
+          // Double tap detected
+          handleDoubleTapDetection(e);
+        } else {
+          // Single tap - might be start of pan or just a tap
+          handleSingleTapStart(touches);
+        }
+      }
+    },
+    [
+      isPinching,
+      handlePinchStart,
+      handleDoubleTapDetection,
+      handleSingleTapStart,
+    ],
+  );
 
-	// Simplified handleTouchMove - now under complexity limit
-	const handleTouchMove = useCallback(
-		(e: TouchEvent) => {
-			const touches = e.touches;
+  // Simplified handleTouchMove - now under complexity limit
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      const touches = e.touches;
 
-			if (touches.length === 2 && isPinching) {
-				// Pinch zoom
-				handlePinchMove(e, touches);
-			} else if (touches.length === 1 && isDragging && !isPinching) {
-				// Pan
-				const touch = touches[0];
-				if (touch) {
-					handlePanMove(e, touch);
-				}
-			}
-		},
-		[isDragging, isPinching, handlePinchMove, handlePanMove],
-	);
+      if (touches.length === 2 && isPinching) {
+        // Pinch zoom
+        handlePinchMove(e, touches);
+      } else if (touches.length === 1 && isDragging && !isPinching) {
+        // Pan
+        const touch = touches[0];
+        if (touch) {
+          handlePanMove(e, touch);
+        }
+      }
+    },
+    [isDragging, isPinching, handlePinchMove, handlePanMove],
+  );
 
-	const handleTouchEnd = useCallback(
-		(e: TouchEvent) => {
-			if (e.touches.length === 0) {
-				setIsDragging(false);
-				setIsPinching(false);
-			} else if (e.touches.length === 1) {
-				// Switching from pinch to pan
-				setIsPinching(false);
-				if (!isDragging) {
-					setIsDragging(true);
-					const touch = e.touches[0];
-					if (touch) {
-						touchStateRef.current.startX = touch.clientX;
-						touchStateRef.current.startY = touch.clientY;
-						touchStateRef.current.initialX = position.x;
-						touchStateRef.current.initialY = position.y;
-					}
-				}
-			}
-		},
-		[isDragging, position],
-	);
+  const handleTouchEnd = useCallback(
+    (e: TouchEvent) => {
+      if (e.touches.length === 0) {
+        setIsDragging(false);
+        setIsPinching(false);
+      } else if (e.touches.length === 1) {
+        // Switching from pinch to pan
+        setIsPinching(false);
+        if (!isDragging) {
+          setIsDragging(true);
+          const touch = e.touches[0];
+          if (touch) {
+            touchStateRef.current.startX = touch.clientX;
+            touchStateRef.current.startY = touch.clientY;
+            touchStateRef.current.initialX = position.x;
+            touchStateRef.current.initialY = position.y;
+          }
+        }
+      }
+    },
+    [isDragging, position],
+  );
 
-	// Set up touch event listeners
-	useEffect(() => {
-		const container = containerRef.current;
-		if (!container) return;
+  // Set up touch event listeners
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-		// Add listeners to both container and overlay
-		const addListeners = (element: HTMLElement) => {
-			element.addEventListener("touchstart", handleTouchStart, {
-				passive: false,
-			});
-			element.addEventListener("touchmove", handleTouchMove, {
-				passive: false,
-			});
-			element.addEventListener("touchend", handleTouchEnd, { passive: true });
-			element.addEventListener("touchcancel", handleTouchEnd, {
-				passive: true,
-			});
-		};
+    // Add listeners to both container and overlay
+    const addListeners = (element: HTMLElement) => {
+      element.addEventListener("touchstart", handleTouchStart, {
+        passive: false,
+      });
+      element.addEventListener("touchmove", handleTouchMove, {
+        passive: false,
+      });
+      element.addEventListener("touchend", handleTouchEnd, { passive: true });
+      element.addEventListener("touchcancel", handleTouchEnd, {
+        passive: true,
+      });
+    };
 
-		const removeListeners = (element: HTMLElement) => {
-			element.removeEventListener("touchstart", handleTouchStart);
-			element.removeEventListener("touchmove", handleTouchMove);
-			element.removeEventListener("touchend", handleTouchEnd);
-			element.removeEventListener("touchcancel", handleTouchEnd);
-		};
+    const removeListeners = (element: HTMLElement) => {
+      element.removeEventListener("touchstart", handleTouchStart);
+      element.removeEventListener("touchmove", handleTouchMove);
+      element.removeEventListener("touchend", handleTouchEnd);
+      element.removeEventListener("touchcancel", handleTouchEnd);
+    };
 
-		addListeners(container);
+    addListeners(container);
 
-		return () => {
-			removeListeners(container);
-			if (tapTimeoutRef.current) {
-				clearTimeout(tapTimeoutRef.current);
-			}
-		};
-	}, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+    return () => {
+      removeListeners(container);
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-	// Reset on double click (desktop)
-	const handleDoubleClick = useCallback(() => {
-		const currentFitScale = calculateFitScale();
+  // Reset on double click (desktop)
+  const handleDoubleClick = useCallback(() => {
+    const currentFitScale = calculateFitScale();
 
-		if (scale > currentFitScale * 1.1) {
-			// If zoomed in, reset to fit
-			setScale(currentFitScale);
-			setPosition({ x: 0, y: 0 });
-		} else {
-			// If at fit scale or below, zoom to 100%
-			setScale(1);
-			setPosition({ x: 0, y: 0 });
-		}
-	}, [scale, calculateFitScale]);
+    if (scale > currentFitScale * 1.1) {
+      // If zoomed in, reset to fit
+      setScale(currentFitScale);
+      setPosition({ x: 0, y: 0 });
+    } else {
+      // If at fit scale or below, zoom to 100%
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [scale, calculateFitScale]);
 
-	// Mouse support for desktop testing
-	const handleMouseDown = useCallback(
-		(e: React.MouseEvent) => {
-			setIsMouseDragging(true);
-			touchStateRef.current.startX = e.clientX;
-			touchStateRef.current.startY = e.clientY;
-			touchStateRef.current.initialX = position.x;
-			touchStateRef.current.initialY = position.y;
-		},
-		[position],
-	);
+  // Mouse support for desktop testing
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      setIsMouseDragging(true);
+      touchStateRef.current.startX = e.clientX;
+      touchStateRef.current.startY = e.clientY;
+      touchStateRef.current.initialX = position.x;
+      touchStateRef.current.initialY = position.y;
+    },
+    [position],
+  );
 
-	const handleMouseMove = useCallback(
-		(e: React.MouseEvent) => {
-			if (!isMouseDragging) return;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isMouseDragging) return;
 
-			const deltaX = e.clientX - touchStateRef.current.startX;
-			const deltaY = e.clientY - touchStateRef.current.startY;
+      const deltaX = e.clientX - touchStateRef.current.startX;
+      const deltaY = e.clientY - touchStateRef.current.startY;
 
-			setPosition({
-				x: touchStateRef.current.initialX + deltaX,
-				y: touchStateRef.current.initialY + deltaY,
-			});
-		},
-		[isMouseDragging],
-	);
+      setPosition({
+        x: touchStateRef.current.initialX + deltaX,
+        y: touchStateRef.current.initialY + deltaY,
+      });
+    },
+    [isMouseDragging],
+  );
 
-	const handleMouseUp = useCallback(() => {
-		setIsMouseDragging(false);
-	}, []);
+  const handleMouseUp = useCallback(() => {
+    setIsMouseDragging(false);
+  }, []);
 
-	const handleWheel = useCallback(
-		(e: React.WheelEvent) => {
-			e.preventDefault();
-			const delta = e.deltaY > 0 ? 0.9 : 1.1;
-			const currentFitScale = calculateFitScale();
-			const minScale = Math.min(
-				currentFitScale,
-				VIEWPORT_CONFIG.mobile.pinchScaleMin,
-			);
-			const newScale = Math.max(
-				minScale,
-				Math.min(VIEWPORT_CONFIG.mobile.pinchScaleMax, scale * delta),
-			);
-			setScale(newScale);
-		},
-		[scale, calculateFitScale],
-	);
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      const currentFitScale = calculateFitScale();
+      const minScale = Math.min(
+        currentFitScale,
+        VIEWPORT_CONFIG.mobile.pinchScaleMin,
+      );
+      const newScale = Math.max(
+        minScale,
+        Math.min(VIEWPORT_CONFIG.mobile.pinchScaleMax, scale * delta),
+      );
+      setScale(newScale);
+    },
+    [scale, calculateFitScale],
+  );
 
-	// Cleanup on unmount
-	useEffect(() => {
-		return () => {
-			if (tapTimeoutRef.current) {
-				clearTimeout(tapTimeoutRef.current);
-			}
-		};
-	}, []);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
+    };
+  }, []);
 
-	// Send theme updates to iframe
-	useEffect(() => {
-		const iframe = frameRef.current;
-		if (!iframe) return;
+  // Send theme updates to iframe
+  useEffect(() => {
+    const iframe = frameRef.current;
+    if (!iframe) return;
 
-		const sendThemeUpdate = () => {
-			// Try multiple times to ensure the message is received
-			const attempts = [100, 300, 500, 1000];
-			attempts.forEach((delay) => {
-				setTimeout(() => {
-					try {
-						if (iframe.contentWindow) {
-							// Extract specific origin from iframe src for security
-							const targetOrigin = (() => {
-								try {
-									return new URL(src).origin;
-								} catch {
-									// Fallback to current origin for same-origin iframes
-									return window.location.origin;
-								}
-							})();
+    const sendThemeUpdate = () => {
+      // Try multiple times to ensure the message is received
+      const attempts = [100, 300, 500, 1000];
+      attempts.forEach((delay) => {
+        setTimeout(() => {
+          try {
+            if (iframe.contentWindow) {
+              // Extract specific origin from iframe src for security
+              const targetOrigin = (() => {
+                try {
+                  return new URL(src).origin;
+                } catch {
+                  // Fallback to current origin for same-origin iframes
+                  return window.location.origin;
+                }
+              })();
 
-							iframe.contentWindow.postMessage(
-								{
-									type: "theme-change",
-									theme: state.scheme,
-								},
-								targetOrigin,
-							);
-						}
-					} catch (error) {
-						console.error("Failed to send theme message:", error);
-					}
-				}, delay);
-			});
-		};
+              iframe.contentWindow.postMessage(
+                {
+                  type: "theme-change",
+                  theme: state.scheme,
+                },
+                targetOrigin,
+              );
+            }
+          } catch (error) {
+            console.error("Failed to send theme message:", error);
+          }
+        }, delay);
+      });
+    };
 
-		// Send initial theme on load
-		const handleLoad = () => {
-			sendThemeUpdate();
-		};
+    // Send initial theme on load
+    const handleLoad = () => {
+      sendThemeUpdate();
+    };
 
-		iframe.addEventListener("load", handleLoad);
+    iframe.addEventListener("load", handleLoad);
 
-		// Also send immediately in case iframe is already loaded
-		if (
-			iframe.contentDocument?.readyState === "complete" ||
-			iframe.contentWindow
-		) {
-			sendThemeUpdate();
-		}
+    // Also send immediately in case iframe is already loaded
+    if (
+      iframe.contentDocument?.readyState === "complete" ||
+      iframe.contentWindow
+    ) {
+      sendThemeUpdate();
+    }
 
-		// Send theme update when scheme changes
-		sendThemeUpdate();
+    // Send theme update when scheme changes
+    sendThemeUpdate();
 
-		return () => {
-			iframe.removeEventListener("load", handleLoad);
-		};
-	}, [state.scheme, src]);
+    return () => {
+      iframe.removeEventListener("load", handleLoad);
+    };
+  }, [state.scheme, src]);
 
-	// Inject theme listener script into iframe
-	useEffect(() => {
-		const iframe = frameRef.current;
-		if (!iframe) return;
+  // Inject theme listener script into iframe
+  useEffect(() => {
+    const iframe = frameRef.current;
+    if (!iframe) return;
 
-		const injectThemeListener = () => {
-			try {
-				const doc = iframe.contentDocument || iframe.contentWindow?.document;
-				if (!doc) return;
+    const injectThemeListener = () => {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
 
-				// Create and inject script
-				const script = doc.createElement("script");
-				script.textContent = `
+        // Create and inject script
+        const script = doc.createElement("script");
+        script.textContent = `
 					(function() {
 						// Listen for theme change messages
 						window.addEventListener('message', function(event) {
@@ -548,102 +548,102 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 					})();
 				`;
 
-				// Only inject if not already present
-				if (!doc.querySelector("script[data-theme-listener]")) {
-					script.setAttribute("data-theme-listener", "true");
-					doc.body.appendChild(script);
-				}
-			} catch (error) {
-				// Cross-origin iframe, can't inject script
-				console.warn("Cannot inject theme listener:", error);
-			}
-		};
+        // Only inject if not already present
+        if (!doc.querySelector("script[data-theme-listener]")) {
+          script.setAttribute("data-theme-listener", "true");
+          doc.body.appendChild(script);
+        }
+      } catch (error) {
+        // Cross-origin iframe, can't inject script
+        console.warn("Cannot inject theme listener:", error);
+      }
+    };
 
-		iframe.addEventListener("load", injectThemeListener);
+    iframe.addEventListener("load", injectThemeListener);
 
-		// Try immediately in case already loaded
-		if (iframe.contentDocument?.readyState === "complete") {
-			injectThemeListener();
-		}
+    // Try immediately in case already loaded
+    if (iframe.contentDocument?.readyState === "complete") {
+      injectThemeListener();
+    }
 
-		return () => {
-			iframe.removeEventListener("load", injectThemeListener);
-		};
-	}, [state.scheme]);
+    return () => {
+      iframe.removeEventListener("load", injectThemeListener);
+    };
+  }, [state.scheme]);
 
-	return (
-		<section
-			ref={containerRef}
-			aria-label="Viewport preview container"
-			className="absolute inset-0 overflow-hidden bg-muted/5"
-			onDoubleClick={handleDoubleClick}
-			onMouseDown={handleMouseDown}
-			onMouseMove={handleMouseMove}
-			onMouseUp={handleMouseUp}
-			onMouseLeave={handleMouseUp}
-			onWheel={handleWheel}
-			style={{
-				touchAction: scale > 1 ? "none" : "manipulation", // Allow scrolling when not zoomed
-				cursor: isMouseDragging ? "grabbing" : scale > 1 ? "grab" : "default",
-			}}
-		>
-			<div
-				className={cn(
-					"absolute top-1/2 left-1/2",
-					"transition-transform",
-					(isDragging || isPinching) && "transition-none",
-				)}
-				style={{
-					transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
-					width: state.width,
-					height: state.height,
-					transitionDuration: `${VIEWPORT_CONFIG.transitions.pinchZoom}ms`,
-				}}
-			>
-				{/* Device Frame */}
-				<div className="relative h-full w-full">
-					{/* Simple frame border */}
-					<div className="pointer-events-none absolute inset-0 z-10 rounded-2xl border-4 border-foreground/10" />
+  return (
+    <section
+      ref={containerRef}
+      aria-label="Viewport preview container"
+      className="absolute inset-0 overflow-hidden bg-muted/5"
+      onDoubleClick={handleDoubleClick}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onWheel={handleWheel}
+      style={{
+        touchAction: scale > 1 ? "none" : "manipulation", // Allow scrolling when not zoomed
+        cursor: isMouseDragging ? "grabbing" : scale > 1 ? "grab" : "default",
+      }}
+    >
+      <div
+        className={cn(
+          "absolute top-1/2 left-1/2",
+          "transition-transform",
+          (isDragging || isPinching) && "transition-none",
+        )}
+        style={{
+          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
+          width: state.width,
+          height: state.height,
+          transitionDuration: `${VIEWPORT_CONFIG.transitions.pinchZoom}ms`,
+        }}
+      >
+        {/* Device Frame */}
+        <div className="relative h-full w-full">
+          {/* Simple frame border */}
+          <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl border-4 border-foreground/10" />
 
-					{/* Notch for modern phones */}
-					{state.deviceType === "phone" &&
-						state.orientation === "portrait" &&
-						state.width < 400 && (
-							<div className="-translate-x-1/2 pointer-events-none absolute top-0 left-1/2 z-10 h-6 w-32 rounded-b-2xl bg-foreground/10" />
-						)}
+          {/* Notch for modern phones */}
+          {state.deviceType === "phone" &&
+            state.orientation === "portrait" &&
+            state.width < 400 && (
+              <div className="-translate-x-1/2 pointer-events-none absolute top-0 left-1/2 z-10 h-6 w-32 rounded-b-2xl bg-foreground/10" />
+            )}
 
-					{/* Iframe */}
-					<iframe
-						ref={frameRef}
-						src={src}
-						title="Device viewport preview"
-						className="h-full w-full rounded-xl"
-						style={{
-							pointerEvents: "auto",
-						}}
-					/>
-				</div>
-			</div>
+          {/* Iframe */}
+          <iframe
+            ref={frameRef}
+            src={src}
+            title="Device viewport preview"
+            className="h-full w-full rounded-xl"
+            style={{
+              pointerEvents: "auto",
+            }}
+          />
+        </div>
+      </div>
 
-			{/* Zoom Indicator */}
-			{scale !== 1 && (
-				<div className="absolute right-4 bottom-4 rounded-full bg-background/90 px-3 py-1.5 font-medium text-sm shadow-lg backdrop-blur">
-					{Math.round(scale * 100)}%
-				</div>
-			)}
+      {/* Zoom Indicator */}
+      {scale !== 1 && (
+        <div className="absolute right-4 bottom-4 rounded-full bg-background/90 px-3 py-1.5 font-medium text-sm shadow-lg backdrop-blur">
+          {Math.round(scale * 100)}%
+        </div>
+      )}
 
-			{/* Touch Hints */}
-			<div className="pointer-events-none absolute right-16 bottom-4 left-4">
-				<div className="flex flex-wrap gap-2 text-muted-foreground text-xs">
-					<span className="rounded-full bg-background/80 px-3 py-1 backdrop-blur">
-						{scale < 1
-							? "Pinch to zoom • Double tap for 100%"
-							: scale === 1
-								? "Pinch to zoom • Scroll page normally"
-								: "Drag to pan • Double tap to fit"}
-					</span>
-				</div>
-			</div>
-		</section>
-	);
+      {/* Touch Hints */}
+      <div className="pointer-events-none absolute right-16 bottom-4 left-4">
+        <div className="flex flex-wrap gap-2 text-muted-foreground text-xs">
+          <span className="rounded-full bg-background/80 px-3 py-1 backdrop-blur">
+            {scale < 1
+              ? "Pinch to zoom • Double tap for 100%"
+              : scale === 1
+                ? "Pinch to zoom • Scroll page normally"
+                : "Drag to pan • Double tap to fit"}
+          </span>
+        </div>
+      </div>
+    </section>
+  );
 });

@@ -2,9 +2,12 @@
 
 ## Executive Summary
 
-The VetMed Tracker codebase has accumulated significant architectural complexity that impacts maintainability and developer productivity. This document provides a comprehensive analysis of complexity points and actionable simplification strategies with clear tradeoffs.
+The VetMed Tracker codebase has accumulated significant architectural complexity that impacts maintainability and
+developer productivity. This document provides a comprehensive analysis of complexity points and actionable
+simplification strategies with clear tradeoffs.
 
-**Key Finding**: The codebase can achieve a 60% complexity reduction through incremental improvements without major rewrites.
+**Key Finding**: The codebase can achieve a 60% complexity reduction through incremental improvements without major
+rewrites.
 
 ## Current Architecture Complexity Analysis
 
@@ -28,6 +31,7 @@ ClerkProvider
 ```
 
 **Issues**:
+
 - Developer confusion about provider responsibilities
 - Performance overhead from multiple context re-renders
 - Testing complexity requiring mock providers for each layer
@@ -58,6 +62,7 @@ components/
 ```
 
 **Issues**:
+
 - Maintenance burden: bug fixes need to be applied twice
 - Feature drift: duplicates can become inconsistent
 - Code review complexity: which version is canonical?
@@ -115,6 +120,7 @@ components/
 ### 7. State Management Inconsistency (🔴 HIGH COMPLEXITY)
 
 **Current State**: 6 different state management approaches
+
 1. React Context (multiple providers)
 2. tRPC + React Query (server state)
 3. localStorage (persistence)
@@ -137,16 +143,19 @@ ClerkProvider → TRPCProvider → AppProvider (consolidated) → ThemeProvider
 ```
 
 **Implementation**:
+
 - Merge AppProvider + UserPreferencesProvider + AuthProvider → Single `AppProvider`
 - Convert KeyboardShortcuts to hook instead of provider
 - Move animal/inventory form providers to feature-local state
 
 **Benefits**:
+
 - ✅ 60% reduction in provider complexity
 - ✅ Easier debugging and testing
 - ✅ Better performance (fewer re-renders)
 
 **Tradeoffs**:
+
 - ❌ Larger single provider file (500+ lines)
 - ❌ Less separation of concerns
 - ❌ Potential for more frequent re-renders if not optimized
@@ -178,11 +187,13 @@ app/
 ```
 
 **Benefits**:
+
 - ✅ Simpler URL structure
 - ✅ Easier navigation and routing
 - ✅ Reduced layout nesting
 
 **Tradeoffs**:
+
 - ❌ Loss of layout grouping benefits
 - ❌ May need to duplicate some layout code
 - ❌ Breaking change for existing URLs
@@ -205,11 +216,13 @@ components/
 ```
 
 **Benefits**:
+
 - ✅ Clear separation of concerns
 - ✅ No duplicate components
 - ✅ Easier to find components
 
 **Tradeoffs**:
+
 - ❌ Major refactoring effort (100+ files to move)
 - ❌ Import path changes throughout codebase
 - ❌ Team needs to learn new structure
@@ -231,11 +244,13 @@ server/api/trpc.ts      # Single context creation
 ```
 
 **Benefits**:
+
 - ✅ 50% reduction in API complexity
 - ✅ Single source of truth for API
 - ✅ Easier testing
 
 **Tradeoffs**:
+
 - ❌ Loss of example/demo code
 - ❌ Need to migrate any clerk-specific patterns
 - ❌ Potential authentication refactoring
@@ -258,11 +273,13 @@ export function useResponsive() {
 ```
 
 **Benefits**:
+
 - ✅ Single source of truth
 - ✅ Consistent breakpoints
 - ✅ Easier testing
 
 **Tradeoffs**:
+
 - ❌ Need to update all components
 - ❌ Potential performance impact if not memoized
 
@@ -281,11 +298,13 @@ URL State → Search params (only)
 ```
 
 **Benefits**:
+
 - ✅ Clear mental model
 - ✅ Better debugging
 - ✅ Predictable data flow
 
 **Tradeoffs**:
+
 - ❌ Need to add Zustand dependency
 - ❌ Major refactoring of all providers
 - ❌ Learning curve for team
@@ -315,6 +334,7 @@ Low Impact, High Effort (AVOID):
 ## Recommended Implementation Path
 
 ### Phase 1: Quick Wins (1 week)
+
 1. Delete duplicate components (use settings versions)
 2. Remove clerk-trpc example endpoint
 3. Consolidate mobile detection to single hook
@@ -323,6 +343,7 @@ Low Impact, High Effort (AVOID):
 **Expected Result**: 20% complexity reduction, minimal risk
 
 ### Phase 2: Provider Consolidation (2 weeks)
+
 1. Merge AppProvider with UserPreferencesProvider
 2. Convert KeyboardShortcuts to hook
 3. Move form providers to local state
@@ -331,6 +352,7 @@ Low Impact, High Effort (AVOID):
 **Expected Result**: 40% complexity reduction, medium risk
 
 ### Phase 3: Structure Refactor (3-4 weeks)
+
 1. Reorganize components to feature-first
 2. Flatten route structure
 3. Consolidate tRPC patterns
@@ -339,6 +361,7 @@ Low Impact, High Effort (AVOID):
 **Expected Result**: 60% complexity reduction, higher risk
 
 ### Phase 4: State Management (Optional, 4+ weeks)
+
 1. Introduce Zustand for global state
 2. Remove React Context providers
 3. Standardize all state patterns
@@ -347,16 +370,17 @@ Low Impact, High Effort (AVOID):
 
 ## Complexity Reduction Summary
 
-| Phase | Duration | Risk Level | Complexity Reduction | Breaking Changes |
-|-------|----------|------------|---------------------|------------------|
-| Quick Wins | 1 week | Low | 20% | No |
-| Provider Consolidation | 2 weeks | Medium | 40% | No |
-| Structure Refactor | 3-4 weeks | Medium-High | 60% | Yes (imports) |
-| State Management | 4+ weeks | High | 70% | Yes (API) |
+| Phase                  | Duration  | Risk Level  | Complexity Reduction | Breaking Changes |
+|------------------------|-----------|-------------|----------------------|------------------|
+| Quick Wins             | 1 week    | Low         | 20%                  | No               |
+| Provider Consolidation | 2 weeks   | Medium      | 40%                  | No               |
+| Structure Refactor     | 3-4 weeks | Medium-High | 60%                  | Yes (imports)    |
+| State Management       | 4+ weeks  | High        | 70%                  | Yes (API)        |
 
 ## Metrics for Success
 
 ### Quantitative Metrics
+
 - **Provider Depth**: From 10+ to 4 (60% reduction)
 - **Component Files**: From 150+ to ~100 (33% reduction)
 - **Duplicate Code**: From 6+ duplicates to 0 (100% reduction)
@@ -364,6 +388,7 @@ Low Impact, High Effort (AVOID):
 - **State Patterns**: From 6 to 4 (33% reduction)
 
 ### Qualitative Metrics
+
 - Developer onboarding time reduced by 50%
 - Debugging time reduced by 40%
 - Code review time reduced by 30%
@@ -379,6 +404,10 @@ Low Impact, High Effort (AVOID):
 
 ## Conclusion
 
-The VetMed Tracker codebase can be significantly simplified through incremental, targeted improvements. The recommended approach prioritizes high-impact, low-risk changes first, building momentum for larger structural improvements. By following the phased approach, the team can achieve a 60% complexity reduction while maintaining system stability and feature velocity.
+The VetMed Tracker codebase can be significantly simplified through incremental, targeted improvements. The recommended
+approach prioritizes high-impact, low-risk changes first, building momentum for larger structural improvements. By
+following the phased approach, the team can achieve a 60% complexity reduction while maintaining system stability and
+feature velocity.
 
-The key insight is that most complexity comes from accumulated patterns rather than fundamental architectural flaws. This means the codebase can be simplified without major rewrites or breaking changes to core functionality.
+The key insight is that most complexity comes from accumulated patterns rather than fundamental architectural flaws.
+This means the codebase can be simplified without major rewrites or breaking changes to core functionality.

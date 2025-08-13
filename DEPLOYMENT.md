@@ -1,6 +1,7 @@
 # VetMed Tracker - Production Deployment Guide
 
-This document provides comprehensive guidance for deploying and managing the VetMed Tracker application in production environments.
+This document provides comprehensive guidance for deploying and managing the VetMed Tracker application in production
+environments.
 
 ## Table of Contents
 
@@ -17,6 +18,7 @@ This document provides comprehensive guidance for deploying and managing the Vet
 ## Prerequisites
 
 ### Required Services
+
 - **Vercel Account**: For application hosting
 - **Neon Database**: PostgreSQL database hosting
 - **Stack Auth**: User authentication service
@@ -24,6 +26,7 @@ This document provides comprehensive guidance for deploying and managing the Vet
 - **GitHub**: Source control and CI/CD
 
 ### Required Secrets
+
 Configure these secrets in your deployment environment:
 
 ```bash
@@ -51,6 +54,7 @@ VERCEL_PROJECT_ID="your-project-id"
 ```
 
 ### Staging Environment
+
 Set up staging environment with separate database and authentication:
 
 ```bash
@@ -103,7 +107,7 @@ EMERGENCY_DISABLE_FEATURES=false  # Set to 'true' to disable non-essential featu
 Deployments are triggered automatically via GitHub Actions:
 
 1. **Push to main/master**: Triggers production deployment
-2. **Push to development/staging**: Triggers staging deployment  
+2. **Push to development/staging**: Triggers staging deployment
 3. **Pull Requests**: Creates preview deployments
 
 ### Manual Deployment
@@ -179,6 +183,7 @@ curl https://your-app.vercel.app/api/health?type=liveness&format=text
 ### Expected Health Check Responses
 
 **Healthy Response (200)**:
+
 ```json
 {
   "status": "healthy",
@@ -196,6 +201,7 @@ curl https://your-app.vercel.app/api/health?type=liveness&format=text
 ```
 
 **Unhealthy Response (503)**:
+
 ```json
 {
   "status": "unhealthy", 
@@ -222,22 +228,22 @@ curl https://your-app.vercel.app/api/health?type=liveness&format=text
 ### Key Metrics to Monitor
 
 1. **Performance Metrics**
-   - Response time < 200ms (95th percentile)
-   - Database query time < 100ms
-   - Memory usage < 80%
-   - Error rate < 1%
+    - Response time < 200ms (95th percentile)
+    - Database query time < 100ms
+    - Memory usage < 80%
+    - Error rate < 1%
 
 2. **Business Metrics**
-   - User registrations per day
-   - Medication administrations recorded
-   - Active households
-   - Push notification delivery rate
+    - User registrations per day
+    - Medication administrations recorded
+    - Active households
+    - Push notification delivery rate
 
 3. **System Metrics**
-   - Health check success rate > 99%
-   - Database connection pool usage
-   - Feature flag adoption rates
-   - Deployment frequency and success rate
+    - Health check success rate > 99%
+    - Database connection pool usage
+    - Feature flag adoption rates
+    - Deployment frequency and success rate
 
 ### Error Tracking Integration
 
@@ -256,6 +262,7 @@ errorTracker.captureMessage('Custom event', 'normal', context);
 ### External Monitoring Services
 
 Consider integrating with:
+
 - **Sentry**: Error tracking and performance monitoring
 - **DataDog**: Infrastructure and application monitoring
 - **Vercel Analytics**: Performance and usage analytics
@@ -277,31 +284,33 @@ if (isFeatureEnabled('pushNotifications')) {
 
 ### Available Feature Flags
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `pushNotifications` | true | Push notification system |
-| `bulkOperations` | true | Bulk medication operations |
-| `advancedReporting` | true | Advanced analytics and reports |
-| `offlineMode` | true | Offline functionality |
-| `serviceWorker` | true | PWA service worker |
-| `caching` | true | Application caching |
-| `backgroundSync` | true | Background data synchronization |
-| `darkMode` | true | Dark mode theme |
-| `experimentalUI` | false | Experimental UI features |
-| `mobileOptimizations` | true | Mobile-specific optimizations |
-| `adminPanel` | true | Administrative interface |
-| `userManagement` | true | User management features |
-| `systemMetrics` | true | System metrics collection |
+| Flag                  | Default | Description                     |
+|-----------------------|---------|---------------------------------|
+| `pushNotifications`   | true    | Push notification system        |
+| `bulkOperations`      | true    | Bulk medication operations      |
+| `advancedReporting`   | true    | Advanced analytics and reports  |
+| `offlineMode`         | true    | Offline functionality           |
+| `serviceWorker`       | true    | PWA service worker              |
+| `caching`             | true    | Application caching             |
+| `backgroundSync`      | true    | Background data synchronization |
+| `darkMode`            | true    | Dark mode theme                 |
+| `experimentalUI`      | false   | Experimental UI features        |
+| `mobileOptimizations` | true    | Mobile-specific optimizations   |
+| `adminPanel`          | true    | Administrative interface        |
+| `userManagement`      | true    | User management features        |
+| `systemMetrics`       | true    | System metrics collection       |
 
 ### Feature Flag Management
 
 **Enable/Disable via Environment Variables**:
+
 ```bash
 FEATURE_PUSH_NOTIFICATIONS=false
 FEATURE_EXPERIMENTAL_UI=true
 ```
 
 **Emergency Kill Switch**:
+
 ```bash
 EMERGENCY_DISABLE_FEATURES=true  # Disables all non-essential features
 ```
@@ -311,6 +320,7 @@ EMERGENCY_DISABLE_FEATURES=true  # Disables all non-essential features
 ### Automatic Rollback Triggers
 
 Rollbacks are triggered automatically for:
+
 - Health check failures after deployment
 - Error rate spike > 5% for 5 minutes
 - Critical performance degradation
@@ -324,25 +334,28 @@ Use the GitHub Actions rollback workflow:
 2. **Select "Rollback Production" workflow**
 3. **Click "Run workflow"**
 4. **Configure rollback parameters**:
-   - Rollback type: `vercel_only`, `database_only`, or `full_rollback`
-   - Target deployment (optional)
-   - Database backup file (for database rollback)
-   - Reason for rollback
-   - Emergency mode (skip confirmations)
+    - Rollback type: `vercel_only`, `database_only`, or `full_rollback`
+    - Target deployment (optional)
+    - Database backup file (for database rollback)
+    - Reason for rollback
+    - Emergency mode (skip confirmations)
 
 ### Rollback Types
 
 **Vercel Only** (`vercel_only`):
+
 - Rolls back application deployment to previous version
 - Database remains unchanged
 - Fastest rollback option (< 30 seconds)
 
 **Database Only** (`database_only`):
+
 - Restores database from backup
 - Application deployment unchanged
 - Requires specified backup file
 
 **Full Rollback** (`full_rollback`):
+
 - Rolls back both application and database
 - Most comprehensive but slowest option
 - Creates pre-rollback backup for safety
@@ -401,26 +414,27 @@ For critical production issues:
 ### Critical Issue Response
 
 1. **Assess Severity**
-   - Critical: Complete service down
-   - High: Major feature broken
-   - Medium: Minor feature issues
+    - Critical: Complete service down
+    - High: Major feature broken
+    - Medium: Minor feature issues
 
 2. **Response Actions**
-   - Critical: Immediate rollback + emergency mode
-   - High: Rollback + investigation
-   - Medium: Fix forward or scheduled rollback
+    - Critical: Immediate rollback + emergency mode
+    - High: Rollback + investigation
+    - Medium: Fix forward or scheduled rollback
 
 3. **Communication Plan**
-   - Notify on-call team
-   - Update status page
-   - Communicate with stakeholders
-   - Post-mortem documentation
+    - Notify on-call team
+    - Update status page
+    - Communicate with stakeholders
+    - Post-mortem documentation
 
 ## Troubleshooting
 
 ### Common Issues
 
 **Database Connection Issues**:
+
 ```bash
 # Check database connectivity
 curl https://your-app.vercel.app/api/health?type=detailed
@@ -430,6 +444,7 @@ echo $DATABASE_URL | sed 's/:[^@]*@/:****@/g'
 ```
 
 **Authentication Issues**:
+
 ```bash
 # Check Stack Auth configuration
 curl https://your-app.vercel.app/api/feature-flags
@@ -439,6 +454,7 @@ vercel env ls
 ```
 
 **Performance Issues**:
+
 ```bash
 # Check monitoring endpoint
 curl https://your-app.vercel.app/api/monitoring
@@ -448,6 +464,7 @@ pnpm build:analyze
 ```
 
 **Feature Flag Issues**:
+
 ```bash
 # Test feature flags endpoint
 curl https://your-app.vercel.app/api/feature-flags
@@ -459,16 +476,19 @@ vercel env ls | grep FEATURE_
 ### Log Analysis
 
 **Vercel Function Logs**:
+
 ```bash
 vercel logs --follow
 ```
 
 **Database Logs** (Neon Console):
+
 - Check slow query log
 - Monitor connection pool usage
 - Review error logs
 
 **Error Tracking**:
+
 - Monitor `/api/monitoring` for error reports
 - Check browser console for client-side errors
 - Review health check failure patterns
@@ -483,12 +503,14 @@ vercel logs --follow
 ### Recovery Procedures
 
 **Service Recovery**:
+
 1. Identify root cause via monitoring
 2. Apply immediate fix or rollback
 3. Verify service restoration
 4. Monitor for 30 minutes post-recovery
 
 **Data Recovery**:
+
 1. Stop application traffic if needed
 2. Restore from most recent backup
 3. Validate data integrity
@@ -498,6 +520,7 @@ vercel logs --follow
 ## Deployment Checklist
 
 ### Pre-Deployment
+
 - [ ] All tests passing
 - [ ] Code review completed
 - [ ] Database migration tested on staging
@@ -506,6 +529,7 @@ vercel logs --follow
 - [ ] Backup strategy verified
 
 ### During Deployment
+
 - [ ] Database backup created
 - [ ] Health checks passing
 - [ ] Feature flags working
@@ -513,6 +537,7 @@ vercel logs --follow
 - [ ] Error rates normal
 
 ### Post-Deployment
+
 - [ ] Health checks stable for 30 minutes
 - [ ] Key user journeys tested
 - [ ] Monitoring dashboards reviewed
@@ -520,6 +545,7 @@ vercel logs --follow
 - [ ] Team notified of successful deployment
 
 ### Emergency Rollback Checklist
+
 - [ ] Rollback reason documented
 - [ ] Stakeholders notified
 - [ ] Rollback type selected appropriately

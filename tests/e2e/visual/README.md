@@ -1,6 +1,7 @@
 # Visual Regression Testing with Percy
 
-This directory contains comprehensive visual regression tests for the VetMed Tracker application using Percy and Playwright.
+This directory contains comprehensive visual regression tests for the VetMed Tracker application using Percy and
+Playwright.
 
 ## Overview
 
@@ -71,6 +72,7 @@ percy exec -- playwright test tests/e2e/visual/ --project=visual-chromium
 ### CI/CD Integration
 
 Visual tests run automatically on:
+
 - Pull requests (compare against target branch)
 - Pushes to master (update baselines)
 - Manual workflow dispatch
@@ -131,6 +133,7 @@ await setupMedicationTestData(page);
 #### `.percy.yml`
 
 Main Percy configuration:
+
 - Responsive breakpoints: 375px, 768px, 1024px, 1440px, 1920px
 - Visual difference threshold: 5%
 - Auto-approval for minor changes
@@ -139,6 +142,7 @@ Main Percy configuration:
 #### `playwright.config.ts`
 
 Visual testing project configuration:
+
 - Separate project for visual tests
 - Chromium browser for consistency
 - Disabled video/screenshot to avoid conflicts
@@ -169,6 +173,7 @@ await takeVisualSnapshot(page, {
 ### 3. Responsive Testing
 
 Test critical layouts at multiple breakpoints:
+
 - Mobile: 375px, 667px
 - Tablet: 768px, 1024px
 - Desktop: 1280px, 1920px
@@ -176,6 +181,7 @@ Test critical layouts at multiple breakpoints:
 ### 4. State Coverage
 
 Test different component states:
+
 - Empty states
 - Loading states
 - Error states
@@ -263,6 +269,7 @@ SLACK_WEBHOOK_URL                   # Optional: Slack notifications
 ### Auto-Approval Rules
 
 Changes are auto-approved if:
+
 - Visual difference < 5%
 - No changes to critical elements (medication doses, alerts)
 - No new errors or broken layouts
@@ -270,6 +277,7 @@ Changes are auto-approved if:
 ### Manual Review Required
 
 Manual review is required for:
+
 - Changes > 5% difference
 - Changes to critical UI elements
 - New error states

@@ -16,322 +16,322 @@ import { Textarea } from "@/components/ui/textarea";
 import type { InventorySource } from "@/types/inventory";
 
 interface DueRegimen {
-	id: string;
-	animalId: string;
-	animalName: string;
-	animalSpecies?: string;
-	animalPhotoUrl?: string | null;
-	medicationName: string;
-	brandName?: string | null;
-	route: string;
-	form: string;
-	strength: string;
-	dose?: string;
-	targetTime?: string;
-	isPRN: boolean;
-	isHighRisk: boolean;
-	requiresCoSign: boolean;
-	section: "due" | "later" | "prn";
-	isOverdue?: boolean;
-	minutesUntilDue?: number;
-	instructions?: string | null;
-	prnReason?: string | null;
+  id: string;
+  animalId: string;
+  animalName: string;
+  animalSpecies?: string;
+  animalPhotoUrl?: string | null;
+  medicationName: string;
+  brandName?: string | null;
+  route: string;
+  form: string;
+  strength: string;
+  dose?: string;
+  targetTime?: string;
+  isPRN: boolean;
+  isHighRisk: boolean;
+  requiresCoSign: boolean;
+  section: "due" | "later" | "prn";
+  isOverdue?: boolean;
+  minutesUntilDue?: number;
+  instructions?: string | null;
+  prnReason?: string | null;
 }
 
 interface TabletConfirmLayoutProps {
-	selectedRegimen: DueRegimen;
-	animals: Array<{
-		id: string;
-		name: string;
-		species: string;
-		pendingMeds: number;
-		avatar?: string;
-	}>;
-	inventorySources: InventorySource[];
-	inventoryLoading?: boolean;
-	isSubmitting?: boolean;
-	// Form state
-	inventorySourceId: string | null;
-	allowOverride: boolean;
-	requiresCoSign: boolean;
-	notes: string;
-	site: string;
-	conditionTags: string[];
-	// Form handlers
-	setInventorySourceId: (id: string | null) => void;
-	setAllowOverride: (allow: boolean) => void;
-	setRequiresCoSign: (requires: boolean) => void;
-	setNotes: (notes: string) => void;
-	setSite: (site: string) => void;
-	setConditionTags: React.Dispatch<React.SetStateAction<string[]>>;
-	// Actions
-	onConfirm: () => Promise<void>;
+  selectedRegimen: DueRegimen;
+  animals: Array<{
+    id: string;
+    name: string;
+    species: string;
+    pendingMeds: number;
+    avatar?: string;
+  }>;
+  inventorySources: InventorySource[];
+  inventoryLoading?: boolean;
+  isSubmitting?: boolean;
+  // Form state
+  inventorySourceId: string | null;
+  allowOverride: boolean;
+  requiresCoSign: boolean;
+  notes: string;
+  site: string;
+  conditionTags: string[];
+  // Form handlers
+  setInventorySourceId: (id: string | null) => void;
+  setAllowOverride: (allow: boolean) => void;
+  setRequiresCoSign: (requires: boolean) => void;
+  setNotes: (notes: string) => void;
+  setSite: (site: string) => void;
+  setConditionTags: React.Dispatch<React.SetStateAction<string[]>>;
+  // Actions
+  onConfirm: () => Promise<void>;
 }
 
 export function TabletConfirmLayout({
-	selectedRegimen,
-	animals,
-	inventorySources,
-	inventoryLoading,
-	isSubmitting,
-	inventorySourceId,
-	allowOverride,
-	requiresCoSign,
-	notes,
-	site,
-	conditionTags,
-	setInventorySourceId,
-	setAllowOverride,
-	setRequiresCoSign,
-	setNotes,
-	setSite,
-	setConditionTags,
-	onConfirm,
+  selectedRegimen,
+  animals,
+  inventorySources,
+  inventoryLoading,
+  isSubmitting,
+  inventorySourceId,
+  allowOverride,
+  requiresCoSign,
+  notes,
+  site,
+  conditionTags,
+  setInventorySourceId,
+  setAllowOverride,
+  setRequiresCoSign,
+  setNotes,
+  setSite,
+  setConditionTags,
+  onConfirm,
 }: TabletConfirmLayoutProps) {
-	const animal = animals.find((a) => a.id === selectedRegimen.animalId);
-	const relevantSources = inventorySources.filter((s) =>
-		s.name
-			.toLowerCase()
-			.includes(selectedRegimen.medicationName.toLowerCase() || ""),
-	);
+  const animal = animals.find((a) => a.id === selectedRegimen.animalId);
+  const relevantSources = inventorySources.filter((s) =>
+    s.name
+      .toLowerCase()
+      .includes(selectedRegimen.medicationName.toLowerCase() || ""),
+  );
 
-	const isDisabled =
-		isSubmitting ||
-		(relevantSources.some(
-			(s) => s.id === inventorySourceId && (s.isExpired || s.isWrongMed),
-		) &&
-			!allowOverride);
+  const isDisabled =
+    isSubmitting ||
+    (relevantSources.some(
+      (s) => s.id === inventorySourceId && (s.isExpired || s.isWrongMed),
+    ) &&
+      !allowOverride);
 
-	return (
-		<div className="flex h-full">
-			{/* Left column - Form */}
-			<div className="flex-1 overflow-hidden">
-				<ScrollArea className="h-full">
-					<div className="max-w-2xl p-6">
-						<div className="space-y-8">
-							{/* Medication Summary - Compact for tablet */}
-							<Card>
-								<CardHeader className="pb-4">
-									<CardTitle className="flex items-center gap-3 text-xl">
-										{animal && <AnimalAvatar animal={animal} size="md" />}
-										<div className="min-w-0 flex-1">
-											<div className="truncate font-semibold text-xl">
-												{animal?.name} - {selectedRegimen.medicationName}
-											</div>
-											<div className="font-normal text-base text-muted-foreground">
-												{selectedRegimen.strength} • {selectedRegimen.route} •{" "}
-												{selectedRegimen.form}
-											</div>
-										</div>
-										{selectedRegimen.isHighRisk && (
-											<Badge variant="destructive" className="shrink-0">
-												High Risk
-											</Badge>
-										)}
-									</CardTitle>
-								</CardHeader>
-							</Card>
+  return (
+    <div className="flex h-full">
+      {/* Left column - Form */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="max-w-2xl p-6">
+            <div className="space-y-8">
+              {/* Medication Summary - Compact for tablet */}
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    {animal && <AnimalAvatar animal={animal} size="md" />}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-semibold text-xl">
+                        {animal?.name} - {selectedRegimen.medicationName}
+                      </div>
+                      <div className="font-normal text-base text-muted-foreground">
+                        {selectedRegimen.strength} • {selectedRegimen.route} •{" "}
+                        {selectedRegimen.form}
+                      </div>
+                    </div>
+                    {selectedRegimen.isHighRisk && (
+                      <Badge variant="destructive" className="shrink-0">
+                        High Risk
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
 
-							{/* Two-column form layout */}
-							<div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-								{/* Left form column */}
-								<div className="space-y-6">
-									{/* Inventory Source */}
-									<div>
-										<Label className="font-medium text-base">
-											Inventory Source
-										</Label>
-										<div className="mt-3">
-											{inventoryLoading ? (
-												<Skeleton className="h-12 w-full" />
-											) : (
-												<InventorySourceSelect
-													sources={relevantSources}
-													selectedId={inventorySourceId ?? undefined}
-													onSelect={setInventorySourceId}
-													allowOverride={true}
-													onOverrideChange={setAllowOverride}
-												/>
-											)}
-										</div>
-									</div>
+              {/* Two-column form layout */}
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                {/* Left form column */}
+                <div className="space-y-6">
+                  {/* Inventory Source */}
+                  <div>
+                    <Label className="font-medium text-base">
+                      Inventory Source
+                    </Label>
+                    <div className="mt-3">
+                      {inventoryLoading ? (
+                        <Skeleton className="h-12 w-full" />
+                      ) : (
+                        <InventorySourceSelect
+                          sources={relevantSources}
+                          selectedId={inventorySourceId ?? undefined}
+                          onSelect={setInventorySourceId}
+                          allowOverride={true}
+                          onOverrideChange={setAllowOverride}
+                        />
+                      )}
+                    </div>
+                  </div>
 
-									{/* Site and Media */}
-									<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-										<div>
-											<Label
-												htmlFor="tablet-site"
-												className="font-medium text-base"
-											>
-												Site/Side (Optional)
-											</Label>
-											<Input
-												id="tablet-site"
-												placeholder="Left ear, right leg..."
-												value={site}
-												onChange={(e) => setSite(e.target.value)}
-												className="mt-2 h-11"
-											/>
-										</div>
-										<div>
-											<Label className="font-medium text-base">
-												Photo/Video
-											</Label>
-											<Button
-												variant="outline"
-												className="mt-2 h-11 w-full bg-transparent"
-												type="button"
-											>
-												<Camera className="mr-2 h-4 w-4" />
-												Add Media
-											</Button>
-										</div>
-									</div>
+                  {/* Site and Media */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label
+                        htmlFor="tablet-site"
+                        className="font-medium text-base"
+                      >
+                        Site/Side (Optional)
+                      </Label>
+                      <Input
+                        id="tablet-site"
+                        placeholder="Left ear, right leg..."
+                        value={site}
+                        onChange={(e) => setSite(e.target.value)}
+                        className="mt-2 h-11"
+                      />
+                    </div>
+                    <div>
+                      <Label className="font-medium text-base">
+                        Photo/Video
+                      </Label>
+                      <Button
+                        variant="outline"
+                        className="mt-2 h-11 w-full bg-transparent"
+                        type="button"
+                      >
+                        <Camera className="mr-2 h-4 w-4" />
+                        Add Media
+                      </Button>
+                    </div>
+                  </div>
 
-									{/* Notes */}
-									<div>
-										<Label
-											htmlFor="tablet-notes"
-											className="font-medium text-base"
-										>
-											Notes (Optional)
-										</Label>
-										<Textarea
-											id="tablet-notes"
-											placeholder="Any observations or notes..."
-											value={notes}
-											onChange={(e) => setNotes(e.target.value)}
-											className="mt-2 min-h-[100px]"
-										/>
-									</div>
-								</div>
+                  {/* Notes */}
+                  <div>
+                    <Label
+                      htmlFor="tablet-notes"
+                      className="font-medium text-base"
+                    >
+                      Notes (Optional)
+                    </Label>
+                    <Textarea
+                      id="tablet-notes"
+                      placeholder="Any observations or notes..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="mt-2 min-h-[100px]"
+                    />
+                  </div>
+                </div>
 
-								{/* Right form column */}
-								<div className="space-y-6">
-									{/* Condition Tags */}
-									<TabletConditionTagSelector
-										conditionTags={conditionTags}
-										setConditionTags={setConditionTags}
-									/>
+                {/* Right form column */}
+                <div className="space-y-6">
+                  {/* Condition Tags */}
+                  <TabletConditionTagSelector
+                    conditionTags={conditionTags}
+                    setConditionTags={setConditionTags}
+                  />
 
-									{/* Co-sign Requirement */}
-									{selectedRegimen.isHighRisk && (
-										<Card className="border-orange-200 bg-orange-50">
-											<CardContent className="p-4">
-												<div className="space-y-3">
-													<div className="flex items-start space-x-3">
-														<Checkbox
-															id="tablet-cosign"
-															checked={requiresCoSign}
-															onCheckedChange={(checked) =>
-																setRequiresCoSign(checked === true)
-															}
-															className="mt-0.5"
-														/>
-														<div className="space-y-1">
-															<Label
-																htmlFor="tablet-cosign"
-																className="font-medium text-sm"
-															>
-																Requires co-sign (high-risk medication)
-															</Label>
-															<p className="text-muted-foreground text-xs">
-																Another caregiver must co-sign this
-																administration within 10 minutes.
-															</p>
-														</div>
-													</div>
-													{requiresCoSign && (
-														<div className="rounded-md bg-orange-100 p-3 text-orange-700 text-xs">
-															Co-sign will be required after confirmation. Make
-															sure another authorized caregiver is available.
-														</div>
-													)}
-												</div>
-											</CardContent>
-										</Card>
-									)}
+                  {/* Co-sign Requirement */}
+                  {selectedRegimen.isHighRisk && (
+                    <Card className="border-orange-200 bg-orange-50">
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start space-x-3">
+                            <Checkbox
+                              id="tablet-cosign"
+                              checked={requiresCoSign}
+                              onCheckedChange={(checked) =>
+                                setRequiresCoSign(checked === true)
+                              }
+                              className="mt-0.5"
+                            />
+                            <div className="space-y-1">
+                              <Label
+                                htmlFor="tablet-cosign"
+                                className="font-medium text-sm"
+                              >
+                                Requires co-sign (high-risk medication)
+                              </Label>
+                              <p className="text-muted-foreground text-xs">
+                                Another caregiver must co-sign this
+                                administration within 10 minutes.
+                              </p>
+                            </div>
+                          </div>
+                          {requiresCoSign && (
+                            <div className="rounded-md bg-orange-100 p-3 text-orange-700 text-xs">
+                              Co-sign will be required after confirmation. Make
+                              sure another authorized caregiver is available.
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
-									{/* Instructions Preview */}
-									{selectedRegimen.instructions && (
-										<Card className="bg-muted/30">
-											<CardContent className="p-4">
-												<h4 className="mb-2 font-medium text-sm">
-													Instructions
-												</h4>
-												<p className="text-muted-foreground text-sm">
-													{selectedRegimen.instructions}
-												</p>
-											</CardContent>
-										</Card>
-									)}
-								</div>
-							</div>
-						</div>
-					</div>
-				</ScrollArea>
-			</div>
+                  {/* Instructions Preview */}
+                  {selectedRegimen.instructions && (
+                    <Card className="bg-muted/30">
+                      <CardContent className="p-4">
+                        <h4 className="mb-2 font-medium text-sm">
+                          Instructions
+                        </h4>
+                        <p className="text-muted-foreground text-sm">
+                          {selectedRegimen.instructions}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
+      </div>
 
-			{/* Right column - Action panel */}
-			<div className="w-80 shrink-0 border-l bg-muted/30">
-				<div className="flex h-full flex-col p-6">
-					<div className="mb-6">
-						<h3 className="mb-2 font-semibold text-lg">Ready to Record?</h3>
-						<p className="text-muted-foreground text-sm">
-							Review your selections and hold the button below to confirm the
-							administration.
-						</p>
-					</div>
+      {/* Right column - Action panel */}
+      <div className="w-80 shrink-0 border-l bg-muted/30">
+        <div className="flex h-full flex-col p-6">
+          <div className="mb-6">
+            <h3 className="mb-2 font-semibold text-lg">Ready to Record?</h3>
+            <p className="text-muted-foreground text-sm">
+              Review your selections and hold the button below to confirm the
+              administration.
+            </p>
+          </div>
 
-					<div className="flex-1" />
+          <div className="flex-1" />
 
-					<MedConfirmButton
-						onConfirm={onConfirm}
-						disabled={isDisabled}
-						requiresCoSign={requiresCoSign}
-						className="h-14 w-full text-base"
-					>
-						{isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
-					</MedConfirmButton>
-				</div>
-			</div>
-		</div>
-	);
+          <MedConfirmButton
+            onConfirm={onConfirm}
+            disabled={isDisabled}
+            requiresCoSign={requiresCoSign}
+            className="h-14 w-full text-base"
+          >
+            {isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
+          </MedConfirmButton>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function TabletConditionTagSelector({
-	conditionTags,
-	setConditionTags,
+  conditionTags,
+  setConditionTags,
 }: {
-	conditionTags: string[];
-	setConditionTags: React.Dispatch<React.SetStateAction<string[]>>;
+  conditionTags: string[];
+  setConditionTags: React.Dispatch<React.SetStateAction<string[]>>;
 }) {
-	const tags = ["Normal", "Improved", "No Change", "Worse", "Side Effects"];
+  const tags = ["Normal", "Improved", "No Change", "Worse", "Side Effects"];
 
-	return (
-		<div>
-			<Label className="font-medium text-base">Condition Tags</Label>
-			<div className="mt-3 grid grid-cols-2 gap-2">
-				{tags.map((tag) => (
-					<Button
-						key={tag}
-						variant={conditionTags.includes(tag) ? "default" : "outline"}
-						size="sm"
-						className="h-10 justify-start px-3"
-						onClick={() => {
-							setConditionTags((prev) =>
-								prev.includes(tag)
-									? prev.filter((t) => t !== tag)
-									: [...prev, tag],
-							);
-						}}
-						type="button"
-					>
-						<Tag className="mr-2 h-3 w-3" />
-						{tag}
-					</Button>
-				))}
-			</div>
-		</div>
-	);
+  return (
+    <div>
+      <Label className="font-medium text-base">Condition Tags</Label>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {tags.map((tag) => (
+          <Button
+            key={tag}
+            variant={conditionTags.includes(tag) ? "default" : "outline"}
+            size="sm"
+            className="h-10 justify-start px-3"
+            onClick={() => {
+              setConditionTags((prev) =>
+                prev.includes(tag)
+                  ? prev.filter((t) => t !== tag)
+                  : [...prev, tag],
+              );
+            }}
+            type="button"
+          >
+            <Tag className="mr-2 h-3 w-3" />
+            {tag}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
 }

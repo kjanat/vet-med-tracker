@@ -13,47 +13,47 @@ let isInitialized = false;
  * This should be called once when the application starts
  */
 export function initializeNotificationScheduler(): void {
-	if (isInitialized) {
-		console.log("Notification scheduler already initialized");
-		return;
-	}
+  if (isInitialized) {
+    console.log("Notification scheduler already initialized");
+    return;
+  }
 
-	// Only initialize in production or when explicitly enabled
-	const shouldStart =
-		process.env.NODE_ENV === "production" ||
-		process.env.ENABLE_NOTIFICATION_SCHEDULER === "true";
+  // Only initialize in production or when explicitly enabled
+  const shouldStart =
+    process.env.NODE_ENV === "production" ||
+    process.env.ENABLE_NOTIFICATION_SCHEDULER === "true";
 
-	if (!shouldStart) {
-		console.log("Notification scheduler disabled in development environment");
-		return;
-	}
+  if (!shouldStart) {
+    console.log("Notification scheduler disabled in development environment");
+    return;
+  }
 
-	try {
-		const scheduler = getNotificationScheduler(db);
-		scheduler.start();
-		isInitialized = true;
-		console.log("Notification scheduler initialized successfully");
+  try {
+    const scheduler = getNotificationScheduler(db);
+    scheduler.start();
+    isInitialized = true;
+    console.log("Notification scheduler initialized successfully");
 
-		// Handle graceful shutdown
-		process.on("SIGINT", () => {
-			console.log("Received SIGINT, shutting down notification scheduler...");
-			scheduler.stop();
-			process.exit(0);
-		});
+    // Handle graceful shutdown
+    process.on("SIGINT", () => {
+      console.log("Received SIGINT, shutting down notification scheduler...");
+      scheduler.stop();
+      process.exit(0);
+    });
 
-		process.on("SIGTERM", () => {
-			console.log("Received SIGTERM, shutting down notification scheduler...");
-			scheduler.stop();
-			process.exit(0);
-		});
-	} catch (error) {
-		console.error("Failed to initialize notification scheduler:", error);
-	}
+    process.on("SIGTERM", () => {
+      console.log("Received SIGTERM, shutting down notification scheduler...");
+      scheduler.stop();
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error("Failed to initialize notification scheduler:", error);
+  }
 }
 
 /**
  * Get initialization status
  */
 export function isSchedulerInitialized(): boolean {
-	return isInitialized;
+  return isInitialized;
 }

@@ -4,10 +4,11 @@ This guide explains how to migrate existing Clerk-based tests to use the new Sta
 
 ## Overview
 
-The Stack Auth mock system provides comprehensive testing utilities that replicate Stack Auth's behavior in tests, including:
+The Stack Auth mock system provides comprehensive testing utilities that replicate Stack Auth's behavior in tests,
+including:
 
 - Mock user objects with realistic properties
-- Mock hooks (`useUser`, `useStackApp`)  
+- Mock hooks (`useUser`, `useStackApp`)
 - Mock server app (`stackServerApp.getUser()`)
 - Mock React components (`StackProvider`, `UserButton`, etc.)
 - Test utilities for easy authentication state management
@@ -74,6 +75,7 @@ AuthTestScenarios.withUnauthenticated(() => {
 ### Component Tests
 
 #### Before (Clerk)
+
 ```typescript
 import { useUser } from "@clerk/nextjs";
 
@@ -109,6 +111,7 @@ it("should render user info", () => {
 ```
 
 #### After (Stack Auth)
+
 ```typescript
 import { useUser } from "@stackframe/stack";
 
@@ -143,6 +146,7 @@ it("should render user info", () => {
 ### Server-Side Tests
 
 #### Before (Clerk)
+
 ```typescript
 import { auth } from "@clerk/nextjs/server";
 
@@ -159,6 +163,7 @@ it("should handle authenticated request", async () => {
 ```
 
 #### After (Stack Auth)
+
 ```typescript
 import { stackServerApp } from "@/stack";
 
@@ -177,6 +182,7 @@ it("should handle authenticated request", async () => {
 ### tRPC Context Tests
 
 #### Before (Clerk)
+
 ```typescript
 const createMockContext = (userId?: string) => ({
   session: userId ? { userId } : null,
@@ -185,6 +191,7 @@ const createMockContext = (userId?: string) => ({
 ```
 
 #### After (Stack Auth)
+
 ```typescript
 const createMockContext = (user?: MockStackUser) => 
   createAuthenticatedTRPCContext(user);
@@ -193,6 +200,7 @@ const createMockContext = (user?: MockStackUser) =>
 ### Playwright E2E Tests
 
 #### Before (Clerk)
+
 ```typescript
 test("user can sign in", async ({ page }) => {
   await page.goto("/sign-in");
@@ -204,6 +212,7 @@ test("user can sign in", async ({ page }) => {
 ```
 
 #### After (Stack Auth)
+
 ```typescript
 test("user can sign in", async ({ page }) => {
   await StackAuthPlaywrightHelpers.signIn(page, TEST_USERS.OWNER);
@@ -223,6 +232,7 @@ test("owner can access admin features", async ({ page }) => {
 ## Mock Data Structure
 
 ### Stack Auth User Mock
+
 ```typescript
 interface MockStackUser {
   id: string;
@@ -277,53 +287,58 @@ export const TEST_USERS = {
 
 ### Hooks
 
-| Clerk | Stack Auth | Mock |
-|-------|------------|------|
-| `useUser()` | `useUser()` | Returns `MockStackUser \| null` |
-| `useAuth()` | `useStackApp()` | Returns mock app instance |
-| `useClerk()` | `useStackApp()` | Returns mock app instance |
+| Clerk        | Stack Auth      | Mock                            |
+|--------------|-----------------|---------------------------------|
+| `useUser()`  | `useUser()`     | Returns `MockStackUser \| null` |
+| `useAuth()`  | `useStackApp()` | Returns mock app instance       |
+| `useClerk()` | `useStackApp()` | Returns mock app instance       |
 
 ### Server Functions
 
-| Clerk | Stack Auth | Mock |
-|-------|------------|------|
-| `auth().userId` | `stackServerApp.getUser()?.id` | Returns mock user ID |
-| `currentUser()` | `stackServerApp.getUser()` | Returns `MockStackUser \| null` |
-| `redirectToSignIn()` | `stackServerApp.getUser({ or: "redirect" })` | Throws redirect error |
+| Clerk                | Stack Auth                                   | Mock                            |
+|----------------------|----------------------------------------------|---------------------------------|
+| `auth().userId`      | `stackServerApp.getUser()?.id`               | Returns mock user ID            |
+| `currentUser()`      | `stackServerApp.getUser()`                   | Returns `MockStackUser \| null` |
+| `redirectToSignIn()` | `stackServerApp.getUser({ or: "redirect" })` | Throws redirect error           |
 
 ### User Properties
 
-| Clerk | Stack Auth | Mock |
-|-------|------------|------|
-| `user.firstName` | `user.displayName` (first part) | `mockUser.displayName` |
-| `user.lastName` | `user.displayName` (last part) | `mockUser.displayName` |
-| `user.emailAddresses[0].emailAddress` | `user.primaryEmail` | `mockUser.primaryEmail` |
-| `user.publicMetadata` | `user.clientReadOnlyMetadata` | `mockUser.clientReadOnlyMetadata` |
-| `user.unsafeMetadata` | `user.clientMetadata` | `mockUser.clientMetadata` |
+| Clerk                                 | Stack Auth                      | Mock                              |
+|---------------------------------------|---------------------------------|-----------------------------------|
+| `user.firstName`                      | `user.displayName` (first part) | `mockUser.displayName`            |
+| `user.lastName`                       | `user.displayName` (last part)  | `mockUser.displayName`            |
+| `user.emailAddresses[0].emailAddress` | `user.primaryEmail`             | `mockUser.primaryEmail`           |
+| `user.publicMetadata`                 | `user.clientReadOnlyMetadata`   | `mockUser.clientReadOnlyMetadata` |
+| `user.unsafeMetadata`                 | `user.clientMetadata`           | `mockUser.clientMetadata`         |
 
 ## Migration Checklist
 
 ### 1. Update Imports
+
 - [ ] Replace `@clerk/nextjs` imports with `@stackframe/stack`
 - [ ] Update test helper imports to use Stack Auth mocks
 
 ### 2. Update Component Code
+
 - [ ] Replace `useUser()` return destructuring: `{ user, isSignedIn }` → `user`
 - [ ] Update user property access: `user.firstName` → `user.displayName`
 - [ ] Update metadata access: `user.unsafeMetadata` → `user.clientMetadata`
 
 ### 3. Update Server Code
+
 - [ ] Replace `auth().userId` with `stackServerApp.getUser()?.id`
 - [ ] Replace `currentUser()` with `stackServerApp.getUser()`
 - [ ] Update redirect patterns for protected routes
 
 ### 4. Update Tests
+
 - [ ] Replace Clerk test wrappers with Stack Auth render helpers
 - [ ] Update mock user data structure
 - [ ] Replace Clerk-specific test utilities
 - [ ] Update Playwright authentication helpers
 
 ### 5. Update tRPC Context
+
 - [ ] Update context creation to use Stack Auth user
 - [ ] Update procedure middleware for authentication
 - [ ] Update session handling (Stack Auth doesn't use sessions)
@@ -331,6 +346,7 @@ export const TEST_USERS = {
 ## Common Issues & Solutions
 
 ### Issue: Tests failing with "useUser is not a function"
+
 **Solution**: Ensure the Stack Auth mock is properly set up in your test setup file:
 
 ```typescript
@@ -342,6 +358,7 @@ vi.mock("@stackframe/stack", () => ({
 ```
 
 ### Issue: Server-side tests not recognizing authenticated user
+
 **Solution**: Use the server auth mock helper:
 
 ```typescript
@@ -352,6 +369,7 @@ mockServerAuth.authenticated(TEST_USERS.OWNER);
 ```
 
 ### Issue: Playwright tests not maintaining auth state
+
 **Solution**: Use the Playwright helpers consistently:
 
 ```typescript
@@ -363,6 +381,7 @@ test.beforeEach(async ({ page }) => {
 ```
 
 ### Issue: User metadata not accessible in tests
+
 **Solution**: Set up custom user with proper metadata:
 
 ```typescript
@@ -390,6 +409,7 @@ renderWithAuthenticatedUser(<Component />, userWithMetadata);
 ## Examples
 
 See the following files for complete examples:
+
 - `/tests/examples/stack-auth-migration-example.test.ts` - Comprehensive migration examples
 - `/tests/mocks/stack-auth.test.ts` - Mock system validation tests
 - `/tests/helpers/stack-auth-test-utils.ts` - Available helper functions

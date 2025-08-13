@@ -17,5 +17,5 @@ console.log("=== Next Steps ===");
 console.log("1. Add these variables to your .env.local file");
 console.log("2. Update VAPID_SUBJECT with your actual email");
 console.log(
-	"3. These keys should be kept secure and not committed to version control",
+  "3. These keys should be kept secure and not committed to version control",
 );

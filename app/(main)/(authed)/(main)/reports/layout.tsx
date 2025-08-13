@@ -1,9 +1,9 @@
 export default function ReportsLayout({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	// This layout exists to enable useSelectedLayoutSegment in navigation
-	// for the reports section
-	return <>{children}</>;
+  // This layout exists to enable useSelectedLayoutSegment in navigation
+  // for the reports section
+  return <>{children}</>;
 }

@@ -3,6 +3,7 @@
 This guide covers deploying VetMed Tracker to various environments.
 
 ## Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Environment Setup](#environment-setup)
 - [Vercel Deployment](#vercel-deployment)
@@ -14,6 +15,7 @@ This guide covers deploying VetMed Tracker to various environments.
 ## Prerequisites
 
 Before deploying, ensure you have:
+
 - A PostgreSQL database (Neon, Supabase, or self-hosted)
 - Stack Auth account and project
 - Node.js 20+ runtime support
@@ -46,12 +48,14 @@ TURBO_TEAM=your-turbo-team
 ### Development vs Production
 
 Development (.env.development):
+
 ```env
 NODE_ENV=development
 DATABASE_URL=postgresql://localhost:5432/vetmed_dev
 ```
 
 Production (.env.production):
+
 ```env
 NODE_ENV=production
 DATABASE_URL=postgresql://production-host/vetmed_prod
@@ -80,10 +84,10 @@ vercel --prod
 
 1. Import GitHub repository
 2. Configure build settings:
-   - Framework: Next.js
-   - Build Command: `pnpm build`
-   - Output Directory: `.next`
-   - Install Command: `pnpm install --frozen-lockfile`
+    - Framework: Next.js
+    - Build Command: `pnpm build`
+    - Output Directory: `.next`
+    - Install Command: `pnpm install --frozen-lockfile`
 
 3. Set environment variables in Vercel dashboard
 4. Configure domains and deployment settings
@@ -91,6 +95,7 @@ vercel --prod
 ### 4. Vercel Configuration
 
 The project includes optimized `vercel.json`:
+
 - Regional deployment (US East by default)
 - Function memory and timeout settings
 - Security headers
@@ -138,6 +143,7 @@ CMD ["node", "server.js"]
 ```
 
 Build and run:
+
 ```bash
 docker build -t vetmed-tracker .
 docker run -p 3000:3000 --env-file .env.production vetmed-tracker
@@ -161,6 +167,7 @@ pm2 startup
 ```
 
 ecosystem.config.js:
+
 ```javascript
 module.exports = {
   apps: [{
@@ -187,11 +194,12 @@ module.exports = {
 1. Create account at [neon.tech](https://neon.tech)
 2. Create new project
 3. Create branches:
-   - `main` (production)
-   - `development`
-   - `test`
+    - `main` (production)
+    - `development`
+    - `test`
 4. Get connection strings for each branch
 5. Run migrations:
+
 ```bash
 pnpm db:migrate:prod
 ```
@@ -237,8 +245,10 @@ pnpm test:e2e --grep smoke
 ### 3. Configure Cron Jobs
 
 For medication reminders, ensure cron job is configured:
+
 - Vercel: Automatically configured via vercel.json
 - Self-hosted: Add to crontab:
+
 ```bash
 0 9 * * * curl https://your-domain.com/api/notifications/scheduler
 ```
@@ -272,6 +282,7 @@ pnpm build
 - Check SSL requirements
 - Ensure IP whitelisting (if applicable)
 - Test connection:
+
 ```bash
 pnpm db:test:health
 ```
@@ -289,6 +300,7 @@ pnpm build  # Build ignores TS errors
 #### Memory Issues
 
 Increase Node.js memory:
+
 ```bash
 NODE_OPTIONS="--max-old-space-size=4096" pnpm build
 ```
@@ -296,12 +308,14 @@ NODE_OPTIONS="--max-old-space-size=4096" pnpm build
 ### Performance Optimization
 
 1. Enable Turbo Cache:
+
 ```env
 TURBO_TOKEN=your-token
 TURBO_TEAM=your-team
 ```
 
 2. Optimize images (if re-enabled):
+
 ```javascript
 // next.config.js
 images: {
@@ -311,12 +325,13 @@ images: {
 ```
 
 3. Enable React Compiler (experimental):
-Already configured in next.config.js
+   Already configured in next.config.js
 
 ### Rollback Procedure
 
 1. Vercel: Use deployment dashboard to rollback
 2. Self-hosted:
+
 ```bash
 # Revert to previous version
 git checkout previous-tag
@@ -328,6 +343,7 @@ pm2 reload vetmed-tracker
 ## Support
 
 For deployment issues:
+
 1. Check [Troubleshooting Guide](TROUBLESHOOTING.md)
 2. Review deployment logs
 3. Open GitHub issue with deployment details

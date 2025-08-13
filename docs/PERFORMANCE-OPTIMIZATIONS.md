@@ -1,10 +1,12 @@
 # Performance Optimizations in Consolidated AppProvider
 
-This document details the performance optimizations implemented in the consolidated AppProvider and provides guidance for maximizing performance benefits.
+This document details the performance optimizations implemented in the consolidated AppProvider and provides guidance
+for maximizing performance benefits.
 
 ## Overview
 
 The consolidated AppProvider implements several performance optimizations that result in:
+
 - **60-80% reduction in re-renders** compared to nested providers
 - **~40% reduction in memory usage** from state consolidation
 - **<100ms state update latency** through optimized reducers
@@ -15,6 +17,7 @@ The consolidated AppProvider implements several performance optimizations that r
 ### 1. Strategic Memoization
 
 #### Context Value Memoization
+
 ```tsx
 const contextValue: AppContextType = useMemo(
   () => ({
@@ -40,11 +43,13 @@ const contextValue: AppContextType = useMemo(
 ```
 
 **Benefits**:
+
 - Prevents unnecessary re-renders of consuming components
 - Only updates when actual dependencies change
 - Maintains referential equality for stable values
 
 #### Computed Value Memoization
+
 ```tsx
 const selectedHousehold = useMemo(() => 
   state.households.find(h => h.id === state.selectedHouseholdId) || null,
@@ -58,11 +63,13 @@ const selectedAnimal = useMemo(() =>
 ```
 
 **Benefits**:
+
 - Expensive computations only run when dependencies change
 - Reduces CPU usage for frequently accessed values
 - Maintains object identity for React reconciliation
 
 #### Callback Memoization
+
 ```tsx
 const setSelectedHousehold = useCallback((household: Household | null) => {
   dispatch({ type: 'SET_HOUSEHOLD', payload: household });
@@ -76,6 +83,7 @@ const formatTime = useCallback((date: Date) => {
 ```
 
 **Benefits**:
+
 - Stable function references prevent unnecessary child re-renders
 - Dependent computations only recalculate when inputs change
 - Reduces garbage collection pressure from function recreation
@@ -83,6 +91,7 @@ const formatTime = useCallback((date: Date) => {
 ### 2. Reducer-Based State Management
 
 #### Centralized State Updates
+
 ```tsx
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -113,12 +122,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
 ```
 
 **Benefits**:
+
 - Atomic state updates prevent race conditions
 - Predictable state transitions improve debugging
 - Single source of truth reduces state inconsistencies
 - Batched updates reduce re-render frequency
 
 #### Immutable Updates
+
 ```tsx
 case 'SET_PREFERENCES':
   return { 
@@ -128,6 +139,7 @@ case 'SET_PREFERENCES':
 ```
 
 **Benefits**:
+
 - Shallow equality checks work correctly with React
 - Time-travel debugging capabilities
 - Predictable component updates
@@ -135,6 +147,7 @@ case 'SET_PREFERENCES':
 ### 3. Efficient Storage Synchronization
 
 #### Batched LocalStorage Operations
+
 ```tsx
 const setSelectedHousehold = useCallback((household: Household | null) => {
   dispatch({ type: 'SET_HOUSEHOLD', payload: household });
@@ -143,11 +156,13 @@ const setSelectedHousehold = useCallback((household: Household | null) => {
 ```
 
 **Benefits**:
+
 - Reduces localStorage API calls
 - Synchronous storage prevents race conditions
 - Error resilience with try/catch boundaries
 
 #### Smart Backend Synchronization
+
 ```tsx
 const updateVetMedPreferences = useCallback(async (updates: Partial<VetMedPreferences>) => {
   if (!stackUser) throw new Error("User not loaded");
@@ -180,6 +195,7 @@ const updateVetMedPreferences = useCallback(async (updates: Partial<VetMedPrefer
 ```
 
 **Benefits**:
+
 - Optimistic updates provide immediate UI feedback
 - Background sync doesn't block user interactions
 - Graceful degradation when sync fails
@@ -187,6 +203,7 @@ const updateVetMedPreferences = useCallback(async (updates: Partial<VetMedPrefer
 ### 4. Smart Loading States
 
 #### Granular Loading Management
+
 ```tsx
 interface LoadingStates {
   user: boolean;
@@ -202,6 +219,7 @@ const { data: householdData } = trpc.household.list.useQuery(undefined, {
 ```
 
 **Benefits**:
+
 - Non-critical data doesn't block essential UI
 - Progressive loading improves perceived performance
 - Specific error handling for different data types
@@ -209,6 +227,7 @@ const { data: householdData } = trpc.household.list.useQuery(undefined, {
 ### 5. Cleanup and Resource Management
 
 #### Timeout Management
+
 ```tsx
 // Refs for cleanup
 const timeoutRefs = useRef<Map<string, number>>(new Map());
@@ -232,11 +251,13 @@ useEffect(() => {
 ```
 
 **Benefits**:
+
 - Prevents memory leaks from dangling timers
 - Automatic cleanup on unmount
 - Efficient timeout tracking with Map
 
 #### Event Listener Cleanup
+
 ```tsx
 useEffect(() => {
   const handleOnline = () => dispatch({ type: 'SET_OFFLINE_STATUS', payload: false });
@@ -253,6 +274,7 @@ useEffect(() => {
 ```
 
 **Benefits**:
+
 - Prevents memory leaks from global event listeners
 - Clean component unmount behavior
 - Automatic resource cleanup
@@ -262,6 +284,7 @@ useEffect(() => {
 ### Measuring Provider Performance
 
 #### Re-render Tracking
+
 ```tsx
 import { useRef, useEffect } from 'react';
 
@@ -286,6 +309,7 @@ function MyComponent() {
 ```
 
 #### Memory Usage Monitoring
+
 ```tsx
 function measureMemoryUsage() {
   if ('memory' in performance) {
@@ -309,6 +333,7 @@ useEffect(() => {
 ```
 
 #### Bundle Impact Analysis
+
 ```bash
 # Analyze bundle size impact
 npx @next/bundle-analyzer
@@ -320,13 +345,15 @@ npm run build && npm run analyze
 ### Performance Benchmarks
 
 #### Expected Metrics
+
 - **Re-render Reduction**: 60-80% fewer component re-renders
 - **Memory Usage**: ~40% reduction in provider-related memory
-- **State Update Latency**: <100ms for all state operations  
+- **State Update Latency**: <100ms for all state operations
 - **Bundle Size**: ~15% reduction from removed provider code
 - **Cache Hit Rate**: 95%+ for computed values
 
 #### Monitoring Implementation
+
 ```tsx
 // Add to your analytics
 const trackProviderMetrics = () => {
@@ -354,6 +381,7 @@ const trackProviderMetrics = () => {
 ## Best Practices for Maximum Performance
 
 ### 1. Minimize Context Consumers
+
 ```tsx
 // ❌ Bad - Creates unnecessary dependency
 function BadComponent() {
@@ -369,6 +397,7 @@ function GoodComponent() {
 ```
 
 ### 2. Memoize Heavy Computations
+
 ```tsx
 // ❌ Bad - Recalculates on every render
 function BadList() {
@@ -389,6 +418,7 @@ function GoodList() {
 ```
 
 ### 3. Use React.memo for Pure Components
+
 ```tsx
 // ✅ Prevent re-renders for unchanged props
 const AnimalCard = React.memo(({ animal }: { animal: Animal }) => {
@@ -402,6 +432,7 @@ const AnimalCard = React.memo(({ animal }: { animal: Animal }) => {
 ```
 
 ### 4. Batch State Updates
+
 ```tsx
 // ❌ Bad - Multiple separate updates
 function updateMultipleThings() {
@@ -423,12 +454,14 @@ function batchedUpdates() {
 ## Debugging Performance Issues
 
 ### React DevTools Profiler
+
 1. Install React DevTools browser extension
 2. Navigate to Profiler tab
 3. Record component interactions
 4. Analyze render times and re-render frequency
 
 ### Performance Monitoring
+
 ```tsx
 // Add to components experiencing issues
 function PerformanceMonitor({ children, name }: { children: React.ReactNode; name: string }) {
@@ -452,6 +485,7 @@ function PerformanceMonitor({ children, name }: { children: React.ReactNode; nam
 ## Migration Performance Comparison
 
 ### Before (Nested Providers)
+
 - **4 separate contexts** causing provider tree re-renders
 - **Context drilling** through multiple provider layers
 - **Repeated tRPC queries** across different providers
@@ -459,6 +493,7 @@ function PerformanceMonitor({ children, name }: { children: React.ReactNode; nam
 - **Memory overhead** from multiple provider state objects
 
 ### After (Consolidated Provider)
+
 - **Single context** with strategic memoization
 - **Direct state access** without provider drilling
 - **Shared tRPC queries** with intelligent caching
@@ -466,10 +501,12 @@ function PerformanceMonitor({ children, name }: { children: React.ReactNode; nam
 - **Consolidated memory usage** with optimized state shape
 
 ### Measured Improvements
+
 - **Component re-renders**: Reduced from ~50/minute to ~10/minute (80% reduction)
-- **Memory usage**: Reduced from ~12MB to ~7MB (42% reduction)  
+- **Memory usage**: Reduced from ~12MB to ~7MB (42% reduction)
 - **State update latency**: Reduced from ~150ms to ~45ms (70% reduction)
 - **Bundle size**: Reduced by ~23KB (15% reduction)
 - **Cache hit rate**: Improved from ~60% to ~95%
 
-These optimizations provide a significantly better user experience with faster interactions, reduced memory usage, and improved application responsiveness.
+These optimizations provide a significantly better user experience with faster interactions, reduced memory usage, and
+improved application responsiveness.

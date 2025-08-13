@@ -21,12 +21,12 @@ import { useGlobalKeyboardShortcuts } from "@/hooks/shared/useKeyboardShortcuts"
  * ```
  */
 export function GlobalKeyboardShortcuts() {
-	// This hook automatically registers all global keyboard shortcuts
-	useGlobalKeyboardShortcuts({
-		enabled: true,
-		respectInputs: true,
-	});
+  // This hook automatically registers all global keyboard shortcuts
+  useGlobalKeyboardShortcuts({
+    enabled: true,
+    respectInputs: true,
+  });
 
-	// This component doesn't render anything - it just manages shortcuts
-	return null;
+  // This component doesn't render anything - it just manages shortcuts
+  return null;
 }

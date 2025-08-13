@@ -1,6 +1,7 @@
 # Test Database Setup
 
-This directory contains the test database configuration for the VetMed Tracker application. The tests use local PostgreSQL instead of Neon serverless driver to avoid authentication issues and improve test reliability.
+This directory contains the test database configuration for the VetMed Tracker application. The tests use local
+PostgreSQL instead of Neon serverless driver to avoid authentication issues and improve test reliability.
 
 ## Overview
 
@@ -14,12 +15,14 @@ This directory contains the test database configuration for the VetMed Tracker a
 ### 1. Install PostgreSQL
 
 **macOS (with Homebrew):**
+
 ```bash
 brew install postgresql@16
 brew services start postgresql@16
 ```
 
 **Ubuntu/Debian:**
+
 ```bash
 sudo apt update
 sudo apt install postgresql postgresql-contrib
@@ -33,6 +36,7 @@ Download and install from [PostgreSQL official website](https://www.postgresql.o
 ### 2. Configure Database User
 
 Create a test database user (if needed):
+
 ```bash
 # Connect to PostgreSQL as superuser
 sudo -u postgres psql
@@ -201,20 +205,24 @@ afterEach(async () => {
 ### Common Issues
 
 **"role 'root' does not exist"**
+
 - This means you're still using Neon driver code
 - Check imports use `test-db-setup.ts` functions
 - Verify `postgres` package is installed
 
 **"database 'vet_med_test' does not exist"**
+
 - Run `pnpm db:test:init` to create database
 - Check PostgreSQL is running: `pg_isready`
 
 **"connection refused"**
+
 - Verify PostgreSQL is running
 - Check `TEST_DB_*` environment variables
 - Ensure user has correct permissions
 
 **Migration errors**
+
 - Ensure main database migrations are up to date
 - Check migration files in `./drizzle/` directory
 - Run `pnpm db:generate` if schema changed
@@ -278,9 +286,9 @@ If migrating existing tests from Neon setup:
    ```
 
 2. **Remove Neon-specific environment variables:**
-   - Remove `TEST_DATABASE_URL`
-   - Remove `DATABASE_URL_UNPOOLED` from tests
-   - Use `TEST_DB_*` variables instead
+    - Remove `TEST_DATABASE_URL`
+    - Remove `DATABASE_URL_UNPOOLED` from tests
+    - Use `TEST_DB_*` variables instead
 
 3. **Update test database initialization:**
    ```typescript
@@ -301,6 +309,7 @@ The local PostgreSQL setup provides:
 - **Debugging**: Local access for inspection
 
 Typical performance improvements:
+
 - Test execution: 50-70% faster
 - Connection reliability: 99%+ vs 90-95% with Neon
 - Local development: No internet dependency

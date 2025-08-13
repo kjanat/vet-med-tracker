@@ -2,7 +2,9 @@
 
 ## Overview
 
-This implementation provides a comprehensive bulk administration recording system for the VetMed Tracker application, allowing users to record medication administrations for multiple animals simultaneously with robust error handling and progress tracking.
+This implementation provides a comprehensive bulk administration recording system for the VetMed Tracker application,
+allowing users to record medication administrations for multiple animals simultaneously with robust error handling and
+progress tracking.
 
 ## Architecture
 
@@ -21,6 +23,7 @@ recordBulk: householdProcedure
 ```
 
 **Key Features**:
+
 - **Database Transactions**: All operations wrapped in a single transaction for atomicity
 - **Partial Failure Handling**: Continues processing other animals if one fails
 - **Validation**: Comprehensive validation of animals, regimens, and inventory items
@@ -28,14 +31,15 @@ recordBulk: householdProcedure
 - **Audit Logging**: Complete audit trail for all operations
 
 **Input Schema**:
+
 ```typescript
 const recordBulkAdministrationSchema = z.object({
-  householdId: z.string().uuid(),
-  animalIds: z.array(z.string().uuid()).min(1).max(50), // Reasonable batch size limit
-  regimenId: z.string().uuid(),
+  householdId: z.uuid(),
+  animalIds: z.array(z.uuid()).min(1).max(50), // Reasonable batch size limit
+  regimenId: z.uuid(),
   administeredAt: z.string().datetime().optional()
     .transform((v) => (v ? new Date(v).toISOString() : undefined)),
-  inventorySourceId: z.string().uuid().optional(),
+  inventorySourceId: z.uuid().optional(),
   notes: z.string().optional(),
   site: z.string().optional(),
   dose: z.string().optional(),
@@ -51,6 +55,7 @@ const recordBulkAdministrationSchema = z.object({
 ```
 
 **Response Format**:
+
 ```typescript
 {
   results: Array<{
@@ -77,8 +82,8 @@ Retrieves regimens for multiple animals to find common regimens available for bu
 ```typescript
 listByAnimals: householdProcedure
   .input(z.object({
-    householdId: z.string().uuid(),
-    animalIds: z.array(z.string().uuid()).min(1),
+    householdId: z.uuid(),
+    animalIds: z.array(z.uuid()).min(1),
   }))
   .query(async ({ ctx, input }) => {
     // Return regimens grouped by animal
@@ -90,6 +95,7 @@ listByAnimals: householdProcedure
 #### 1. Bulk Recording Form (`/components/admin/bulk-recording-form.tsx`)
 
 **Features**:
+
 - **Animal Selection Integration**: Uses existing bulk selection system
 - **Common Regimen Detection**: Only shows regimens available for all selected animals
 - **Real-time Progress**: Visual progress bar during submission
@@ -98,6 +104,7 @@ listByAnimals: householdProcedure
 - **Form Validation**: React Hook Form with Zod validation
 
 **Key Components**:
+
 ```typescript
 export function BulkRecordingForm({ open, onOpenChange }: BulkRecordingFormProps) {
   // Form state management
@@ -110,6 +117,7 @@ export function BulkRecordingForm({ open, onOpenChange }: BulkRecordingFormProps
 #### 2. Bulk Actions Bar (`/components/admin/bulk-admin-actions.tsx`)
 
 **Features**:
+
 - **Floating Action Bar**: Appears when animals are selected
 - **Selection Summary**: Shows count of selected animals
 - **Quick Actions**: Primary action for bulk recording
@@ -118,6 +126,7 @@ export function BulkRecordingForm({ open, onOpenChange }: BulkRecordingFormProps
 #### 3. Demo Component (`/components/admin/bulk-recording-demo.tsx`)
 
 **Features**:
+
 - **Complete Example**: Working demonstration of bulk recording
 - **Animal Table**: Selectable list of animals with bulk selection
 - **Instructions**: Step-by-step usage guide
@@ -126,6 +135,7 @@ export function BulkRecordingForm({ open, onOpenChange }: BulkRecordingFormProps
 #### 4. Custom Hook (`/hooks/admin/use-bulk-recording.ts`)
 
 **Features**:
+
 - **Encapsulated Logic**: Reusable bulk recording functionality
 - **State Management**: Loading states and error handling
 - **Toast Notifications**: User feedback for success/failure
@@ -165,16 +175,19 @@ export function useBulkRecording() {
 ## Key Features Implemented
 
 ### 1. **Database Transaction Integrity**
+
 - All bulk operations wrapped in database transactions
 - Partial failures don't affect successful operations
 - Consistent state maintenance across all operations
 
 ### 2. **Progress Tracking**
+
 - Real-time progress updates during submission
 - Visual progress bar showing completion percentage
 - Individual result tracking for each animal
 
 ### 3. **Comprehensive Error Handling**
+
 - **Animal Validation**: Ensures all animals belong to household
 - **Regimen Validation**: Verifies active regimens for each animal
 - **Inventory Validation**: Checks medication availability and expiration
@@ -182,6 +195,7 @@ export function useBulkRecording() {
 - **Graceful Degradation**: Continues processing despite individual failures
 
 ### 4. **Results Summary & Retry**
+
 - **Detailed Results**: Success/failure status for each animal
 - **Summary Statistics**: Total, successful, and failed counts
 - **Error Messages**: Specific error details for failed operations
@@ -189,6 +203,7 @@ export function useBulkRecording() {
 - **Clear Actions**: Easy navigation and cleanup options
 
 ### 5. **User Experience Excellence**
+
 - **Bulk Selection Integration**: Seamlessly integrates with existing selection system
 - **Common Regimen Detection**: Only shows applicable regimens
 - **Form Validation**: Real-time validation with helpful error messages
@@ -200,6 +215,7 @@ export function useBulkRecording() {
 - **Retry Logic**: Automatic retry mechanism for failed operations
 
 ### 6. **Security & Compliance**
+
 - **Household Scoping**: All operations scoped to user's household
 - **Authorization Checks**: Proper permission validation
 - **Audit Logging**: Complete audit trail for compliance
@@ -209,18 +225,21 @@ export function useBulkRecording() {
 ## Integration Points
 
 ### 1. **Bulk Selection System**
+
 ```typescript
 import { BulkSelectionProvider, useBulkSelection } from "@/components/providers/bulk-selection-provider";
 import { BulkAdminActions } from "@/components/admin/bulk-admin-actions";
 ```
 
 ### 2. **Form System**
+
 ```typescript
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 ```
 
 ### 3. **tRPC Integration**
+
 ```typescript
 const bulkRecordMutation = trpc.admin.recordBulk.useMutation();
 ```
@@ -263,16 +282,19 @@ server/api/routers/
 ## Testing Recommendations
 
 ### 1. **Unit Tests**
+
 - Form validation logic
 - Hook functionality
 - Utility functions
 
 ### 2. **Integration Tests**
+
 - tRPC mutation testing
 - Database transaction testing
 - Error handling scenarios
 
 ### 3. **E2E Tests**
+
 - Complete bulk recording workflow
 - Error recovery scenarios
 - Multiple animal selection and recording
@@ -280,15 +302,18 @@ server/api/routers/
 ## Performance Considerations
 
 ### 1. **Batch Size Limits**
+
 - Maximum 50 animals per batch to prevent timeouts
 - Can be adjusted based on performance testing
 
 ### 2. **Transaction Optimization**
+
 - Single transaction for all operations
 - Minimal database round trips
 - Efficient query patterns
 
 ### 3. **UI Performance**
+
 - Form state optimization
 - Proper React memoization
 - Efficient re-rendering patterns
@@ -296,16 +321,19 @@ server/api/routers/
 ## Security Considerations
 
 ### 1. **Input Validation**
+
 - Server-side validation for all inputs
 - Proper data sanitization
 - SQL injection prevention
 
 ### 2. **Authorization**
+
 - Household-scoped operations
 - Proper permission checks
 - Resource ownership validation
 
 ### 3. **Audit Trail**
+
 - Complete operation logging
 - User action tracking
 - Compliance documentation
@@ -313,18 +341,22 @@ server/api/routers/
 ## Future Enhancements
 
 ### 1. **Batch Operations**
+
 - Email notifications for large batches
 - Background processing for very large operations
 - Export functionality for batch results
 
 ### 2. **Advanced Features**
+
 - Scheduled bulk recordings
 - Template-based bulk operations
 - Bulk editing of existing records
 
 ### 3. **Analytics**
+
 - Bulk operation usage metrics
 - Performance monitoring
 - Error pattern analysis
 
-This implementation provides a production-ready bulk administration recording system with excellent user experience, robust error handling, and comprehensive transaction integrity.
+This implementation provides a production-ready bulk administration recording system with excellent user experience,
+robust error handling, and comprehensive transaction integrity.

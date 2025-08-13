@@ -2,7 +2,7 @@ name: Deploy to Staging
 
 on:
   push:
-    branches: [development]
+    branches: [ development ]
   workflow_dispatch:
 
 permissions:
@@ -60,7 +60,7 @@ jobs:
 
   deploy-staging:
     name: Deploy to Staging
-    needs: [pre-checks, test]
+    needs: [ pre-checks, test ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -79,7 +79,7 @@ jobs:
 
   smoke-tests:
     name: Staging Smoke Tests
-    needs: [pre-checks, deploy-staging]
+    needs: [ pre-checks, deploy-staging ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -92,7 +92,7 @@ jobs:
 
   pr-comment:
     name: Update PR Comment
-    needs: [pre-checks, deploy-staging, smoke-tests]
+    needs: [ pre-checks, deploy-staging, smoke-tests ]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && needs.deploy-staging.result == 'success'
     permissions:
@@ -114,7 +114,7 @@ jobs:
 
   cleanup:
     name: Cleanup
-    needs: [pre-checks, deploy-staging, smoke-tests]
+    needs: [ pre-checks, deploy-staging, smoke-tests ]
     runs-on: ubuntu-latest
     if: always() && needs.pre-checks.outputs.should-deploy == 'true'
     permissions:

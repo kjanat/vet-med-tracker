@@ -1,5 +1,5 @@
 import { HistoryPageLoading } from "@/components/loading/page-loading";
 
 export default function Loading() {
-	return <HistoryPageLoading />;
+  return <HistoryPageLoading />;
 }

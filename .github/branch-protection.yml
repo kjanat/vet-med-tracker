@@ -35,9 +35,9 @@ main:
     
     # Restrict who can push to the branch
     restrictions:
-      users: []
-      teams: []
-      apps: []
+      users: [ ]
+      teams: [ ]
+      apps: [ ]
     
     # Allow force pushes
     allow_force_pushes: false
@@ -123,8 +123,8 @@ environments:
     # Production deployment rules
     protection_rules:
       - required_reviewers:
-          users: []
-          teams: []
+          users: [ ]
+          teams: [ ]
       - wait_timer: 0  # No wait time
       - prevent_self_review: true
       - deployment_branch_policy:
@@ -150,13 +150,13 @@ environments:
     # Preview deployment rules (for PRs)
     protection_rules:
       - required_reviewers:
-          users: []
-          teams: []
+          users: [ ]
+          teams: [ ]
       - wait_timer: 0
       - prevent_self_review: false
       - deployment_branch_policy:
           protected_branches: false
-          custom_branch_policies: []
+          custom_branch_policies: [ ]
     
     # Preview environment uses same secrets as production
     secrets_inherit_from: production
@@ -174,22 +174,22 @@ setup_script: |
   gh api repos/$REPO/branches/main/protection \
     --method PUT \
     --input - <<'JSON'
-{
-  "required_status_checks": {
-    "strict": true,
-    "contexts": ["Code Quality","Build","Tests (unit)","Tests (integration)","E2E Tests (chromium)","CI Summary"]
-  },
-  "enforce_admins": false,
-  "required_pull_request_reviews": {
-    "required_approving_review_count": 1,
-    "dismiss_stale_reviews": true
-  },
-  "restrictions": null,
-  "allow_force_pushes": false,
-  "allow_deletions": false,
-  "required_conversation_resolution": true,
-  "lock_branch": false
-}
-JSON
+  {
+    "required_status_checks": {
+      "strict": true,
+      "contexts": [ "Code Quality","Build","Tests (unit)","Tests (integration)","E2E Tests (chromium)","CI Summary" ]
+    },
+    "enforce_admins": false,
+    "required_pull_request_reviews": {
+      "required_approving_review_count": 1,
+      "dismiss_stale_reviews": true
+    },
+    "restrictions": null,
+    "allow_force_pushes": false,
+    "allow_deletions": false,
+    "required_conversation_resolution": true,
+    "lock_branch": false
+  }
+  JSON
   
   echo "Branch protection rules configured successfully"

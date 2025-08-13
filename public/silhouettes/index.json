@@ -1,35 +1,35 @@
 {
-	"totalImages": 14,
-	"animals": {
-		"birds": [
-			"birds-a9ea8058-61c9-4c1f-811c-1345e53e53a0.svg",
-			"birds-cbacc780-58ef-4a04-98e3-c1c66c25d290.svg"
-		],
-		"cats": [
-			"cats-a3fb4098-a1e6-4f1c-9054-782ac8ab0eac.svg",
-			"cats-e25f1863-331b-4891-8084-fe8602e4cf8d.svg"
-		],
-		"mice": [
-			"mice-7b6e2afb-1371-4d92-b386-2e178de64f7f.svg",
-			"mice-f0192ecd-0107-4b6a-aa0e-442a45fad567.svg"
-		],
-		"rabbits": [
-			"rabbits-ad7d2a9d-ef0d-46f2-895d-7c67bb8e6355.svg",
-			"rabbits-a87a3826-dc6c-4bad-8a89-82553e8e8ea0.svg"
-		],
-		"dogs": [
-			"dogs-e4e0554d-7753-4a17-a6d1-06bf6abf7262.svg",
-			"dogs-fc4771f3-dfd8-44c8-90a7-2b6558604fa2.svg"
-		],
-		"horses": [
-			"horses-eed9512e-fb13-46b2-a846-8b149cea7288.svg",
-			"horses-de4f0606-7e53-4439-8105-797546c7d1c4.svg"
-		],
-		"goldfish": [
-			"goldfish-abcb9d2c-db21-4b63-b8e7-b770b11ad288.svg",
-			"goldfish-de187ba5-0498-4d2e-a688-70245c354c5f.svg"
-		]
-	},
-	"curatedAt": "2025-08-04T00:55:37.100Z",
-	"silhouettesPerAnimal": 2
+  "totalImages": 14,
+  "animals": {
+    "birds": [
+      "birds-a9ea8058-61c9-4c1f-811c-1345e53e53a0.svg",
+      "birds-cbacc780-58ef-4a04-98e3-c1c66c25d290.svg"
+    ],
+    "cats": [
+      "cats-a3fb4098-a1e6-4f1c-9054-782ac8ab0eac.svg",
+      "cats-e25f1863-331b-4891-8084-fe8602e4cf8d.svg"
+    ],
+    "mice": [
+      "mice-7b6e2afb-1371-4d92-b386-2e178de64f7f.svg",
+      "mice-f0192ecd-0107-4b6a-aa0e-442a45fad567.svg"
+    ],
+    "rabbits": [
+      "rabbits-ad7d2a9d-ef0d-46f2-895d-7c67bb8e6355.svg",
+      "rabbits-a87a3826-dc6c-4bad-8a89-82553e8e8ea0.svg"
+    ],
+    "dogs": [
+      "dogs-e4e0554d-7753-4a17-a6d1-06bf6abf7262.svg",
+      "dogs-fc4771f3-dfd8-44c8-90a7-2b6558604fa2.svg"
+    ],
+    "horses": [
+      "horses-eed9512e-fb13-46b2-a846-8b149cea7288.svg",
+      "horses-de4f0606-7e53-4439-8105-797546c7d1c4.svg"
+    ],
+    "goldfish": [
+      "goldfish-abcb9d2c-db21-4b63-b8e7-b770b11ad288.svg",
+      "goldfish-de187ba5-0498-4d2e-a688-70245c354c5f.svg"
+    ]
+  },
+  "curatedAt": "2025-08-04T00:55:37.100Z",
+  "silhouettesPerAnimal": 2
 }

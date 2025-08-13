@@ -8,9 +8,9 @@ import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
 
 interface VAPIDConfig {
-	publicKey: string;
-	privateKey: string;
-	subject: string;
+  publicKey: string;
+  privateKey: string;
+  subject: string;
 }
 
 /**
@@ -18,22 +18,22 @@ interface VAPIDConfig {
  * Returns null if VAPID keys are not configured (for optional push notifications)
  */
 export function getVAPIDConfig(): VAPIDConfig | null {
-	const publicKey = process.env.VAPID_PUBLIC_KEY;
-	const privateKey = process.env.VAPID_PRIVATE_KEY;
-	const subject = process.env.VAPID_SUBJECT || "mailto:admin@vetmedtracker.com";
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  const subject = process.env.VAPID_SUBJECT || "mailto:admin@vetmedtracker.com";
 
-	if (!publicKey || !privateKey) {
-		console.warn(
-			"VAPID keys not configured. Push notifications will be disabled. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to enable.",
-		);
-		return null;
-	}
+  if (!publicKey || !privateKey) {
+    console.warn(
+      "VAPID keys not configured. Push notifications will be disabled. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to enable.",
+    );
+    return null;
+  }
 
-	return {
-		publicKey,
-		privateKey,
-		subject,
-	};
+  return {
+    publicKey,
+    privateKey,
+    subject,
+  };
 }
 
 /**
@@ -41,26 +41,26 @@ export function getVAPIDConfig(): VAPIDConfig | null {
  * Returns null if not configured
  */
 export function getPublicVAPIDKey(): string | null {
-	const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
 
-	if (!publicKey) {
-		console.warn(
-			"VAPID public key not configured. Push notifications will be disabled.",
-		);
-		return null;
-	}
+  if (!publicKey) {
+    console.warn(
+      "VAPID public key not configured. Push notifications will be disabled.",
+    );
+    return null;
+  }
 
-	return publicKey;
+  return publicKey;
 }
 
 /**
  * Validate VAPID configuration
  */
 export function validateVAPIDConfig(): boolean {
-	try {
-		getVAPIDConfig();
-		return true;
-	} catch {
-		return false;
-	}
+  try {
+    getVAPIDConfig();
+    return true;
+  } catch {
+    return false;
+  }
 }

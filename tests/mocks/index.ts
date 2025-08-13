@@ -7,11 +7,11 @@
 export * from "./stack-auth";
 // Re-export commonly used test utilities
 export {
-	createMockSession,
-	createMockUser,
-	default as StackAuthMocks,
-	StackAuthPlaywrightHelpers,
-	StackAuthTestUtils,
-	stackAuthMocks,
-	TEST_USERS,
+  createMockSession,
+  createMockUser,
+  default as StackAuthMocks,
+  StackAuthPlaywrightHelpers,
+  StackAuthTestUtils,
+  stackAuthMocks,
+  TEST_USERS,
 } from "./stack-auth";
