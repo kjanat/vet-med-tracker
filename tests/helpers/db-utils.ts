@@ -3,6 +3,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { afterAll, beforeAll, beforeEach } from "vitest";
 // Import your schema tables (you'll need to update these imports based on your actual schema)
+import * as schema from "@/db/schema";
 import { animals, households, memberships, users } from "@/db/schema";
 
 // Test database connection
@@ -11,7 +12,7 @@ const testDbUrl =
   process.env.DATABASE_URL ||
   "postgresql://test:test@localhost:5432/vetmed_test";
 const sqlClient = neon(testDbUrl);
-export const testDb = drizzle(sqlClient);
+export const testDb = drizzle(sqlClient, { schema });
 
 // Database lifecycle hooks
 export function setupTestDatabase() {

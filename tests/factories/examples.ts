@@ -19,6 +19,7 @@ import {
   createHousehold,
   createMedication,
   createUser,
+  inventoryPresets,
   medicationPresets,
   quickScenarios,
   TestScenarioBuilder,
@@ -87,8 +88,8 @@ describe("Example 3: Scenario Builder Usage", () => {
     const scenario = TestScenarioBuilder.create()
       .withUsers(2, "completed") // Owner and caregiver
       .withHouseholds(1, "family")
-      .withHouseholdMembers(0, [0, 1], ["OWNER", "CAREGIVER"]) // Both users in household
-      .withAnimals(2, 0, "dog") // Two dogs in household 0
+      .withHouseholdMembers(0, [0, 1], ["OWNER", "CAREGIVER"]) // Both users in a household
+      .withAnimals(2, 0, "dog") // Two dogs in the household 0
       .withMedications(3, "antibiotic") // Three antibiotics
       .withRegimens(0, 0, "bid") // Dog 0, Medication 0, twice daily
       .withRegimens(1, 1, "daily") // Dog 1, Medication 1, once daily
@@ -229,15 +230,16 @@ describe("Example 6: Inventory Testing", () => {
     ];
 
     // Verify different states
-    expect(inventoryScenarios[0].unitsRemaining).toBe(
-      inventoryScenarios[0].quantityUnits,
+    expect(inventoryScenarios[0]?.unitsRemaining).toBe(
+      inventoryScenarios[0]?.quantityUnits,
     ); // New = full
-    expect(inventoryScenarios[1].inUse).toBe(true); // Partially used = in use
-    expect(inventoryScenarios[4].unitsRemaining).toBe(0); // Empty = 0 remaining
+    expect(inventoryScenarios[1]?.inUse).toBe(true); // Partially used = in use
+    expect(inventoryScenarios[4]?.unitsRemaining).toBe(0); // Empty = 0 remaining
 
     // Test expiration logic
     const expired = inventoryScenarios[3];
-    const expiredDate = new Date(expired.expiresOn!);
+    if (!expired) throw new Error("Expected expired inventory");
+    const expiredDate = new Date(expired.expiresOn ?? "");
     expect(expiredDate.getTime()).toBeLessThan(Date.now()); // Should be in the past
   });
 });
@@ -305,7 +307,8 @@ describe("Example 8: Multi-Household Scenarios", () => {
     expect(
       rescueAnimals.some(
         (animal) =>
-          animal.notes?.includes("Rescue") || animal.conditions?.length! > 0,
+          animal.notes?.includes("Rescue") ||
+          (animal.conditions?.length ?? 0) > 0,
       ),
     ).toBe(true);
 
@@ -326,15 +329,15 @@ describe("Example 9: Performance Testing", () => {
     const largeScenario = TestScenarioBuilder.create()
       .withUsers(10, "completed")
       .withHouseholds(5, "family")
-      .withAnimals(20, 0) // 20 animals in first household
+      .withAnimals(20, 0) // 20 animals in the first household
       .withMedications(15)
       .build();
 
     const endTime = Date.now();
     const generationTime = endTime - startTime;
 
-    // Should generate large datasets quickly (< 100ms for this size)
-    expect(generationTime).toBeLessThan(1000); // 1 second max
+    // Should generate large datasets quickly (< 100 ms for this size)
+    expect(generationTime).toBeLessThan(1000); // 1-second max
     expect(largeScenario.users.length).toBe(10);
     expect(largeScenario.animals.length).toBe(20);
     expect(largeScenario.medications.length).toBe(15);
@@ -371,8 +374,8 @@ describe("Example 10: Custom Scenarios", () => {
     // - Drug interaction monitoring
 
     const complexAnimal = interactionTestScenario.animals[0];
-    expect(complexAnimal.conditions?.length).toBe(3);
-    expect(complexAnimal.notes).toContain("interactions");
+    expect(complexAnimal?.conditions?.length).toBe(3);
+    expect(complexAnimal?.notes).toContain("interactions");
     expect(interactionTestScenario.medications.length).toBe(3);
   });
 });
@@ -388,19 +391,28 @@ describe("Example 11: Integration with Test Database", () => {
     const scenario = quickScenarios.singleUserOnePet();
 
     // Insert using existing database helpers
+    const userToInsert = scenario.users[0];
+    if (!userToInsert) throw new Error("No user found in scenario");
     const insertedUser = await testDb
       .insert(users)
-      .values(scenario.users[0])
+      .values(userToInsert)
       .returning();
+    const householdToInsert = scenario.households[0];
+    if (!householdToInsert) throw new Error("No household found in scenario");
     const insertedHousehold = await testDb
       .insert(households)
-      .values(scenario.households[0])
+      .values(householdToInsert)
       .returning();
+    const animalToInsert = scenario.animals[0];
+    const insertedHouseholdId = insertedHousehold[0]?.id;
+    if (!animalToInsert || !insertedHouseholdId) {
+      throw new Error("Missing animal or household data");
+    }
     const insertedAnimal = await testDb
       .insert(animals)
       .values({
-        ...scenario.animals[0],
-        householdId: insertedHousehold[0].id,
+        ...animalToInsert,
+        householdId: insertedHouseholdId,
       })
       .returning();
 
@@ -410,11 +422,14 @@ describe("Example 11: Integration with Test Database", () => {
     expect(insertedAnimal).toHaveLength(1);
 
     // Query back to verify relationships
+    const insertedAnimalId = insertedAnimal[0]?.id;
+    if (!insertedAnimalId) throw new Error("No animal id found");
+
     const queriedAnimal = await testDb.query.animals.findFirst({
-      where: (animals, { eq }) => eq(animals.id, insertedAnimal[0].id),
+      where: (animals: any, { eq }: any) => eq(animals.id, insertedAnimalId),
       with: { household: true },
     });
 
-    expect(queriedAnimal?.household?.id).toBe(insertedHousehold[0].id);
+    expect(queriedAnimal?.household?.id).toBe(insertedHousehold[0]?.id);
   });
 });
