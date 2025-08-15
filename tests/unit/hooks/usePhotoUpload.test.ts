@@ -43,8 +43,7 @@ const createMockFile = (
   size: number = 1024,
   type: string = "image/jpeg",
 ): File => {
-  const file = new File([new ArrayBuffer(size)], name, { type });
-  return file;
+  return new File([new ArrayBuffer(size)], name, { type });
 };
 
 describe("usePhotoUpload", () => {
@@ -271,7 +270,9 @@ describe("usePhotoUpload", () => {
     );
 
     let resolveFirst: (value: File) => void;
-    let resolveSecond: (value: File) => void;
+    let resolveSecond: (
+      value: PromiseLike<CompressionResult> | CompressionResult,
+    ) => void;
 
     mockCompressImage
       .mockImplementationOnce(
@@ -391,8 +392,12 @@ describe("usePhotoUpload", () => {
   it("tracks upload progress for multiple files", async () => {
     const { result } = renderHook(() => usePhotoUpload());
 
-    let resolveFirst: (value: File) => void;
-    let resolveSecond: (value: File) => void;
+    let resolveFirst: (
+      value: PromiseLike<CompressionResult> | CompressionResult,
+    ) => void;
+    let resolveSecond: (
+      value: PromiseLike<CompressionResult> | CompressionResult,
+    ) => void;
 
     mockCompressImage
       .mockImplementationOnce(

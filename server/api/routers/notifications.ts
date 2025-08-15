@@ -469,6 +469,9 @@ export const notificationsRouter = createTRPCRouter({
 
     // Configure web-push
     const vapidConfig = getVAPIDConfig();
+    if (!vapidConfig) {
+      throw new Error("VAPID configuration not available");
+    }
     webpush.setVapidDetails(
       vapidConfig.subject,
       vapidConfig.publicKey,
@@ -520,7 +523,11 @@ export const notificationsRouter = createTRPCRouter({
         console.error("Push notification failed:", error);
 
         // If subscription is invalid, mark as inactive
-        if (error.statusCode === 410) {
+        if (
+          error instanceof Error &&
+          "statusCode" in error &&
+          error.statusCode === 410
+        ) {
           await ctx.db
             .update(pushSubscriptions)
             .set({
@@ -533,7 +540,7 @@ export const notificationsRouter = createTRPCRouter({
         results.push({
           success: false,
           subscriptionId: subscription.id,
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
         });
       }
     }
@@ -547,6 +554,9 @@ export const notificationsRouter = createTRPCRouter({
 
   getVAPIDPublicKey: protectedProcedure.query(() => {
     const vapidConfig = getVAPIDConfig();
+    if (!vapidConfig) {
+      throw new Error("VAPID configuration not available");
+    }
     return { publicKey: vapidConfig.publicKey };
   }),
 });

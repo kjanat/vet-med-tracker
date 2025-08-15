@@ -1,5 +1,5 @@
 import { expect, vi } from "vitest";
-import { appRouter } from "@/server/api/routers/_app";
+import { appRouter } from "@/server/api/root";
 import type { Context } from "@/server/api/trpc";
 import {
   createMockUser,

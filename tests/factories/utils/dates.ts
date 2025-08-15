@@ -33,6 +33,16 @@ export const dates = {
     return new Date(start + random.float(0, 1) * (end - start));
   },
 
+  // Past and recent dates
+  datePast: (daysAgo: number) => {
+    return new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+  },
+
+  dateRecent: (daysWithin: number) => {
+    const randomDays = random.int(0, daysWithin);
+    return new Date(Date.now() - randomDays * 24 * 60 * 60 * 1000);
+  },
+
   // Medical-specific dates
   birthDate: (ageYears?: number, ageMonths?: number) => {
     const now = new Date();

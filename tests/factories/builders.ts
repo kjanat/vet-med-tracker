@@ -140,6 +140,13 @@ export class TestScenarioBuilder {
       const role = roles[i] || "CAREGIVER";
       const user = this.scenario.users[userIndex];
 
+      if (!user) {
+        throw new Error(`User at index ${userIndex} not found`);
+      }
+      if (!household) {
+        throw new Error(`Household not found`);
+      }
+
       household.memberships.push({
         id: random.uuid(),
         userId: user.id!,
@@ -163,7 +170,13 @@ export class TestScenarioBuilder {
       throw new Error(`Household index ${householdIndex} out of range`);
     }
 
-    const householdId = this.scenario.households[householdIndex].household.id!;
+    const household = this.scenario.households[householdIndex]?.household;
+    if (!household?.id) {
+      throw new Error(
+        `Household at index ${householdIndex} not found or missing id`,
+      );
+    }
+    const householdId = household.id;
 
     for (let i = 0; i < count; i++) {
       let animal: NewAnimal;
@@ -198,9 +211,14 @@ export class TestScenarioBuilder {
       throw new Error(`Household index ${householdIndex} out of range`);
     }
 
-    const householdId = this.scenario.households[householdIndex].household.id!;
+    const household = this.scenario.households[householdIndex]?.household;
+    if (!household?.id) {
+      throw new Error(
+        `Household at index ${householdIndex} not found or missing id`,
+      );
+    }
     const animal = animalBuilder(
-      AnimalBuilder.create().withHousehold(householdId),
+      AnimalBuilder.create().withHousehold(household.id),
     ).build();
     this.scenario.animals.push(animal);
     return this;
@@ -270,37 +288,46 @@ export class TestScenarioBuilder {
     const animal = this.scenario.animals[animalIndex];
     const medication = this.scenario.medications[medicationIndex];
 
+    if (!animal?.id) {
+      throw new Error(`Animal at index ${animalIndex} not found or missing id`);
+    }
+    if (!medication?.id) {
+      throw new Error(
+        `Medication at index ${medicationIndex} not found or missing id`,
+      );
+    }
+
     let regimen: NewRegimen;
 
     switch (regimenType) {
       case "daily":
         regimen = RegimenBuilder.create()
-          .forAnimal(animal.id!)
-          .withMedication(medication.id!)
+          .forAnimal(animal.id)
+          .withMedication(medication.id)
           .withFixedSchedule(["08:00"])
           .withDuration(dates.yesterday(), dates.weeksFromNow(4))
           .build();
         break;
       case "bid":
         regimen = RegimenBuilder.create()
-          .forAnimal(animal.id!)
-          .withMedication(medication.id!)
+          .forAnimal(animal.id)
+          .withMedication(medication.id)
           .withFixedSchedule(["08:00", "20:00"])
           .withDuration(dates.yesterday(), dates.weeksFromNow(2))
           .build();
         break;
       case "prn":
         regimen = RegimenBuilder.create()
-          .forAnimal(animal.id!)
-          .withMedication(medication.id!)
+          .forAnimal(animal.id)
+          .withMedication(medication.id)
           .withPrnSchedule("Pain management", 3)
           .withDuration(dates.yesterday(), dates.weeksFromNow(4))
           .build();
         break;
       default:
         regimen = createRegimen({
-          animalId: animal.id!,
-          medicationId: medication.id!,
+          animalId: animal.id,
+          medicationId: medication.id,
         });
     }
 
@@ -321,14 +348,28 @@ export class TestScenarioBuilder {
 
     const regimen = this.scenario.regimens[regimenIndex];
     const user = this.scenario.users[userIndex];
-    const household = this.scenario.households[householdIndex].household;
+    const household = this.scenario.households[householdIndex]?.household;
+
+    if (!regimen?.id) {
+      throw new Error(
+        `Regimen at index ${regimenIndex} not found or missing id`,
+      );
+    }
+    if (!user?.id) {
+      throw new Error(`User at index ${userIndex} not found or missing id`);
+    }
+    if (!household?.id) {
+      throw new Error(
+        `Household at index ${householdIndex} not found or missing id`,
+      );
+    }
 
     for (let i = 0; i < count; i++) {
       const administration = AdministrationBuilder.create()
-        .forRegimen(regimen.id!)
-        .forAnimal(regimen.animalId!)
-        .inHousehold(household.id!)
-        .byCaregiver(user.id!)
+        .forRegimen(regimen.id)
+        .forAnimal(regimen.animalId)
+        .inHousehold(household.id)
+        .byCaregiver(user.id)
         .scheduledFor(dates.hoursFromNow(-random.int(1, 168))) // Last week
         .withStatus(
           random.arrayElement(["ON_TIME", "LATE", "MISSED", "PRN"] as const),
@@ -351,15 +392,26 @@ export class TestScenarioBuilder {
     }
 
     const medication = this.scenario.medications[medicationIndex];
-    const household = this.scenario.households[householdIndex].household;
+    const household = this.scenario.households[householdIndex]?.household;
+
+    if (!medication?.id) {
+      throw new Error(
+        `Medication at index ${medicationIndex} not found or missing id`,
+      );
+    }
+    if (!household?.id) {
+      throw new Error(
+        `Household at index ${householdIndex} not found or missing id`,
+      );
+    }
 
     let inventory: NewInventoryItem;
 
     switch (inventoryType) {
       case "new":
         inventory = InventoryBuilder.create()
-          .inHousehold(household.id!)
-          .forMedication(medication.id!)
+          .inHousehold(household.id)
+          .forMedication(medication.id)
           .withQuantity(30, 30)
           .expiresIn(18)
           .isNotInUse()
@@ -367,8 +419,8 @@ export class TestScenarioBuilder {
         break;
       case "partial":
         inventory = InventoryBuilder.create()
-          .inHousehold(household.id!)
-          .forMedication(medication.id!)
+          .inHousehold(household.id)
+          .forMedication(medication.id)
           .withQuantity(30, random.int(10, 25))
           .expiresIn(12)
           .isInUse()
@@ -376,8 +428,8 @@ export class TestScenarioBuilder {
         break;
       case "low":
         inventory = InventoryBuilder.create()
-          .inHousehold(household.id!)
-          .forMedication(medication.id!)
+          .inHousehold(household.id)
+          .forMedication(medication.id)
           .withQuantity(30, random.int(1, 5))
           .expiresIn(6)
           .isInUse()
@@ -385,16 +437,16 @@ export class TestScenarioBuilder {
         break;
       case "expired":
         inventory = InventoryBuilder.create()
-          .inHousehold(household.id!)
-          .forMedication(medication.id!)
+          .inHousehold(household.id)
+          .forMedication(medication.id)
           .withQuantity(20, random.int(5, 15))
           .isExpired()
           .build();
         break;
       default:
         inventory = createInventoryItem({
-          householdId: household.id!,
-          medicationId: medication.id!,
+          householdId: household.id,
+          medicationId: medication.id,
         });
     }
 
@@ -409,12 +461,21 @@ export class TestScenarioBuilder {
     count: number,
   ): TestScenarioBuilder {
     const user = this.scenario.users[userIndex];
-    const household = this.scenario.households[householdIndex].household;
+    const household = this.scenario.households[householdIndex]?.household;
+
+    if (!user?.id) {
+      throw new Error(`User at index ${userIndex} not found or missing id`);
+    }
+    if (!household?.id) {
+      throw new Error(
+        `Household at index ${householdIndex} not found or missing id`,
+      );
+    }
 
     for (let i = 0; i < count; i++) {
       const notification = NotificationBuilder.create()
-        .forUser(user.id!)
-        .inHousehold(household.id!)
+        .forUser(user.id)
+        .inHousehold(household.id)
         .withType(
           random.arrayElement([
             "medication",
@@ -439,12 +500,21 @@ export class TestScenarioBuilder {
     count: number,
   ): TestScenarioBuilder {
     const user = this.scenario.users[userIndex];
-    const household = this.scenario.households[householdIndex].household;
+    const household = this.scenario.households[householdIndex]?.household;
+
+    if (!user?.id) {
+      throw new Error(`User at index ${userIndex} not found or missing id`);
+    }
+    if (!household?.id) {
+      throw new Error(
+        `Household at index ${householdIndex} not found or missing id`,
+      );
+    }
 
     for (let i = 0; i < count; i++) {
       const auditLog = AuditLogBuilder.create()
-        .byUser(user.id!)
-        .inHousehold(household.id!)
+        .byUser(user.id)
+        .inHousehold(household.id)
         .withAction(random.arrayElement(["CREATE", "UPDATE", "DELETE", "VIEW"]))
         .onResource(
           random.arrayElement([
@@ -499,7 +569,10 @@ export class ComplianceDataBuilder {
   }
 
   withRealisticPattern(days = 30): ComplianceDataBuilder {
-    const startDate = new Date(this.data.regimen.startDate!);
+    if (!this.data.regimen.startDate) {
+      throw new Error("Regimen start date is required");
+    }
+    const startDate = new Date(this.data.regimen.startDate);
     const endDate = new Date(
       Math.min(
         startDate.getTime() + days * 24 * 60 * 60 * 1000,
@@ -514,10 +587,10 @@ export class ComplianceDataBuilder {
     let complianceRate = 0.85; // Start with 85% compliance
 
     while (currentDate <= endDate) {
-      const times = this.data.regimen.timesLocal || ["08:00", "20:00"];
+      const times = this.data.regimen.timesLocal ?? ["08:00", "20:00"];
 
       for (const timeStr of times) {
-        const [hours, minutes] = timeStr.split(":").map(Number);
+        const [hours = 8, minutes = 0] = timeStr.split(":").map(Number);
         const scheduledTime = new Date(currentDate);
         scheduledTime.setHours(hours, minutes, 0, 0);
 
@@ -531,9 +604,12 @@ export class ComplianceDataBuilder {
           else if (rand < 0.98) status = "VERY_LATE";
           else status = "MISSED";
 
+          if (!this.data.regimen.id || !this.data.regimen.animalId) {
+            throw new Error("Regimen id and animalId are required");
+          }
           const administration = AdministrationBuilder.create()
-            .forRegimen(this.data.regimen.id!)
-            .forAnimal(this.data.regimen.animalId!)
+            .forRegimen(this.data.regimen.id)
+            .forAnimal(this.data.regimen.animalId)
             .scheduledFor(scheduledTime)
             .withStatus(status)
             .build();
@@ -553,20 +629,26 @@ export class ComplianceDataBuilder {
 
   withPerfectCompliance(days = 14): ComplianceDataBuilder {
     // Generate perfect compliance for testing
-    const startDate = new Date(this.data.regimen.startDate!);
+    if (!this.data.regimen.startDate) {
+      throw new Error("Regimen start date is required");
+    }
+    const startDate = new Date(this.data.regimen.startDate);
     const currentDate = new Date(startDate);
 
     for (let day = 0; day < days; day++) {
-      const times = this.data.regimen.timesLocal || ["08:00", "20:00"];
+      const times = this.data.regimen.timesLocal ?? ["08:00", "20:00"];
 
       for (const timeStr of times) {
-        const [hours, minutes] = timeStr.split(":").map(Number);
+        const [hours = 8, minutes = 0] = timeStr.split(":").map(Number);
         const scheduledTime = new Date(currentDate);
         scheduledTime.setHours(hours, minutes, 0, 0);
 
+        if (!this.data.regimen.id || !this.data.regimen.animalId) {
+          throw new Error("Regimen id and animalId are required");
+        }
         const administration = AdministrationBuilder.create()
-          .forRegimen(this.data.regimen.id!)
-          .forAnimal(this.data.regimen.animalId!)
+          .forRegimen(this.data.regimen.id)
+          .forAnimal(this.data.regimen.animalId)
           .scheduledFor(scheduledTime)
           .withStatus("ON_TIME")
           .build();
@@ -582,14 +664,17 @@ export class ComplianceDataBuilder {
 
   withPoorCompliance(days = 21): ComplianceDataBuilder {
     // Generate poor compliance pattern for testing
-    const startDate = new Date(this.data.regimen.startDate!);
+    if (!this.data.regimen.startDate) {
+      throw new Error("Regimen start date is required");
+    }
+    const startDate = new Date(this.data.regimen.startDate);
     const currentDate = new Date(startDate);
 
     for (let day = 0; day < days; day++) {
-      const times = this.data.regimen.timesLocal || ["08:00", "20:00"];
+      const times = this.data.regimen.timesLocal ?? ["08:00", "20:00"];
 
       for (const timeStr of times) {
-        const [hours, minutes] = timeStr.split(":").map(Number);
+        const [hours = 8, minutes = 0] = timeStr.split(":").map(Number);
         const scheduledTime = new Date(currentDate);
         scheduledTime.setHours(hours, minutes, 0, 0);
 
@@ -602,9 +687,12 @@ export class ComplianceDataBuilder {
             { weight: 20, value: "MISSED" as const },
           ]);
 
+          if (!this.data.regimen.id || !this.data.regimen.animalId) {
+            throw new Error("Regimen id and animalId are required");
+          }
           const administration = AdministrationBuilder.create()
-            .forRegimen(this.data.regimen.id!)
-            .forAnimal(this.data.regimen.animalId!)
+            .forRegimen(this.data.regimen.id)
+            .forAnimal(this.data.regimen.animalId)
             .scheduledFor(scheduledTime)
             .withStatus(status)
             .build();

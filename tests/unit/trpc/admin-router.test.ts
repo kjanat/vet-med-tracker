@@ -26,6 +26,7 @@ describe("adminRouter", () => {
 
   describe("create", () => {
     const validInput = {
+      householdId: testConfig.mockSession.access.householdId,
       animalId: testAnimal.id,
       regimenId: testRegimen.id,
       recordedAt: new Date("2023-06-15T12:00:00Z"),
@@ -41,7 +42,11 @@ describe("adminRouter", () => {
       mockDb.select.mockReturnValueOnce({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
+        leftJoin: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
+        offset: vi.fn().mockReturnThis(),
         execute: vi.fn().mockResolvedValue([
           {
             id: testAnimal.id,
@@ -55,7 +60,11 @@ describe("adminRouter", () => {
       mockDb.select.mockReturnValueOnce({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
+        leftJoin: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
+        offset: vi.fn().mockReturnThis(),
         execute: vi.fn().mockResolvedValue([
           {
             id: testRegimen.id,
@@ -86,7 +95,7 @@ describe("adminRouter", () => {
         execute: vi.fn().mockResolvedValue([testAdministration]),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       const result = await caller.create(validInput);
@@ -96,7 +105,7 @@ describe("adminRouter", () => {
     });
 
     it("should reject unauthenticated requests", async () => {
-      const ctx = createMockContext();
+      const ctx = await createMockContext();
       const caller = adminRouter.createCaller(ctx);
 
       await expect(caller.create(validInput)).rejects.toThrow(TRPCError);
@@ -108,7 +117,11 @@ describe("adminRouter", () => {
       mockDb.select.mockReturnValueOnce({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
+        leftJoin: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
+        offset: vi.fn().mockReturnThis(),
         execute: vi.fn().mockResolvedValue([
           {
             id: testAnimal.id,
@@ -118,7 +131,7 @@ describe("adminRouter", () => {
         ]),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       await expect(caller.create(validInput)).rejects.toThrow(TRPCError);
@@ -133,7 +146,11 @@ describe("adminRouter", () => {
         .mockReturnValueOnce({
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
+          leftJoin: vi.fn().mockReturnThis(),
+          innerJoin: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
           limit: vi.fn().mockReturnThis(),
+          offset: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue([
             {
               id: testAnimal.id,
@@ -145,7 +162,11 @@ describe("adminRouter", () => {
         .mockReturnValueOnce({
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
+          leftJoin: vi.fn().mockReturnThis(),
+          innerJoin: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
           limit: vi.fn().mockReturnThis(),
+          offset: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue([
             {
               id: testRegimen.id,
@@ -157,11 +178,15 @@ describe("adminRouter", () => {
         .mockReturnValueOnce({
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
+          leftJoin: vi.fn().mockReturnThis(),
+          innerJoin: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
           limit: vi.fn().mockReturnThis(),
+          offset: vi.fn().mockReturnThis(),
           execute: vi.fn().mockResolvedValue([testAdministration]), // Existing record
         });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       const result = await caller.create(validInput);
@@ -172,7 +197,7 @@ describe("adminRouter", () => {
     });
 
     it("should validate required fields", async () => {
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       await expect(
@@ -198,7 +223,7 @@ describe("adminRouter", () => {
     });
 
     it("should validate status enum values", async () => {
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       await expect(
@@ -213,13 +238,17 @@ describe("adminRouter", () => {
       mockDb.select.mockReturnValueOnce({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
+        leftJoin: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
+        offset: vi.fn().mockReturnThis(),
         execute: vi
           .fn()
           .mockRejectedValue(new Error("Database connection failed")),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       await expect(caller.create(validInput)).rejects.toThrow(
@@ -241,20 +270,21 @@ describe("adminRouter", () => {
 
       mockDb.select.mockReturnValueOnce({
         from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
+        leftJoin: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
         offset: vi.fn().mockReturnThis(),
         execute: vi.fn().mockResolvedValue(mockAdministrations),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       const result = await caller.list({
+        householdId: testConfig.mockSession.access.householdId,
         limit: 10,
-        offset: 0,
       });
 
       expect(result).toEqual(mockAdministrations);
@@ -264,29 +294,32 @@ describe("adminRouter", () => {
     it("should filter by animal ID", async () => {
       mockDb.select.mockReturnValueOnce({
         from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
         where: vi.fn().mockImplementation(() => {
           // Verify that animal filter is applied
           return {
+            leftJoin: vi.fn().mockReturnThis(),
+            innerJoin: vi.fn().mockReturnThis(),
             orderBy: vi.fn().mockReturnThis(),
             limit: vi.fn().mockReturnThis(),
             offset: vi.fn().mockReturnThis(),
             execute: vi.fn().mockResolvedValue([testAdministration]),
           };
         }),
+        leftJoin: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
         offset: vi.fn().mockReturnThis(),
         execute: vi.fn().mockResolvedValue([testAdministration]),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       const result = await caller.list({
+        householdId: testConfig.mockSession.access.householdId,
         animalId: testAnimal.id,
         limit: 10,
-        offset: 0,
       });
 
       expect(result).toEqual([testAdministration]);
@@ -298,22 +331,23 @@ describe("adminRouter", () => {
 
       mockDb.select.mockReturnValueOnce({
         from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
+        leftJoin: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
         offset: vi.fn().mockReturnThis(),
         execute: vi.fn().mockResolvedValue([testAdministration]),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       const result = await caller.list({
-        startDate,
-        endDate,
+        householdId: testConfig.mockSession.access.householdId,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
         limit: 10,
-        offset: 0,
       });
 
       expect(result).toEqual([testAdministration]);
@@ -344,7 +378,7 @@ describe("adminRouter", () => {
         execute: vi.fn().mockResolvedValue([testAdministration]),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       const result = await caller.delete({
@@ -368,7 +402,7 @@ describe("adminRouter", () => {
         execute: vi.fn().mockResolvedValue([]),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       await expect(
@@ -415,7 +449,7 @@ describe("adminRouter", () => {
         ]),
       });
 
-      const ctx = createAuthenticatedContext();
+      const ctx = await createAuthenticatedContext();
       const caller = adminRouter.createCaller(ctx);
 
       const result = await caller.recordBulk(validBulkInput);

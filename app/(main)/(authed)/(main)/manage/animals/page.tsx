@@ -56,6 +56,7 @@ function AnimalList({
     name: string;
     species: string;
     pendingMeds: number;
+    timezone?: string;
   }>;
   timezone: string;
 }) {

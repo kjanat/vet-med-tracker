@@ -43,12 +43,14 @@ interface Animal {
   species: string;
   avatar?: string;
   pendingMeds: number;
+  timezone?: string;
 }
 
 interface Household {
   id: string;
   name: string;
   avatar?: string;
+  timezone?: string;
 }
 
 interface UserProfile {
@@ -673,6 +675,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
         id: h.id,
         name: h.name,
         avatar: undefined, // TODO: Add avatar support
+        timezone: h.timezone,
       }));
     },
     [],
@@ -749,6 +752,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
         species: animal.species,
         avatar: undefined, // TODO: Add avatar support
         pendingMeds: pendingByAnimal[animal.id] || 0,
+        timezone: animal.timezone,
       }));
     },
     [],

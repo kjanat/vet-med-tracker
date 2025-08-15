@@ -41,7 +41,10 @@ const BulkFormSkeleton = () => (
 
 // Dynamic imports with loading states
 export const LazyReportingDashboard = dynamic(
-  () => import("@/components/dashboard/ReportingDashboard"),
+  () =>
+    import("@/components/dashboard/ReportingDashboard").then((mod) => ({
+      default: mod.ReportingDashboard,
+    })),
   {
     loading: () => <DashboardSkeleton />,
     ssr: false, // Charts don't work well with SSR
@@ -126,7 +129,10 @@ export const LazyPhotoUploader = dynamic(
 );
 
 export const LazyBulkRecordingForm = dynamic(
-  () => import("@/components/admin/bulk-recording-form"),
+  () =>
+    import("@/components/admin/bulk-recording-form").then((mod) => ({
+      default: mod.BulkRecordingForm,
+    })),
   {
     loading: () => <BulkFormSkeleton />,
     ssr: false,
@@ -156,14 +162,23 @@ export const LazyDosageCalculator = dynamic(
 );
 
 // Calendar and date components that exist
-export const LazyCalendar = dynamic(() => import("@/components/ui/calendar"), {
-  loading: () => <Skeleton className="h-64 w-full" />,
-  ssr: false,
-});
+export const LazyCalendar = dynamic(
+  () =>
+    import("@/components/ui/calendar").then((mod) => ({
+      default: mod.Calendar,
+    })),
+  {
+    loading: () => <Skeleton className="h-64 w-full" />,
+    ssr: false,
+  },
+);
 
 // Heavy form components that exist
 export const LazyCommandDialog = dynamic(
-  () => import("@/components/ui/command"),
+  () =>
+    import("@/components/ui/command").then((mod) => ({
+      default: mod.Command,
+    })),
   {
     loading: () => <Skeleton className="h-32 w-full" />,
     ssr: false,

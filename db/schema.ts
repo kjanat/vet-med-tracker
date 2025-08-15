@@ -944,3 +944,19 @@ export type NewNotification = typeof vetmedNotifications.$inferInsert;
 export type NewSuggestion = typeof vetmedSuggestions.$inferInsert;
 export type NewCosignRequest = typeof vetmedCosignRequests.$inferInsert;
 export type NewPushSubscription = typeof vetmedPushSubscriptions.$inferInsert;
+export type NewAuditLog = typeof vetmedAuditLog.$inferInsert;
+
+// Select types for reading from database
+export type Administration = typeof vetmedAdministrations.$inferSelect;
+export type Animal = typeof vetmedAnimals.$inferSelect;
+export type User = typeof vetmedUsers.$inferSelect;
+export type Household = typeof vetmedHouseholds.$inferSelect;
+export type Membership = typeof vetmedMemberships.$inferSelect;
+export type Regimen = typeof vetmedRegimens.$inferSelect;
+export type InventoryItem = typeof vetmedInventoryItems.$inferSelect;
+export type MedicationCatalog = typeof vetmedMedicationCatalog.$inferSelect;
+export type Notification = typeof vetmedNotifications.$inferSelect;
+export type Suggestion = typeof vetmedSuggestions.$inferSelect;
+export type CosignRequest = typeof vetmedCosignRequests.$inferSelect;
+export type PushSubscription = typeof vetmedPushSubscriptions.$inferSelect;
+export type AuditLog = typeof vetmedAuditLog.$inferSelect;
