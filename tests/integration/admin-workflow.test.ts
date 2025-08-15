@@ -9,6 +9,7 @@ import {
 } from "@/tests/helpers/db-utils";
 import {
   createAuthenticatedContext,
+  mockSession,
   type TestSession,
 } from "@/tests/helpers/trpc-utils";
 import { StackAuthTestUtils } from "../mocks/stack-auth";

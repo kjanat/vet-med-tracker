@@ -54,7 +54,7 @@ const dosageCalculatorSchema = z.object({
   weight: z.number().positive("Weight must be positive"),
   weightUnit: z.enum(["kg", "lbs"]),
   route: z.string().optional(),
-  targetUnit: z.enum(["mg", "ml", "tablets"]).optional().default("mg"),
+  targetUnit: z.enum(["mg", "ml", "tablets"]).default("mg"),
   customAdjustment: z.string().optional(),
 });
 
@@ -427,8 +427,11 @@ export function DosageCalculator() {
               <div className="space-y-2">
                 <Separator />
                 <div className="font-medium text-sm">Alternative Formats:</div>
-                {calculationResult.alternativeFormats.map((format, index) => (
-                  <div key={index} className="text-muted-foreground text-sm">
+                {calculationResult.alternativeFormats.map((format) => (
+                  <div
+                    key={`${format.dose}-${format.unit}`}
+                    className="text-muted-foreground text-sm"
+                  >
                     {format.dose} {format.unit} - {format.description}
                   </div>
                 ))}
@@ -728,9 +731,9 @@ export function DosageCalculator() {
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-1">
-                          {calculationResult.warnings.map((warning, index) => (
+                          {calculationResult.warnings.map((warning) => (
                             <li
-                              key={index}
+                              key={warning}
                               className="text-sm text-yellow-700 dark:text-yellow-300"
                             >
                               • {warning}

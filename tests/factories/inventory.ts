@@ -18,17 +18,29 @@ export function createInventoryItem(
   const expiresOn = dates.expirationDate(random.int(6, 24));
 
   return {
-    id: random.uuid(),
-    householdId: random.uuid(), // Should be overridden with actual household ID
-    medicationId: random.uuid(), // Should be overridden with actual medication ID
-    assignedAnimalId: random.boolean(0.4) ? random.uuid() : null, // 40% assigned to specific animal
-    brandOverride: random.boolean(0.3) ? generateBrandOverride() : null,
-    concentration: generateConcentration(),
-    lot: generateLotNumber(),
+    assignedAnimalId: random.boolean(0.4) ? random.uuid() : null,
+    barcode: random.boolean(0.7) ? generateBarcode() : null, // Should be overridden with actual household ID
+    brandOverride: random.boolean(0.3) ? generateBrandOverride() : null, // Should be overridden with actual medication ID
+    concentration: generateConcentration(), // 40% assigned to specific animal
+    createdAt: dates.datePast(180).toISOString(),
+    deletedAt: null,
     expiresOn: dates.toDateString(expiresOn),
-    storage: storage.getRandomStorage() as any,
+    householdId: random.uuid(),
+    id: random.uuid(),
+    inUse: inUse,
+    lot: generateLotNumber(),
+    medicationId: random.uuid(),
+    notes: random.boolean(0.3) ? generateInventoryNotes() : null,
+    openedOn: inUse
+      ? dates.toDateString(dates.dateRecent(random.int(1, 30)))
+      : null,
+    purchaseDate: dates.toDateString(purchaseDate),
+    purchasePrice: random.boolean(0.8)
+      ? random.float(10, 200, 2).toString()
+      : null,
     quantityUnits: quantityUnits,
-    unitsRemaining: unitsRemaining,
+    storage: storage.getRandomStorage() as any,
+    supplier: random.boolean(0.8) ? generateSupplier() : null,
     unitType: random.arrayElement([
       "tablets",
       "capsules",
@@ -36,20 +48,8 @@ export function createInventoryItem(
       "doses",
       "syringes",
     ]),
-    openedOn: inUse
-      ? dates.toDateString(dates.dateRecent(random.int(1, 30)))
-      : null,
-    inUse: inUse,
-    barcode: random.boolean(0.7) ? generateBarcode() : null,
-    purchaseDate: dates.toDateString(purchaseDate),
-    purchasePrice: random.boolean(0.8)
-      ? random.float(10, 200, 2).toString()
-      : null,
-    supplier: random.boolean(0.8) ? generateSupplier() : null,
-    notes: random.boolean(0.3) ? generateInventoryNotes() : null,
-    createdAt: dates.datePast(180).toISOString(),
+    unitsRemaining: unitsRemaining,
     updatedAt: dates.dateRecent(7).toISOString(),
-    deletedAt: null,
     ...overrides,
   };
 }

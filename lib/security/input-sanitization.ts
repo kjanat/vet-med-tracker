@@ -102,7 +102,7 @@ export const secureSchemas = {
   safeString: (maxLength = 1000) =>
     z
       .string()
-      .transform(sanitizeText)
+      .transform((val) => sanitizeText(val, maxLength))
       .refine(
         (val) => !securityPatterns.sqlInjection.test(val),
         "Invalid characters detected",
@@ -116,7 +116,7 @@ export const secureSchemas = {
   safeHtml: (maxLength = 5000) =>
     z
       .string()
-      .transform(sanitizeHtml)
+      .transform((val) => sanitizeHtml(val))
       .refine(
         (val) => val.length <= maxLength,
         `Content too long (max ${maxLength})`,
@@ -145,7 +145,7 @@ export const secureSchemas = {
   // Secure filename
   filename: z
     .string()
-    .transform(sanitizeFileName)
+    .transform((val) => sanitizeFileName(val))
     .refine((val) => val.length > 0, "Filename cannot be empty")
     .refine((val) => !val.startsWith("."), "Hidden files not allowed")
     .refine(

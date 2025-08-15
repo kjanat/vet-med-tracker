@@ -248,6 +248,11 @@ export const veterinary = {
     "Dr. Anderson",
   ],
 
+  microchipId: () => {
+    // Generate a realistic microchip ID (15-digit number)
+    return random.int(100000000000000, 999999999999999).toString();
+  },
+
   generateVetInfo: () => ({
     vetName: random.arrayElement(veterinary.vetNames),
     clinicName: random.arrayElement(veterinary.clinicNames),
@@ -258,4 +263,9 @@ export const veterinary = {
       .replace(/\s+/g, "")
       .replace(/[^a-z]/g, "")}.com`,
   }),
+};
+
+// Medical utilities object for backward compatibility
+export const medical = {
+  microchipId: veterinary.microchipId,
 };
