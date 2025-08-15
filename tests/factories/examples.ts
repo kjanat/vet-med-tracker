@@ -425,11 +425,11 @@ describe("Example 11: Integration with Test Database", () => {
     const insertedAnimalId = insertedAnimal[0]?.id;
     if (!insertedAnimalId) throw new Error("No animal id found");
 
-    const queriedAnimal = await testDb.query.animals.findFirst({
-      where: (animals: any, { eq }: any) => eq(animals.id, insertedAnimalId),
-      with: { household: true },
-    });
+    const queriedAnimal = (await testDb.query.animals.findFirst({
+      where: (animals, { eq }) => eq(animals.id, insertedAnimalId),
+      with: { vetmedHousehold: true },
+    })) as { vetmedHousehold?: { id: string } } | undefined;
 
-    expect(queriedAnimal?.household?.id).toBe(insertedHousehold[0]?.id);
+    expect(queriedAnimal?.vetmedHousehold?.id).toBe(insertedHousehold[0]?.id);
   });
 });
