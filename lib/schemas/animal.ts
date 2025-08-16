@@ -62,5 +62,37 @@ export const animalApiSchema = z.object({
     .optional(),
 });
 
-export type AnimalFormData = z.infer<typeof animalFormBaseSchema>;
+// Simple form schema for React Hook Form compatibility
+export const animalFormSimpleSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100, "Name too long"),
+  species: z.string().min(1, "Species is required").max(50, "Species too long"),
+  breed: z.string().max(100, "Breed too long").optional(),
+  sex: z.enum(["Male", "Female"]).optional(),
+  neutered: z.boolean(),
+  dob: z.date().optional(),
+  weightKg: z.number().positive().max(1000).optional(),
+  microchipId: z.string().max(50, "Microchip ID too long").optional(),
+  color: z.string().max(50, "Color too long").optional(),
+  timezone: z
+    .string()
+    .min(1, "Timezone is required")
+    .refine((val) => {
+      return /^[A-Za-z_]+\/[A-Za-z_]+$/.test(val) || val === "UTC";
+    }, "Invalid timezone format"),
+  vetName: z.string().max(100, "Vet name too long").optional(),
+  vetPhone: z.string().max(20, "Phone too long").optional(),
+  vetEmail: z.string().email("Invalid email").optional().or(z.literal("")),
+  clinicName: z.string().max(200, "Clinic name too long").optional(),
+  notes: z.string().max(2000, "Notes too long").optional(),
+  allergies: z
+    .array(z.string().max(100, "Allergy too long"))
+    .max(50, "Too many allergies"),
+  conditions: z
+    .array(z.string().max(100, "Condition too long"))
+    .max(50, "Too many conditions"),
+  photoUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+});
+
+export type AnimalFormData = z.infer<typeof animalFormSimpleSchema>;
+export type AnimalFormDataSecure = z.infer<typeof animalFormBaseSchema>;
 export type AnimalApiData = z.infer<typeof animalApiSchema>;

@@ -46,10 +46,13 @@ export const medications = {
   ],
 
   getRandomMedication: (category?: string) => {
-    if (category && medications[category as keyof typeof medications]) {
-      return random.arrayElement(
-        medications[category as keyof typeof medications],
-      );
+    if (category && category in medications) {
+      const medicationCategory =
+        medications[category as keyof typeof medications];
+      // Ensure we're dealing with an array, not the function itself
+      if (Array.isArray(medicationCategory)) {
+        return random.arrayElement(medicationCategory);
+      }
     }
 
     const allMeds = [

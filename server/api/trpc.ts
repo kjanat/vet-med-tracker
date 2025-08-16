@@ -38,7 +38,7 @@ export interface Context {
   >;
 }
 
-// Helper function to sync Stack user to database
+// Helper function to sync Stack user to the database
 async function syncStackUserToDatabase(
   stackUser: NonNullable<Context["stackUser"]>,
 ) {
@@ -65,7 +65,7 @@ async function syncStackUserToDatabase(
         set: {
           email: stackUser.primaryEmail || "",
           name: stackUser.displayName || null,
-          // Don't overwrite existing firstName/lastName if user has set them
+          // Don't overwrite existing firstName/lastName if the user has set them
           image: stackUser.profileImageUrl || null,
           updatedAt: new Date().toISOString(),
         },
@@ -99,7 +99,7 @@ async function getUserHouseholds(userId: string) {
   }));
 }
 
-// Create context function for Next.js App Router with Stack Auth
+// Create a context function for Next.js App Router with Stack Auth
 export const createTRPCContext = async (
   opts: FetchCreateContextFnOptions,
 ): Promise<Context> => {
@@ -121,7 +121,7 @@ export const createTRPCContext = async (
     availableHouseholds: [] as Context["availableHouseholds"],
   };
 
-  // If user is not authenticated, return base context
+  // If the user is not authenticated, return base context
   if (!stackUser) {
     return baseContext;
   }
@@ -154,7 +154,7 @@ export const createTRPCContext = async (
       }
     }
 
-    // Fall back to first available household
+    // Fall back to the first available household
     if (!currentHouseholdId && availableHouseholds.length > 0) {
       const firstHousehold = availableHouseholds[0];
       if (firstHousehold) {

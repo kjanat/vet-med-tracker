@@ -54,7 +54,7 @@ export const pushNotificationPayloadSchema = z.object({
   icon: z.url().optional(),
   badge: z.url().optional(),
   image: z.url().optional(),
-  data: z.record(z.any()).optional(),
+  data: z.record(z.string(), z.any()).optional(),
   actions: z
     .array(
       z.object({

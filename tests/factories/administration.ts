@@ -27,8 +27,7 @@ export function createAdministration(
     status: status as "ON_TIME" | "LATE" | "VERY_LATE" | "MISSED" | "PRN",
     sourceItemId: random.boolean(0.6) ? random.uuid() : null, // 60% linked to inventory
     site: generateSite(
-      overrides.route ||
-        random.arrayElement(["ORAL", "SC", "IM", "IV", "TOPICAL"]),
+      random.arrayElement(["ORAL", "SC", "IM", "IV", "TOPICAL"]),
     ),
     dose: dose,
     notes: administration.generateNotes(status),
@@ -97,7 +96,12 @@ function generateSite(route: string): string | null {
     ],
   };
 
-  return random.arrayElement(sites[route] || sites.SC);
+  const routeSites = sites[route];
+  if (!routeSites) {
+    const scSites = sites.SC;
+    return scSites ? random.arrayElement(scSites) : null;
+  }
+  return random.arrayElement(routeSites);
 }
 
 function generateDoseString(): string {

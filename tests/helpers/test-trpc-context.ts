@@ -45,8 +45,8 @@ export function createTestTRPCContext(options: {
     db,
     headers: new Headers(),
     requestedHouseholdId: household.id,
-    // Stack Auth user
-    stackUser,
+    // Stack Auth user (type assertion for test compatibility)
+    stackUser: stackUser as any,
     // Database user
     dbUser: user,
     currentHouseholdId: household.id,

@@ -3,12 +3,13 @@
  * Handles timing calculations for different types of medication schedules
  */
 
-import { and, desc, eq, gte, lte, or } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, lte, or } from "drizzle-orm";
 import { DateTime } from "luxon";
 import type { db } from "@/db/drizzle";
 import {
   vetmedAdministrations as administrations,
   vetmedAnimals as animals,
+  vetmedMedicationCatalog as medicationCatalog,
   vetmedMemberships as memberships,
   vetmedRegimens as regimens,
   vetmedUsers as users,
@@ -19,6 +20,7 @@ export interface RegimenSchedule {
   animalId: string;
   animalName: string;
   animalTimezone: string;
+  householdId: string;
   userId: string;
   medicationName: string;
   dose: string;
@@ -52,9 +54,9 @@ export interface MissedDose extends ScheduledDose {
 }
 
 export class RegimenCalculator {
-  private db: typeof db;
+  private db: typeof import("@/db/drizzle").db;
 
-  constructor(db: typeof db) {
+  constructor(db: typeof import("@/db/drizzle").db) {
     this.db = db;
   }
 
@@ -68,7 +70,8 @@ export class RegimenCalculator {
         animalId: regimens.animalId,
         animalName: animals.name,
         animalTimezone: animals.timezone,
-        medicationName: regimens.medicationName,
+        householdId: animals.householdId,
+        medicationName: medicationCatalog.genericName,
         dose: regimens.dose,
         scheduleType: regimens.scheduleType,
         times: regimens.timesLocal,
@@ -82,6 +85,10 @@ export class RegimenCalculator {
       })
       .from(regimens)
       .innerJoin(animals, eq(regimens.animalId, animals.id))
+      .innerJoin(
+        medicationCatalog,
+        eq(regimens.medicationId, medicationCatalog.id),
+      )
       .innerJoin(memberships, eq(animals.householdId, memberships.householdId))
       .innerJoin(users, eq(memberships.userId, users.id))
       .where(
@@ -89,7 +96,7 @@ export class RegimenCalculator {
           eq(regimens.active, true),
           eq(users.pushNotifications, true),
           or(
-            eq(regimens.endDate, null),
+            isNull(regimens.endDate),
             gte(
               regimens.endDate,
               DateTime.utc().toISO() || DateTime.utc().toString(),
@@ -253,6 +260,7 @@ export class RegimenCalculator {
         // Only include if within our look-ahead window and notification time is in future
         if (scheduledTimeUTC <= endWindow && notificationTime > now) {
           doses.push({
+            householdId: regimen.householdId,
             regimenId: regimen.regimenId,
             animalId: regimen.animalId,
             animalName: regimen.animalName,
@@ -325,6 +333,7 @@ export class RegimenCalculator {
 
       if (notificationTime > now) {
         doses.push({
+          householdId: regimen.householdId,
           regimenId: regimen.regimenId,
           animalId: regimen.animalId,
           animalName: regimen.animalName,

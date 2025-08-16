@@ -1,7 +1,21 @@
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
+
+// jest-axe is optional in test environment
+let toHaveNoViolations: any;
+try {
+  const jestAxe = require("jest-axe");
+  toHaveNoViolations = jestAxe.toHaveNoViolations;
+} catch {
+  // jest-axe not available, use no-op
+  toHaveNoViolations = {};
+}
+
 import { StackAuthTestUtils } from "../mocks/stack-auth";
+
+// Extend expect with jest-axe matchers
+expect.extend(toHaveNoViolations);
 
 // Cleanup after each test
 afterEach(() => {

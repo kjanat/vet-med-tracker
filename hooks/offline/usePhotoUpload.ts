@@ -236,7 +236,7 @@ export function usePhotoUpload({
   /**
    * Clear upload error
    */
-  const clearError = useCallback(() => {
+  const clearErrorAction = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }));
   }, []);
 
@@ -245,7 +245,7 @@ export function usePhotoUpload({
     uploadPhoto,
     syncPhotos,
     setUploadProgress,
-    clearError,
+    clearErrorAction,
     updateStats,
   };
 }

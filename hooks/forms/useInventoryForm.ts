@@ -30,7 +30,7 @@ interface InventoryFormActions {
   saveForm: (data: InventoryFormData) => Promise<void>;
   resetForm: () => void;
   setDirty: (dirty: boolean) => void;
-  clearError: () => void;
+  clearErrorAction: () => void;
 }
 
 /**
@@ -394,7 +394,7 @@ export function useInventoryForm(
   /**
    * Clear any existing error
    */
-  const clearError = useCallback(() => {
+  const clearErrorAction = useCallback(() => {
     setError(null);
   }, []);
 
@@ -457,7 +457,7 @@ export function useInventoryForm(
     setIsDirty(dirty);
   }, []);
 
-  // Watch form changes to set dirty state
+  // Watch form changes to set a dirty state
   const formState = form.formState;
   if (formState.isDirty && !isDirty) {
     setDirtyState(true);
@@ -490,7 +490,7 @@ export function useInventoryForm(
     saveForm,
     resetForm,
     setDirty: setDirtyState,
-    clearError,
+    clearErrorAction,
 
     // Mutations
     createMutation,
@@ -576,14 +576,14 @@ export function useInventoryCalculations(
     ? Math.ceil((expiresOn.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
 
-  // Calculate if quantity is low (less than 20%)
+  // Calculate if the quantity is low (less than 20%)
   const isQuantityLow = percentRemaining < 20;
 
   return {
-    percentRemaining,
-    isExpiringSoon,
-    storageDescription,
     daysUntilExpiry,
+    isExpiringSoon,
     isQuantityLow,
+    percentRemaining,
+    storageDescription,
   };
 }

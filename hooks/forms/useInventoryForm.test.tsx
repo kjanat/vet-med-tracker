@@ -206,7 +206,7 @@ describe("useInventoryForm", () => {
     expect(result.current.error).toBeTruthy();
 
     act(() => {
-      result.current.clearError();
+      result.current.clearErrorAction();
     });
 
     expect(result.current.error).toBe(null);

@@ -8,6 +8,14 @@ const redis = new Redis({
   token: process.env.KV_REST_API_TOKEN!,
 });
 
+// Rate limiter prefixes mapping to avoid accessing protected properties
+const RATE_LIMITER_PREFIXES = {
+  signIn: "auth:signin",
+  signUp: "auth:signup",
+  passwordReset: "auth:reset",
+  api: "api:general",
+} as const;
+
 // Create different rate limiters for different operations
 export const authRateLimiter = {
   // Sign in attempts: 5 attempts per 15 minutes per IP
@@ -52,7 +60,10 @@ export async function getClientIp(): Promise<string> {
   // Check various headers for the real IP
   const forwardedFor = headersList.get("x-forwarded-for");
   if (forwardedFor) {
-    return forwardedFor.split(",")[0].trim();
+    const firstIp = forwardedFor.split(",")[0];
+    if (firstIp) {
+      return firstIp.trim();
+    }
   }
 
   const realIp = headersList.get("x-real-ip");
@@ -150,7 +161,7 @@ export async function clearRateLimit(
   type: keyof typeof authRateLimiter,
   identifier: string,
 ) {
-  const prefix = authRateLimiter[type].prefix;
+  const prefix = RATE_LIMITER_PREFIXES[type];
   const key = `${prefix}:${identifier}`;
   await redis.del(key);
 }
@@ -163,7 +174,7 @@ export async function getRateLimitStatus(
   identifier?: string,
 ) {
   const id = identifier || (await getClientIp());
-  const prefix = authRateLimiter[type].prefix;
+  const prefix = RATE_LIMITER_PREFIXES[type];
   const key = `${prefix}:${identifier}`;
 
   // This is a simplified check - actual implementation would need

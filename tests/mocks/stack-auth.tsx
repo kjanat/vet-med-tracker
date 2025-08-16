@@ -17,11 +17,23 @@ export interface MockStackUser {
   primaryEmailVerified: boolean;
   profileImageUrl: string | null;
   signedUpAtMillis: number;
+  signedUpAt: Date;
   hasPassword: boolean;
-  oauthProviders: string[];
+  oauthProviders: readonly { id: string }[];
   selectedTeamId: string | null;
   clientMetadata: Record<string, any>;
   clientReadOnlyMetadata: Record<string, any>;
+  otpAuthEnabled: boolean;
+  passkeyAuthEnabled: boolean;
+  isMultiFactorRequired: boolean;
+  isAnonymous: boolean;
+  emailAuthEnabled: boolean;
+  toClientJson: () => any;
+  _internalSession: any;
+  currentSession: any;
+  getAuthHeaders: () => Promise<{ "x-stack-auth": string }>;
+  getAuthJson: () => any;
+  registerPasskey: () => Promise<void>;
   update: (data: Partial<MockStackUser>) => Promise<void>;
   signOut: () => Promise<void>;
   delete: () => Promise<void>;
@@ -53,16 +65,29 @@ export interface MockStackServerApp {
 export const createMockUser = (
   overrides: Partial<MockStackUser> = {},
 ): MockStackUser => {
+  const now = Date.now();
   const defaultUser: MockStackUser = {
-    id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `user_${now}_${Math.random().toString(36).substr(2, 9)}`,
     displayName: "Test User",
     primaryEmail: "testuser@example.com",
     primaryEmailVerified: true,
     profileImageUrl: null,
-    signedUpAtMillis: Date.now(),
+    signedUpAtMillis: now,
+    signedUpAt: new Date(now),
     hasPassword: true,
     oauthProviders: [],
     selectedTeamId: null,
+    otpAuthEnabled: false,
+    passkeyAuthEnabled: false,
+    isMultiFactorRequired: false,
+    isAnonymous: false,
+    emailAuthEnabled: true,
+    toClientJson: vi.fn().mockReturnValue({}),
+    _internalSession: null,
+    currentSession: null,
+    getAuthHeaders: vi.fn().mockResolvedValue({ "x-stack-auth": "mock-token" }),
+    getAuthJson: vi.fn().mockReturnValue({}),
+    registerPasskey: vi.fn().mockResolvedValue(undefined),
     clientMetadata: {
       onboardingComplete: true,
       vetMedPreferences: {
@@ -391,7 +416,7 @@ export class StackAuthPlaywrightHelpers {
     });
 
     // Mock localStorage for client-side session management
-    await page.addInitScript((userData) => {
+    await page.addInitScript((userData: MockStackUser | null) => {
       if (userData) {
         localStorage.setItem(
           "stack-auth-session",
@@ -415,7 +440,7 @@ export class StackAuthPlaywrightHelpers {
 
     // Navigate to sign-in page and simulate successful authentication
     await page.goto("/handler/sign-in");
-    await page.evaluate((userData) => {
+    await page.evaluate((userData: MockStackUser) => {
       // Dispatch custom event to simulate successful sign-in
       window.dispatchEvent(
         new CustomEvent("stack-auth-sign-in", {

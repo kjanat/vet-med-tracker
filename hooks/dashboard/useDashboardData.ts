@@ -250,7 +250,7 @@ export function useInventoryMetrics() {
         const lowStockItems = data.filter((item) => {
           if (!item.inUse) return false;
           const remaining = item.unitsRemaining || 0;
-          const total = item.quantityUnits || 1;
+          const total = item.unitsTotal || 1;
           return remaining / total <= 0.2; // 20% threshold
         }).length;
         const expiringSoonItems = data.filter((item) => {
@@ -302,19 +302,19 @@ export function useUpcomingDoses() {
 
         // Calculate upcoming doses for active regimens
         const upcomingDoses = data
-          .filter((regimen) => regimen.active)
+          .filter((item) => item.regimen.active)
           .reduce(
-            (acc, regimen) => {
+            (acc, item) => {
               // Simplified calculation - in real app you'd calculate based on schedule
-              const dailyDoses = regimen.timesLocal?.length || 1;
+              const dailyDoses = item.regimen.timesLocal?.length || 1;
               const weeklyDoses = dailyDoses * 7;
 
               acc.push({
-                regimenId: regimen.id,
-                animalName: regimen.animal?.name || "Unknown",
-                medicationName: regimen.medication?.genericName || "Unknown",
+                regimenId: item.regimen.id,
+                animalName: item.animal.name || "Unknown",
+                medicationName: item.medication.genericName || "Unknown",
                 dosesThisWeek: weeklyDoses,
-                scheduleType: regimen.scheduleType,
+                scheduleType: item.regimen.scheduleType,
               });
 
               return acc;
@@ -336,7 +336,7 @@ export function useUpcomingDoses() {
         return {
           upcomingDoses,
           totalUpcomingDoses,
-          activeRegimens: data.filter((r) => r.active).length,
+          activeRegimens: data.filter((item) => item.regimen.active).length,
         };
       },
     },

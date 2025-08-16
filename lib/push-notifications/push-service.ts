@@ -30,11 +30,11 @@ export interface SendNotificationOptions {
 }
 
 export class PushNotificationService {
-  private db: typeof db;
+  private db: typeof import("@/db/drizzle").db;
   private initialized = false;
   private enabled = false;
 
-  constructor(db: typeof db) {
+  constructor(db: typeof import("@/db/drizzle").db) {
     this.db = db;
     this.initializeWebPush();
   }

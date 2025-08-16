@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser } from "@stackframe/stack";
 import { X } from "lucide-react";
@@ -35,7 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
 import {
   type AnimalFormData,
-  animalFormBaseSchema,
+  animalFormSimpleSchema,
 } from "@/lib/schemas/animal";
 import type { Animal } from "@/lib/utils/types";
 
@@ -58,7 +60,7 @@ export function AnimalForm({
   const [newCondition, setNewCondition] = useState("");
 
   const form = useForm<AnimalFormData>({
-    resolver: zodResolver(animalFormBaseSchema) as any,
+    resolver: zodResolver(animalFormSimpleSchema),
     defaultValues: {
       name: "",
       species: "",

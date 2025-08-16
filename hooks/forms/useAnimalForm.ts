@@ -2,13 +2,36 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useState } from "react";
-import { type UseFormReturn, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { useToast } from "@/hooks/shared/use-toast";
-import { type AnimalFormData, animalFormSchema } from "@/lib/schemas/animal";
+import type { AnimalFormData } from "@/lib/schemas/animal";
 import type { Animal } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 import { BROWSER_ZONE } from "@/utils/timezone-helpers";
+
+// Simplified schema for form validation to avoid complex type inference issues
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  species: z.string().min(1, "Species is required"),
+  breed: z.string().optional(),
+  sex: z.enum(["Male", "Female"]).optional(),
+  neutered: z.boolean(),
+  dob: z.date().optional(),
+  weightKg: z.number().optional(),
+  microchipId: z.string().optional(),
+  color: z.string().optional(),
+  timezone: z.string().min(1, "Timezone is required"),
+  vetName: z.string().optional(),
+  vetPhone: z.string().optional(),
+  vetEmail: z.string().email().optional().or(z.literal("")),
+  clinicName: z.string().optional(),
+  notes: z.string().optional(),
+  allergies: z.array(z.string()),
+  conditions: z.array(z.string()),
+  photoUrl: z.string().url().optional().or(z.literal("")),
+});
 
 /**
  * Animal form state interface
@@ -35,7 +58,7 @@ interface AnimalFormActions {
  * Animal form hook return type
  */
 interface UseAnimalFormReturn extends AnimalFormState, AnimalFormActions {
-  form: UseFormReturn<AnimalFormData>;
+  form: ReturnType<typeof useForm<AnimalFormData>>;
   createMutation: ReturnType<typeof trpc.animal.create.useMutation>;
   updateMutation: ReturnType<typeof trpc.animal.update.useMutation>;
 }
@@ -128,7 +151,7 @@ export function useAnimalForm(
 
   // Initialize form with validation
   const form = useForm<AnimalFormData>({
-    resolver: zodResolver(animalFormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       species: "",

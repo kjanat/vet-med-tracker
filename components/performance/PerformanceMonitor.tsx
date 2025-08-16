@@ -2,6 +2,27 @@
 
 import { useCallback, useEffect } from "react";
 
+// Type declarations for global gtag function
+declare global {
+  interface Window {
+    gtag?: (
+      command: string,
+      targetId: string,
+      config?: Record<string, unknown>,
+    ) => void;
+  }
+}
+
+// Type definitions for performance entries with required properties
+interface PerformanceEntryWithProcessing extends PerformanceEntry {
+  processingStart: number;
+}
+
+interface LayoutShiftEntry extends PerformanceEntry {
+  hadRecentInput: boolean;
+  value: number;
+}
+
 interface PerformanceMetrics {
   FCP?: number; // First Contentful Paint
   LCP?: number; // Largest Contentful Paint
@@ -29,7 +50,7 @@ export function PerformanceMonitor({
       if (typeof window !== "undefined" && window.gtag) {
         Object.entries(metrics).forEach(([name, value]) => {
           if (value !== undefined) {
-            window.gtag("event", "web_vitals", {
+            window.gtag?.("event", "web_vitals", {
               custom_parameter_1: name,
               value: Math.round(value),
             });
@@ -76,14 +97,18 @@ export function PerformanceMonitor({
             // Get the most recent LCP entry
             metrics.LCP = entry.startTime;
             break;
-          case "first-input":
-            metrics.FID = entry.processingStart - entry.startTime;
+          case "first-input": {
+            const fidEntry = entry as PerformanceEntryWithProcessing;
+            metrics.FID = fidEntry.processingStart - fidEntry.startTime;
             break;
-          case "layout-shift":
-            if (!(entry as any).hadRecentInput) {
-              metrics.CLS = (metrics.CLS || 0) + (entry as any).value;
+          }
+          case "layout-shift": {
+            const clsEntry = entry as LayoutShiftEntry;
+            if (!clsEntry.hadRecentInput) {
+              metrics.CLS = (metrics.CLS || 0) + clsEntry.value;
             }
             break;
+          }
           case "navigation": {
             const navEntry = entry as PerformanceNavigationTiming;
             metrics.TTFB = navEntry.responseStart - navEntry.requestStart;
@@ -160,7 +185,7 @@ export function useBundleAnalytics() {
 
           // Report chunk load time
           if (window.gtag) {
-            window.gtag("event", "chunk_load", {
+            window.gtag?.("event", "chunk_load", {
               chunk_url: url,
               load_time: Math.round(loadTime),
             });
@@ -191,7 +216,7 @@ export function useResourceTiming() {
           // Report slow resources (>1s)
           if (resource.duration > 1000) {
             if (window.gtag) {
-              window.gtag("event", "slow_resource", {
+              window.gtag?.("event", "slow_resource", {
                 resource_name: resource.name,
                 duration: Math.round(resource.duration),
                 size: resource.transferSize || 0,

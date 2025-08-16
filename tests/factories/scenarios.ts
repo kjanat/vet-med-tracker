@@ -96,6 +96,63 @@ export const quickScenarios = {
 // Complex scenarios with full relationships
 export const complexScenarios = {
   // Complete medication management scenario
+  complianceTestScenario: () => {
+    const scenario = TestScenarioBuilder.create()
+      .withUsers(1, "completed")
+      .withHouseholds(1, "family")
+      .withHouseholdMembers(0, [0], ["OWNER"])
+      .withAnimals(1, 0, "dog")
+      .withMedications(1, "antibiotic")
+      .build();
+
+    // Add regimen and compliance data
+    const animal = scenario.animals[0];
+    const medication = scenario.medications[0];
+
+    if (!animal?.id || !medication?.id) {
+      throw new Error(
+        "Failed to create scenario: missing animal or medication",
+      );
+    }
+
+    const regimen = regimenPresets.twiceDailyOral(animal.id, medication.id);
+
+    const complianceData = ComplianceDataBuilder.create()
+      .forRegimen(regimen)
+      .withRealisticPattern(30) // 30 days of realistic compliance
+      .build();
+
+    return {
+      ...scenario,
+      regimens: [complianceData.regimen],
+      administrations: complianceData.administrations,
+    };
+  },
+
+  // Multi-household scenario (e.g., pet rescue)
+  emergencyCareScenario: () => {
+    return TestScenarioBuilder.create()
+      .withUsers(3, "completed") // Owner, emergency vet, tech
+      .withHouseholds(1, "clinic")
+      .withHouseholdMembers(0, [0, 1, 2], ["CAREGIVER", "OWNER", "CAREGIVER"])
+      .withCustomAnimal(0, (builder) =>
+        builder
+          .withBasicInfo({ name: "Emergency Patient", species: "dog" })
+          .withConditions(["Trauma", "Blood loss", "Shock"])
+          .withNotes("Emergency admission - monitor closely"),
+      )
+      .withMedications(4) // Emergency medications
+      .withRegimens(0, 0, "prn") // Pain management
+      .withRegimens(0, 1, "prn") // Anti-nausea
+      .withAdministrations(0, 8, 1, 0) // Emergency administrations
+      .withAdministrations(1, 4, 2, 0) // Tech administrations
+      .withInventory(0, 0, "new") // Emergency stock
+      .withNotifications(1, 0, 10) // Critical notifications
+      .withAuditLogs(1, 0, 25) // Detailed audit trail
+      .build();
+  },
+
+  // Compliance testing scenario
   medicationManagement: () => {
     return TestScenarioBuilder.create()
       .withUsers(2, "completed") // Owner and caregiver
@@ -114,7 +171,7 @@ export const complexScenarios = {
       .build();
   },
 
-  // Multi-household scenario (e.g., pet rescue)
+  // Emergency/critical care scenario
   petRescueScenario: () => {
     const admin = userPresets.completedUser();
     const volunteer1 = userPresets.petSitter();
@@ -172,57 +229,6 @@ export const complexScenarios = {
       .withNotifications(1, 0, 2) // Volunteer notifications
       .build();
   },
-
-  // Compliance testing scenario
-  complianceTestScenario: () => {
-    const scenario = TestScenarioBuilder.create()
-      .withUsers(1, "completed")
-      .withHouseholds(1, "family")
-      .withHouseholdMembers(0, [0], ["OWNER"])
-      .withAnimals(1, 0, "dog")
-      .withMedications(1, "antibiotic")
-      .build();
-
-    // Add regimen and compliance data
-    const regimen = regimenPresets.twiceDailyOral(
-      scenario.animals[0].id!,
-      scenario.medications[0].id!,
-    );
-
-    const complianceData = ComplianceDataBuilder.create()
-      .forRegimen(regimen)
-      .withRealisticPattern(30) // 30 days of realistic compliance
-      .build();
-
-    return {
-      ...scenario,
-      regimens: [complianceData.regimen],
-      administrations: complianceData.administrations,
-    };
-  },
-
-  // Emergency/critical care scenario
-  emergencyCareScenario: () => {
-    return TestScenarioBuilder.create()
-      .withUsers(3, "completed") // Owner, emergency vet, tech
-      .withHouseholds(1, "clinic")
-      .withHouseholdMembers(0, [0, 1, 2], ["CAREGIVER", "OWNER", "CAREGIVER"])
-      .withCustomAnimal(0, (builder) =>
-        builder
-          .withBasicInfo({ name: "Emergency Patient", species: "dog" })
-          .withConditions(["Trauma", "Blood loss", "Shock"])
-          .withNotes("Emergency admission - monitor closely"),
-      )
-      .withMedications(4) // Emergency medications
-      .withRegimens(0, 0, "prn") // Pain management
-      .withRegimens(0, 1, "prn") // Anti-nausea
-      .withAdministrations(0, 8, 1, 0) // Emergency administrations
-      .withAdministrations(1, 4, 2, 0) // Tech administrations
-      .withInventory(0, 0, "new") // Emergency stock
-      .withNotifications(1, 0, 10) // Critical notifications
-      .withAuditLogs(1, 0, 25) // Detailed audit trail
-      .build();
-  },
 };
 
 // Specific test data generators
@@ -252,10 +258,19 @@ export const testDataGenerators = {
   // Generate inventory test data with different stock levels
   generateInventoryTestData: (householdId: string, medicationIds: string[]) => {
     return medicationIds.map((medicationId, index) => {
-      const types = ["new", "partial", "low", "expired"] as const;
-      const type = types[index % types.length];
-
-      return inventoryPresets[type](householdId, medicationId);
+      const typeIndex = index % 4;
+      switch (typeIndex) {
+        case 0:
+          return inventoryPresets.newMedication(householdId, medicationId);
+        case 1:
+          return inventoryPresets.partiallyUsed(householdId, medicationId);
+        case 2:
+          return inventoryPresets.expiredMedication(householdId, medicationId);
+        case 3:
+          return inventoryPresets.nearExpiration(householdId, medicationId);
+        default:
+          return inventoryPresets.newMedication(householdId, medicationId);
+      }
     });
   },
 
@@ -275,8 +290,10 @@ export const testDataGenerators = {
         .build();
 
       // Replace the temporary user with the shared user
-      scenario.users[0].id = userId;
-      scenario.memberships[0].userId = userId;
+      if (scenario.users[0] && scenario.memberships[0]) {
+        scenario.users[0].id = userId;
+        scenario.memberships[0].userId = userId;
+      }
 
       scenarios.push(scenario);
     }
@@ -345,21 +362,21 @@ export const testingPhases = {
     userFlow: () => complexScenarios.medicationManagement(),
     inventoryManagement: () => {
       const base = quickScenarios.singleUserOnePet();
+      const household = base.households[0];
+      const medication = base.medications[0];
+
+      if (!household?.id || !medication?.id) {
+        throw new Error(
+          "Failed to create inventory scenario: missing household or medication",
+        );
+      }
+
       return {
         ...base,
         inventory: [
-          inventoryPresets.partiallyUsed(
-            base.households[0].id!,
-            base.medications[0].id!,
-          ),
-          inventoryPresets.nearExpiration(
-            base.households[0].id!,
-            base.medications[0].id!,
-          ),
-          inventoryPresets.emptyContainer(
-            base.households[0].id!,
-            base.medications[0].id!,
-          ),
+          inventoryPresets.partiallyUsed(household.id, medication.id),
+          inventoryPresets.nearExpiration(household.id, medication.id),
+          inventoryPresets.emptyContainer(household.id, medication.id),
         ],
       };
     },

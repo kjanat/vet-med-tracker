@@ -107,7 +107,7 @@ describe("Example 3: Scenario Builder Usage", () => {
     expect(scenario.inventory).toHaveLength(1);
     expect(scenario.notifications).toHaveLength(5);
 
-    // Insert into test database
+    // Insert into a test database
     for (const user of scenario.users) {
       await testDb.insert(users).values(user);
     }

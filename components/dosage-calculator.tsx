@@ -54,7 +54,7 @@ const dosageCalculatorSchema = z.object({
   weight: z.number().positive("Weight must be positive"),
   weightUnit: z.enum(["kg", "lbs"]),
   route: z.string().optional(),
-  targetUnit: z.enum(["mg", "ml", "tablets"]).default("mg"),
+  targetUnit: z.enum(["mg", "ml", "tablets"]),
   customAdjustment: z.string().optional(),
 });
 
@@ -478,7 +478,7 @@ export function DosageCalculator() {
                     <form className="space-y-4">
                       {/* Animal Selection */}
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="animalId"
                         render={({ field }) => (
                           <FormItem>
@@ -511,7 +511,7 @@ export function DosageCalculator() {
                       {/* Weight Input */}
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="weight"
                           render={({ field }) => (
                             <FormItem>
@@ -535,7 +535,7 @@ export function DosageCalculator() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="weightUnit"
                           render={({ field }) => (
                             <FormItem>
@@ -562,7 +562,7 @@ export function DosageCalculator() {
 
                       {/* Medication Selection */}
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="medicationId"
                         render={({ field }) => (
                           <FormItem>
@@ -589,7 +589,7 @@ export function DosageCalculator() {
 
                       {/* Route Selection */}
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="route"
                         render={({ field }) => (
                           <FormItem>
@@ -621,7 +621,7 @@ export function DosageCalculator() {
 
                       {/* Target Unit Selection */}
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="targetUnit"
                         render={({ field }) => (
                           <FormItem>
@@ -650,7 +650,7 @@ export function DosageCalculator() {
 
                       {/* Custom Adjustments */}
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="customAdjustment"
                         render={({ field }) => (
                           <FormItem>

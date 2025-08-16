@@ -69,7 +69,7 @@ export function WelcomeFlow() {
     }
   };
 
-  const createHouseholdMutation = trpc.households.create.useMutation();
+  const createHouseholdMutation = trpc.household.create.useMutation();
 
   const completeOnboarding = async () => {
     setIsLoading(true);
@@ -97,9 +97,8 @@ export function WelcomeFlow() {
         },
       });
 
-      // Update household settings with the created household ID
+      // Update household settings
       await updateHouseholdSettings({
-        primaryHouseholdId: household.id,
         primaryHouseholdName: data.householdName,
         defaultLocation: {
           address: "",

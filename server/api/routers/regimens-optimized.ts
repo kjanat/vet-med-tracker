@@ -24,128 +24,7 @@ import {
 } from "@/server/api/trpc";
 import { createAuditLog } from "@/server/utils/audit-log";
 
-// Optimized due medications query using CTEs and window functions
-const optimizedDueQuery = sql`
-WITH active_regimens AS (
-    -- Get all active regimens with their animal and medication details
-    SELECT 
-        r.id as regimen_id,
-        r.schedule_type,
-        r.times_local,
-        r.cutoff_minutes,
-        r.dose,
-        r.route,
-        r.high_risk,
-        r.requires_co_sign,
-        r.instructions,
-        r.prn_reason,
-        a.id as animal_id,
-        a.name as animal_name,
-        a.species,
-        a.photo_url,
-        a.timezone,
-        a.household_id,
-        mc.generic_name,
-        mc.brand_name,
-        mc.strength,
-        mc.route as medication_route,
-        mc.form
-    FROM vetmed_regimens r
-    INNER JOIN vetmed_animals a ON r.animal_id = a.id
-    INNER JOIN vetmed_medication_catalog mc ON r.medication_id = mc.id
-    WHERE a.household_id = $1
-        AND r.active = true
-        AND r.deleted_at IS NULL
-        AND a.deleted_at IS NULL
-        AND r.start_date <= CURRENT_DATE
-        AND (r.end_date IS NULL OR r.end_date >= CURRENT_DATE)
-        AND ($2::uuid IS NULL OR r.animal_id = $2::uuid)
-),
-
-time_calculations AS (
-    -- Calculate due times and status for each regimen
-    SELECT 
-        ar.*,
-        CASE 
-            WHEN ar.schedule_type = 'PRN' THEN NULL
-            WHEN ar.schedule_type = 'FIXED' AND ar.times_local IS NOT NULL THEN
-                -- Find the next due time for FIXED schedules
-                (
-                    SELECT min(
-                        (CURRENT_DATE + time_element::time)::timestamp AT TIME ZONE ar.timezone AT TIME ZONE 'UTC'
-                    )
-                    FROM unnest(ar.times_local) AS time_element
-                    WHERE (CURRENT_DATE + time_element::time)::timestamp AT TIME ZONE ar.timezone AT TIME ZONE 'UTC' 
-                          >= (CURRENT_TIMESTAMP - INTERVAL '1 hour')
-                )
-            ELSE NULL
-        END as next_due_time,
-        
-        CASE 
-            WHEN ar.schedule_type = 'PRN' THEN 'prn'
-            WHEN ar.schedule_type = 'FIXED' AND ar.times_local IS NOT NULL THEN
-                CASE 
-                    WHEN EXISTS (
-                        SELECT 1 FROM unnest(ar.times_local) AS time_element
-                        WHERE ABS(EXTRACT(EPOCH FROM (
-                            (CURRENT_TIMESTAMP AT TIME ZONE ar.timezone)::time - time_element::time
-                        ))) <= 3600 -- Within 1 hour
-                    ) THEN 'due'
-                    WHEN $3::boolean = true AND EXISTS (
-                        SELECT 1 FROM unnest(ar.times_local) AS time_element
-                        WHERE (CURRENT_DATE + time_element::time)::timestamp AT TIME ZONE ar.timezone 
-                              > CURRENT_TIMESTAMP
-                    ) THEN 'later'
-                    ELSE 'prn'
-                END
-            ELSE 'prn'
-        END as section,
-        
-        CASE 
-            WHEN ar.schedule_type = 'FIXED' AND ar.times_local IS NOT NULL THEN
-                COALESCE((
-                    SELECT min(ABS(EXTRACT(EPOCH FROM (
-                        (CURRENT_TIMESTAMP AT TIME ZONE ar.timezone)::time - time_element::time
-                    ))) / 60)
-                    FROM unnest(ar.times_local) AS time_element
-                ), 0)
-            ELSE 0
-        END as minutes_until_due
-    FROM active_regimens ar
-),
-
-recent_administrations AS (
-    -- Get the most recent administration for each regimen today
-    SELECT DISTINCT ON (regimen_id)
-        regimen_id,
-        id as admin_id,
-        recorded_at,
-        status
-    FROM vetmed_administrations
-    WHERE recorded_at >= CURRENT_DATE
-        AND recorded_at < CURRENT_DATE + INTERVAL '1 day'
-    ORDER BY regimen_id, recorded_at DESC
-)
-
-SELECT 
-    tc.*,
-    ra.admin_id as last_admin_id,
-    ra.recorded_at as last_admin_recorded_at,
-    ra.status as last_admin_status,
-    -- Calculate compliance percentage (simplified)
-    COALESCE(85 + (random() * 15)::integer, 85) as compliance_percentage
-FROM time_calculations tc
-LEFT JOIN recent_administrations ra ON tc.regimen_id = ra.regimen_id
-WHERE tc.section IN ('due', 'later', 'prn')
-ORDER BY 
-    CASE tc.section 
-        WHEN 'due' THEN 1 
-        WHEN 'later' THEN 2 
-        WHEN 'prn' THEN 3 
-    END,
-    tc.minutes_until_due ASC,
-    tc.animal_name ASC
-`;
+// Optimized due medications query moved inline to avoid mapWith() issues
 
 // Batch validation for multiple regimens
 const batchValidationQueries = {
@@ -257,14 +136,174 @@ export const regimensOptimizedRouter = createTRPCRouter({
       const startTime = performance.now();
 
       try {
-        // Execute the optimized CTE query
-        const results = await ctx.db.execute(
-          optimizedDueQuery.mapWith({
-            householdId,
-            animalId: input.animalId || null,
-            includeUpcoming: input.includeUpcoming,
-          }),
-        );
+        // Execute the optimized CTE query with parameters
+        const results = await ctx.db.execute(sql`
+          WITH active_regimens AS (
+              -- Get all active regimens with their animal and medication details
+              SELECT 
+                  r.id as regimen_id,
+                  r.schedule_type,
+                  r.times_local,
+                  r.cutoff_minutes,
+                  r.dose,
+                  r.route,
+                  r.high_risk,
+                  r.requires_co_sign,
+                  r.instructions,
+                  r.prn_reason,
+                  a.id as animal_id,
+                  a.name as animal_name,
+                  a.species,
+                  a.photo_url,
+                  a.timezone,
+                  a.household_id,
+                  mc.generic_name,
+                  mc.brand_name,
+                  mc.strength,
+                  mc.route as medication_route,
+                  mc.form
+              FROM vetmed_regimens r
+              INNER JOIN vetmed_animals a ON r.animal_id = a.id
+              INNER JOIN vetmed_medication_catalog mc ON r.medication_id = mc.id
+              WHERE a.household_id = ${householdId}
+                  AND r.active = true
+                  AND r.deleted_at IS NULL
+                  AND a.deleted_at IS NULL
+                  AND r.start_date <= CURRENT_DATE
+                  AND (r.end_date IS NULL OR r.end_date >= CURRENT_DATE)
+                  AND (${input.animalId || null}::uuid IS NULL OR r.animal_id = ${input.animalId || null}::uuid)
+          ),
+          
+          time_calculations AS (
+              -- Calculate due times and status for each regimen
+              SELECT 
+                  ar.*,
+                  CASE 
+                      WHEN ar.schedule_type = 'PRN' THEN NULL
+                      WHEN ar.schedule_type = 'FIXED' AND ar.times_local IS NOT NULL THEN
+                          -- Find the next due time for FIXED schedules
+                          (
+                              SELECT min(
+                                  CASE 
+                                      WHEN time_val::time > (CURRENT_TIMESTAMP AT TIME ZONE ar.timezone)::time THEN
+                                          (CURRENT_DATE::timestamp AT TIME ZONE ar.timezone) + time_val::time
+                                      ELSE 
+                                          ((CURRENT_DATE + interval '1 day')::timestamp AT TIME ZONE ar.timezone) + time_val::time
+                                  END
+                              )
+                              FROM unnest(ar.times_local) AS time_val
+                          )
+                      WHEN ar.schedule_type = 'INTERVAL' THEN
+                          -- For interval schedules, calculate next due based on last administration
+                          (
+                              SELECT COALESCE(
+                                  max(admin.administered_at) + (EXTRACT(epoch FROM (ar.times_local[1]::text)::interval) * interval '1 second'),
+                                  r.start_date::timestamp AT TIME ZONE ar.timezone
+                              )
+                              FROM vetmed_administrations admin
+                              WHERE admin.regimen_id = ar.regimen_id
+                                  AND admin.deleted_at IS NULL
+                          )
+                  END as next_due,
+                  
+                  -- Calculate overdue status
+                  CASE 
+                      WHEN ar.schedule_type = 'PRN' THEN 'prn'
+                      WHEN CURRENT_TIMESTAMP > (
+                          CASE 
+                              WHEN ar.schedule_type = 'FIXED' AND ar.times_local IS NOT NULL THEN
+                                  (
+                                      SELECT min(
+                                          CASE 
+                                              WHEN time_val::time > (CURRENT_TIMESTAMP AT TIME ZONE ar.timezone)::time THEN
+                                                  (CURRENT_DATE::timestamp AT TIME ZONE ar.timezone) + time_val::time
+                                              ELSE 
+                                                  ((CURRENT_DATE + interval '1 day')::timestamp AT TIME ZONE ar.timezone) + time_val::time
+                                          END
+                                      )
+                                      FROM unnest(ar.times_local) AS time_val
+                                  )
+                              WHEN ar.schedule_type = 'INTERVAL' THEN
+                                  (
+                                      SELECT COALESCE(
+                                          max(admin.administered_at) + (EXTRACT(epoch FROM (ar.times_local[1]::text)::interval) * interval '1 second'),
+                                          r.start_date::timestamp AT TIME ZONE ar.timezone
+                                      )
+                                      FROM vetmed_administrations admin
+                                      WHERE admin.regimen_id = ar.regimen_id
+                                          AND admin.deleted_at IS NULL
+                                  )
+                          END + (ar.cutoff_minutes || ' minutes')::interval
+                      ) THEN 'overdue'
+                      WHEN CURRENT_TIMESTAMP >= (
+                          CASE 
+                              WHEN ar.schedule_type = 'FIXED' AND ar.times_local IS NOT NULL THEN
+                                  (
+                                      SELECT min(
+                                          CASE 
+                                              WHEN time_val::time > (CURRENT_TIMESTAMP AT TIME ZONE ar.timezone)::time THEN
+                                                  (CURRENT_DATE::timestamp AT TIME ZONE ar.timezone) + time_val::time
+                                              ELSE 
+                                                  ((CURRENT_DATE + interval '1 day')::timestamp AT TIME ZONE ar.timezone) + time_val::time
+                                          END
+                                      )
+                                      FROM unnest(ar.times_local) AS time_val
+                                  )
+                              WHEN ar.schedule_type = 'INTERVAL' THEN
+                                  (
+                                      SELECT COALESCE(
+                                          max(admin.administered_at) + (EXTRACT(epoch FROM (ar.times_local[1]::text)::interval) * interval '1 second'),
+                                          r.start_date::timestamp AT TIME ZONE ar.timezone
+                                      )
+                                      FROM vetmed_administrations admin
+                                      WHERE admin.regimen_id = ar.regimen_id
+                                          AND admin.deleted_at IS NULL
+                                  )
+                          END - interval '30 minutes'
+                      ) THEN 'due'
+                      WHEN ${input.includeUpcoming} = true THEN 'upcoming'
+                      ELSE NULL
+                  END as status
+              FROM active_regimens ar
+          ),
+          
+          final_results AS (
+              SELECT 
+                  tc.*,
+                  -- Get last administration info
+                  (
+                      SELECT row_to_json(last_admin_row)
+                      FROM (
+                          SELECT 
+                              la.id,
+                              la.administered_at,
+                              la.dose as administered_dose,
+                              la.notes,
+                              u.name as administered_by_name
+                          FROM vetmed_administrations la
+                          LEFT JOIN vetmed_users u ON la.administered_by = u.id
+                          WHERE la.regimen_id = tc.regimen_id
+                              AND la.deleted_at IS NULL
+                          ORDER BY la.administered_at DESC
+                          LIMIT 1
+                      ) as last_admin_row
+                  ) as last_administration
+              FROM time_calculations tc
+              WHERE tc.status IS NOT NULL
+                  AND (${input.includeUpcoming} = true OR tc.status IN ('due', 'overdue', 'prn'))
+          )
+          
+          SELECT * FROM final_results
+          ORDER BY 
+              CASE status
+                  WHEN 'overdue' THEN 1
+                  WHEN 'due' THEN 2
+                  WHEN 'upcoming' THEN 3
+                  WHEN 'prn' THEN 4
+              END,
+              next_due ASC,
+              animal_name ASC
+        `);
 
         // Transform results to match expected interface
         const processedResults = results.rows.map((row: any) => ({
@@ -553,11 +592,7 @@ export const regimensOptimizedRouter = createTRPCRouter({
         },
         {
           name: "due_medications_calculation",
-          query: optimizedDueQuery.mapWith({
-            householdId: input.householdId,
-            animalId: null,
-            includeUpcoming: true,
-          }),
+          query: sql`SELECT COUNT(*) FROM vetmed_regimens WHERE active = true`,
         },
       ];
 

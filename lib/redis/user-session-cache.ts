@@ -1,5 +1,5 @@
 import type { households, memberships, users } from "@/db/schema";
-import { redis } from "@/lib/redis/client";
+import { getRedisClient } from "@/lib/redis/client";
 
 interface CachedUserContext {
   dbUser: typeof users.$inferSelect;
@@ -22,11 +22,13 @@ export const userSessionCache = {
   async get(stackUserId: string): Promise<CachedUserContext | null> {
     try {
       const key = `user:${stackUserId}:context`;
-      const cached = await redis.get(key);
+      const cached = await getRedisClient().get(key);
 
       if (!cached) return null;
 
-      const data = JSON.parse(cached) as CachedUserContext;
+      const data = (
+        typeof cached === "string" ? JSON.parse(cached) : cached
+      ) as CachedUserContext;
 
       // Check version and freshness
       if (data.version !== CACHE_VERSION) return null;
@@ -56,7 +58,7 @@ export const userSessionCache = {
         version: CACHE_VERSION,
       };
 
-      await redis.setex(key, CACHE_TTL, JSON.stringify(data));
+      await getRedisClient().setex(key, CACHE_TTL, JSON.stringify(data));
     } catch (error) {
       console.error("Failed to cache user context:", error);
       // Non-critical, continue without caching
@@ -69,7 +71,7 @@ export const userSessionCache = {
   async invalidate(stackUserId: string): Promise<void> {
     try {
       const key = `user:${stackUserId}:context`;
-      await redis.del(key);
+      await getRedisClient().del(key);
     } catch (error) {
       console.error("Failed to invalidate user cache:", error);
     }
@@ -80,9 +82,9 @@ export const userSessionCache = {
    */
   async invalidateAll(): Promise<void> {
     try {
-      const keys = await redis.keys("user:*:context");
+      const keys = await getRedisClient().keys("user:*:context");
       if (keys.length > 0) {
-        await redis.del(...keys);
+        await getRedisClient().del(...keys);
       }
     } catch (error) {
       console.error("Failed to invalidate all user caches:", error);

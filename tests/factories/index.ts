@@ -24,6 +24,19 @@ export * from "./scenarios";
 // Re-export all factories
 export * from "./user";
 export * from "./utils/dates";
-export * from "./utils/medical";
-// Utility exports
-export * from "./utils/random";
+// Explicitly re-export medical utilities to avoid naming conflicts
+export {
+  administration,
+  conditions,
+  dosage,
+  medical as medicalUtils,
+  medications,
+  storage,
+  veterinary,
+} from "./utils/medical";
+export {
+  animal,
+  location,
+  medical as medicalData,
+  random,
+} from "./utils/random";

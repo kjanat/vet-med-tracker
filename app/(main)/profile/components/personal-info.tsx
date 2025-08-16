@@ -63,19 +63,13 @@ const ProfileDataSchema = z.object({
   // Privacy Settings
   profileVisibility: z
     .object({
-      name: z.boolean().default(true),
-      email: z.boolean().default(false),
-      bio: z.boolean().default(true),
-      location: z.boolean().default(true),
-      social: z.boolean().default(true),
+      name: z.boolean().optional(),
+      email: z.boolean().optional(),
+      bio: z.boolean().optional(),
+      location: z.boolean().optional(),
+      social: z.boolean().optional(),
     })
-    .default({
-      name: true,
-      email: false,
-      bio: true,
-      location: true,
-      social: true,
-    }),
+    .optional(),
 });
 
 type ProfileData = z.infer<typeof ProfileDataSchema>;
@@ -441,7 +435,7 @@ export default function PersonalInfoSection() {
                   <Label htmlFor="visibility-name">Show Name</Label>
                   <Switch
                     id="visibility-name"
-                    checked={field.value}
+                    checked={field.value ?? true}
                     onCheckedChange={field.onChange}
                     disabled={!isEditing}
                   />
@@ -456,7 +450,7 @@ export default function PersonalInfoSection() {
                   <Label htmlFor="visibility-email">Show Email</Label>
                   <Switch
                     id="visibility-email"
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onCheckedChange={field.onChange}
                     disabled={!isEditing}
                   />
@@ -471,7 +465,7 @@ export default function PersonalInfoSection() {
                   <Label htmlFor="visibility-bio">Show Bio</Label>
                   <Switch
                     id="visibility-bio"
-                    checked={field.value}
+                    checked={field.value ?? true}
                     onCheckedChange={field.onChange}
                     disabled={!isEditing}
                   />
@@ -486,7 +480,7 @@ export default function PersonalInfoSection() {
                   <Label htmlFor="visibility-location">Show Location</Label>
                   <Switch
                     id="visibility-location"
-                    checked={field.value}
+                    checked={field.value ?? true}
                     onCheckedChange={field.onChange}
                     disabled={!isEditing}
                   />
@@ -501,7 +495,7 @@ export default function PersonalInfoSection() {
                   <Label htmlFor="visibility-social">Show Social Links</Label>
                   <Switch
                     id="visibility-social"
-                    checked={field.value}
+                    checked={field.value ?? true}
                     onCheckedChange={field.onChange}
                     disabled={!isEditing}
                   />

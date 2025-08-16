@@ -21,10 +21,10 @@ export function createInventoryItem(
     assignedAnimalId: random.boolean(0.4) ? random.uuid() : null,
     barcode: random.boolean(0.7) ? generateBarcode() : null, // Should be overridden with actual household ID
     brandOverride: random.boolean(0.3) ? generateBrandOverride() : null, // Should be overridden with actual medication ID
-    concentration: generateConcentration(), // 40% assigned to specific animal
+    concentration: generateConcentration(), // 40% assigned to a specific animal
     createdAt: dates.datePast(180).toISOString(),
     deletedAt: null,
-    expiresOn: dates.toDateString(expiresOn),
+    expiresOn: dates.toDateString(expiresOn) as string,
     householdId: random.uuid(),
     id: random.uuid(),
     inUse: inUse,

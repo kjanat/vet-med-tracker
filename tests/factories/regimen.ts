@@ -34,7 +34,7 @@ export function createRegimen(overrides: Partial<NewRegimen> = {}): NewRegimen {
     scheduleType: scheduleType as any,
     timesLocal: timesLocal,
     intervalHours: intervalHours,
-    startDate: dates.toDateString(startDate),
+    startDate: dates.toDateString(startDate) as string,
     endDate: endDate ? dates.toDateString(endDate) : null,
     prnReason: scheduleType === "PRN" ? generatePrnReason() : null,
     maxDailyDoses: scheduleType === "PRN" ? random.int(2, 6) : null,
@@ -116,8 +116,13 @@ function generateInstructions(scheduleType: string): string {
     ],
   };
 
-  const instructions =
-    instructionsByType[scheduleType] || instructionsByType.FIXED;
+  const instructions = instructionsByType[scheduleType];
+  if (!instructions) {
+    const fixedInstructions = instructionsByType.FIXED;
+    return fixedInstructions
+      ? random.arrayElement(fixedInstructions)
+      : "Follow medication instructions";
+  }
   return random.arrayElement(instructions);
 }
 
