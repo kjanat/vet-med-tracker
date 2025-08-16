@@ -2,202 +2,202 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-	AnimalCardSkeleton,
-	ChartSkeleton,
-	FormSkeleton,
-	InventoryItemSkeleton,
-	ListSkeleton,
-	MedicationCardSkeleton,
-	SummaryCardSkeleton,
+  AnimalCardSkeleton,
+  ChartSkeleton,
+  FormSkeleton,
+  InventoryItemSkeleton,
+  ListSkeleton,
+  MedicationCardSkeleton,
+  SummaryCardSkeleton,
 } from "@/components/ui/skeleton-variants";
 
 // Home page loading state
 export function HomePageLoading() {
-	return (
-		<div className="container mx-auto space-y-6 px-4 py-6">
-			{/* Header */}
-			<div className="space-y-2">
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-4 w-64" />
-			</div>
+  return (
+    <div className="container mx-auto space-y-6 px-4 py-6">
+      {/* Header */}
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
 
-			{/* Action cards */}
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-				{Array.from({ length: 4 }, (_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					<SummaryCardSkeleton key={i} />
-				))}
-			</div>
+      {/* Action cards */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+          <SummaryCardSkeleton key={i} />
+        ))}
+      </div>
 
-			{/* Pending medications */}
-			<div className="space-y-4">
-				<Skeleton className="h-6 w-40" />
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{Array.from({ length: 3 }, (_, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-						<MedicationCardSkeleton key={i} />
-					))}
-				</div>
-			</div>
-		</div>
-	);
+      {/* Pending medications */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-40" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }, (_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+            <MedicationCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Record administration page loading
 export function RecordPageLoading() {
-	return (
-		<div className="container mx-auto space-y-6 px-4 py-6">
-			<div className="space-y-2">
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-4 w-64" />
-			</div>
+  return (
+    <div className="container mx-auto space-y-6 px-4 py-6">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
 
-			<div className="mx-auto max-w-2xl">
-				<FormSkeleton fields={4} />
-			</div>
-		</div>
-	);
+      <div className="mx-auto max-w-2xl">
+        <FormSkeleton fields={4} />
+      </div>
+    </div>
+  );
 }
 
 // History page loading
 export function HistoryPageLoading() {
-	return (
-		<div className="container mx-auto space-y-6 px-4 py-6">
-			<div className="space-y-2">
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-4 w-64" />
-			</div>
+  return (
+    <div className="container mx-auto space-y-6 px-4 py-6">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
 
-			{/* Filters */}
-			<div className="flex gap-4">
-				<Skeleton className="h-10 w-40" />
-				<Skeleton className="h-10 w-40" />
-				<Skeleton className="h-10 w-40" />
-			</div>
+      {/* Filters */}
+      <div className="flex gap-4">
+        <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-10 w-40" />
+      </div>
 
-			{/* History list */}
-			<div className="space-y-2">
-				{Array.from({ length: 5 }, (_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					<div key={i} className="rounded-lg border p-4">
-						<ListSkeleton count={1} />
-					</div>
-				))}
-			</div>
-		</div>
-	);
+      {/* History list */}
+      <div className="space-y-2">
+        {Array.from({ length: 5 }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+          <div key={i} className="rounded-lg border p-4">
+            <ListSkeleton count={1} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Inventory page loading
 export function InventoryPageLoading() {
-	return (
-		<div className="container mx-auto space-y-6 px-4 py-6">
-			<div className="flex items-center justify-between">
-				<div className="space-y-2">
-					<Skeleton className="h-8 w-48" />
-					<Skeleton className="h-4 w-64" />
-				</div>
-				<Skeleton className="h-10 w-32" />
-			</div>
+  return (
+    <div className="container mx-auto space-y-6 px-4 py-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-10 w-32" />
+      </div>
 
-			{/* Stats */}
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-				{Array.from({ length: 3 }, (_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					<SummaryCardSkeleton key={i} />
-				))}
-			</div>
+      {/* Stats */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+          <SummaryCardSkeleton key={i} />
+        ))}
+      </div>
 
-			{/* Inventory grid */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{Array.from({ length: 6 }, (_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					<InventoryItemSkeleton key={i} />
-				))}
-			</div>
-		</div>
-	);
+      {/* Inventory grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+          <InventoryItemSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Insights page loading
 export function InsightsPageLoading() {
-	return (
-		<div className="container mx-auto space-y-6 px-4 py-6">
-			<div className="space-y-2">
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-4 w-64" />
-			</div>
+  return (
+    <div className="container mx-auto space-y-6 px-4 py-6">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
 
-			{/* Summary cards */}
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-				{Array.from({ length: 4 }, (_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					<SummaryCardSkeleton key={i} />
-				))}
-			</div>
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+          <SummaryCardSkeleton key={i} />
+        ))}
+      </div>
 
-			{/* Charts */}
-			<div className="grid gap-6 md:grid-cols-2">
-				<ChartSkeleton />
-				<ChartSkeleton />
-			</div>
+      {/* Charts */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <ChartSkeleton />
+        <ChartSkeleton />
+      </div>
 
-			{/* Additional insights */}
-			<div className="grid gap-4">
-				<div className="rounded-lg border p-6">
-					<Skeleton className="mb-4 h-6 w-40" />
-					<ListSkeleton count={3} />
-				</div>
-			</div>
-		</div>
-	);
+      {/* Additional insights */}
+      <div className="grid gap-4">
+        <div className="rounded-lg border p-6">
+          <Skeleton className="mb-4 h-6 w-40" />
+          <ListSkeleton count={3} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Animals page loading
 export function AnimalsPageLoading() {
-	return (
-		<div className="container mx-auto space-y-6 px-4 py-6">
-			<div className="flex items-center justify-between">
-				<div className="space-y-2">
-					<Skeleton className="h-8 w-48" />
-					<Skeleton className="h-4 w-64" />
-				</div>
-				<Skeleton className="h-10 w-32" />
-			</div>
+  return (
+    <div className="container mx-auto space-y-6 px-4 py-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-10 w-32" />
+      </div>
 
-			{/* Animal grid */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{Array.from({ length: 6 }, (_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-					<AnimalCardSkeleton key={i} />
-				))}
-			</div>
-		</div>
-	);
+      {/* Animal grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+          <AnimalCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Settings page loading
 export function SettingsPageLoading() {
-	return (
-		<div className="container mx-auto max-w-4xl px-4 py-6">
-			<div className="mb-8 space-y-2">
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-4 w-64" />
-			</div>
+  return (
+    <div className="container mx-auto max-w-4xl px-4 py-6">
+      <div className="mb-8 space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
 
-			{/* Settings sections */}
-			<div className="space-y-8">
-				{Array.from({ length: 3 }, (_, i) => (
-					<div
-						// biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-						key={i}
-						className="space-y-4 rounded-lg border p-6"
-					>
-						<Skeleton className="h-6 w-32" />
-						<FormSkeleton fields={2} />
-					</div>
-				))}
-			</div>
-		</div>
-	);
+      {/* Settings sections */}
+      <div className="space-y-8">
+        {Array.from({ length: 3 }, (_, i) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
+            key={i}
+            className="space-y-4 rounded-lg border p-6"
+          >
+            <Skeleton className="h-6 w-32" />
+            <FormSkeleton fields={2} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

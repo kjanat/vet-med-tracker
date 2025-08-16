@@ -1,0 +1,62 @@
+name: Test Suite (Disabled)
+
+on:
+  workflow_call:
+    inputs:
+      database_url:
+        description: 'Database URL for tests'
+        required: false
+        type: string
+      database_url_unpooled:
+        description: 'Unpooled database URL for tests'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.14.0'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    services:
+      postgres:
+        # Start local PostgreSQL service; external DBs can be used by overriding env below
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vetmed_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Setup test database
+        if: ${{ inputs.database_url == '' }}
+        run: |
+          pnpm db:push
+          pnpm db:seed
+
+      - name: Run tests
+        env:
+          DATABASE_URL: ${{ inputs.database_url || 'postgresql://postgres:postgres@localhost:5432/vetmed_test' }}
+          DATABASE_URL_UNPOOLED: ${{ inputs.database_url_unpooled || 'postgresql://postgres:postgres@localhost:5432/vetmed_test' }}
+        run: pnpm test

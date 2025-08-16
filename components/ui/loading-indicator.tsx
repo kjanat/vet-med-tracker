@@ -9,32 +9,32 @@ import { useEffect, useState } from "react";
  * so we use pathname changes to detect navigation
  */
 export function LoadingIndicator() {
-	const [isNavigating, setIsNavigating] = useState(false);
-	const pathname = usePathname();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const pathname = usePathname();
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers the effect intentionally (see Next.js docs)
-	useEffect(() => {
-		// Show loading indicator on route change
-		setIsNavigating(true);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers the effect intentionally (see Next.js docs)
+  useEffect(() => {
+    // Show loading indicator on route change
+    setIsNavigating(true);
 
-		// Hide after a short delay
-		const timer = setTimeout(() => {
-			setIsNavigating(false);
-		}, 300);
+    // Hide after a short delay
+    const timer = setTimeout(() => {
+      setIsNavigating(false);
+    }, 300);
 
-		return () => clearTimeout(timer);
-	}, [pathname]);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
-	return isNavigating ? (
-		// biome-ignore lint/a11y/useSemanticElements: role="status" is correct for loading indicators per ARIA spec
-		<div
-			role="status"
-			aria-label="Loading"
-			className="ml-auto inline-block h-3 w-3 animate-fade-in animate-spin rounded-full border-2 border-current border-r-transparent border-solid opacity-0 motion-reduce:animate-[spin_1.5s_linear_infinite]"
-		>
-			<span className="sr-only">Loading...</span>
-		</div>
-	) : null;
+  return isNavigating ? (
+    // biome-ignore lint/a11y/useSemanticElements: role="status" is correct for loading indicators per ARIA spec
+    <div
+      role="status"
+      aria-label="Loading"
+      className="ml-auto inline-block h-3 w-3 animate-fade-in animate-spin rounded-full border-2 border-current border-r-transparent border-solid opacity-0 motion-reduce:animate-[spin_1.5s_linear_infinite]"
+    >
+      <span className="sr-only">Loading...</span>
+    </div>
+  ) : null;
 }
 
 // Add these styles to your global CSS or Tailwind config

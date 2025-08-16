@@ -1,38 +1,46 @@
-# VetMed Tracker
+# VetMed Tracker 🐾
 
-A Progressive Web App (PWA) for managing veterinary medications for pets and animals. Built with Next.js 15, React 19, TypeScript, and Tailwind CSS v4, designed to work offline and provide medication tracking across multiple households and animals.
+[![Next.js](https://img.shields.io/badge/Next.js-15.4.5-black)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)](https://tailwindcss.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Overview
+A Progressive Web App (PWA) for managing veterinary medications for pets and animals. Track medications, schedules, and
+inventory across multiple households with offline support.
 
-**Mission**: "Three taps to record" - Track medication administrations (not dosing calculations) for animals across households/organizations with inventory management, reminders, and actionable insights.
+## ✨ Features
 
-**Key Features**:
-- 🏠 Multi-household, multi-animal, multi-caregiver support
-- 📱 Offline-first PWA with automatic sync
-- 🌍 Time-zone aware (UTC storage, local display per animal's home timezone)
-- 💊 Comprehensive medication tracking and inventory management
-- 🔔 Smart reminders with escalation
-- 📊 Compliance reporting and actionable insights
-- 🔐 Role-based access control (OWNER, CAREGIVER, VETREADONLY)
+- **🏠 Multi-Household Support** - Manage medications for multiple households with role-based access
+- **🐕 Animal Management** - Track multiple pets with detailed medical information
+- **💊 Medication Tracking** - Comprehensive medication catalog with dosage calculations
+- **📅 Schedule Management** - Set up and track medication regimens with reminders
+- **📦 Inventory Management** - Track medication stock levels with expiry dates
+- **📱 PWA Offline Support** - Works offline with automatic sync when reconnected
+- **📊 Analytics & Insights** - Track compliance rates and medication patterns
+- **🔒 Secure Authentication** - Stack Auth with OAuth and social login support
+- **🌐 Multi-Timezone Support** - Handle pets in different timezones seamlessly
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and pnpm 10.13.1+
-- PostgreSQL database (Neon recommended)
-- Clerk account (for authentication)
+
+- Node.js 20+ (or 22 for latest features)
+- pnpm 10.14.0+
+- PostgreSQL database (or Neon account)
 
 ### Installation
 
 ```bash
-# Clone and install dependencies
-git clone <repository-url>
+# Clone the repository
+git clone https://github.com/yourusername/vet-med-tracker.git
 cd vet-med-tracker
+
+# Install dependencies
 pnpm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Edit .env.local with your database and auth configurations
+# Edit .env.local with your configuration
 
 # Set up database
 pnpm db:push
@@ -42,341 +50,176 @@ pnpm db:seed
 pnpm dev
 ```
 
-Visit `http://localhost:3000` to see the application.
+Access the application at http://localhost:3000
 
-### Development Commands
+### Network Access
+
+To access from other devices on your network:
 
 ```bash
-# Development
-pnpm dev          # Start development server (default)
-pnpm dev:turbo    # Start with Turbopack (experimental)
-
-# Production
-pnpm build        # Build for production
-pnpm start        # Start production server
-
-# Database
-pnpm db:push      # Push schema changes to database
-pnpm db:studio    # Open Drizzle Studio for database management
-pnpm db:seed      # Seed database with sample data
-
-# Code Quality
-pnpm lint         # Run ESLint
-pnpm type-check   # Run TypeScript checks
-pnpm test         # Run test suite
-pnpm test:e2e     # Run end-to-end tests
+pnpm dev:host
 ```
 
-## Architecture
+Then access at http://YOUR_IP:3000
 
-### Tech Stack
-- **Framework**: Next.js 15.4.4 with App Router
+## 🛠️ Tech Stack
+
+### Core
+
+- **Framework**: Next.js 15.4.5 with App Router
 - **Language**: TypeScript with strict mode
-- **Styling**: Tailwind CSS v4 (using new @import syntax)
-- **UI Components**: shadcn/ui components with Radix UI primitives
-- **State Management**: React Context API (AppProvider) + React Query
-- **API Layer**: tRPC (server + client) for type-safe APIs
-- **Database**: Drizzle ORM + PostgreSQL (Neon)
-- **Authentication**: Clerk (managed authentication service)
+- **Styling**: Tailwind CSS v4
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Stack Auth
+
+### Infrastructure
+
+- **API Layer**: tRPC for type-safe APIs
+- **State Management**: React Context + React Query
 - **Forms**: React Hook Form with Zod validation
-- **PWA**: Service Worker with offline queue (IndexedDB)
-- **Package Manager**: pnpm 10.13.1
+- **Testing**: Vitest (unit) + Playwright (E2E)
+- **Code Quality**: Biome for linting/formatting
+- **Deployment**: Vercel with Edge Runtime support
 
-### Key Architecture Patterns
+## 📁 Project Structure
 
-1. **App Router Structure**:
-   - `app/(authed)/` - Protected routes requiring authentication
-   - `app/(dev)/` - Development-only routes
-   - Layout nesting for shared UI (Header, BottomNav, LeftRail)
-
-2. **Component Organization**:
-   - `components/ui/` - Reusable UI components (shadcn/ui)
-   - `components/layout/` - Layout components
-   - `components/[feature]/` - Feature-specific components
-
-3. **Offline-First PWA**:
-   - Service Worker handles offline caching
-   - `useOfflineQueue` hook manages offline data sync
-   - `AppProvider` tracks online/offline state globally
-
-4. **Multi-Tenancy**:
-   - Household-based data isolation
-   - Role-based access control
-   - tRPC middleware for authorization
-
-## Core Features
-
-### 🎯 Record Administration Flow
-The core "three taps to record" experience:
-1. **Select**: Animal + Regimen (pre-selected from context)
-2. **Confirm**: Hold 3 seconds with progress ring
-3. **Success**: Shows timestamp and caregiver
-
-### 📊 Status & Compliance
-- **On-time**: ≤ +60 minutes from target
-- **Late**: +61 to +180 minutes
-- **Very Late**: >180 minutes until cutoff
-- **Missed**: Auto-created at cutoff time (default 4 hours after target)
-- **PRN**: As-needed doses never marked as missed
-
-### 📦 Inventory Management
-- Track medications with expiry dates and assignment
-- "In use" status for active inventory items
-- Low stock warnings based on usage patterns
-- Barcode scanning support (EAN/UPC/DataMatrix)
-
-### 🔔 Smart Reminders
-Notification schedule for each dose:
-- Target - 15 minutes
-- Target time
-- Target + 15 minutes
-- Target + 45 minutes (escalation to role group)
-- Target + 90 minutes (final attempt)
-
-### 📈 Insights & Analytics
-- Weekly/Monthly compliance metrics
-- Usage patterns and trends
-- Low stock alerts
-- Actionable suggestions for medication management
-
-## Production Monitoring 🚀
-
-VetMed Tracker includes a comprehensive production monitoring system designed for reliability and observability:
-
-### Monitoring Features
-- **Real-time Health Monitoring** - `/api/health` endpoint with detailed system status
-- **Circuit Breaker Protection** - Automatic failure protection with graceful degradation
-- **Rate Limiting** - API abuse prevention with adaptive thresholds
-- **Connection Queue Management** - Intelligent database connection handling
-- **Performance Metrics** - Response times, error rates, and resource usage
-- **Load Testing Suite** - Comprehensive testing infrastructure for validation
-
-### Quick Health Check
-```bash
-# Basic health status
-curl http://localhost:3000/api/health
-
-# Detailed system metrics
-curl "http://localhost:3000/api/health?detailed=true"
+```
+vet-med-tracker/
+├── app/                    # Next.js App Router pages
+│   ├── (authed)/          # Protected routes
+│   ├── (public)/          # Public pages
+│   └── api/               # API routes
+├── components/            # React components
+│   ├── ui/               # Reusable UI components
+│   └── layout/           # Layout components
+├── server/                # Server-side code
+│   └── api/              # tRPC routers
+├── db/                    # Database schema & config
+├── lib/                   # Utilities and helpers
+│   ├── infrastructure/   # System-level code
+│   └── schemas/          # Zod validation schemas
+├── hooks/                 # Custom React hooks
+├── tests/                 # Test files
+└── public/               # Static assets
 ```
 
-### Monitoring Documentation
-- 📚 **[Production Monitoring Guide](./docs/PRODUCTION_MONITORING.md)** - Comprehensive monitoring setup and best practices
-- 🧪 **[Load Testing Results](./LOAD_TEST_RESULTS.md)** - Performance validation and safeguards verification
-- 🔧 **[Quick Reference Guide](#monitoring-quick-reference)** - Essential monitoring commands and thresholds
-
-**Status**: ✅ **Production Ready** - 95% safeguards test pass rate with comprehensive protection against common failure modes.
-
-## Database Schema
-
-### Core Entities
-```typescript
-// Key models
-User, Household, Membership (many-to-many with roles)
-Animal (belongs to household, has timezone)
-MedicationCatalog (generic/brand names, routes, forms)
-Regimen (links animal to medication with schedule)
-Administration (actual recorded events with status)
-InventoryItem (household medications with assignment)
-
-// Key enums
-Role: OWNER | CAREGIVER | VETREADONLY
-ScheduleType: FIXED | PRN
-AdminStatus: ON_TIME | LATE | VERY_LATE | MISSED | PRN
-```
-
-### Security Patterns
-- Household-scoped data isolation
-- Role-based access control
-- Audit logging for all mutations
-- Resource-level authorization checks
-
-## API Structure
-
-### tRPC Routers
-```typescript
-// Main API routers
-adminRouter     // Record administrations
-inventoryRouter // Manage medication inventory
-regimensRouter  // Create/edit medication schedules
-animalRouter    // Animal profiles
-householdRouter // Household management
-insightsRouter  // Analytics and patterns
-```
-
-All APIs include:
-- Type-safe input/output validation with Zod
-- Automatic authorization middleware
-- Audit logging
-- Error handling with circuit breakers
-
-## Offline Support
-
-### PWA Capabilities
-- **Service Worker**: Caches app shell and API responses
-- **Offline Queue**: IndexedDB-based mutation queue with auto-sync
-- **Background Sync**: Automatic sync when connection restored
-- **Idempotency**: Prevents duplicate records on sync
-
-### Offline Features
-- Record administrations offline
-- View historical data
-- Access inventory information
-- Automatic sync when online
-
-## Development Guide
-
-### Project Structure
-```
-app/                 # Next.js App Router
-├── (authed)/       # Protected routes
-├── (dev)/          # Development routes
-├── (public)/       # Public routes
-└── api/            # API routes
-
-components/         # React components
-├── ui/            # shadcn/ui components
-├── layout/        # Layout components
-└── [feature]/     # Feature-specific components
-
-server/            # tRPC server code
-├── api/          # Router definitions
-└── utils/        # Server utilities
-
-lib/              # Shared utilities
-├── trpc/        # tRPC client setup
-├── offline/     # Offline support
-└── schemas/     # Zod validation schemas
-
-docs/             # Documentation
-├── PRODUCTION_MONITORING.md  # Monitoring guide
-├── AUTH_SETUP.md            # Authentication setup
-└── implementation-workflow/ # Development guides
-```
-
-### Key Development Patterns
-
-1. **When adding new routes**, consider authentication requirements
-2. **Use existing UI components** from `components/ui/` before creating new ones
-3. **All data operations** should handle offline scenarios via `useOfflineQueue`
-4. **Maintain household context** when implementing features
-5. **Follow established patterns** for component organization
-
-### Testing
+## 🧪 Testing
 
 ```bash
 # Unit tests
-pnpm test
+pnpm test:unit
 
-# End-to-end tests
+# Integration tests (requires PostgreSQL)
+pnpm test:integration
+
+# E2E tests
 pnpm test:e2e
 
-# Load testing
-pnpm tsx scripts/load-test.ts all
+# Coverage report
+pnpm test:coverage
 
-# Test safeguards
-pnpm tsx scripts/test-safeguards.ts
+# Visual regression tests
+pnpm test:visual
 ```
 
-## Deployment
+## 📦 Available Scripts
 
-### Environment Setup
-```bash
-# Production environment variables
-DATABASE_URL="postgresql://..."
-NEXTAUTH_SECRET="your-secret"
-NEXTAUTH_URL="https://your-domain.com"
+### Development
 
-# Monitoring configuration
-HEALTH_CHECK_INTERVAL=30000
-CIRCUIT_BREAKER_ENABLED=true
-RATE_LIMITING_ENABLED=true
+- `pnpm dev` - Start development server
+- `pnpm dev:turbo` - Start with Turbopack (experimental)
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm preview` - Build and preview production
+
+### Database
+
+- `pnpm db:generate` - Generate Drizzle migrations
+- `pnpm db:push` - Push schema to database
+- `pnpm db:studio` - Open Drizzle Studio GUI
+- `pnpm db:seed` - Seed database with test data
+
+### Code Quality
+
+- `pnpm typecheck` - Type check with TypeScript
+- `pnpm lint` - Run linting
+- `pnpm check` - Run Biome checks
+- `pnpm format` - Format code with Biome
+
+## 🚢 Deployment
+
+### Vercel (Recommended)
+
+1. Push to GitHub
+2. Import project in Vercel
+3. Set environment variables
+4. Deploy
+
+### Environment Variables
+
+Required environment variables:
+
+```env
+# Database
+DATABASE_URL=
+DATABASE_URL_UNPOOLED=
+
+# Authentication
+NEXT_PUBLIC_STACK_PROJECT_ID=
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=
+STACK_SECRET_SERVER_KEY=
+
+# Optional
+REDIS_URL=
+SENTRY_DSN=
 ```
 
-### Deployment Checklist
-- [ ] Environment variables configured
-- [ ] Database migrations applied
-- [ ] Health endpoint accessible
-- [ ] Monitoring alerts configured
-- [ ] Load testing completed
-- [ ] Backup procedures verified
+See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
 
-## Monitoring Quick Reference
+## 🔒 Security
 
-### Essential Health Commands
-```bash
-# System health status
-curl http://localhost:3000/api/health
+- All routes protected by authentication middleware
+- Multi-tenant data isolation
+- Input sanitization with Zod schemas
+- Rate limiting on API endpoints
+- Audit logging for all data modifications
+- Security headers configured
 
-# Database connection status
-curl "http://localhost:3000/api/health?detailed=true" | jq '.components.database'
+## 📊 Performance
 
-# Circuit breaker states
-curl "http://localhost:3000/api/health?detailed=true" | jq '.components.circuitBreakers'
+- Optimized for Core Web Vitals
+- Bundle size optimization with code splitting
+- Image optimization disabled for PWA compatibility
+- Connection pooling for database
+- Redis caching for frequently accessed data
+- Service Worker for offline support
 
-# Connection queue status
-curl "http://localhost:3000/api/health?detailed=true" | jq '.metrics.queue'
-```
+## 🤝 Contributing
 
-### Performance Thresholds
-- **Response Time**: P95 < 2000ms, P99 < 5000ms
-- **Error Rate**: < 1% overall, < 0.5% for 5xx errors
-- **Database Usage**: < 80% connection pool utilization
-- **Queue Depth**: < 50 items in connection queue
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) first.
 
-### Alert Conditions
-- 🚨 **Critical**: Health endpoint 503, circuit breakers open > 5min
-- ⚠️ **Warning**: Response time P95 > 3s, queue depth > 100
-- ℹ️ **Info**: Rate limit violations, performance trends
-
-## Contributing
-
-### Development Workflow
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests (`pnpm test && pnpm test:e2e`)
-5. Commit changes (`git commit -m 'Add amazing feature'`)
-6. Push to branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Code Standards
-- TypeScript strict mode required
-- ESLint configuration must pass
-- Components must handle offline scenarios
-- All mutations require audit logging
-- Tests required for new features
+## 📝 License
 
-## Documentation
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Complete Documentation
-- 🏗️ **[Architecture Guide](./CLAUDE.md)** - Comprehensive project overview
-- 🔐 **[Authentication Setup](./docs/AUTH_SETUP.md)** - Clerk configuration
-- 📊 **[Production Monitoring](./docs/PRODUCTION_MONITORING.md)** - Monitoring and observability
-- 📱 **[Offline Support](./docs/OFFLINE_QUEUE.md)** - PWA and offline capabilities
-- 🗄️ **[Database Guide](./docs/DATABASE_POOLING.md)** - Database optimization
-- 🧪 **[Testing Infrastructure](./tests/README.md)** - Testing setup and guidelines
-- 📋 **[Implementation Workflow](./docs/implementation-workflow/)** - Step-by-step development guides
+## 🙏 Acknowledgments
 
-### API Documentation
-- tRPC routers provide automatic type safety
-- Input/output schemas defined with Zod
-- Authentication and authorization built-in
-- Comprehensive error handling
+- [Next.js](https://nextjs.org) - The React Framework
+- [shadcn/ui](https://ui.shadcn.com) - Beautiful component library
+- [Drizzle ORM](https://orm.drizzle.team) - TypeScript ORM
+- [Stack Auth](https://stack-auth.com) - Authentication service
+- [Vercel](https://vercel.com) - Deployment platform
 
-## License
+## 📧 Support
 
-[License information here]
-
-## Support
-
-For support, please:
-1. Check the [documentation](./docs/)
-2. Review [existing issues](../../issues)
-3. Create a new issue with detailed information
+For support, please open an issue on GitHub or contact the maintainers.
 
 ---
 
-**Status**: 🚀 **Production Ready** with comprehensive monitoring and 95% safeguards test coverage.
-
-Built with ❤️ for veterinary professionals and pet caregivers.
+Built with ❤️ for pet health management

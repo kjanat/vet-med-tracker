@@ -3,14 +3,14 @@
 import { useEffect, useRef } from "react";
 
 interface ScreenReaderAnnouncerProps {
-	/** The message to announce */
-	message: string;
-	/** Priority level - 'polite' waits for user to finish, 'assertive' interrupts */
-	priority?: "polite" | "assertive";
-	/** Whether to clear the message after announcing */
-	clearAfterAnnounce?: boolean;
-	/** Delay before clearing (in ms) */
-	clearDelay?: number;
+  /** The message to announce */
+  message: string;
+  /** Priority level - 'polite' waits for user to finish, 'assertive' interrupts */
+  priority?: "polite" | "assertive";
+  /** Whether to clear the message after announcing */
+  clearAfterAnnounce?: boolean;
+  /** Delay before clearing (in ms) */
+  clearDelay?: number;
 }
 
 /**
@@ -35,39 +35,39 @@ interface ScreenReaderAnnouncerProps {
  * ```
  */
 export function ScreenReaderAnnouncer({
-	message,
-	priority = "polite",
-	clearAfterAnnounce = true,
-	clearDelay = 1000,
+  message,
+  priority = "polite",
+  clearAfterAnnounce = true,
+  clearDelay = 1000,
 }: ScreenReaderAnnouncerProps) {
-	const timeoutRef = useRef<number | undefined>(undefined);
+  const timeoutRef = useRef<number | undefined>(undefined);
 
-	useEffect(() => {
-		if (clearAfterAnnounce && message) {
-			timeoutRef.current = window.setTimeout(() => {
-				// Clear timeout is handled by parent component re-render
-			}, clearDelay);
-		}
+  useEffect(() => {
+    if (clearAfterAnnounce && message) {
+      timeoutRef.current = window.setTimeout(() => {
+        // Clear timeout is handled by parent component re-render
+      }, clearDelay);
+    }
 
-		return () => {
-			if (timeoutRef.current) {
-				window.clearTimeout(timeoutRef.current);
-			}
-		};
-	}, [message, clearAfterAnnounce, clearDelay]);
+    return () => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [message, clearAfterAnnounce, clearDelay]);
 
-	if (!message) return null;
+  if (!message) return null;
 
-	return (
-		<output
-			aria-live={priority}
-			aria-atomic="true"
-			className="sr-only"
-			data-testid="screen-reader-announcer"
-		>
-			{message}
-		</output>
-	);
+  return (
+    <output
+      aria-live={priority}
+      aria-atomic="true"
+      className="sr-only"
+      data-testid="screen-reader-announcer"
+    >
+      {message}
+    </output>
+  );
 }
 
 /**
@@ -77,29 +77,29 @@ export function ScreenReaderAnnouncer({
  * across the entire application.
  */
 export function GlobalScreenReaderProvider({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	return (
-		<>
-			{children}
-			{/* Persistent live regions for global announcements */}
-			<output
-				id="global-announcer-polite"
-				aria-live="polite"
-				aria-atomic="true"
-				className="sr-only"
-			/>
-			<div
-				id="global-announcer-assertive"
-				role="alert"
-				aria-live="assertive"
-				aria-atomic="true"
-				className="sr-only"
-			/>
-		</>
-	);
+  return (
+    <>
+      {children}
+      {/* Persistent live regions for global announcements */}
+      <output
+        id="global-announcer-polite"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      />
+      <div
+        id="global-announcer-assertive"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="sr-only"
+      />
+    </>
+  );
 }
 
 /**
@@ -118,26 +118,26 @@ export function GlobalScreenReaderProvider({
  * ```
  */
 export function announceToScreenReader(
-	message: string,
-	priority: "polite" | "assertive" = "polite",
+  message: string,
+  priority: "polite" | "assertive" = "polite",
 ) {
-	const announcerId = `global-announcer-${priority}`;
-	const announcer = document.getElementById(announcerId);
+  const announcerId = `global-announcer-${priority}`;
+  const announcer = document.getElementById(announcerId);
 
-	if (announcer) {
-		// Clear any existing message first
-		announcer.textContent = "";
+  if (announcer) {
+    // Clear any existing message first
+    announcer.textContent = "";
 
-		// Use setTimeout to ensure the clear is processed before the new message
-		setTimeout(() => {
-			announcer.textContent = message;
+    // Use setTimeout to ensure the clear is processed before the new message
+    setTimeout(() => {
+      announcer.textContent = message;
 
-			// Clear the message after a delay to prevent accumulation
-			setTimeout(() => {
-				announcer.textContent = "";
-			}, 1000);
-		}, 100);
-	}
+      // Clear the message after a delay to prevent accumulation
+      setTimeout(() => {
+        announcer.textContent = "";
+      }, 1000);
+    }, 100);
+  }
 }
 
 /**
@@ -158,14 +158,14 @@ export function announceToScreenReader(
  * ```
  */
 export function useScreenReaderAnnouncements() {
-	const announce = (
-		message: string,
-		priority: "polite" | "assertive" = "polite",
-	) => {
-		announceToScreenReader(message, priority);
-	};
+  const announce = (
+    message: string,
+    priority: "polite" | "assertive" = "polite",
+  ) => {
+    announceToScreenReader(message, priority);
+  };
 
-	return { announce };
+  return { announce };
 }
 
 /**
@@ -183,7 +183,7 @@ export function useScreenReaderAnnouncements() {
  * ```
  */
 export function ScreenReaderOnly({ text }: { text: string }) {
-	return <span className="sr-only">{text}</span>;
+  return <span className="sr-only">{text}</span>;
 }
 
 /**
@@ -204,27 +204,27 @@ export function ScreenReaderOnly({ text }: { text: string }) {
  * ```
  */
 export function SkipNavigation({
-	links,
+  links,
 }: {
-	links: Array<{ href: string; label: string }>;
+  links: Array<{ href: string; label: string }>;
 }) {
-	return (
-		<nav
-			aria-label="Skip navigation"
-			className="sr-only focus-within:not-sr-only"
-		>
-			<ul className="flex gap-2 bg-primary p-2 text-primary-foreground">
-				{links.map((link) => (
-					<li key={link.href}>
-						<a
-							href={link.href}
-							className="inline-block rounded bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-						>
-							{link.label}
-						</a>
-					</li>
-				))}
-			</ul>
-		</nav>
-	);
+  return (
+    <nav
+      aria-label="Skip navigation"
+      className="sr-only focus-within:not-sr-only"
+    >
+      <ul className="flex gap-2 bg-primary p-2 text-primary-foreground">
+        {links.map((link) => (
+          <li key={link.href}>
+            <a
+              href={link.href}
+              className="inline-block rounded bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
 }

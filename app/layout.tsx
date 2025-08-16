@@ -1,107 +1,84 @@
+import { StackProvider, StackTheme } from "@stackframe/stack";
 import type { Metadata } from "next";
 import type React from "react";
+import { stackServerApp } from "../stack";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
+import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 // import { DebugHouseholdState } from "@/components/debug/debug-household-state";
-import { ErrorBoundary } from "@/components/error-boundary";
-import { GlobalLayout } from "@/components/layout/global-layout";
-import { AppProvider } from "@/components/providers/app-provider";
-import { AuthProvider } from "@/components/providers/auth-provider";
-import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import {
-	GlobalScreenReaderProvider,
-	SkipNavigation,
-} from "@/components/ui/screen-reader-announcer";
+import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
 import { TRPCProvider } from "@/server/trpc/client";
 import { inter, jetbrainsMono } from "./fonts";
 
 export const metadata: Metadata = {
-	title: "VetMed Tracker - Pet Medication Management Made Simple",
-	description:
-		"Track pet medications, set reminders, and manage veterinary prescriptions with ease. Never miss a dose with our intuitive medication tracking app.",
-	keywords: [
-		"pet medication tracker",
-		"veterinary medicine management",
-		"pet health app",
-		"medication reminders",
-		"animal prescription tracker",
-	],
-	openGraph: {
-		title: "VetMed Tracker - Pet Medication Management",
-		description:
-			"Never miss a pet medication dose. Track prescriptions, set reminders, and manage your pet's health with confidence.",
-		type: "website",
-		locale: "en_US",
-		siteName: "VetMed Tracker",
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: "VetMed Tracker - Pet Medication Management",
-		description:
-			"Track pet medications and never miss a dose. Simple, reliable medication management for your furry friends.",
-	},
-	robots: {
-		index: true,
-		follow: true,
-		googleBot: {
-			index: true,
-			follow: true,
-			"max-video-preview": -1,
-			"max-image-preview": "large",
-			"max-snippet": -1,
-		},
-	},
+  title: "VetMed Tracker - Pet Medication Management Made Simple",
+  description:
+    "Track pet medications, set reminders, and manage veterinary prescriptions with ease. Never miss a dose with our intuitive medication tracking app.",
+  keywords: [
+    "pet medication tracker",
+    "veterinary medicine management",
+    "pet health app",
+    "medication reminders",
+    "animal prescription tracker",
+  ],
+  openGraph: {
+    title: "VetMed Tracker - Pet Medication Management",
+    description:
+      "Never miss a pet medication dose. Track prescriptions, set reminders, and manage your pet's health with confidence.",
+    type: "website",
+    locale: "en_US",
+    siteName: "VetMed Tracker",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VetMed Tracker - Pet Medication Management",
+    description:
+      "Track pet medications and never miss a dose. Simple, reliable medication management for your furry friends.",
+  },
+  appleWebApp: {
+    title: "VetMed",
+  },
 };
 
 export default function RootLayout({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	return (
-		<ClerkProvider>
-			<html
-				lang="en"
-				className={`${inter.variable} ${jetbrainsMono.variable}`}
-				suppressHydrationWarning
-			>
-				<head>
-					{/* <script src="http://localhost:8097"></script> */}
-					<meta name="apple-mobile-web-app-title" content="VetMed Tracker" />
-				</head>
-				<body className={inter.className} suppressHydrationWarning>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
-						<SkipNavigation
-							links={[
-								{ href: "#main-content", label: "Skip to main content" },
-								{ href: "#main-navigation", label: "Skip to navigation" },
-								{ href: "#search", label: "Skip to search" },
-							]}
-						/>
-						<ErrorBoundary errorBoundaryId="root">
-							<TRPCProvider>
-								<AuthProvider>
-									<AppProvider>
-										<GlobalScreenReaderProvider>
-											<KeyboardShortcutsProvider>
-												<GlobalLayout>{children}</GlobalLayout>
-											</KeyboardShortcutsProvider>
-										</GlobalScreenReaderProvider>
-									</AppProvider>
-								</AuthProvider>
-							</TRPCProvider>
-						</ErrorBoundary>
-						<Analytics />
-					</ThemeProvider>
-				</body>
-			</html>
-		</ClerkProvider>
-	);
+  return (
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
+      suppressHydrationWarning
+    >
+      <head>
+        <meta name="apple-mobile-web-app-title" content="VetMed" />
+      </head>
+      <body className={inter.className} suppressHydrationWarning>
+        <StackProvider app={stackServerApp}>
+          <StackTheme>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <SkipNavigation
+                links={[
+                  { href: "#main-content", label: "Skip to main content" },
+                  { href: "#main-navigation", label: "Skip to navigation" },
+                ]}
+              />
+              <TRPCProvider>{children}</TRPCProvider>
+              <PerformanceMonitor
+                debug={process.env.NODE_ENV === "development"}
+              />
+              <Analytics />
+            </ThemeProvider>
+          </StackTheme>
+        </StackProvider>
+      </body>
+    </html>
+  );
 }

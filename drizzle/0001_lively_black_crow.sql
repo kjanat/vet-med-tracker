@@ -31,8 +31,10 @@ DROP INDEX "regimen_animal_id_idx";--> statement-breakpoint
 DROP INDEX "regimen_active_idx";--> statement-breakpoint
 DROP INDEX "regimen_start_date_idx";--> statement-breakpoint
 DROP INDEX "regimen_deleted_at_idx";--> statement-breakpoint
-ALTER TABLE "vetmed_inventory_items" ADD CONSTRAINT "vetmed_inventory_items_medication_id_vetmed_medication_catalog_" FOREIGN KEY ("medication_id") REFERENCES "public"."vetmed_medication_catalog"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "vetmed_administrations" ADD CONSTRAINT "vetmed_administrations_source_item_id_vetmed_inventory_items_id" FOREIGN KEY ("source_item_id") REFERENCES "public"."vetmed_inventory_items"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "vetmed_inventory_items"
+    ADD CONSTRAINT "vetmed_inventory_items_medication_id_vetmed_medication_catalog_" FOREIGN KEY ("medication_id") REFERENCES "public"."vetmed_medication_catalog" ("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "vetmed_administrations"
+    ADD CONSTRAINT "vetmed_administrations_source_item_id_vetmed_inventory_items_id" FOREIGN KEY ("source_item_id") REFERENCES "public"."vetmed_inventory_items" ("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "animal_household_id_idx" ON "vetmed_animals" USING btree ("household_id" uuid_ops);--> statement-breakpoint
 CREATE INDEX "animal_deleted_at_idx" ON "vetmed_animals" USING btree ("deleted_at" timestamptz_ops);--> statement-breakpoint
 CREATE INDEX "audit_user_id_idx" ON "vetmed_audit_log" USING btree ("user_id" uuid_ops);--> statement-breakpoint

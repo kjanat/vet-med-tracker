@@ -1,0 +1,93 @@
+# Percy Configuration for VetMed Tracker
+version: 2
+
+discovery:
+  # Network idle is 2000ms; adjust comment accordingly (see below)
+  network-idle-timeout: 2000
+  allowed-hostnames:
+    - localhost
+    - 127.0.0.1
+
+snapshot:
+  # Test multiple responsive breakpoints
+  widths:
+    - 375   # Mobile portrait
+    - 768   # Tablet portrait
+    - 1024  # Tablet landscape / Small desktop
+    - 1440  # Desktop
+    - 1920  # Large desktop
+
+  # Visual settings
+  percy-css: |
+    /* Hide elements that change frequently */
+    [data-testid="current-time"],
+    [data-testid="last-sync-time"],
+    .toast-container,
+    .notification-badge,
+    /* Hide animations for consistent snapshots */
+    * {
+      animation-duration: 0s !important;
+      animation-delay: 0s !important;
+      transition-duration: 0s !important;
+      transition-delay: 0s !important;
+    }
+    /* Stabilize loading skeletons */
+    .animate-pulse {
+      animation: none !important;
+    }
+
+  # Minimum height for mobile viewports
+  min-height: 1024
+
+# Static site discovery (disabled - we use dynamic testing)
+static-snapshots: false
+
+# Agent configuration
+agent:
+  # Asset discovery settings
+  asset-discovery:
+    # Network idle timeout for asset loading
+    network-idle-timeout: 2000
+    
+    # Request headers to add for authentication
+    request-headers:
+      Authorization: "Bearer test-token"
+    # Ignore dynamic API calls in snapshots
+    allowed-hostnames:
+      - localhost
+      - 127.0.0.1
+
+# Ignore regions for dynamic content
+ignore-regions:
+  # Time-based content
+  - selector: '[data-testid="relative-time"]'
+  - selector: '[data-testid="timestamp"]'
+  - selector: '.time-ago'
+  
+  # Dynamic IDs and tokens
+  - selector: '[data-testid="session-id"]'
+  - selector: '[data-testid="request-id"]'
+  
+  # Charts and graphs (they have animations)
+  - selector: '.recharts-wrapper'
+  
+  # Photo upload previews (file-dependent)
+  - selector: '[data-testid="photo-preview"]'
+
+# Threshold for acceptable visual differences
+visual-threshold: 0.05
+
+# Auto-approval settings
+auto-approve:
+  # Approve changes under 5% difference
+  threshold: 0.05
+  
+  # But not for these critical areas
+  excluded-regions:
+    - selector: '[data-testid="medication-dose"]'
+    - selector: '[data-testid="critical-alert"]'
+    - selector: '.error-message'
+    - selector: '.success-message'
+
+# Enable debugging output
+debug: false

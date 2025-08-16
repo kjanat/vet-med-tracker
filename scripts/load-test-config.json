@@ -1,103 +1,97 @@
 {
-	"environments": {
-		"local": {
-			"baseUrl": "http://localhost:3000",
-			"description": "Local development environment"
-		},
-		"staging": {
-			"baseUrl": "https://staging.vetmed-tracker.example.com",
-			"description": "Staging environment"
-		}
-	},
-
-	"testProfiles": {
-		"light": {
-			"concurrentUsers": 5,
-			"requestsPerUser": 20,
-			"testDurationMs": 30000,
-			"description": "Light testing for development"
-		},
-		"moderate": {
-			"concurrentUsers": 25,
-			"requestsPerUser": 50,
-			"testDurationMs": 60000,
-			"description": "Moderate testing for CI/CD"
-		},
-		"heavy": {
-			"concurrentUsers": 100,
-			"requestsPerUser": 100,
-			"testDurationMs": 180000,
-			"description": "Heavy testing for performance validation"
-		}
-	},
-
-	"rateLimits": {
-		"api": {
-			"windowMs": 60000,
-			"maxRequests": 100
-		},
-		"auth": {
-			"windowMs": 900000,
-			"maxRequests": 5
-		},
-		"recording": {
-			"windowMs": 60000,
-			"maxRequests": 30
-		},
-		"heavy": {
-			"windowMs": 60000,
-			"maxRequests": 10
-		}
-	},
-
-	"circuitBreakerThresholds": {
-		"database": {
-			"failureThreshold": 5,
-			"successThreshold": 2,
-			"timeout": 30000
-		},
-		"critical": {
-			"failureThreshold": 3,
-			"successThreshold": 1,
-			"timeout": 10000
-		}
-	},
-
-	"connectionQueue": {
-		"maxConcurrentConnections": 8,
-		"maxQueueSize": 200,
-		"timeoutMs": 30000
-	},
-
-	"expectedBehaviors": {
-		"rateLimiting": {
-			"shouldTriggerAt": 80,
-			"description": "Rate limiting should trigger when 80% of limit reached"
-		},
-		"circuitBreaker": {
-			"shouldOpenAfterFailures": 5,
-			"description": "Circuit breaker should open after 5 consecutive failures"
-		},
-		"queueManagement": {
-			"maxAcceptableQueueSize": 50,
-			"description": "Queue should not exceed 50 items under normal load"
-		},
-		"responseTime": {
-			"normalLoad": {
-				"p95Threshold": 500,
-				"p99Threshold": 1000
-			},
-			"highLoad": {
-				"p95Threshold": 2000,
-				"p99Threshold": 5000
-			}
-		}
-	},
-
-	"alertThresholds": {
-		"errorRate": 5,
-		"responseTimeIncrease": 300,
-		"queueBacklog": 25,
-		"connectionUsage": 75
-	}
+  "environments": {
+    "local": {
+      "baseUrl": "http://localhost:3000",
+      "description": "Local development environment"
+    },
+    "staging": {
+      "baseUrl": "https://staging.vetmed-tracker.example.com",
+      "description": "Staging environment"
+    }
+  },
+  "testProfiles": {
+    "light": {
+      "concurrentUsers": 5,
+      "requestsPerUser": 20,
+      "testDurationMs": 30000,
+      "description": "Light testing for development"
+    },
+    "moderate": {
+      "concurrentUsers": 25,
+      "requestsPerUser": 50,
+      "testDurationMs": 60000,
+      "description": "Moderate testing for CI/CD"
+    },
+    "heavy": {
+      "concurrentUsers": 100,
+      "requestsPerUser": 100,
+      "testDurationMs": 180000,
+      "description": "Heavy testing for performance validation"
+    }
+  },
+  "rateLimits": {
+    "api": {
+      "windowMs": 60000,
+      "maxRequests": 100
+    },
+    "auth": {
+      "windowMs": 900000,
+      "maxRequests": 5
+    },
+    "recording": {
+      "windowMs": 60000,
+      "maxRequests": 30
+    },
+    "heavy": {
+      "windowMs": 60000,
+      "maxRequests": 10
+    }
+  },
+  "circuitBreakerThresholds": {
+    "database": {
+      "failureThreshold": 5,
+      "successThreshold": 2,
+      "timeout": 30000
+    },
+    "critical": {
+      "failureThreshold": 3,
+      "successThreshold": 1,
+      "timeout": 10000
+    }
+  },
+  "connectionQueue": {
+    "maxConcurrentConnections": 8,
+    "maxQueueSize": 200,
+    "timeoutMs": 30000
+  },
+  "expectedBehaviors": {
+    "rateLimiting": {
+      "shouldTriggerAt": 80,
+      "description": "Rate limiting should trigger when 80% of limit reached"
+    },
+    "circuitBreaker": {
+      "shouldOpenAfterFailures": 5,
+      "description": "Circuit breaker should open after 5 consecutive failures"
+    },
+    "queueManagement": {
+      "maxAcceptableQueueSize": 50,
+      "description": "Queue should not exceed 50 items under normal load"
+    },
+    "responseTime": {
+      "normalLoad": {
+        "p95Threshold": 500,
+        "p99Threshold": 1000
+      },
+      "highLoad": {
+        "p95Threshold": 2000,
+        "p99Threshold": 5000
+      }
+    }
+  },
+  "alertThresholds": {
+    "errorRate": 5,
+    "responseTimeIncrease": 300,
+    "queueBacklog": 25,
+    "connectionUsage": 75
+  }
 }

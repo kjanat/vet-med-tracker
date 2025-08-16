@@ -1,118 +1,61 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/nextjs";
-import {
-	ArrowRight,
-	CheckCircle,
-	Pill,
-	Shield,
-	Smartphone,
-} from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Shield } from "lucide-react";
 import { AnimalSilhouettes } from "./animal-silhouettes";
+import { CtaButtons } from "./content/cta-buttons";
+import { FeatureHighlights } from "./content/feature-highlights";
 
 export function HeroSection() {
-	const { openSignIn } = useClerk();
-	const { user, isLoaded } = useUser();
+  return (
+    <section className="relative flex min-h-svh scroll-mt-20 flex-col justify-center">
+      {/* Hero content container */}
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 py-20 text-center">
+        {/* Badge */}
+        <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-primary shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-primary/30 hover:shadow-xl">
+          <Shield className="h-4 w-4 animate-pulse" />
+          <span className="font-medium text-sm">
+            Trusted by 10,000+ Pet Parents
+          </span>
+        </div>
 
-	return (
-		<section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-			{/* Animated background elements */}
-			<div className="absolute inset-0 overflow-hidden">
-				<div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-primary/20 blur-3xl" />
-				<div className="-bottom-40 -left-40 absolute h-80 w-80 animate-pulse rounded-full bg-primary/20 blur-3xl [animation-delay:1000ms]" />
-				<div className="absolute top-1/2 left-1/3 h-96 w-96 animate-pulse rounded-full bg-primary/10 blur-3xl [animation-delay:500ms]" />
-			</div>
+        {/* Main heading */}
+        <h1 className="mb-6 font-bold text-4xl tracking-tight md:text-6xl lg:text-7xl">
+          Never Miss a{" "}
+          <span className="relative text-primary">
+            Dose
+            <svg
+              className="-bottom-2 absolute left-0 w-full"
+              viewBox="0 0 200 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M1 10C50 5 150 5 199 10"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>{" "}
+          Again
+        </h1>
 
-			{/* Hero content */}
-			<div className="container relative z-10 mx-auto max-w-6xl px-4 py-16 text-center">
-				{/* Badge */}
-				<div className="mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-primary">
-					<Shield className="h-4 w-4" />
-					<span className="font-medium text-sm">
-						Trusted by 10,000+ Pet Parents
-					</span>
-				</div>
+        {/* Subtitle */}
+        <p className="mx-auto mb-8 max-w-3xl text-muted-foreground text-xl md:text-2xl">
+          Professional medication tracking for your beloved pets. Simple,
+          reliable, and designed with your peace of mind at heart.
+        </p>
 
-				{/* Main heading */}
-				<h1 className="mb-6 font-bold text-4xl tracking-tight md:text-6xl lg:text-7xl">
-					Never Miss a{" "}
-					<span className="relative text-primary">
-						Dose
-						<svg
-							className="-bottom-2 absolute left-0 w-full"
-							viewBox="0 0 200 20"
-							fill="none"
-							xmlns="http://www.w3.org/2000/svg"
-							aria-hidden="true"
-						>
-							<path
-								d="M1 10C50 5 150 5 199 10"
-								stroke="currentColor"
-								strokeWidth="3"
-								strokeLinecap="round"
-							/>
-						</svg>
-					</span>{" "}
-					Again
-				</h1>
+        {/* CTA buttons */}
+        <CtaButtons variant="hero" className="mb-12" />
 
-				{/* Subtitle */}
-				<p className="mx-auto mb-8 max-w-3xl text-muted-foreground text-xl md:text-2xl">
-					Professional medication tracking for your beloved pets. Simple,
-					reliable, and designed with your peace of mind at heart.
-				</p>
+        {/* Feature highlights */}
+        <FeatureHighlights className="mb-8" />
 
-				{/* CTA buttons */}
-				<div className="mb-12 flex flex-col justify-center gap-4 sm:flex-row">
-					{isLoaded && !user && (
-						<Button
-							size="lg"
-							className="px-8 text-lg"
-							onClick={() => openSignIn()}
-						>
-							Start Free
-							<ArrowRight className="ml-2 h-5 w-5" />
-						</Button>
-					)}
-					{isLoaded && user && (
-						<Button size="lg" className="px-8 text-lg" asChild>
-							<Link href="/dashboard">
-								Go to Dashboard
-								<ArrowRight className="ml-2 h-5 w-5" />
-							</Link>
-						</Button>
-					)}
-					<Button size="lg" variant="outline" className="px-8 text-lg" asChild>
-						<Link href="#demo">See How It Works</Link>
-					</Button>
-				</div>
-
-				{/* Feature highlights */}
-				<div className="mx-auto grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3">
-					<div className="flex items-center justify-center gap-3">
-						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20">
-							<CheckCircle className="h-5 w-5 text-green-600" />
-						</div>
-						<span className="font-medium text-sm">3-Tap Recording</span>
-					</div>
-					<div className="flex items-center justify-center gap-3">
-						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20">
-							<Smartphone className="h-5 w-5 text-blue-600" />
-						</div>
-						<span className="font-medium text-sm">Works Offline</span>
-					</div>
-					<div className="flex items-center justify-center gap-3">
-						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/20">
-							<Pill className="h-5 w-5 text-purple-600" />
-						</div>
-						<span className="font-medium text-sm">Smart Reminders</span>
-					</div>
-				</div>
-				{/* Decorative pet silhouettes */}
-				<AnimalSilhouettes />
-			</div>
-		</section>
-	);
+        {/* Decorative pet silhouettes */}
+        <AnimalSilhouettes />
+      </div>
+    </section>
+  );
 }

@@ -1,10 +1,10 @@
 export function adminKey(
-	animalId: string,
-	regimenId: string,
-	localDayISO: string,
-	slotIndex?: number,
+  animalId: string,
+  regimenId: string,
+  localDayISO: string,
+  slotIndex?: number,
 ) {
-	return slotIndex != null
-		? `${animalId}:${regimenId}:${localDayISO}:${slotIndex}`
-		: `${animalId}:${regimenId}:${localDayISO}:prn:${crypto.randomUUID()}`;
+  return slotIndex != null
+    ? `${animalId}:${regimenId}:${localDayISO}:${slotIndex}`
+    : `${animalId}:${regimenId}:${localDayISO}:prn:${crypto.randomUUID()}`;
 }

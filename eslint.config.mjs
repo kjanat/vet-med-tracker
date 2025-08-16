@@ -42,31 +42,31 @@ import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
 
 const compat = new FlatCompat({
-	// import.meta.dirname is available after Node.js v20.11.0
-	baseDirectory: import.meta.dirname,
-	recommendedConfig: js.configs.recommended,
+  // import.meta.dirname is available after Node.js v20.11.0
+  baseDirectory: import.meta.dirname,
+  recommendedConfig: js.configs.recommended,
 });
 
 const eslintConfig = [
-	...compat.config({
-		extends: [
-			"eslint:recommended",
-			"next",
-			"next/core-web-vitals",
-			"next/typescript",
-		],
-		rules: {
-			"@typescript-eslint/no-explicit-any": "warn",
-			"react/no-unescaped-entities": "off",
-			"@typescript-eslint/no-unused-vars": [
-				"error",
-				{
-					argsIgnorePattern: "^_",
-					varsIgnorePattern: "^_",
-				},
-			],
-		},
-	}),
+  ...compat.config({
+    extends: [
+      "eslint:recommended",
+      "next",
+      "next/core-web-vitals",
+      "next/typescript",
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "react/no-unescaped-entities": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
+    },
+  }),
 ];
 
 export default eslintConfig;

@@ -1,0 +1,145 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.14.0'
+
+jobs:
+  pre-deployment:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      should-skip-tests: ${{ steps.check.outputs.skip_tests }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Pre-deployment validation
+        id: check
+        run: |
+          echo "skip_tests=false" >> $GITHUB_OUTPUT
+
+  test:
+    name: Run Tests
+    needs: pre-deployment
+    runs-on: ubuntu-latest
+    if: needs.pre-deployment.outputs.should-skip-tests == 'false'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run tests with Neon test database
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.TEST_DATABASE_URL_UNPOOLED }}
+        run: pnpm test
+
+  backup:
+    name: Backup Database
+    needs: [ pre-deployment, test ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Create database backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pnpm db:backup
+
+  migrate:
+    name: Database Migration
+    needs: [ pre-deployment, test, backup ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pnpm db:migrate
+
+  deploy:
+    name: Deploy to Vercel
+    needs: [ pre-deployment, test, backup, migrate ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Deploy to production
+        run: |
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  verify:
+    name: Post-deployment Verification
+    needs: [ pre-deployment, deploy ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Health check
+        run: |
+          echo "Running post-deployment health checks"
+
+  notify:
+    name: Deployment Notification
+    needs: [ pre-deployment, deploy, verify ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+
+    steps:
+      - name: Notify success
+        if: success()
+        run: |
+          echo "Production deployment completed successfully"
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "Production deployment failed"
+

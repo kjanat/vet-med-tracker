@@ -4,317 +4,484 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-VetMed Tracker is a Progressive Web App (PWA) for managing veterinary medications for pets/animals. Built with Next.js 15, React 19, TypeScript, and Tailwind CSS v4, it's designed to work offline and provide medication tracking across multiple households and animals.
+VetMed Tracker is a Progressive Web App (PWA) for managing veterinary medications for pets and animals. Built with
+Next.js 15, React 19, TypeScript, and Tailwind CSS v4, it's designed to work offline and provide medication tracking
+across multiple households and animals.
 
-**Core Mission**: "Three taps to record" - Track medication administrations (not dosing calculations) for animals across households/organizations with inventory management, reminders, and actionable insights.
+## Tech Stack
 
-**Key Principles**:
-- We track what was scheduled and what was actually given (not dosing advice)
-- Multi-household, multi-animal, multi-caregiver support
-- Offline-first with automatic sync
-- Time-zone aware (UTC storage, local display per animal's home timezone)
+- **Framework**: Next.js 15.4.5 with App Router, React 19
+- **Language**: TypeScript with strict mode and noUncheckedIndexedAccess
+- **Styling**: Tailwind CSS v4 (using new @import syntax in globals.css)
+- **UI Components**: shadcn/ui components with Radix UI primitives
+- **Database**: PostgreSQL with Drizzle ORM (Neon hosting)
+- **Authentication**: Stack Auth (managed authentication service)
+- **API Layer**: tRPC for type-safe APIs
+- **State Management**: React Context (AppProvider) + React Query
+- **Forms**: React Hook Form with Zod validation
+- **Code Quality**: Biome for linting/formatting
+- **Testing**: Vitest (unit/integration) + Playwright (E2E)
+- **Package Manager**: pnpm (v10.14.0)
 
 ## Development Commands
 
 ```bash
 # Development
-pnpm dev          # Start development server (default)
+pnpm dev          # Start development server
 pnpm dev:turbo    # Start with Turbopack (experimental)
 
-# Production
+# Building & Production
 pnpm build        # Build for production
 pnpm start        # Start production server
+pnpm preview      # Build and start production locally
 
 # Code Quality
-pnpm lint         # Run ESLint
+pnpm lint            # Run Biome lint + Next.js lint
+pnpm typecheck       # Type check with TypeScript
+biome check          # Run Biome checks
+biome check --write  # Run Biome with auto-fix (or: biome check --write)
+biome format --write # Format code with Biome
+
+# Specialized code quality commands
+biome lint --only=category/rule  # Limits the output of the linter to category/rule issues, e.g. `suspicious/noArrayIndexKey`
+biome check --reporter=summary   # Only shows the summary of what rule violations, the amount of them, and whether they are errors, warnings, or just information level issues
+biome check --reporter=github    # Formats the output in a github actions-friendly way. This is a compact summary of each issue, also reccomended for use by LLM's as it outputs less tokens, and densely provides all data.
+biome check --diagnostic-level=<info|warn|error> # The level of diagnostics to show.
+biome <check|lint|format> --help # Displays help information
+
+# Database Management
+pnpm db:generate  # Generate Drizzle migrations
+pnpm db:migrate   # Run migrations
+pnpm db:push      # Push schema to database
+pnpm db:studio    # Open Drizzle Studio GUI
+pnpm db:seed      # Seed database with test data
+
+# Testing
+pnpm test          # Run unit tests
+pnpm test:watch    # Run tests in watch mode
+pnpm test:coverage # Run tests with coverage
+pnpm test:e2e      # Run Playwright E2E tests
+pnpm test:e2e:ui   # Run Playwright with UI mode
 ```
 
 ## Architecture Overview
 
-### Tech Stack
-- **Framework**: Next.js 15.4.4 with App Router
-- **Language**: TypeScript with strict mode
-- **Styling**: Tailwind CSS v4 (using new @import syntax)
-- **UI Components**: shadcn/ui components with Radix UI primitives
-- **State Management**: React Context API (AppProvider) + React Query
-- **API Layer**: tRPC (server + client) for type-safe APIs
-- **Database**: Prisma + Postgres
-- **Authentication**: Clerk (managed authentication service)
-- **Forms**: React Hook Form with Zod validation
-- **Package Manager**: pnpm 10.13.1
-- **Deployment**: Vercel (edge functions where beneficial)
-- **PWA**: Service Worker with offline queue (IndexedDB)
+### Directory Structure
+
+```tree
+app/
+├── (authed)/        # Protected routes requiring authentication
+│   ├── (app)/       # Main app routes with shared layout
+│   └── (standalone)/# Standalone authenticated pages
+├── (public)/        # Public pages (landing, privacy, terms)
+├── (dev)/           # Development-only routes
+├── api/             # API routes and tRPC endpoints
+└── layout.tsx       # Root layout with providers
+
+components/
+├── ui/              # Reusable UI components (shadcn/ui)
+├── layout/          # Layout components (Header, BottomNav, Sidebar)
+├── providers/       # React Context providers
+└── [feature]/       # Feature-specific components
+
+server/
+├── api/
+│   ├── routers/     # tRPC routers (animals, households, admin, etc.)
+│   └── trpc.ts      # tRPC initialization and middleware
+└── trpc/            # tRPC client configuration
+
+db/
+├── schema.ts        # Drizzle schema definitions
+├── drizzle.ts       # Database connection
+└── relations.ts     # Drizzle relations
+
+hooks/               # Custom React hooks (organized by feature)
+├── admin/           # Administration-related hooks
+├── history/         # History tracking hooks
+├── insights/        # Analytics and insights hooks
+├── inventory/       # Inventory management hooks
+├── offline/         # Offline functionality hooks
+├── settings/        # Settings-related hooks
+└── shared/          # Shared/common hooks
+
+lib/                 # Utilities and shared logic
+├── infrastructure/  # System-level code (circuit breakers, middleware, health checks)
+├── logging/         # Logging infrastructure
+├── navigation/      # Navigation configuration
+├── offline/         # Offline database functionality
+├── redis/           # Redis client and caching
+├── schemas/         # Zod validation schemas (organized by feature)
+├── trpc/            # tRPC client setup
+└── utils/           # Generic utility functions
+```
 
 ### Key Architecture Patterns
 
 1. **App Router Structure**:
-   - `app/(authed)/` - Protected routes requiring authentication
-   - `app/(dev)/` - Development-only routes
-   - Layout nesting for shared UI (Header, BottomNav, LeftRail)
 
-2. **Component Organization**:
-   - `components/ui/` - Reusable UI components (shadcn/ui)
-   - `components/layout/` - Layout components
-   - `components/[feature]/` - Feature-specific components
-   - `components/providers/` - React Context providers
+    - Protected routes under `app/(authed)/` require Stack Auth authentication
+    - Nested layouts for shared UI components
+    - Parallel routes for modals and overlays
 
-3. **Offline-First PWA**:
-   - Service Worker at `/public/sw.js` handles offline caching
-   - `useOfflineQueue` hook manages offline data sync
-   - `AppProvider` tracks online/offline state globally
+2. **Authentication Flow**:
 
-4. **Multi-Tenancy**:
-   - Household-based data isolation
-   - Role-based access control (OWNER, CAREGIVER, VETREADONLY)
-   - tRPC middleware for authorization
+    - Stack Auth handles all auth (OAuth, email/password, social)
+    - Middleware protects routes via Stack Auth
+    - Users synced to database on first login via webhook
+    - Multi-household support with role-based access (OWNER, CAREGIVER, VETREADONLY)
 
-5. **State Management**:
-   - Global state via `AppProvider` (household, animal selection, offline status)
-   - Local state with React hooks
-   - Offline queue for data persistence
+3. **Database Architecture**:
 
-### Important Implementation Details
+    - All tables prefixed with `vetmed_`
+    - Drizzle ORM with PostgreSQL (Neon)
+    - Three database branches: production, development, test
+    - Schema-first approach with type generation
 
-1. **Tailwind CSS v4**:
-   - Configuration is in `app/globals.css` using new @theme syntax
-   - CSS variables for theming support dark mode
-   - No traditional tailwind.config.js file
+4. **tRPC API Layer**:
 
-2. **TypeScript Path Aliases**:
-   - `@/*` maps to project root
-   - Used consistently across the codebase
+    - Type-safe API with automatic TypeScript inference
+    - Procedures with Zod validation
+    - Middleware for authentication and authorization
+    - Household-scoped data access
 
-3. **Build Configuration**:
-   - ESLint errors ignored during build (see next.config.mjs)
-   - TypeScript errors ignored during build
-   - Images unoptimized for PWA compatibility
+5. **Offline-First PWA**:
 
-4. **API Security**:
-   - tRPC middleware validates household membership
-   - Resource access verification for animals, regimens, inventory
-   - Audit logging for all data modifications
+    - Service Worker at `/public/sw.js`
+    - IndexedDB for offline queue (`useOfflineQueue` hook)
+    - Optimistic UI updates with eventual consistency
+    - Idempotency keys prevent duplicate submissions
 
-### Development Tips
+6. **State Management**:
 
-1. When adding new routes, consider whether they need authentication (place in `app/(authed)/`)
-2. Use existing UI components from `components/ui/` before creating new ones
-3. All data operations should handle offline scenarios via `useOfflineQueue`
-4. Maintain household context when implementing features
-5. Follow the established pattern of feature-specific component folders
+    - Global state via `AppProvider` (household, animal selection)
+    - Server state with React Query + tRPC
+    - Form state with React Hook Form
+    - Offline queue for resilience
 
-### Mobile-First Design
+### Code Organization Patterns
 
-The app uses responsive design with distinct mobile and desktop layouts:
-- Mobile: Header + Bottom Navigation
-- Desktop: Left Rail + Header
-- Components use `useMediaQuery` or CSS for responsive behavior
+1. **Feature-Based Hook Organization**:
 
-### Authentication
+    - Hooks are organized by feature domain (inventory, history, admin, etc.)
+    - Shared hooks in `hooks/shared/` for cross-cutting concerns
+    - Tests co-located with their hooks
 
-The app uses Clerk for authentication:
-- **Managed Auth Service**: Clerk handles all authentication flows (OAuth, Email/Password, Social logins)
-- **Protected Routes**: All routes under `app/(authed)/` require authentication
-- **Middleware**: `clerkMiddleware` in `middleware.ts` protects routes
-- **Providers**: `ClerkProvider` wraps the app in `app/layout.tsx`
-- **User Sync**: Users are automatically synced to the database on first login
-- **Multi-tenancy**: Users can belong to multiple households with different roles
+2. **Clear Library Structure**:
 
-Clerk provides:
-- Built-in UI components (SignIn, SignUp, UserButton)
-- Session management and JWT tokens
-- User profile management
-- Organization/household support
-- Webhook integration for user sync
+    - `lib/infrastructure/` - System-level code (middleware, circuit breakers, health checks)
+    - `lib/utils/` - Pure utility functions (no side effects)
+    - `lib/schemas/` - Zod schemas organized by feature
+    - Infrastructure concerns separated from business logic
 
-## Core Domain Concepts
+### Critical Implementation Details
 
-### Terminology
-- **Animal**: The patient (dog, cat, rabbit, etc.)
-- **Regimen**: A medication plan (e.g., "Amoxicillin 250mg BID for 10 days")
-- **Administration**: A recorded "gave medication" event
-- **Household**: Organization unit (family, foster, shelter, clinic)
-- **Caregiver**: User who can record administrations (can belong to multiple households)
+1. **TypeScript Path Aliases**:
 
-### Role-Based Access Control
-- **OWNER**: Full household management
-- **CAREGIVER**: Record administrations, manage inventory
-- **VETREADONLY**: View-only access for veterinary professionals
+    - `@/*` maps to project root
+    - `@/db/*` for database files
+    - `@/trpc/*` for tRPC server files
 
-### Time Management
-- Store all timestamps in UTC
-- Display in animal's home timezone
-- "Day" = 00:00-23:59 in animal's local timezone
-- Each animal has a home timezone (can override per location)
+2. **Tailwind CSS v4**:
 
-## Key Features Implementation Guide
+    - Configuration in `app/globals.css` using @theme syntax
+    - No traditional tailwind.config.js file
+    - CSS variables for theming and dark mode
 
-### 1. Record Administration Flow (/admin/record)
-The core "three taps to record" experience:
-1. **Select**: Animal + Regimen (pre-selected from context)
-2. **Confirm**: Hold 3 seconds with progress ring
-3. **Success**: Shows timestamp and caregiver
+3. **Multi-Tenancy**:
 
-**Critical Implementation Details**:
-- Idempotency key: `{animalId}:{regimenId}:{scheduledSlotLocalDay}:{index}`
-- High-risk medications require co-sign within 10 minutes
-- Must select inventory source if household has opened items
-- Warn if inventory item is expired or wrong medication
+    - Household-based data isolation
+    - Role-based access control per household
+    - Resource-level authorization checks
 
-### 2. Status Computation Rules
-For scheduled doses (server-side calculation):
-- **On-time**: ≤ +60 minutes from target
-- **Late**: +61 to +180 minutes
-- **Very Late**: >180 minutes until cutoff
-- **Missed**: Auto-created at cutoff time (default 4 hours after target)
-- **PRN**: As-needed doses never marked as missed
+4. **Time Management**:
 
-### 3. Compliance Calculation
-Weekly/Monthly metrics:
-- Numerator: All scheduled doses recorded before cutoff
-- Denominator: Total scheduled slots in period
-- PRN doses excluded from compliance
+    - All timestamps stored in UTC
+    - Display in animal's home timezone
+    - Each animal has configurable timezone
 
-### 4. Inventory Management
-- Track medications with expiry dates and assignment
-- "In use" status for active inventory items
-- Low stock warnings based on usage patterns
-- Barcode scanning support (EAN/UPC/DataMatrix)
+## Core Domain Model
 
-### 5. Smart Reminders
-Notification schedule for each dose:
-- Target - 15 minutes
-- Target time
-- Target + 15 minutes
-- Target + 45 minutes (escalation to role group)
-- Target + 90 minutes (final attempt)
+### Key Entities
 
-Snooze: 10 minutes, max 3 times per dose
+- **User**: Authenticated user via Stack Auth
+- **Household**: Organization unit (family, clinic, shelter)
+- **Membership**: User's role in household (OWNER, CAREGIVER, VETREADONLY)
+- **Animal**: Pet/patient with medical information
+- **MedicationCatalog**: Generic medication database
+- **Regimen**: Medication schedule for an animal
+- **Administration**: Recorded medication event
+- **InventoryItem**: Household's medication stock
 
-### 6. Offline Capabilities
-- Service Worker caches app shell
-- IndexedDB queues mutations when offline
-- Idempotency prevents duplicate records on sync
-- Optimistic UI updates
-
-## Database Schema (Key Models)
-
-```prisma
-// Core entities
-User, Household, Membership (many-to-many with roles)
-Animal (belongs to household, has timezone)
-MedicationCatalog (generic/brand names, routes, forms)
-Regimen (links animal to medication with schedule)
-Administration (actual recorded events with status)
-InventoryItem (household medications with assignment)
-
-// Key enums
-Role: OWNER | CAREGIVER | VETREADONLY
-ScheduleType: FIXED | PRN
-AdminStatus: ON_TIME | LATE | VERY_LATE | MISSED | PRN
-```
-
-## tRPC Router Structure
+### tRPC Router Structure
 
 ```typescript
-// Main routers
-adminRouter    // Record administrations
-inventoryRouter // Manage medication inventory
-regimensRouter  // Create/edit medication schedules
-animalRouter    // Animal profiles
-householdRouter // Household management
-insightsRouter  // Analytics and patterns
+appRouter/
+├── animal        // Animal CRUD operations
+├── household     // Household management
+├── regimen       // Medication schedules
+├── admin         // Record administrations
+├── inventory     // Medication inventory
+├── medication    // Medication catalog
+├── insights      // Analytics and patterns
+├── reports       // Reporting features
+└── user          // User preferences
 ```
 
-## Critical Security Patterns
+## Testing Strategy
 
-1. **Authorization Middleware**:
-   - Extract householdId from URL or input
-   - Verify membership and role
-   - Resource-level access checks
+- **Unit Tests**: Vitest for components and utilities
+- **Integration Tests**: Vitest for API routes and database operations
+- **E2E Tests**: Playwright for critical user flows
+- **Test Database**: Separate test branch in Neon
+- **Coverage Goals**: 80% unit, 70% integration
 
-2. **Audit Logging**:
-   - All mutations logged with who/when/what
-   - Stored in audit_log table
+## Security Patterns
 
-3. **Data Isolation**:
-   - Household-scoped queries
-   - No cross-household data leakage
+1. **Authorization Middleware**: Every tRPC procedure validates household membership
+2. **Resource Checks**: Verify ownership before operations
+3. **Audit Logging**: Track all data modifications
+4. **Data Isolation**: Queries scoped to user's households
+5. **Input Validation**: Zod schemas on all inputs
 
-## Testing Checklist
+## Performance Considerations
 
-Critical paths that must work:
-- [ ] Offline recording syncs without duplicates
-- [ ] Auto-missed entries appear at cutoff across DST
-- [ ] Co-sign flow blocks completion until confirmed
-- [ ] Inventory "in use" updates Record defaults
-- [ ] Multi-household context switching
-- [ ] Reminder escalation to correct role group
-- [ ] Timezone handling for reports and displays
-
-## UI/UX Patterns
-
-### Navigation
-- **Global nav**: Home, History, Inventory, Insights, Settings
-- **Context switchers**: Household and Animal in header
-- **Quick actions**: Record button always accessible
-
-### Key Copy Strings
-- Due: "{animal} – {med} due in {mm:ss}"
-- Late: "{animal} – {med} late by {mm:ss}"
-- Success: "Recorded at {HH:mm} by {caregiver}"
-- Low stock: "{med} running low—about {n} days left"
-
-### Safety Features
-- 3-second hold to confirm administrations
-- Visual warnings for expired medications
-- Co-sign requirements for high-risk meds
-- Duplicate prevention via idempotency
+- Images unoptimized for PWA compatibility
+- TypeScript build errors currently ignored (migration in progress)
+- Database uses connection pooling via Neon
+- React Compiler enabled in CI for optimizations
+- Lazy loading for code splitting
 
 ## Development Workflow
 
 1. **Feature Development**:
-   - Start with Prisma schema changes
-   - Create tRPC router with Zod validation
-   - Build UI components using existing patterns
-   - Add offline support via useOfflineQueue
-   - Test timezone and multi-household scenarios
 
-2. **State Management**:
-   - Global state in AppProvider
-   - Server state via React Query + tRPC
-   - Offline queue for resilience
+    - Create/modify Drizzle schema
+    - Generate types with `pnpm db:generate`
+    - Implement tRPC router with Zod validation
+    - Build UI components using existing patterns
+    - Add offline support if needed
+    - Write tests for critical paths
 
-3. **PWA Requirements**:
-   - Update service worker cache list
-   - Test offline scenarios
-   - Verify background sync
+2. **Database Changes**:
 
-## Next Steps for Implementation
+    - Modify `db/schema.ts`
+    - Run `pnpm db:generate` to create migration
+    - Test with `pnpm db:push` (development branch)
+    - Apply to production via migration
 
-Based on current state (UI components exist, tRPC setup started):
+3. **API Development**:
 
-1. **Database Setup**:
-   - Create Prisma schema file
-   - Set up migrations
-   - Seed with demo data
+    - Add router in `server/api/routers/`
+    - Use appropriate procedure (public, protected, household, owner)
+    - Add the router to `server/api/root.ts` (appRouter)
+    - Export `AppRouter` type from `server/api/root.ts`
+    - Generate/types are inferred on the client via your trpc client setup
 
-2. **tRPC Implementation**:
-   - Complete server/trpc.ts setup
-   - Implement core routers
-   - Add authentication middleware
+## Common Patterns
 
-3. **Connect UI to Backend**:
-   - Wire up existing components to tRPC
-   - Add React Query providers
-   - Implement offline queue
+### Creating a Protected Page
 
-4. **Core Features**:
-   - Record administration flow
-   - Inventory management
-   - Reminder system
-   - Insights generation
+```typescript
+// app/(authed)/(app)/feature/page.tsx
+import { stackServerApp } from "@/stack";
 
-5. **PWA Enhancement**:
-   - Background sync
-   - Push notifications
-   - Camera/barcode integration
+export default async function FeaturePage() {
+  const user = await stackServerApp.getUser({ or: "redirect" });
+  // Page content
+}
+```
+
+### Adding a tRPC Procedure
+
+```typescript
+// server/api/routers/feature.ts
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+
+export const featureRouter = createTRPCRouter({
+  getData: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Implementation
+    }),
+});
+```
+
+### Using tRPC in Components
+
+```typescript
+import { trpc } from "@/server/trpc/client";
+
+function Component() {
+  const { data, isLoading } = trpc.feature.getData.useQuery({ id: "123" });
+  // Component logic
+}
+```
+
+### Using Feature-Organized Hooks
+
+```typescript
+// Import feature-specific hooks
+import { useHistoryFilters } from "@/hooks/history/useHistoryFilters";
+import { useDaysOfSupply } from "@/hooks/inventory/useDaysOfSupply";
+import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
+
+// Import shared hooks
+import { useMediaQuery } from "@/hooks/shared/useMediaQuery";
+import { useToast } from "@/hooks/shared/use-toast";
+```
+
+### Using Organized Utilities
+
+```typescript
+// Import infrastructure code
+import { withCircuitBreaker } from "@/lib/infrastructure/circuit-breaker";
+import { withConnectionQueue } from "@/lib/infrastructure/connection-queue";
+
+// Import generic utilities
+import { cn } from "@/lib/utils/general";
+import { formatDate } from "@/lib/utils/general";
+
+// Import schemas
+import { animalSchema } from "@/lib/schemas/animal";
+import { inventorySchema } from "@/lib/schemas/inventory";
+```
+
+## AI Assistant Workflow Guidelines
+
+### Delegation-First Approach for Major Refactors
+
+When handling large-scale refactoring or complex multi-phase projects, adopt a **Project Manager (PM) role** and
+delegate all implementation work to specialized sub-agents. This approach has proven highly effective for maintaining
+clarity, preventing context overload, and ensuring systematic progress.
+
+#### When to Use Delegation Workflow
+
+Use this approach for:
+
+- **Major refactors** affecting >30% of the codebase
+- **Multi-phase projects** with distinct deliverables
+- **Complex architectural changes** requiring coordination
+- **Performance optimizations** needing systematic analysis
+- **Technical debt reduction** campaigns
+
+#### Project Manager Responsibilities
+
+As the PM, you should:
+
+1. **Create comprehensive task breakdowns** for all phases
+2. **Orchestrate parallel sub-agents** for independent tasks
+3. **Monitor progress** and coordinate dependencies
+4. **Validate results** from each sub-agent
+5. **Maintain documentation** of changes and outcomes
+6. **Ensure quality gates** are met at each phase
+
+**Critical**: As PM, you should NOT write any code directly. All implementation must be delegated.
+
+#### Effective Delegation Pattern
+
+```markdown
+## Phase [N]: [Phase Name]
+
+### Task [N.M]: [Task Description]
+**Objective**: [Clear goal]
+**Dependencies**: [Prerequisites if any]
+**Success Criteria**: [Measurable outcomes]
+
+[Spawn sub-agent with specific expertise and clear instructions]
+```
+
+#### Example: Architecture Simplification Refactor
+
+This project successfully used the delegation workflow to achieve 62% complexity reduction:
+
+1. **Phase 1: Quick Wins** (22% reduction)
+
+    - Task 1.1: Remove duplicate components → Frontend specialist
+    - Task 1.2: Clean up unused endpoints → Backend specialist
+    - Task 1.3: Consolidate mobile detection → UI specialist
+    - Task 1.4: Remove test utilities → Testing specialist
+
+2. **Phase 2: Provider Consolidation** (42% total reduction)
+
+    - Task 2.1: Design consolidated provider → Architecture specialist
+    - Task 2.2: Implement new provider → Frontend specialist
+    - Task 2.3: Migrate components → Migration specialist
+    - Task 2.4: Update tests → Testing specialist
+
+3. **Phase 3: Structure Refactor** (62% final reduction)
+
+    - Task 3.1: Component reorganization → Frontend specialist
+    - Task 3.2: Route flattening → Architecture specialist
+    - Task 3.3: tRPC cleanup → Backend specialist
+    - Task 3.4: Naming standardization → Code quality specialist
+
+4. **Validation Phase**
+
+    - Validation 1: TypeScript checking → TypeScript specialist
+    - Validation 2: Linting → Code quality specialist
+    - Validation 3: Build verification → Build specialist
+    - Validation 4: Test fixing → Testing specialist
+    - Validation 5: Metrics collection → Analytics specialist
+
+#### Quality Gates
+
+Each phase must pass these gates before proceeding:
+
+1. ✅ **No TypeScript errors** (`pnpm typecheck`)
+2. ✅ **Clean linting** (`pnpm lint`)
+3. ✅ **Successful build** (`pnpm build`)
+4. ✅ **Tests passing** (or properly updated)
+5. ✅ **Metrics documented** (complexity reduction %)
+
+#### Sub-Agent Instructions Template
+
+When spawning sub-agents, provide:
+
+```markdown
+You are a [specialization] specialist. Your task is to:
+
+1. [Specific objective]
+2. [Detailed requirements]
+3. [Constraints/guidelines]
+
+Context:
+- [Relevant background]
+- [Dependencies]
+- [Expected outcomes]
+
+Execute this task and report results with:
+- Summary of changes
+- Files modified
+- Metrics/measurements
+- Any issues encountered
+```
+
+#### Success Metrics
+
+Track these metrics throughout the refactor:
+
+- **Complexity reduction**: Target vs achieved
+- **File count changes**: Additions vs deletions
+- **Import path updates**: Number of files affected
+- **Provider count**: Before vs after
+- **Build time**: Before vs after
+- **Bundle size**: Before vs after
+- **Type safety**: Errors eliminated
+
+### Benefits of This Approach
+
+1. **Clear separation of concerns**: PM focuses on orchestration, sub-agents on implementation
+2. **Parallel execution**: Multiple tasks can progress simultaneously
+3. **Specialized expertise**: Each sub-agent can focus on their domain
+4. **Better context management**: Prevents overwhelming single context
+5. **Systematic progress**: Clear phases with measurable outcomes
+6. **Quality assurance**: Built-in validation at each step
+
+### Common Pitfalls to Avoid
+
+- ❌ **Don't code as PM**: Maintain role separation
+- ❌ **Don't skip validation**: Always verify before proceeding
+- ❌ **Don't batch too much**: Keep tasks focused and atomic
+- ❌ **Don't ignore dependencies**: Coordinate sequential tasks properly
+- ❌ **Don't forget documentation**: Update CLAUDE.md with learnings
