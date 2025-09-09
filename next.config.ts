@@ -17,12 +17,10 @@ const nextConfig: NextConfig = {
   },
   compress: true,
   eslint: {
-    ignoreDuringBuilds: true, // Temporary for bundle optimization
+    ignoreDuringBuilds: false, // Temporary for bundle optimization
   },
   experimental: {
-    // ppr: "incremental",
     reactCompiler: true,
-    // optimizeCss: true, // Disable for now due to critters issue
     optimizePackageImports: [
       "lucide-react",
       "@radix-ui/react-icons",
@@ -40,7 +38,6 @@ const nextConfig: NextConfig = {
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB"],
   },
   generateEtags: true,
-  // Security configurations
   async headers() {
     return [
       {
@@ -88,13 +85,11 @@ const nextConfig: NextConfig = {
       transform: "date-fns/{{ member }}",
     },
   },
-  // Performance optimizations
   poweredByHeader: false,
   reactStrictMode: true,
   typedRoutes: true,
-  // Bundle optimization (swcMinify is enabled by default in Next.js 15)
   typescript: {
-    ignoreBuildErrors: true, // Temporary for bundle optimization
+    ignoreBuildErrors: false, // Temporary for bundle optimization
   },
 };
 

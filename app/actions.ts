@@ -8,6 +8,5 @@ export async function getData() {
     throw new Error("DATABASE_URL is not defined");
   }
   const sql = neon(databaseUrl);
-  const data = await sql`...`;
-  return data;
+  return sql`...`;
 }

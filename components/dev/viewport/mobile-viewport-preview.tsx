@@ -185,8 +185,7 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 
   const handleSingleTapStart = useCallback(
     (touches: TouchList) => {
-      const currentTime = Date.now();
-      lastTapRef.current = currentTime;
+      lastTapRef.current = Date.now();
 
       // Clear any existing timeout
       if (tapTimeoutRef.current) {

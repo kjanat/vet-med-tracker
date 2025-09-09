@@ -101,7 +101,8 @@ export function labelFor(
   const offset = showOffset ? offsetOf(zone, referenceDate) : "";
   const time = showTime ? timeIn(zone, referenceDate) : "";
 
-  const parts = [
+  // tidy spacing
+  return [
     FRIENDLY[zone as keyof typeof FRIENDLY] ?? zone, // use alias if we have one
     offset && `(${offset}`,
     time && `, ${time})`,
@@ -109,9 +110,7 @@ export function labelFor(
     .filter(Boolean)
     .join(" ")
     .replace("( ", "(")
-    .replace(", )", ")"); // tidy spacing
-
-  return parts;
+    .replace(", )", ")");
 }
 
 /** Search zones with ranking */

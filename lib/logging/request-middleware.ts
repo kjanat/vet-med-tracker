@@ -412,14 +412,12 @@ export async function getRequestLoggingContext(
   const correlationId =
     request.headers.get("x-correlation-id") || Logger.generateCorrelationId();
 
-  const context = await logger.createContext(operation || "http.request", {
+  return await logger.createContext(operation || "http.request", {
     url: request.url,
     method: request.method,
     path: request.nextUrl.pathname,
     correlationId,
   });
-
-  return context;
 }
 
 /**

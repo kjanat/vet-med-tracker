@@ -187,7 +187,7 @@ if (
 export const dbPooled = (_pooledDb || db) as typeof db;
 
 // Global monitoring instance for external access (lazy loaded)
-export const dbMonitor = monitor || {
+export const dbMonitor = {
     startMonitoring: () => {
     },
     stopMonitoring: () => {
@@ -234,8 +234,7 @@ export async function tenantDb<T>(
 
     const operation = async () => {
         try {
-            const result = await callback(database);
-            return result;
+            return await callback(database);
         } catch (error) {
             console.error(`Tenant query error for household ${householdId}:`, error);
             throw error;

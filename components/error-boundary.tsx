@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cardPatterns, layoutPatterns } from "@/components/ui/class-variants";
+
 // Error reporting functionality removed during simplification
 
 interface Props {

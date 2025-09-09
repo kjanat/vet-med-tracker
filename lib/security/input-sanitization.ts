@@ -43,7 +43,6 @@ export const securityPatterns = {
  * Sanitize HTML content to prevent XSS
  */
 export function sanitizeHtml(input: string): string {
-  if (typeof input !== "string") return "";
   return DOMPurify.sanitize(input, {
     ALLOWED_TAGS: [], // Strip all HTML tags
     ALLOWED_ATTR: [],
@@ -54,8 +53,6 @@ export function sanitizeHtml(input: string): string {
  * Sanitize text input for safe storage and display
  */
 export function sanitizeText(input: string, maxLength = 1000): string {
-  if (typeof input !== "string") return "";
-
   // Remove potential XSS patterns
   let sanitized = input;
   securityPatterns.xssPatterns.forEach((pattern) => {
@@ -70,8 +67,6 @@ export function sanitizeText(input: string, maxLength = 1000): string {
  * Validate and sanitize file names
  */
 export function sanitizeFileName(filename: string): string {
-  if (typeof filename !== "string") return "";
-
   // Remove path traversal attempts
   let sanitized = filename.replace(securityPatterns.pathTraversal, "");
 
@@ -209,11 +204,7 @@ export function createSecurityValidator<T>(schema: z.ZodSchema<T>) {
     }
 
     // Check for suspicious patterns in serialized data
-    if (securityPatterns.sqlInjection.test(jsonStr)) {
-      return false;
-    }
-
-    return true;
+    return !securityPatterns.sqlInjection.test(jsonStr);
   }, "Security validation failed");
 }
 

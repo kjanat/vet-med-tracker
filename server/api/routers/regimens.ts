@@ -168,6 +168,8 @@ interface RegimenRow {
     requiresCoSign: boolean;
     instructions: string | null;
     prnReason: string | null;
+    medicationName: string | null;
+    isCustomMedication: boolean;
   };
   animal: {
     id: string;
@@ -182,7 +184,7 @@ interface RegimenRow {
     route: string;
     form: string;
     strength: string | null;
-  };
+  } | null;
   lastAdmin: {
     id: string;
     recordedAt: string;
@@ -203,17 +205,24 @@ function processRegimenRow(
   // Calculate compliance (mock for now)
   const compliance = 85 + Math.floor(Math.random() * 15);
 
+  // Use hybrid medication name approach - prioritize regimen.medicationName over catalog
+  const medicationName =
+    regimen.medicationName ||
+    medication?.genericName ||
+    medication?.brandName ||
+    "Unknown";
+
   return {
     id: regimen.id,
     animalId: animal.id,
     animalName: animal.name,
     animalSpecies: animal.species,
     animalPhotoUrl: animal.photoUrl,
-    medicationName: medication.genericName || medication.brandName || "Unknown",
-    brandName: medication.brandName,
-    route: regimen.route || medication.route,
-    form: medication.form,
-    strength: medication.strength || "",
+    medicationName,
+    brandName: medication?.brandName || null,
+    route: regimen.route || medication?.route || "",
+    form: medication?.form || "",
+    strength: medication?.strength || "",
     dose: regimen.dose || "",
     targetTime: dueStatus.targetTime,
     isPRN: regimen.scheduleType === "PRN",
@@ -279,7 +288,7 @@ export const regimenRouter = createTRPCRouter({
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .innerJoin(
+        .leftJoin(
           medicationCatalog,
           eq(regimens.medicationId, medicationCatalog.id),
         )
@@ -346,7 +355,7 @@ export const regimenRouter = createTRPCRouter({
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .innerJoin(
+        .leftJoin(
           medicationCatalog,
           eq(regimens.medicationId, medicationCatalog.id),
         )
@@ -389,7 +398,7 @@ export const regimenRouter = createTRPCRouter({
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .innerJoin(
+        .leftJoin(
           medicationCatalog,
           eq(regimens.medicationId, medicationCatalog.id),
         )
@@ -418,7 +427,9 @@ export const regimenRouter = createTRPCRouter({
       z.object({
         householdId: z.uuid(),
         animalId: z.uuid(),
-        medicationId: z.uuid(),
+        medicationId: z.uuid().optional(),
+        medicationName: z.string().optional(),
+        isCustomMedication: z.boolean().default(false),
         name: z.string().optional(),
         instructions: z.string().optional(),
         scheduleType: z.enum(scheduleTypeEnum.enumValues),
@@ -459,18 +470,28 @@ export const regimenRouter = createTRPCRouter({
         });
       }
 
-      // Verify medication exists
-      const medication = await ctx.db
-        .select({ id: medicationCatalog.id })
-        .from(medicationCatalog)
-        .where(eq(medicationCatalog.id, input.medicationId))
-        .limit(1);
-
-      if (!medication[0]) {
+      // Validate hybrid medication approach
+      if (!input.medicationId && !input.medicationName) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Medication not found",
+          code: "BAD_REQUEST",
+          message: "Either medicationId or medicationName is required",
         });
+      }
+
+      // If using catalog medication, verify it exists
+      if (input.medicationId) {
+        const medication = await ctx.db
+          .select({ id: medicationCatalog.id })
+          .from(medicationCatalog)
+          .where(eq(medicationCatalog.id, input.medicationId))
+          .limit(1);
+
+        if (!medication[0]) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Medication not found",
+          });
+        }
       }
 
       // Validate schedule type constraints
@@ -501,6 +522,8 @@ export const regimenRouter = createTRPCRouter({
       const newRegimen: NewRegimen = {
         animalId: input.animalId,
         medicationId: input.medicationId,
+        medicationName: input.medicationName,
+        isCustomMedication: input.isCustomMedication,
         name: input.name,
         instructions: input.instructions,
         scheduleType: input.scheduleType,
@@ -542,7 +565,7 @@ export const regimenRouter = createTRPCRouter({
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .innerJoin(
+        .leftJoin(
           medicationCatalog,
           eq(regimens.medicationId, medicationCatalog.id),
         )
@@ -663,7 +686,7 @@ export const regimenRouter = createTRPCRouter({
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .innerJoin(
+        .leftJoin(
           medicationCatalog,
           eq(regimens.medicationId, medicationCatalog.id),
         )
@@ -873,6 +896,8 @@ export const regimenRouter = createTRPCRouter({
           // Regimen info
           regimenId: regimens.id,
           medicationId: regimens.medicationId,
+          medicationName: regimens.medicationName,
+          isCustomMedication: regimens.isCustomMedication,
           dose: regimens.dose,
           route: regimens.route,
           scheduleType: regimens.scheduleType,
@@ -884,7 +909,7 @@ export const regimenRouter = createTRPCRouter({
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .innerJoin(
+        .leftJoin(
           medicationCatalog,
           eq(regimens.medicationId, medicationCatalog.id),
         )
@@ -896,7 +921,7 @@ export const regimenRouter = createTRPCRouter({
             isNull(regimens.deletedAt),
           ),
         )
-        .orderBy(animals.name, medicationCatalog.genericName);
+        .orderBy(animals.name, regimens.medicationName);
 
       // Group regimens by animal
       const animalRegimens = new Map<string, typeof results>();
@@ -920,7 +945,11 @@ export const regimenRouter = createTRPCRouter({
             id: regimen.regimenId,
             animalId: regimen.animalId,
             animalName: regimen.animalName,
-            medicationName: regimen.brandName || regimen.genericName,
+            medicationName:
+              regimen.medicationName ||
+              regimen.brandName ||
+              regimen.genericName ||
+              "Unknown",
             dose: regimen.dose || "",
             route: regimen.route,
             scheduleType: regimen.scheduleType,

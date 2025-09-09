@@ -24,8 +24,7 @@ export function NavigationGuardLink({
 }: NavigationGuardLinkProps) {
   const handleNavigate = useCallback(() => {
     if (hasUnsavedChanges) {
-      const confirmed = window.confirm(confirmationMessage);
-      return confirmed;
+      return window.confirm(confirmationMessage);
     }
     return true;
   }, [hasUnsavedChanges, confirmationMessage]);

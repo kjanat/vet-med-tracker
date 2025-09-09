@@ -141,7 +141,7 @@ class SystemMonitor {
       const cpuUsage = process.cpuUsage(this.lastCpuUsage);
       this.lastCpuUsage = process.cpuUsage();
 
-      const snapshot: SystemSnapshot = {
+      return {
         timestamp,
         health: {
           status: healthData.status,
@@ -154,8 +154,6 @@ class SystemMonitor {
           cpuUsage,
         },
       };
-
-      return snapshot;
     } catch (error) {
       // Return error snapshot
       return {

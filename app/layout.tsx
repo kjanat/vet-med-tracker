@@ -54,6 +54,7 @@ export default function RootLayout({
     >
       <head>
         <meta name="apple-mobile-web-app-title" content="VetMed" />
+        <title>VetMed</title>
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <StackProvider app={stackServerApp}>

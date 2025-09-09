@@ -4,8 +4,7 @@
  * Simple verification script for test database setup
  * This script tests the database configuration without TypeScript compilation
  */
-
-const postgres = require("postgres");
+import postgres from "postgres";
 
 async function verifyTestDatabase() {
   console.log("🧪 Verifying test database setup...");

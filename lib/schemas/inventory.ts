@@ -3,8 +3,9 @@ import { z } from "zod";
 // Define the inventory item schema for form validation
 export const inventoryFormSchema = z
   .object({
-    medicationId: z.string().uuid("Please select a medication"),
-    name: z.string().min(1, "Medication name is required"),
+    medicationId: z.string().uuid().optional(), // Made optional for hybrid approach
+    name: z.string().min(1, "Medication name is required"), // Primary field for hybrid
+    isCustomMedication: z.boolean().default(false), // Track custom vs catalog
     brand: z.string().optional(),
     route: z.string().min(1, "Route is required"),
     form: z.string().min(1, "Form is required"),

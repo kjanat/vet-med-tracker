@@ -164,7 +164,13 @@ export const vetmedInventoryItems = pgTable(
     {
         id: uuid().defaultRandom().primaryKey().notNull(),
         householdId: uuid("household_id").notNull(),
-        medicationId: uuid("medication_id").notNull(),
+        medicationId: uuid("medication_id"),  // Made optional for hybrid approach
+        
+        // Hybrid medication fields - fallback when not using catalog
+        medicationName: text("medication_name"),  // Free-text medication name (primary display)
+        isCustomMedication: boolean("is_custom_medication").default(false).notNull(),  // Track custom vs catalog
+        
+        // Existing fields
         assignedAnimalId: uuid("assigned_animal_id"),
         brandOverride: text("brand_override"),
         concentration: text(),
@@ -224,7 +230,7 @@ export const vetmedInventoryItems = pgTable(
             columns: [table.medicationId],
             foreignColumns: [vetmedMedicationCatalog.id],
             name: "vetmed_inventory_items_medication_id_vetmed_medication_catalog_",
-        }),
+        }).onDelete("set null"),
     ],
 );
 
@@ -425,7 +431,13 @@ export const vetmedRegimens = pgTable(
     {
         id: uuid().defaultRandom().primaryKey().notNull(),
         animalId: uuid("animal_id").notNull(),
-        medicationId: uuid("medication_id").notNull(),
+        medicationId: uuid("medication_id"),  // Made optional for hybrid approach
+        
+        // Hybrid medication fields - fallback when not using catalog
+        medicationName: text("medication_name"),  // Free-text medication name (primary display)
+        isCustomMedication: boolean("is_custom_medication").default(false).notNull(),  // Track custom vs catalog
+        
+        // Existing fields  
         name: text(),
         instructions: text(),
         scheduleType: vetmedScheduleType("schedule_type").notNull(),
@@ -477,7 +489,7 @@ export const vetmedRegimens = pgTable(
             columns: [table.medicationId],
             foreignColumns: [vetmedMedicationCatalog.id],
             name: "vetmed_regimens_medication_id_vetmed_medication_catalog_id_fk",
-        }),
+        }).onDelete("set null"),
     ],
 );
 

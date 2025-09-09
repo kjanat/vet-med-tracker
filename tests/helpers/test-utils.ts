@@ -140,8 +140,7 @@ export async function mockGeolocation(
 export async function mockTimezone(page: Page, timezone: string) {
   await page.addInitScript((tz) => {
     // Override Intl.DateTimeFormat
-    const OriginalDateTimeFormat = Intl.DateTimeFormat;
-    (window as any).Intl.DateTimeFormat = class extends OriginalDateTimeFormat {
+    (window as any).Intl.DateTimeFormat = class extends Intl.DateTimeFormat {
       constructor(
         locale?: string | string[],
         options?: Intl.DateTimeFormatOptions,

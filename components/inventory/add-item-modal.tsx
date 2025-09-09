@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Camera, Scan } from "lucide-react";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { MedicationSearch } from "@/components/medication/medication-search";
+import { useForm } from "react-hook-form";
+import { HybridMedicationInput } from "@/components/medication/hybrid-medication-input";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -72,8 +72,9 @@ export function AddItemModal({
   const form = useForm<InventoryFormData>({
     resolver: zodResolver(inventoryFormSchema),
     defaultValues: {
-      medicationId: "",
+      medicationId: undefined,
       name: "",
+      isCustomMedication: false,
       brand: undefined,
       route: "",
       form: "",
@@ -255,39 +256,64 @@ export function AddItemModal({
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-4"
                 >
-                  {/* Medication Selection */}
-                  <Controller
+                  {/* Medication Selection - Hybrid Input */}
+                  <FormField
                     control={form.control}
-                    name="medicationId"
-                    rules={{ required: "Please select a medication" }}
-                    render={({ field }) => (
+                    name="name"
+                    render={({ field, fieldState }) => (
                       <FormItem>
                         <FormLabel>Medication *</FormLabel>
                         <FormControl>
-                          <MedicationSearch
+                          <HybridMedicationInput
                             value={field.value}
-                            onChange={(id, medication) => {
-                              field.onChange(id);
-                              // Auto-fill form fields from medication data
-                              form.setValue("name", medication.genericName);
-                              if (medication.brandName) {
-                                form.setValue("brand", medication.brandName);
+                            onChange={(
+                              medicationName,
+                              medicationId,
+                              isCustom,
+                              medication,
+                            ) => {
+                              // Update the name field (primary)
+                              field.onChange(medicationName);
+
+                              // Update related fields
+                              form.setValue("medicationId", medicationId);
+                              form.setValue(
+                                "isCustomMedication",
+                                isCustom || false,
+                              );
+
+                              if (medication && !isCustom) {
+                                // Auto-fill form fields from catalog medication
+                                if (medication.brandName) {
+                                  form.setValue("brand", medication.brandName);
+                                }
+                                form.setValue("form", medication.form);
+                                form.setValue("route", medication.route);
+                                if (medication.strength) {
+                                  form.setValue(
+                                    "strength",
+                                    medication.strength,
+                                  );
+                                }
+                                // If it's a controlled substance, set storage appropriately
+                                if (medication.controlledSubstance) {
+                                  form.setValue("storage", "CONTROLLED");
+                                }
                               }
-                              form.setValue("form", medication.form);
-                              form.setValue("route", medication.route);
-                              if (medication.strength) {
-                                form.setValue("strength", medication.strength);
-                              }
-                              // If it's a controlled substance, set storage appropriately
-                              if (medication.controlledSubstance) {
-                                form.setValue("storage", "CONTROLLED");
-                              }
+                              // For custom medications, don't clear user-entered data
+                              // Users can still fill in details manually
                             }}
                             required
                             householdId={selectedHousehold?.id}
+                            placeholder="Enter or search for medication..."
                           />
                         </FormControl>
                         <FormMessage />
+                        {fieldState.error && (
+                          <p className="mt-1 text-destructive text-sm">
+                            {fieldState.error.message}
+                          </p>
+                        )}
                       </FormItem>
                     )}
                   />
@@ -298,11 +324,14 @@ export function AddItemModal({
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Generic Name</FormLabel>
+                          <FormLabel>Medication Name</FormLabel>
                           <FormControl>
                             <Input {...field} readOnly disabled />
                           </FormControl>
                           <FormMessage />
+                          <p className="text-muted-foreground text-xs">
+                            Name from medication selection above
+                          </p>
                         </FormItem>
                       )}
                     />

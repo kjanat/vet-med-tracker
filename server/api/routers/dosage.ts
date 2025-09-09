@@ -111,14 +111,12 @@ export const dosageRouter = createTRPCRouter({
         };
 
         // Perform the calculation
-        const result = DosageCalculator.calculate({
+        return DosageCalculator.calculate({
           animal,
           medication,
           route,
           targetUnit,
         });
-
-        return result;
       } catch (error) {
         if (error instanceof Error) {
           throw new TRPCError({
