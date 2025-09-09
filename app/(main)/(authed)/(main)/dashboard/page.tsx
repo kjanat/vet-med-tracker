@@ -124,7 +124,9 @@ export default function DashboardPage() {
     shortcuts.forEach(registerShortcut);
 
     return () => {
-      shortcuts.forEach((s) => unregisterShortcut(s.key));
+      shortcuts.forEach((s) => {
+        unregisterShortcut(s.key);
+      });
     };
   }, [registerShortcut, unregisterShortcut, router, showKeyboardShortcuts]);
 

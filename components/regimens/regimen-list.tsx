@@ -23,7 +23,7 @@ type RegimenWithDetails = {
   regimen: {
     id: string;
     animalId: string;
-    medicationId: string;
+    medicationId: string | null;
     name: string | null;
     instructions: string | null;
     scheduleType: "FIXED" | "PRN" | "INTERVAL" | "TAPER";
@@ -103,7 +103,7 @@ type RegimenWithDetails = {
     warnings: string | null;
     createdAt: string;
     updatedAt: string;
-  };
+  } | null;
 };
 
 // Interface for display
@@ -112,7 +112,7 @@ export interface Regimen {
   animalId: string;
   animalName: string;
   medicationName: string;
-  medicationId: string;
+  medicationId: string | null;
   route: string;
   form: string;
   strength?: string;
@@ -147,14 +147,14 @@ function transformRegimenData(data: RegimenWithDetails[]): Regimen[] {
       animalId: animal.id,
       animalName: animal.name,
       medicationName:
-        medication.genericName ||
-        medication.brandName ||
+        medication?.genericName ||
+        medication?.brandName ||
         regimen.name ||
         "Unknown Medication",
-      medicationId: medication.id,
-      route: regimen.route || medication.route,
-      form: medication.form,
-      strength: medication.strength || undefined,
+      medicationId: regimen.medicationId,
+      route: regimen.route || medication?.route || "ORAL",
+      form: medication?.form || "TABLET",
+      strength: medication?.strength || undefined,
       scheduleType: regimen.scheduleType as "FIXED" | "PRN",
       timesLocal: regimen.timesLocal || undefined,
       startDate: new Date(regimen.startDate),
@@ -313,7 +313,7 @@ export function RegimenList() {
   type RegimenCreateInput = {
     householdId: string;
     animalId: string;
-    medicationId: string;
+    medicationId?: string;
     scheduleType: "FIXED" | "PRN" | "INTERVAL" | "TAPER";
     startDate: string;
     name?: string;
@@ -337,7 +337,7 @@ export function RegimenList() {
     const createData: RegimenCreateInput = {
       householdId,
       animalId: data.animalId || "",
-      medicationId: data.medicationId || "",
+      medicationId: data.medicationId || undefined,
       scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
       startDate: formatDateForAPIRequired(data.startDate),
       name: data.medicationName,

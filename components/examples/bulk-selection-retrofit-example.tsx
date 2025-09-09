@@ -74,7 +74,8 @@ function ExistingTableWithBulkSelection({
   onExport,
 }: ExistingTableProps) {
   // Use the integration hook to sync data with bulk selection
-  const { selectedItems } = useBulkSelectionIntegration({
+  // selectedItems is currently unused but available for future functionality
+  const { selectedItems: _selectedItems } = useBulkSelectionIntegration({
     data,
     getItemId: (item) => item.id,
     onSelectionChange: (selectedItems, selectedIds) => {

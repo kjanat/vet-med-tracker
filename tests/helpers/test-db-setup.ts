@@ -1,7 +1,9 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import type { db } from "@/db/drizzle";
 import * as schema from "@/db/schema";
+
+// Define the test database type to match production structure
+type TestDatabase = ReturnType<typeof drizzle<typeof schema>>;
 
 // Test database configuration
 const TEST_DB_CONFIG = {
@@ -14,14 +16,14 @@ const TEST_DB_CONFIG = {
 
 // Connection pool for test database
 let testSql: postgres.Sql | null = null;
-let testDbInstance: ReturnType<typeof drizzle> | null = null;
+let testDbInstance: TestDatabase | null = null;
 
 /**
  * Get or create the test database connection
  */
-export function getTestDatabase(): typeof db {
+export function getTestDatabase(): TestDatabase {
   if (testDbInstance) {
-    return testDbInstance as typeof db;
+    return testDbInstance;
   }
 
   // Create connection string for postgres.js
@@ -51,7 +53,7 @@ export function getTestDatabase(): typeof db {
     logger: process.env.NODE_ENV === "development",
   });
 
-  return testDbInstance as typeof db;
+  return testDbInstance;
 }
 
 /**
@@ -112,8 +114,6 @@ export async function runTestMigrations(): Promise<void> {
  * Reset the test database by truncating all tables
  */
 export async function resetTestDatabase(): Promise<void> {
-  const _db = getTestDatabase();
-
   try {
     console.log("🗑️  Resetting test database...");
 
@@ -184,7 +184,8 @@ export async function closeTestDatabase(): Promise<void> {
  */
 export async function checkTestDatabaseHealth(): Promise<boolean> {
   try {
-    const _db = getTestDatabase();
+    // Ensure database connection is initialized
+    getTestDatabase();
     await testSql!`SELECT 1 as health_check`;
     return true;
   } catch (error) {

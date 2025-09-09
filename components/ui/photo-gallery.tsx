@@ -601,8 +601,8 @@ export function PhotoGallery({
           <Skeleton className="h-8 w-20" />
         </div>
         <div className={cn("grid gap-4", getGridColumns())}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="space-y-2">
+          {Array.from({ length: 6 }).map(() => (
+            <div key={crypto.randomUUID()} className="space-y-2">
               <Skeleton className="aspect-square w-full rounded-lg" />
               {showCaptions && <Skeleton className="h-4 w-3/4" />}
             </div>

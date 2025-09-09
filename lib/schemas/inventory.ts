@@ -5,7 +5,7 @@ export const inventoryFormSchema = z
   .object({
     medicationId: z.string().uuid().optional(), // Made optional for hybrid approach
     name: z.string().min(1, "Medication name is required"), // Primary field for hybrid
-    isCustomMedication: z.boolean().default(false), // Track custom vs catalog
+    isCustomMedication: z.boolean(), // Track custom vs catalog
     brand: z.string().optional(),
     route: z.string().min(1, "Route is required"),
     form: z.string().min(1, "Form is required"),

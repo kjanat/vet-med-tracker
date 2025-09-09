@@ -53,7 +53,7 @@ export function FloatingActionBar({
         {/* Custom Actions */}
         {customActions.map((action, index) => (
           <Button
-            key={index}
+            key={`action-${action.label}-${index}`}
             size="sm"
             variant={action.variant || "outline"}
             onClick={() => action.onClick(selectedIdsArray)}

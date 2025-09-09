@@ -25,8 +25,8 @@ describe("Database Connection", () => {
     // Simple query to verify connection
     const result = await db.execute(sql`SELECT 1 as connection_test`);
     expect(result).toBeDefined();
-    expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]?.connection_test).toBe(1);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.connection_test).toBe(1);
   });
 
   it("should create and query users table", async () => {
@@ -132,7 +132,7 @@ describe("Database Connection", () => {
 			ORDER BY table_name
 		`);
 
-    const tableNames = tableQuery.rows.map((row) => row.table_name);
+    const tableNames = tableQuery.map((row: any) => row.table_name);
 
     // Check that we have the expected vetmed_ prefixed tables
     expect(tableNames).toContain("vetmed_users");
@@ -152,6 +152,6 @@ describe("Database Connection", () => {
 			AND table_name NOT IN ('drizzle___migrations_metadata', '__drizzle_migrations')
 		`);
 
-    expect(unprefixedTables.rows).toHaveLength(0);
+    expect(unprefixedTables).toHaveLength(0);
   });
 });

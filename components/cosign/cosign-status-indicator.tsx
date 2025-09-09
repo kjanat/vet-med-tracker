@@ -51,6 +51,7 @@ interface CoSignRequestData {
 interface CoSignStatusIndicatorProps {
   administrationId: string;
   isCoSigned: boolean;
+  // These parameters are defined but intentionally unused in current implementation
   coSignUserId?: string | null;
   coSignedAt?: string | null;
   coSignNotes?: string | null;
@@ -61,9 +62,9 @@ interface CoSignStatusIndicatorProps {
 }
 
 export function CoSignStatusIndicator({
-  administrationId,
+  administrationId: _administrationId,
   isCoSigned,
-  coSignUserId,
+  coSignUserId: _coSignUserId,
   coSignedAt,
   coSignNotes,
   cosignRequest,

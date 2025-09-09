@@ -180,7 +180,9 @@ export function SignaturePad({
     ctx.fillRect(0, 0, canvas?.width || 0, canvas?.height || 0);
 
     // Draw all strokes
-    strokes.forEach((stroke) => drawStroke(stroke));
+    strokes.forEach((stroke) => {
+      drawStroke(stroke);
+    });
 
     // Draw current stroke if drawing
     if (isDrawing && currentStroke.length > 0) {

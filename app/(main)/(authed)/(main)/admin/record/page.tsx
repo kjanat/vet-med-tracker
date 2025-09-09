@@ -2,7 +2,9 @@
 
 import { useUser } from "@stackframe/stack";
 import { ArrowLeft, Camera, Tag } from "lucide-react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import type React from "react";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { RecordAdminErrorBoundary } from "@/components/error-boundary-page";
@@ -143,9 +145,9 @@ function useRecordData(
 
   // Create record administration mutation
   const createAdminMutation = trpc.admin.create.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate due regimens to refresh the list
-      utils.regimen.listDue.invalidate();
+      await utils.regimen.listDue.invalidate();
       // Refresh pending medication counts in app provider
       refreshPendingMeds();
       state.setStep("success");
@@ -158,9 +160,9 @@ function useRecordData(
 
   // Inventory update mutation
   const updateInventoryMutation = trpc.inventory.updateQuantity.useMutation({
-    onSuccess: () => {
-      utils.inventory.getSources.invalidate();
-      utils.inventory.getHouseholdInventory.invalidate();
+    onSuccess: async () => {
+      await utils.inventory.getSources.invalidate();
+      await utils.inventory.getHouseholdInventory.invalidate();
     },
     onError: (error) => {
       console.error("Failed to update inventory:", error);
@@ -1159,10 +1161,12 @@ function PhotoEvidenceUploader({
       {photoUrls.length > 0 && (
         <div className="grid grid-cols-2 gap-2">
           {photoUrls.map((url, index) => (
-            <div key={index} className="relative">
-              <img
+            <div key={url} className="relative">
+              <Image
                 src={url}
                 alt={`Evidence ${index + 1}`}
+                width={80}
+                height={80}
                 className="h-20 w-full rounded-md border object-cover"
               />
               <Button

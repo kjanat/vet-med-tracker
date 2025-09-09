@@ -11,7 +11,7 @@ import {
 } from "./test-db-setup";
 
 // Create test database instance using local PostgreSQL
-export function createTestDatabase(): typeof db {
+export function createTestDatabase() {
   console.log("🔧 Creating test database connection with local PostgreSQL");
   return getTestDatabase();
 }
@@ -19,7 +19,7 @@ export function createTestDatabase(): typeof db {
 /**
  * Initialize test database before running tests
  */
-export async function setupTestDatabase(): Promise<typeof db> {
+export async function setupTestDatabase() {
   await initializeTestDatabase();
   return getTestDatabase();
 }

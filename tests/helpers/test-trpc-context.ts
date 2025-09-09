@@ -42,7 +42,7 @@ export function createTestTRPCContext(options: {
   });
 
   return {
-    db,
+    db: db as any,
     headers: new Headers(),
     requestedHouseholdId: household.id,
     // Stack Auth user (type assertion for test compatibility)
@@ -67,7 +67,7 @@ export function createUnauthenticatedTestContext(): Context {
   const db = createTestDatabase();
 
   return {
-    db,
+    db: db as any,
     headers: new Headers(),
     requestedHouseholdId: null,
     stackUser: null,

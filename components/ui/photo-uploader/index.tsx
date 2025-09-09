@@ -21,7 +21,8 @@ const DEFAULT_ACCEPTED_TYPES = [
 export function PhotoUploader({
   onUpload,
   onProgress,
-  onError,
+  // onError parameter is currently unused but preserved for future functionality
+  onError: _onError,
   disabled = false,
   acceptedTypes = DEFAULT_ACCEPTED_TYPES,
   maxSizeKB = 5000,
@@ -29,9 +30,10 @@ export function PhotoUploader({
   className = "",
   value,
   placeholder = "Click to upload or drag and drop",
-  householdId,
-  userId,
-  animalId,
+  // These parameters are currently unused but preserved for future functionality
+  householdId: _householdId,
+  userId: _userId,
+  animalId: _animalId,
 }: PhotoUploaderProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);

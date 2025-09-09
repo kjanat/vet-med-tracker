@@ -864,7 +864,9 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     }
 
     return () => {
-      timeoutRefs.current.forEach((id) => clearTimeout(id));
+      timeoutRefs.current.forEach((id) => {
+        clearTimeout(id);
+      });
       timeoutRefs.current.clear();
     };
   }, [state.accessibility.announcements]);

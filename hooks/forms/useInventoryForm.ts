@@ -3,13 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useState } from "react";
 import { type UseFormReturn, useForm } from "react-hook-form";
+import type { z } from "zod";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { useToast } from "@/hooks/shared/use-toast";
-import {
-  type InventoryFormData,
-  inventoryFormSchema,
-} from "@/lib/schemas/inventory";
+import { inventoryFormSchema } from "@/lib/schemas/inventory";
 import { trpc } from "@/server/trpc/client";
+
+type InventoryFormData = z.infer<typeof inventoryFormSchema>;
 
 /**
  * Inventory form state interface
@@ -154,11 +154,12 @@ export function useInventoryForm(
   defaultExpiryDate.setDate(defaultExpiryDate.getDate() + defaultExpiryDays);
 
   // Initialize form with validation
-  const form = useForm<InventoryFormData>({
+  const form = useForm({
     resolver: zodResolver(inventoryFormSchema),
     defaultValues: {
       medicationId: "",
       name: "",
+      isCustomMedication: false,
       brand: "",
       route: "",
       form: "",
@@ -178,9 +179,9 @@ export function useInventoryForm(
 
   // tRPC mutations
   const createMutation = trpc.inventory.create.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Invalidate queries to refresh data
-      utils.inventory.list.invalidate();
+      await utils.inventory.list.invalidate();
 
       if (showSuccessToast && data) {
         const message =
@@ -206,9 +207,9 @@ export function useInventoryForm(
   });
 
   const setInUseMutation = trpc.inventory.setInUse.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate queries to refresh data
-      utils.inventory.list.invalidate();
+      await utils.inventory.list.invalidate();
     },
     onError: (error) => {
       console.error("Error setting inventory item in use:", error);
@@ -239,7 +240,7 @@ export function useInventoryForm(
         return false;
       }
 
-      if (!data.medicationId) {
+      if (!data.medicationId || data.medicationId.trim() === "") {
         const errorMsg = "Please select a medication";
         setError(errorMsg);
         toast({
@@ -284,6 +285,9 @@ export function useInventoryForm(
     (data: InventoryFormData) => {
       if (!selectedHousehold?.id) {
         throw new Error("No household selected");
+      }
+      if (!data.medicationId) {
+        throw new Error("Medication ID is required");
       }
       return {
         householdId: selectedHousehold.id,
@@ -493,38 +497,6 @@ export function useInventoryForm(
     clearErrorAction,
 
     // Mutations
-    createMutation,
-    setInUseMutation,
-  };
-}
-
-/**
- * Simplified inventory form hook for basic use cases
- *
- * @example
- * ```tsx
- * function SimpleInventoryForm() {
- *   const { form, saveItem, isLoading } = useSimpleInventoryForm();
- *
- *   return (
- *     <form onSubmit={form.handleSubmit(saveItem)}>
- *       // Form fields go here
- *     </form>
- *   );
- * }
- * ```
- */
-export function useSimpleInventoryForm() {
-  const { form, saveForm, isLoading, createMutation, setInUseMutation } =
-    useInventoryForm({
-      autoClose: false,
-      showSuccessToast: true,
-    });
-
-  return {
-    form,
-    saveItem: saveForm,
-    isLoading,
     createMutation,
     setInUseMutation,
   };

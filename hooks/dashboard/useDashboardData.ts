@@ -312,7 +312,7 @@ export function useUpcomingDoses() {
               acc.push({
                 regimenId: item.regimen.id,
                 animalName: item.animal.name || "Unknown",
-                medicationName: item.medication.genericName || "Unknown",
+                medicationName: item.medication?.genericName || "Unknown",
                 dosesThisWeek: weeklyDoses,
                 scheduleType: item.regimen.scheduleType,
               });

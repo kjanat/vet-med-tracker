@@ -74,8 +74,8 @@ export function WelcomeFlow() {
   const completeOnboarding = async () => {
     setIsLoading(true);
     try {
-      // Create household in database
-      const household = await createHouseholdMutation.mutateAsync({
+      // Create household in database - household variable unused but preserved for future use
+      const _household = await createHouseholdMutation.mutateAsync({
         name: data.householdName,
         timezone: data.timezone,
       });

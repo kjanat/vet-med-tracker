@@ -150,8 +150,9 @@ export const inventoryRouter = createTRPCRouter({
         lot: row.item.lot || "",
         expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
         unitsRemaining: row.item.unitsRemaining || 0,
-        isExpired:
-          row.item.expiresOn && new Date(row.item.expiresOn) < new Date(),
+        isExpired: row.item.expiresOn
+          ? new Date(row.item.expiresOn) < new Date()
+          : false,
         isWrongMed: false,
         inUse: row.item.inUse,
       }));
@@ -538,9 +539,13 @@ export const inventoryRouter = createTRPCRouter({
             // Build conditions array dynamically
             const conditions = [
               eq(administrations.householdId, input.householdId),
-              eq(regimens.medicationId, item.medicationId),
               gte(administrations.recordedAt, thirtyDaysAgo.toISOString()),
             ];
+
+            // Only compare medication IDs if item has a medication ID
+            if (item.medicationId) {
+              conditions.push(eq(regimens.medicationId, item.medicationId));
+            }
 
             // Only count administrations for the assigned animal if item is assigned
             if (item.assignedAnimalId) {

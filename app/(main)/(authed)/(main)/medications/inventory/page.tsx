@@ -98,7 +98,7 @@ function InventoryContent() {
   const inventoryItems: InventoryItem[] = useMemo(() => {
     return items.map((item) => ({
       id: item.id,
-      medicationId: item.medicationId,
+      medicationId: item.medicationId || undefined,
       name: item.name,
       brand: item.name, // Using name as brand for now
       genericName: item.genericName,
@@ -112,7 +112,7 @@ function InventoryContent() {
       storage: item.storage as InventoryItem["storage"],
       inUse: item.inUse,
       assignedAnimalId: item.assignedAnimalId || undefined,
-      catalogId: item.medicationId,
+      catalogId: item.medicationId || "",
       assignedAnimalName: item.assignedAnimalName || undefined,
     }));
   }, [items]);
@@ -141,17 +141,13 @@ function InventoryContent() {
     }
 
     // Sort
-    const sorted = [...filtered].sort(
-      getInventorySortFunction(sortBy, daysLeftMap),
-    );
-
-    return sorted;
+    return [...filtered].sort(getInventorySortFunction(sortBy, daysLeftMap));
   }, [searchQuery, sortBy, daysLeftMap, inventoryItems]);
 
   // Set in-use mutation
   const setInUseMutation = trpc.inventory.setInUse.useMutation({
-    onSuccess: () => {
-      utils.inventory.list.invalidate();
+    onSuccess: async () => {
+      await utils.inventory.list.invalidate();
     },
   });
 
@@ -172,22 +168,22 @@ function InventoryContent() {
 
   // Assign to animal mutation
   const assignMutation = trpc.inventory.assignToAnimal.useMutation({
-    onSuccess: () => {
-      utils.inventory.list.invalidate();
+    onSuccess: async () => {
+      await utils.inventory.list.invalidate();
     },
   });
 
   // Update inventory item mutation
   const updateMutation = trpc.inventory.update.useMutation({
-    onSuccess: () => {
-      utils.inventory.list.invalidate();
+    onSuccess: async () => {
+      await utils.inventory.list.invalidate();
     },
   });
 
   // Delete inventory item mutation
   const deleteMutation = trpc.inventory.delete.useMutation({
-    onSuccess: () => {
-      utils.inventory.list.invalidate();
+    onSuccess: async () => {
+      await utils.inventory.list.invalidate();
     },
   });
 
@@ -303,7 +299,7 @@ function InventoryContent() {
             {error.message || "An unexpected error occurred"}
           </p>
           <Button
-            onClick={() => utils.inventory.list.invalidate()}
+            onClick={async () => await utils.inventory.list.invalidate()}
             variant="outline"
           >
             Try Again

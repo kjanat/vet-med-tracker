@@ -136,7 +136,7 @@ function MedicationDistributionWidgetContent({
                 outerRadius={isFullscreen ? 120 : 80}
                 paddingAngle={2}
                 dataKey="count"
-                label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
+                label={(entry: any) => `${entry.payload?.percentage || 0}%`}
                 labelLine={false}
               >
                 {chartData.map((entry) => (

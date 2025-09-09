@@ -52,7 +52,8 @@ export function HistoryList({
   onDelete,
   onCosign,
 }: HistoryListProps) {
-  const isOnline = true; // Simplified: Always assume online connection
+  // Always assume online connection - isOnline variable unused but preserved for future use
+  const _isOnline = true;
   const listRef = useRef<HTMLDivElement>(null);
 
   // Enable keyboard navigation for the history list
@@ -141,16 +142,6 @@ export function HistoryList({
             Load More
           </Button>
         </nav>
-      )}
-
-      {false && (
-        <div
-          className="py-4 text-center text-muted-foreground text-sm"
-          role="alert"
-          aria-live="polite"
-        >
-          Showing cached history. Some recent changes may not be visible.
-        </div>
       )}
     </div>
   );
@@ -388,7 +379,7 @@ function AdministrationRow({
                     <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
                       {record.media.map((url, index) => (
                         <button
-                          key={index}
+                          key={`media-${record.id}-${index}`}
                           type="button"
                           className="group relative aspect-square overflow-hidden rounded-md border transition-transform hover:scale-105"
                           onClick={() => window.open(url, "_blank")}

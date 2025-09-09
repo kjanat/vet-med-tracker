@@ -244,7 +244,7 @@ async function generateLowInventorySuggestions(
       rationale: `Only ${item.unitsRemaining || 0} units remaining (${remainingPct}% of original quantity)`,
       action: {
         inventoryItemId: item.id,
-        medicationId: item.medicationId,
+        medicationId: item.medicationId || undefined,
         animalId: item.assignedAnimalId || undefined,
       },
       priority: remainingPct <= 10 ? "high" : "medium",

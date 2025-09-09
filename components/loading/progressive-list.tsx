@@ -91,7 +91,7 @@ export function ProgressiveList<T>({
   return (
     <div className={className}>
       {visibleItems.map((item, index) => (
-        <React.Fragment key={keyExtractor?.(item, index) ?? index}>
+        <React.Fragment key={keyExtractor?.(item, index) ?? `item-${index}`}>
           {renderItem(item, index)}
         </React.Fragment>
       ))}
@@ -228,7 +228,9 @@ export function StaggeredList<T>({
     });
 
     return () => {
-      timeouts.forEach((id) => clearTimeout(id));
+      timeouts.forEach((id) => {
+        clearTimeout(id);
+      });
     };
   }, [items, staggerDelay]);
 

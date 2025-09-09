@@ -516,7 +516,9 @@ class PerformanceValidator {
           }
         }
         if (node.Plans) {
-          node.Plans.forEach((subNode: any) => extractFromNode(subNode));
+          node.Plans.forEach((subNode: any) => {
+            extractFromNode(subNode);
+          });
         }
       };
 

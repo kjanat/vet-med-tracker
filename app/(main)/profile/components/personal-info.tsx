@@ -108,7 +108,8 @@ export default function PersonalInfoSection() {
     formState: { isSubmitting },
     handleSubmit,
     reset,
-    watch,
+    // watch is used for form state tracking but currently unused
+    watch: _watch,
   } = form;
 
   // tRPC mutations

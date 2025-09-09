@@ -3,9 +3,9 @@
  * Handles timing calculations for different types of medication schedules
  */
 
-import { and, desc, eq, gte, isNull, lte, or } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, lte, or, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
-import type { db } from "@/db/drizzle";
+import type { db as _db } from "@/db/drizzle";
 import {
   vetmedAdministrations as administrations,
   vetmedAnimals as animals,
@@ -20,426 +20,346 @@ export interface RegimenSchedule {
   animalId: string;
   animalName: string;
   animalTimezone: string;
-  householdId: string;
-  userId: string;
+  medicationId: string;
   medicationName: string;
-  dose: string;
-  scheduleType: "FIXED" | "PRN" | "INTERVAL" | "TAPER";
-  times?: string[]; // For FIXED schedules: ["08:00", "20:00"]
-  intervalHours?: number; // For INTERVAL schedules
-  startDate: string;
-  endDate?: string;
+  dosage: string;
+  scheduleType: string;
+  timesLocal: string[] | null;
+  intervalHours: number | null;
+  startDate: Date;
+  endDate?: Date | null;
   isActive: boolean;
-  userLeadTime: number;
-  pushNotifications: boolean;
+  householdId: string;
+  times: string[]; // Array of time strings like ["08:00", "20:00"]
+  caregivers: {
+    userId: string;
+    userName: string;
+    userEmail: string;
+    role: string;
+  }[];
 }
 
-export interface ScheduledDose {
-  householdId: string;
+export interface UpcomingDose {
   regimenId: string;
   animalId: string;
   animalName: string;
-  userId: string;
+  animalTimezone: string;
   medicationName: string;
-  dose: string;
-  scheduledTime: DateTime;
-  notificationTime: DateTime;
-  timezone: string;
-  type: "scheduled" | "interval" | "prn";
+  dosage: string;
+  scheduledTime: Date;
+  timeSlot: string;
+  householdId: string;
+  caregivers: {
+    userId: string;
+    userName: string;
+    userEmail: string;
+    role: string;
+  }[];
+  isOverdue: boolean;
+  lastAdministered?: Date | null;
 }
 
-export interface MissedDose extends ScheduledDose {
-  minutesOverdue: number;
-  lastAttemptedNotification?: DateTime;
-}
+// Type aliases for compatibility with notification scheduler
+export type ScheduledDose = UpcomingDose;
+export type MissedDose = UpcomingDose & { isOverdue: true };
 
+/**
+ * Regimen Calculator Service
+ */
 export class RegimenCalculator {
-  private db: typeof import("@/db/drizzle").db;
-
-  constructor(db: typeof import("@/db/drizzle").db) {
-    this.db = db;
-  }
-
   /**
-   * Get all active regimens for users with push notifications enabled
+   * Get all active regimen schedules for a household
    */
-  async getActiveRegimens(): Promise<RegimenSchedule[]> {
-    const activeRegimens = await this.db
+  async getActiveRegimens(householdId: string): Promise<RegimenSchedule[]> {
+    const db = (await import("@/db/drizzle")).db;
+
+    const todayString = new Date().toISOString().split("T")[0];
+
+    const result = await db
       .select({
         regimenId: regimens.id,
-        animalId: regimens.animalId,
+        animalId: animals.id,
         animalName: animals.name,
         animalTimezone: animals.timezone,
-        householdId: animals.householdId,
-        medicationName: medicationCatalog.genericName,
-        dose: regimens.dose,
+        medicationId: regimens.medicationId,
+        medicationName: medicationCatalog.brandName,
+        dosage: regimens.dose,
         scheduleType: regimens.scheduleType,
-        times: regimens.timesLocal,
+        timesLocal: regimens.timesLocal,
         intervalHours: regimens.intervalHours,
         startDate: regimens.startDate,
         endDate: regimens.endDate,
-        active: regimens.active,
-        userId: memberships.userId,
-        userLeadTime: users.reminderLeadTimeMinutes,
-        pushNotifications: users.pushNotifications,
+        isActive: regimens.active, // Fixed: use 'active' not 'isActive'
+        householdId: animals.householdId,
       })
       .from(regimens)
       .innerJoin(animals, eq(regimens.animalId, animals.id))
-      .innerJoin(
+      .leftJoin(
         medicationCatalog,
         eq(regimens.medicationId, medicationCatalog.id),
       )
-      .innerJoin(memberships, eq(animals.householdId, memberships.householdId))
-      .innerJoin(users, eq(memberships.userId, users.id))
       .where(
         and(
+          eq(animals.householdId, householdId),
           eq(regimens.active, true),
-          eq(users.pushNotifications, true),
           or(
             isNull(regimens.endDate),
-            gte(
-              regimens.endDate,
-              DateTime.utc().toISO() || DateTime.utc().toString(),
-            ),
+            sql`${regimens.endDate} >= ${todayString}`,
           ),
         ),
-      );
+      )
+      .orderBy(regimens.createdAt);
 
-    return activeRegimens.map((r: any) => ({
-      ...r,
-      scheduleType: r.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
-      userLeadTime: parseInt(r.userLeadTime || "15", 10),
-      animalTimezone: r.animalTimezone || "America/New_York",
-      isActive: r.active, // Map active to isActive for backwards compatibility
+    // Get caregivers for each regimen
+    const regimenSchedules: RegimenSchedule[] = [];
+
+    for (const row of result) {
+      const caregivers = await this.getRegimenCaregivers(db, row.householdId);
+
+      regimenSchedules.push({
+        regimenId: row.regimenId,
+        animalId: row.animalId,
+        animalName: row.animalName,
+        animalTimezone: row.animalTimezone,
+        medicationId: row.medicationId || "",
+        medicationName: row.medicationName || "Unknown Medication",
+        dosage: row.dosage || "",
+        scheduleType: row.scheduleType,
+        timesLocal: row.timesLocal,
+        intervalHours: row.intervalHours,
+        startDate: new Date(row.startDate),
+        endDate: row.endDate ? new Date(row.endDate) : null,
+        isActive: row.isActive,
+        householdId: row.householdId,
+        times: this.parseScheduleTimes(row.timesLocal),
+        caregivers,
+      });
+    }
+
+    return regimenSchedules;
+  }
+
+  /**
+   * Get upcoming doses for a time window
+   */
+  async getUpcomingDoses(
+    householdId: string,
+    windowStart: Date,
+    windowEnd: Date,
+  ): Promise<UpcomingDose[]> {
+    const activeRegimens = await this.getActiveRegimens(householdId);
+    const upcomingDoses: UpcomingDose[] = [];
+
+    for (const regimen of activeRegimens) {
+      const doses = this.calculateDosesInWindow(
+        regimen,
+        windowStart,
+        windowEnd,
+      );
+      upcomingDoses.push(...doses);
+    }
+
+    // Sort by scheduled time
+    upcomingDoses.sort(
+      (a, b) => a.scheduledTime.getTime() - b.scheduledTime.getTime(),
+    );
+
+    return upcomingDoses;
+  }
+
+  /**
+   * Get overdue doses (past due by more than 30 minutes)
+   */
+  async getOverdueDoses(householdId: string): Promise<MissedDose[]> {
+    const now = new Date();
+    const windowStart = DateTime.fromJSDate(now)
+      .minus({ hours: 24 })
+      .toJSDate();
+    const windowEnd = DateTime.fromJSDate(now)
+      .minus({ minutes: 30 })
+      .toJSDate();
+
+    const doses = await this.getUpcomingDoses(
+      householdId,
+      windowStart,
+      windowEnd,
+    );
+
+    // Filter for truly overdue doses (not already administered)
+    const overdueDoses = await this.filterUnAdministeredDoses(doses);
+
+    return overdueDoses.map(
+      (dose) => ({ ...dose, isOverdue: true }) as MissedDose,
+    );
+  }
+
+  /**
+   * Calculate doses within a time window for a specific regimen
+   */
+  private calculateDosesInWindow(
+    regimen: RegimenSchedule,
+    windowStart: Date,
+    windowEnd: Date,
+  ): UpcomingDose[] {
+    const doses: UpcomingDose[] = [];
+    const timezone = regimen.animalTimezone;
+
+    let currentDate = DateTime.fromJSDate(windowStart, {
+      zone: timezone,
+    }).startOf("day");
+    const endDate = DateTime.fromJSDate(windowEnd, { zone: timezone });
+
+    while (currentDate <= endDate) {
+      // Skip dates before the regimen start date
+      if (currentDate.toJSDate() < regimen.startDate) {
+        currentDate = currentDate.plus({ days: 1 });
+        continue;
+      }
+
+      // Skip dates after the regimen end date
+      if (regimen.endDate && currentDate.toJSDate() > regimen.endDate) {
+        break;
+      }
+
+      for (const timeSlot of regimen.times) {
+        const [hours, minutes] = timeSlot.split(":").map(Number);
+        const scheduledTime = currentDate
+          .set({ hour: hours, minute: minutes })
+          .toJSDate();
+
+        // Only include doses within the window
+        if (scheduledTime >= windowStart && scheduledTime <= windowEnd) {
+          doses.push({
+            regimenId: regimen.regimenId,
+            animalId: regimen.animalId,
+            animalName: regimen.animalName,
+            animalTimezone: regimen.animalTimezone,
+            medicationName: regimen.medicationName,
+            dosage: regimen.dosage,
+            scheduledTime,
+            timeSlot,
+            householdId: regimen.householdId,
+            caregivers: regimen.caregivers,
+            isOverdue: false,
+          });
+        }
+      }
+
+      currentDate = currentDate.plus({ days: 1 });
+    }
+
+    return doses;
+  }
+
+  /**
+   * Parse schedule times from timesLocal array or fallback to default
+   */
+  private parseScheduleTimes(timesLocal: string[] | null): string[] {
+    if (timesLocal && Array.isArray(timesLocal) && timesLocal.length > 0) {
+      return timesLocal;
+    }
+
+    // Default fallback for common schedules
+    return ["08:00"]; // Default to morning dose
+  }
+
+  /**
+   * Get caregivers for a household
+   */
+  private async getRegimenCaregivers(
+    db: typeof _db,
+    householdId: string,
+  ): Promise<
+    {
+      userId: string;
+      userName: string;
+      userEmail: string;
+      role: string;
+    }[]
+  > {
+    const result = await db
+      .select({
+        userId: users.id,
+        userName: users.name,
+        userEmail: users.email,
+        role: memberships.role,
+      })
+      .from(memberships)
+      .innerJoin(users, eq(memberships.userId, users.id))
+      .where(eq(memberships.householdId, householdId));
+
+    return result.map((row) => ({
+      userId: row.userId,
+      userName: row.userName || row.userEmail || "Unknown User",
+      userEmail: row.userEmail || "",
+      role: row.role,
     }));
   }
 
   /**
-   * Calculate next scheduled doses within a time window
+   * Filter out doses that have already been administered
    */
-  async calculateScheduledDoses(
-    lookAheadMinutes: number = 60,
-  ): Promise<ScheduledDose[]> {
-    const now = DateTime.utc();
-    const activeRegimens = await this.getActiveRegimens();
-    const scheduledDoses: ScheduledDose[] = [];
+  private async filterUnAdministeredDoses(
+    doses: UpcomingDose[],
+  ): Promise<UpcomingDose[]> {
+    const db = (await import("@/db/drizzle")).db;
+    const unAdministered: UpcomingDose[] = [];
 
-    for (const regimen of activeRegimens) {
-      const doses = await this.getNextDosesForRegimen(
-        regimen,
-        now,
-        lookAheadMinutes,
-      );
-      scheduledDoses.push(...doses);
-    }
+    for (const dose of doses) {
+      // Check if this specific dose time has been administered
+      const windowStartStr = DateTime.fromJSDate(dose.scheduledTime)
+        .minus({ minutes: 15 })
+        .toISO();
+      const windowEndStr = DateTime.fromJSDate(dose.scheduledTime)
+        .plus({ minutes: 15 })
+        .toISO();
 
-    return scheduledDoses.sort(
-      (a, b) => a.notificationTime.toMillis() - b.notificationTime.toMillis(),
-    );
-  }
+      if (!windowStartStr || !windowEndStr) {
+        // Skip if DateTime conversion failed
+        continue;
+      }
 
-  /**
-   * Calculate missed doses that need overdue notifications
-   */
-  async calculateMissedDoses(
-    lookBackMinutes: number = 240,
-  ): Promise<MissedDose[]> {
-    const now = DateTime.utc();
-    const activeRegimens = await this.getActiveRegimens();
-    const missedDoses: MissedDose[] = [];
-
-    for (const regimen of activeRegimens) {
-      const missed = await this.getMissedDosesForRegimen(
-        regimen,
-        now,
-        lookBackMinutes,
-      );
-      missedDoses.push(...missed);
-    }
-
-    return missedDoses.sort((a, b) => b.minutesOverdue - a.minutesOverdue);
-  }
-
-  /**
-   * Get notification summary for a specific user
-   */
-  async getNotificationSummary(userId: string): Promise<{
-    upcomingCount: number;
-    overdueCount: number;
-    nextNotification?: ScheduledDose;
-  }> {
-    const [scheduled, missed] = await Promise.all([
-      this.calculateScheduledDoses(1440), // Next 24 hours
-      this.calculateMissedDoses(1440), // Last 24 hours
-    ]);
-
-    const userScheduled = scheduled.filter((d) => d.userId === userId);
-    const userMissed = missed.filter((d) => d.userId === userId);
-
-    return {
-      upcomingCount: userScheduled.length,
-      overdueCount: userMissed.length,
-      nextNotification: userScheduled[0],
-    };
-  }
-
-  /**
-   * Get next doses for a specific regimen
-   */
-  private async getNextDosesForRegimen(
-    regimen: RegimenSchedule,
-    now: DateTime,
-    lookAheadMinutes: number,
-  ): Promise<ScheduledDose[]> {
-    switch (regimen.scheduleType) {
-      case "FIXED":
-        return this.calculateFixedScheduleDoses(regimen, now, lookAheadMinutes);
-      case "INTERVAL":
-        return this.calculateIntervalDoses(regimen, now, lookAheadMinutes);
-      case "TAPER":
-        return this.calculateTaperDoses(regimen, now, lookAheadMinutes);
-      case "PRN":
-        return []; // PRN medications don't have scheduled doses
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Calculate doses for fixed schedule (e.g., 8:00 AM, 8:00 PM)
-   */
-  private calculateFixedScheduleDoses(
-    regimen: RegimenSchedule,
-    now: DateTime,
-    lookAheadMinutes: number,
-  ): ScheduledDose[] {
-    if (!regimen.times || regimen.times.length === 0) {
-      return [];
-    }
-
-    const doses: ScheduledDose[] = [];
-    const animalTz = regimen.animalTimezone;
-    const nowInAnimalTz = now.setZone(animalTz);
-    const endWindow = now.plus({ minutes: lookAheadMinutes });
-
-    const timeStrings = Array.isArray(regimen.times)
-      ? regimen.times
-      : [regimen.times];
-
-    for (const timeStr of timeStrings) {
-      if (typeof timeStr !== "string") continue;
-
-      try {
-        const [hours, minutes] = timeStr.split(":").map(Number);
-        if (
-          Number.isNaN(hours) ||
-          Number.isNaN(minutes) ||
-          hours === undefined ||
-          minutes === undefined
+      const administered = await db
+        .select()
+        .from(administrations)
+        .where(
+          and(
+            eq(administrations.regimenId, dose.regimenId),
+            eq(administrations.animalId, dose.animalId),
+            gte(administrations.recordedAt, windowStartStr),
+            lte(administrations.recordedAt, windowEndStr),
+          ),
         )
-          continue;
+        .limit(1);
 
-        // Check today
-        let scheduledTime = nowInAnimalTz.set({
-          hour: hours,
-          minute: minutes,
-          second: 0,
-          millisecond: 0,
-        });
+      if (administered.length === 0) {
+        // Get the last administration for context
+        const lastAdmin = await db
+          .select({
+            recordedAt: administrations.recordedAt,
+          })
+          .from(administrations)
+          .where(
+            and(
+              eq(administrations.regimenId, dose.regimenId),
+              eq(administrations.animalId, dose.animalId),
+            ),
+          )
+          .orderBy(desc(administrations.recordedAt))
+          .limit(1);
 
-        // If today's time has passed, check tomorrow
-        if (scheduledTime <= nowInAnimalTz) {
-          scheduledTime = scheduledTime.plus({ days: 1 });
-        }
-
-        const scheduledTimeUTC = scheduledTime.toUTC();
-        const notificationTime = scheduledTimeUTC.minus({
-          minutes: regimen.userLeadTime,
-        });
-
-        // Only include if within our look-ahead window and notification time is in future
-        if (scheduledTimeUTC <= endWindow && notificationTime > now) {
-          doses.push({
-            householdId: regimen.householdId,
-            regimenId: regimen.regimenId,
-            animalId: regimen.animalId,
-            animalName: regimen.animalName,
-            userId: regimen.userId,
-            medicationName: regimen.medicationName,
-            dose: regimen.dose,
-            scheduledTime: scheduledTimeUTC,
-            notificationTime,
-            timezone: regimen.animalTimezone,
-            type: "scheduled",
-          });
-        }
-      } catch (error) {
-        console.error(
-          `Error parsing time ${timeStr} for regimen ${regimen.regimenId}:`,
-          error,
-        );
-      }
-    }
-
-    return doses;
-  }
-
-  /**
-   * Calculate doses for interval-based schedule (e.g., every 8 hours)
-   */
-  private async calculateIntervalDoses(
-    regimen: RegimenSchedule,
-    now: DateTime,
-    lookAheadMinutes: number,
-  ): Promise<ScheduledDose[]> {
-    if (!regimen.intervalHours || regimen.intervalHours <= 0) {
-      return [];
-    }
-
-    // Get the last administration to calculate next dose time
-    const lastAdmin = await this.db
-      .select({
-        recordedAt: administrations.recordedAt,
-        scheduledFor: administrations.scheduledFor,
-      })
-      .from(administrations)
-      .where(eq(administrations.regimenId, regimen.regimenId))
-      .orderBy(desc(administrations.recordedAt))
-      .limit(1);
-
-    let nextDoseTime: DateTime;
-
-    if (lastAdmin[0]) {
-      // Calculate next dose based on last administration
-      const lastDoseTime = DateTime.fromISO(
-        lastAdmin[0].scheduledFor || lastAdmin[0].recordedAt,
-      );
-      nextDoseTime = lastDoseTime.plus({ hours: regimen.intervalHours });
-    } else {
-      // No previous administrations, use start date or current time
-      const startDate = DateTime.fromISO(regimen.startDate);
-      nextDoseTime = startDate > now ? startDate : now;
-    }
-
-    const endWindow = now.plus({ minutes: lookAheadMinutes });
-    const doses: ScheduledDose[] = [];
-
-    // Generate doses within the look-ahead window
-    let currentDoseTime = nextDoseTime;
-    while (currentDoseTime <= endWindow) {
-      const notificationTime = currentDoseTime.minus({
-        minutes: regimen.userLeadTime,
-      });
-
-      if (notificationTime > now) {
-        doses.push({
-          householdId: regimen.householdId,
-          regimenId: regimen.regimenId,
-          animalId: regimen.animalId,
-          animalName: regimen.animalName,
-          userId: regimen.userId,
-          medicationName: regimen.medicationName,
-          dose: regimen.dose,
-          scheduledTime: currentDoseTime,
-          notificationTime,
-          timezone: regimen.animalTimezone,
-          type: "interval",
+        unAdministered.push({
+          ...dose,
+          lastAdministered: lastAdmin[0]?.recordedAt
+            ? new Date(lastAdmin[0].recordedAt)
+            : null,
         });
       }
-
-      currentDoseTime = currentDoseTime.plus({ hours: regimen.intervalHours });
     }
 
-    return doses;
-  }
-
-  /**
-   * Calculate doses for taper schedules (gradual dose reduction)
-   */
-  private calculateTaperDoses(
-    regimen: RegimenSchedule,
-    now: DateTime,
-    lookAheadMinutes: number,
-  ): ScheduledDose[] {
-    // Taper schedules are complex and would need more detailed implementation
-    // For now, treat them similar to fixed schedules
-    return this.calculateFixedScheduleDoses(regimen, now, lookAheadMinutes);
-  }
-
-  /**
-   * Get missed doses for a specific regimen
-   */
-  private async getMissedDosesForRegimen(
-    regimen: RegimenSchedule,
-    now: DateTime,
-    lookBackMinutes: number,
-  ): Promise<MissedDose[]> {
-    const startWindow = now.minus({ minutes: lookBackMinutes });
-    const missedDoses: MissedDose[] = [];
-
-    // Get doses that were scheduled in the past but not administered
-    const pastDoses = await this.getNextDosesForRegimen(
-      regimen,
-      startWindow,
-      lookBackMinutes + 1440, // Extend to capture past doses
-    );
-
-    for (const dose of pastDoses) {
-      if (dose.scheduledTime < now) {
-        // Check if this dose was administered
-        const wasAdministered = await this.wasGiven(
-          regimen.regimenId,
-          dose.scheduledTime,
-          30, // 30-minute window for "close enough"
-        );
-
-        if (!wasAdministered) {
-          const minutesOverdue = now.diff(
-            dose.scheduledTime,
-            "minutes",
-          ).minutes;
-
-          // Only consider as missed if overdue by more than grace period
-          if (minutesOverdue > 15) {
-            missedDoses.push({
-              ...dose,
-              minutesOverdue: Math.round(minutesOverdue),
-            });
-          }
-        }
-      }
-    }
-
-    return missedDoses;
-  }
-
-  /**
-   * Check if a dose was administered within a time window
-   */
-  private async wasGiven(
-    regimenId: string,
-    scheduledTime: DateTime,
-    windowMinutes: number = 30,
-  ): Promise<boolean> {
-    const startTime =
-      scheduledTime.minus({ minutes: windowMinutes }).toISO() ||
-      scheduledTime.minus({ minutes: windowMinutes }).toString();
-    const endTime =
-      scheduledTime.plus({ minutes: windowMinutes }).toISO() ||
-      scheduledTime.plus({ minutes: windowMinutes }).toString();
-
-    const adminRecord = await this.db
-      .select({ id: administrations.id })
-      .from(administrations)
-      .where(
-        and(
-          eq(administrations.regimenId, regimenId),
-          gte(administrations.scheduledFor, startTime),
-          lte(administrations.scheduledFor, endTime),
-        ),
-      )
-      .limit(1);
-
-    return adminRecord.length > 0;
+    return unAdministered;
   }
 }
+
+// Export singleton instance
+export const regimenCalculator = new RegimenCalculator();

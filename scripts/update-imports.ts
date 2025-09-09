@@ -102,7 +102,9 @@ async function updateImports() {
   }
 
   console.log(`✅ Updated ${updatedCount} files:`);
-  updatedFiles.forEach((file) => console.log(`  - ${file}`));
+  updatedFiles.forEach((file) => {
+    console.log(`  - ${file}`);
+  });
 }
 
 updateImports().catch(console.error);

@@ -156,12 +156,10 @@ function BulkSelectionTableInternal<T>({
   );
 }
 
-interface BulkSelectionTableProps<T>
-  extends BulkSelectionTableInternalProps<T> {
-  // Additional props can be added here if needed
-}
-
-export function BulkSelectionTable<T>(props: BulkSelectionTableProps<T>) {
+// Export the main component directly with the internal props
+export function BulkSelectionTable<T>(
+  props: BulkSelectionTableInternalProps<T>,
+) {
   return (
     <BulkSelectionProvider>
       <BulkSelectionTableInternal {...props} />

@@ -258,7 +258,9 @@ class SystemMonitor {
       console.log(
         `\n🚨 ALERTS at ${new Date(snapshot.timestamp).toISOString()}:`,
       );
-      snapshot.alerts.forEach((alert) => console.log(`   ⚠️ ${alert}`));
+      snapshot.alerts.forEach((alert) => {
+        console.log(`   ⚠️ ${alert}`);
+      });
     }
   }
 

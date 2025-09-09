@@ -4,9 +4,11 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type RenderOptions, render } from "@testing-library/react";
+
 import type React from "react";
 import type { ReactElement } from "react";
-import { TRPCProvider, trpc } from "@/server/trpc/client";
+
+import { trpc } from "@/server/trpc/client";
 import { testConfig } from "./test-fixtures";
 
 // Mock providers for isolated testing
@@ -16,8 +18,8 @@ const MockThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
 interface MockAppProviderProps {
   children: React.ReactNode;
-  household?: any;
-  selectedAnimal?: any;
+  household?: { id: string; name: string } | null;
+  selectedAnimal?: { id: string; name: string } | null;
 }
 
 const MockAppProvider: React.FC<MockAppProviderProps> = ({
@@ -52,11 +54,11 @@ interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
   queryClient?: QueryClient;
 
   // tRPC mocking options
-  trpcMocks?: any;
+  trpcMocks?: Record<string, unknown>;
 
   // App context options
-  household?: any;
-  selectedAnimal?: any;
+  household?: { id: string; name: string } | null;
+  selectedAnimal?: { id: string; name: string } | null;
 
   // Skip providers for unit tests
   skipProviders?: boolean;
@@ -78,7 +80,7 @@ export function renderWithProviders(
         },
       },
     }),
-    trpcMocks,
+    trpcMocks: _trpcMocks, // Prefixed to indicate intentionally unused
     household,
     selectedAnimal,
     skipProviders = false,
@@ -309,7 +311,6 @@ export const expectMatchesSnapshot = (
   component: ReactElement,
   snapshotName?: string,
 ) => {
-  const { render } = require("@testing-library/react");
   const { container } = render(component);
 
   if (snapshotName) {

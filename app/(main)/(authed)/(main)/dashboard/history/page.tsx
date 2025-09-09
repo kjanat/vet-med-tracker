@@ -3,7 +3,6 @@
 import { endOfMonth, parseISO, startOfMonth } from "date-fns";
 import { DateTime } from "luxon";
 import { Suspense, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { FilterBar } from "@/components/history/filter-bar";
 import { HistoryCalendar } from "@/components/history/history-calendar";
 import { HistoryList } from "@/components/history/history-list";

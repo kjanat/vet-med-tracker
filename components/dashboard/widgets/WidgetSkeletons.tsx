@@ -54,20 +54,23 @@ export function ChartWidgetSkeleton({
           <div className="-translate-x-full absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           {/* Mock chart bars */}
           <div className="flex h-full items-end justify-around p-4">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton
-                key={i}
-                className="w-8 bg-muted-foreground/20"
-                style={{ height: `${((i * 13) % 60) + 20}%` }}
-              />
-            ))}
+            {Array.from({ length: 7 }, (_, i) => {
+              const height = ((i * 13) % 60) + 20;
+              return (
+                <Skeleton
+                  key={crypto.randomUUID()}
+                  className="w-8 bg-muted-foreground/20"
+                  style={{ height: `${height}%` }}
+                />
+              );
+            })}
           </div>
         </div>
 
         {/* Legend */}
         <div className="flex justify-center gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-2">
+          {Array.from({ length: 3 }, () => (
+            <div key={crypto.randomUUID()} className="flex items-center gap-2">
               <Skeleton className="h-3 w-3 rounded-full" />
               <Skeleton className="h-4 w-16" />
             </div>
@@ -99,8 +102,8 @@ export function MetricWidgetSkeleton({
 
         {/* Secondary metrics */}
         <div className="grid grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="text-center">
+          {Array.from({ length: 4 }, () => (
+            <div key={crypto.randomUUID()} className="text-center">
               <Skeleton className="mx-auto h-6 w-12" />
               <Skeleton className="mx-auto mt-1 h-3 w-16" />
             </div>
@@ -124,9 +127,9 @@ export function ListWidgetSkeleton({
       className={className}
     >
       <div className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: 5 }, () => (
           <div
-            key={i}
+            key={crypto.randomUUID()}
             className="flex items-center gap-3 rounded-lg border p-3"
           >
             {/* Avatar/Icon */}
@@ -162,8 +165,11 @@ export function HeatmapWidgetSkeleton({
       <div className="space-y-4">
         {/* Filters */}
         <div className="flex flex-wrap gap-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-24 rounded-md" />
+          {Array.from({ length: 3 }, () => (
+            <Skeleton
+              key={crypto.randomUUID()}
+              className="h-8 w-24 rounded-md"
+            />
           ))}
         </div>
 
@@ -173,18 +179,18 @@ export function HeatmapWidgetSkeleton({
           <div className="grid grid-cols-25 gap-1 text-xs">
             <div className="w-10" />
             {/* Empty corner */}
-            {Array.from({ length: 24 }).map((_, i) => (
-              <Skeleton key={i} className="h-4 w-4" />
+            {Array.from({ length: 24 }, () => (
+              <Skeleton key={crypto.randomUUID()} className="h-4 w-4" />
             ))}
           </div>
 
           {/* Days */}
-          {Array.from({ length: 7 }).map((_, day) => (
-            <div key={day} className="grid grid-cols-25 gap-1">
+          {Array.from({ length: 7 }, () => (
+            <div key={crypto.randomUUID()} className="grid grid-cols-25 gap-1">
               <Skeleton className="h-4 w-8" />
-              {Array.from({ length: 24 }).map((_, hour) => (
+              {Array.from({ length: 24 }, () => (
                 <Skeleton
-                  key={hour}
+                  key={crypto.randomUUID()}
                   className="aspect-square w-full rounded"
                   style={{
                     opacity: Math.random() * 0.5 + 0.2,
@@ -198,8 +204,11 @@ export function HeatmapWidgetSkeleton({
         {/* Legend */}
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-1">
+            {Array.from({ length: 4 }, () => (
+              <div
+                key={crypto.randomUUID()}
+                className="flex items-center gap-1"
+              >
                 <Skeleton className="h-3 w-3 rounded" />
                 <Skeleton className="h-3 w-12" />
               </div>
@@ -237,21 +246,25 @@ export function CalendarWidgetSkeleton({
         {/* Calendar grid */}
         <div className="grid grid-cols-7 gap-2">
           {/* Day headers */}
-          {Array.from({ length: 7 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-full rounded" />
+          {Array.from({ length: 7 }, () => (
+            <Skeleton
+              key={crypto.randomUUID()}
+              className="h-8 w-full rounded"
+            />
           ))}
 
           {/* Calendar days */}
-          {Array.from({ length: 35 }).map((_, i) => (
-            <div key={i} className="aspect-square">
-              <Skeleton
-                className="h-full w-full rounded"
-                style={{
-                  opacity: i < 7 || i > 28 ? 0.3 : 0.6 + Math.random() * 0.4,
-                }}
-              />
-            </div>
-          ))}
+          {Array.from({ length: 35 }, (_, i) => {
+            const opacity = i < 7 || i > 28 ? 0.3 : 0.6 + Math.random() * 0.4;
+            return (
+              <div key={crypto.randomUUID()} className="aspect-square">
+                <Skeleton
+                  className="h-full w-full rounded"
+                  style={{ opacity }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </BaseWidgetSkeleton>
@@ -284,8 +297,8 @@ export function GaugeWidgetSkeleton({
 
         {/* Details */}
         <div className="grid grid-cols-3 gap-2 text-center">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i}>
+          {Array.from({ length: 3 }, () => (
+            <div key={crypto.randomUUID()}>
               <Skeleton className="mx-auto h-4 w-8" />
               <Skeleton className="mx-auto mt-1 h-3 w-12" />
             </div>
@@ -309,8 +322,8 @@ export function SuggestionsWidgetSkeleton({
       className={className}
     >
       <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="rounded-lg border p-4">
+        {Array.from({ length: 3 }, () => (
+          <div key={crypto.randomUUID()} className="rounded-lg border p-4">
             {/* Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
