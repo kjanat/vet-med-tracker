@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import type { vetmedUsers } from "@/db/schema";
-import { getQueueSize } from "@/lib/offline/db";
+// Offline database functionality removed during simplification
 import { trpc } from "@/server/trpc/client";
 
 type User = typeof vetmedUsers.$inferSelect;
@@ -214,17 +214,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     selectInitialHousehold(formattedHouseholds);
   }, [householdData, selectInitialHousehold]);
 
-  // Update pending sync count
+  // Simplified: No offline queue, no pending sync count
   const updatePendingSyncCount = useCallback(async () => {
-    try {
-      const count = await getQueueSize(selectedHousehold?.id);
-      setPendingSyncCount(count);
-    } catch (error) {
-      console.warn("Failed to get pending sync count:", error);
-      // Set to 0 as fallback - this prevents showing incorrect sync indicators
-      setPendingSyncCount(0);
-    }
-  }, [selectedHousehold?.id]);
+    setPendingSyncCount(0);
+  }, []);
 
   useEffect(() => {
     updatePendingSyncCount();

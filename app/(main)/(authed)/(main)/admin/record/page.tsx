@@ -33,7 +33,7 @@ import { TabletConfirmLayout } from "@/components/ui/tablet-confirm-layout";
 import { TabletRecordLayout } from "@/components/ui/tablet-record-layout";
 import { TabletSuccessLayout } from "@/components/ui/tablet-success-layout";
 import { Textarea } from "@/components/ui/textarea";
-import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
+// Offline queue functionality removed during simplification
 import { useResponsive } from "@/hooks/shared/useResponsive";
 import { trpc } from "@/server/trpc/client";
 import type { InventorySource } from "@/types/inventory";
@@ -416,38 +416,7 @@ function useURLParams(
   }, [searchParams, dueRegimens, state]);
 }
 
-// Helper function to handle offline administration
-async function handleOfflineAdministration(
-  state: RecordState,
-  selectedHousehold: { id: string } | null,
-  timezone: string,
-  enqueue: (
-    type: "admin.create" | "inventory.update" | "inventory.markAsInUse",
-    payload: unknown,
-    key: string,
-  ) => Promise<string>,
-) {
-  if (!state.selectedRegimen || !selectedHousehold) return;
-
-  const payload = createAdminPayload(state, selectedHousehold.id, timezone);
-  await enqueue("admin.create", payload, payload.idempotencyKey);
-
-  if (state.inventorySourceId) {
-    const inventoryPayload = {
-      id: state.inventorySourceId,
-      householdId: selectedHousehold.id,
-      quantityChange: -1,
-      reason: `Administration for ${state.selectedRegimen.animalName}`,
-    };
-    await enqueue(
-      "inventory.update",
-      inventoryPayload,
-      `inventory-${state.inventorySourceId}-${Date.now()}`,
-    );
-  }
-
-  state.setStep("success");
-}
+// Offline administration functionality removed during simplification
 
 // Helper function to handle online administration
 async function handleOnlineAdministration(
@@ -491,7 +460,7 @@ function RecordContent() {
   const searchParams = useSearchParams();
   const { animals, selectedHousehold, selectedAnimal, refreshPendingMeds } =
     useApp();
-  const { isOnline, enqueue } = useOfflineQueue();
+  const isOnline = true; // Simplified: Always assume online connection
   const state = useRecordState();
   const { isMobile, isTablet } = useResponsive();
 
@@ -525,22 +494,13 @@ function RecordContent() {
     state.setIsSubmitting(true);
 
     try {
-      if (!isOnline) {
-        await handleOfflineAdministration(
-          state,
-          selectedHousehold,
-          timezone,
-          enqueue,
-        );
-      } else {
-        await handleOnlineAdministration(
-          state,
-          selectedHousehold,
-          timezone,
-          createAdminMutation,
-          updateInventoryMutation,
-        );
-      }
+      await handleOnlineAdministration(
+        state,
+        selectedHousehold,
+        timezone,
+        createAdminMutation,
+        updateInventoryMutation,
+      );
     } catch (error) {
       console.error("Failed to record administration:", error);
       toast.error("Failed to record administration");

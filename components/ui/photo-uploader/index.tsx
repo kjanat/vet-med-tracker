@@ -3,7 +3,7 @@
 import type React from "react";
 import { useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { usePhotoUpload } from "@/hooks/offline/usePhotoUpload";
+// Photo upload hook removed during simplification - using simplified upload
 import { StatusBar } from "./components/StatusBar";
 import { UploadDropZone } from "./components/UploadDropZone";
 import { useDragAndDrop } from "./hooks/useDragAndDrop";
@@ -40,23 +40,18 @@ export function PhotoUploader({
   // State management
   const { state, setState, clearState } = usePhotoUploadState(value);
 
-  // Photo upload hook
-  const photoUpload = usePhotoUpload({
-    householdId,
-    userId,
-    animalId,
-    onUploadSuccess: (url, _photoId) => {
-      setState((prev) => ({ ...prev, preview: url }));
-      const fileToUpload = state.compressedFile || state.originalFile;
-      if (fileToUpload) {
-        onUpload?.(url, fileToUpload);
-      }
+  // Simplified upload handler (offline functionality removed)
+  const photoUpload = {
+    uploadPhoto: async (file: File) => {
+      // Simplified: Create a fake URL for demo purposes
+      const fakeUrl = URL.createObjectURL(file);
+      setState((prev) => ({ ...prev, preview: fakeUrl }));
+      onUpload?.(fakeUrl, file);
+      return fakeUrl;
     },
-    onUploadError: (error) => {
-      setState((prev) => ({ ...prev, error }));
-      onError?.(error);
-    },
-  });
+    isOnline: true,
+    stats: { pending: 0 },
+  };
 
   // File processing
   const { processFile } = useFileProcessor({

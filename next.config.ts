@@ -6,12 +6,22 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  devIndicators: false,
+  // devIndicators: false,
   allowedDevOrigins: ["192.168.1.2"],
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
+    reactRemoveProperties: process.env.NODE_ENV === "production",
+    relay: undefined,
+    styledComponents: undefined,
+    emotion: undefined,
+  },
+  compress: true,
+  eslint: {
+    ignoreDuringBuilds: true, // Temporary for bundle optimization
+  },
   experimental: {
     // ppr: "incremental",
     reactCompiler: true,
-    typedRoutes: false,
     // optimizeCss: true, // Disable for now due to critters issue
     optimizePackageImports: [
       "lucide-react",
@@ -29,16 +39,7 @@ const nextConfig: NextConfig = {
     // useCache: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB"],
   },
-  images: {
-    unoptimized: true,
-    formats: ["image/avif", "image/webp"],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 31536000, // 1 year
-    dangerouslyAllowSVG: false,
-  },
-  poweredByHeader: false,
-  reactStrictMode: true,
+  generateEtags: true,
   // Security configurations
   async headers() {
     return [
@@ -65,26 +66,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  typescript: {
-    ignoreBuildErrors: true, // Temporary for bundle optimization
-  },
-  compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
-    reactRemoveProperties: process.env.NODE_ENV === "production",
-    relay: undefined,
-    styledComponents: undefined,
-    emotion: undefined,
-  },
-  eslint: {
-    ignoreDuringBuilds: true, // Temporary for bundle optimization
-  },
-  // Performance optimizations
-  compress: true,
-  generateEtags: true,
   httpAgentOptions: {
     keepAlive: true,
   },
-  // Bundle optimization (swcMinify is enabled by default in Next.js 15)
+  images: {
+    unoptimized: true,
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 31536000, // 1 year
+    dangerouslyAllowSVG: false,
+  },
   modularizeImports: {
     "lucide-react": {
       transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
@@ -95,6 +87,14 @@ const nextConfig: NextConfig = {
     "date-fns": {
       transform: "date-fns/{{ member }}",
     },
+  },
+  // Performance optimizations
+  poweredByHeader: false,
+  reactStrictMode: true,
+  typedRoutes: true,
+  // Bundle optimization (swcMinify is enabled by default in Next.js 15)
+  typescript: {
+    ignoreBuildErrors: true, // Temporary for bundle optimization
   },
 };
 

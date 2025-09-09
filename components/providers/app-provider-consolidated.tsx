@@ -12,7 +12,7 @@ import {
   useRef,
 } from "react";
 import type { vetmedAnimals, vetmedHouseholds, vetmedUsers } from "@/db/schema";
-import { getQueueSize } from "@/lib/offline/db";
+// Offline database functionality removed during simplification
 import { trpc } from "@/server/trpc/client";
 
 // =============================================================================
@@ -824,16 +824,10 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Update pending sync count
+  // Simplified: No offline queue, no pending sync count
   const updatePendingSyncCount = useCallback(async () => {
-    try {
-      const count = await getQueueSize(state.selectedHouseholdId || undefined);
-      dispatch({ type: "SET_PENDING_SYNC_COUNT", payload: count });
-    } catch (error) {
-      console.warn("Failed to get pending sync count:", error);
-      dispatch({ type: "SET_PENDING_SYNC_COUNT", payload: 0 });
-    }
-  }, [state.selectedHouseholdId]);
+    dispatch({ type: "SET_PENDING_SYNC_COUNT", payload: 0 });
+  }, []);
 
   useEffect(() => {
     updatePendingSyncCount();

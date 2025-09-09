@@ -10,12 +10,8 @@ import {
   memberships as membershipsTable,
   users as usersTable,
 } from "@/db/schema";
-import { createTRPCConnectionMiddleware } from "@/lib/infrastructure/connection-middleware";
-import {
-  createEnhancedError,
-  setupGlobalErrorHandling,
-  toUserFriendlyError,
-} from "@/lib/infrastructure/error-handling";
+// Connection middleware functionality removed during simplification
+// Error handling infrastructure removed during simplification
 import {
   auditHelpers,
   createAuditMiddleware,
@@ -177,24 +173,18 @@ export const createTRPCContext = async (
   }
 };
 
-// Setup global error handling
-setupGlobalErrorHandling();
+// Global error handling simplified
 
 // Initialize tRPC with Stack context and enhanced error handling
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
   errorFormatter({ shape, error, path }) {
-    // Create enhanced error for reporting
-    const enhancedError = createEnhancedError(error, {
-      endpoint: "trpc",
-      operation: path || "unknown",
+    // Simplified error handling
+    console.error("tRPC Error:", {
+      path,
+      error: error.message,
+      cause: error.cause,
     });
-
-    // Report error for monitoring
-    console.error("Error:", enhancedError);
-
-    // Convert to user-friendly error
-    const userFriendlyError = toUserFriendlyError(error);
 
     return {
       ...shape,
@@ -202,15 +192,6 @@ const t = initTRPC.context<Context>().create({
         ...shape.data,
         zodError:
           error.cause instanceof ZodError ? error.cause.flatten() : null,
-        userFriendly: {
-          message: userFriendlyError.userMessage,
-          suggestedActions: userFriendlyError.suggestedActions,
-          retryable: userFriendlyError.retryable,
-          retryAfter: userFriendlyError.retryAfter,
-          degraded: userFriendlyError.degradedMode,
-          contactSupport: userFriendlyError.contactSupport,
-        },
-        errorId: enhancedError.id,
       },
     };
   },
@@ -220,20 +201,14 @@ const t = initTRPC.context<Context>().create({
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 
-// Connection middleware for tRPC procedures
-const connectionMiddleware = createTRPCConnectionMiddleware();
-
 // Audit middleware for security logging
 const auditMiddleware = createAuditMiddleware();
 
 // Base procedures
-export const publicProcedure = t.procedure
-  .use(connectionMiddleware)
-  .use(auditMiddleware);
+export const publicProcedure = t.procedure.use(auditMiddleware);
 
 // Protected procedure - requires Stack authentication
 export const protectedProcedure = t.procedure
-  .use(connectionMiddleware)
   .use(auditMiddleware)
   .use(async ({ ctx, next }) => {
     if (!ctx.stackUser || !ctx.dbUser) {

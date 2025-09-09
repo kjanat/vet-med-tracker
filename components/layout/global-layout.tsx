@@ -2,11 +2,10 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useApp } from "../providers/app-provider-consolidated";
-import { OfflineBanner } from "../ui/offline-banner";
+// App provider import removed - offline functionality simplified
+// Offline banner functionality removed during simplification
 
 export function GlobalLayout({ children }: { children: ReactNode }) {
-  const { isOffline } = useApp();
   const pathname = usePathname();
 
   // Check if we're on a /dev route
@@ -16,16 +15,10 @@ export function GlobalLayout({ children }: { children: ReactNode }) {
   if (isDevRoute) {
     return (
       <div className="min-h-screen bg-background">
-        {isOffline && <OfflineBanner />}
         <main className="min-h-screen">{children}</main>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      {isOffline && <OfflineBanner />}
-      {children}
-    </div>
-  );
+  return <div className="min-h-screen bg-background">{children}</div>;
 }

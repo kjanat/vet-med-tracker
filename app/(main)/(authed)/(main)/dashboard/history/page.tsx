@@ -9,7 +9,7 @@ import { HistoryCalendar } from "@/components/history/history-calendar";
 import { HistoryList } from "@/components/history/history-list";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { useHistoryFilters } from "@/hooks/history/useHistoryFilters";
-import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
+// Offline queue functionality removed during simplification
 import type { AdministrationRecord } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 import { localDayISO } from "@/utils/tz";
@@ -20,7 +20,7 @@ function HistoryContent() {
   const { filters } = useHistoryFilters();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { selectedHousehold, selectedAnimal } = useApp();
-  const { enqueue, isOnline } = useOfflineQueue();
+  // Simplified: Always assume online connection
 
   // Get timezone from animal or household context
   const timezone =
@@ -224,67 +224,40 @@ function HistoryContent() {
   const handleUndo = async (id: string) => {
     if (!selectedHousehold?.id) return;
 
-    if (isOnline) {
-      try {
-        await undoMutation.mutateAsync({
-          recordId: id,
-          householdId: selectedHousehold.id,
-        });
-      } catch {
-        // Error handling is done in onError above
-      }
-    } else {
-      await enqueue(
-        "admin.undo",
-        { recordId: id, householdId: selectedHousehold.id },
-        `undo:${id}`,
-      );
-      toast.success("Undo queued for when online");
+    try {
+      await undoMutation.mutateAsync({
+        recordId: id,
+        householdId: selectedHousehold.id,
+      });
+    } catch {
+      // Error handling is done in onError above
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!selectedHousehold?.id) return;
 
-    if (isOnline) {
-      try {
-        await deleteMutation.mutateAsync({
-          recordId: id,
-          householdId: selectedHousehold.id,
-        });
-      } catch {
-        // Error handling is done in onError above
-      }
-    } else {
-      await enqueue(
-        "admin.delete",
-        { recordId: id, householdId: selectedHousehold.id },
-        `delete:${id}`,
-      );
-      toast.success("Delete queued for when online");
+    try {
+      await deleteMutation.mutateAsync({
+        recordId: id,
+        householdId: selectedHousehold.id,
+      });
+    } catch {
+      // Error handling is done in onError above
     }
   };
 
   const handleCosign = async (id: string, notes?: string) => {
     if (!selectedHousehold?.id) return;
 
-    if (isOnline) {
-      try {
-        await cosignMutation.mutateAsync({
-          recordId: id,
-          householdId: selectedHousehold.id,
-          notes,
-        });
-      } catch {
-        // Error handling is done in onError above
-      }
-    } else {
-      await enqueue(
-        "admin.cosign",
-        { recordId: id, householdId: selectedHousehold.id, notes },
-        `cosign:${id}`,
-      );
-      toast.success("Cosign queued for when online");
+    try {
+      await cosignMutation.mutateAsync({
+        recordId: id,
+        householdId: selectedHousehold.id,
+        notes,
+      });
+    } catch {
+      // Error handling is done in onError above
     }
   };
 

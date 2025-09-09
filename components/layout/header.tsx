@@ -7,7 +7,7 @@ import { HouseholdSwitcher } from "../ui/household-switcher";
 import { Logo } from "../ui/logo";
 import { NotificationDropdown } from "../ui/notification-dropdown";
 import { SidebarTrigger } from "../ui/sidebar";
-import { SyncStatus } from "../ui/sync-status";
+// Sync status functionality removed during simplification
 
 export function Header() {
   const isMobile = useIsMobile();
@@ -32,7 +32,6 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <SyncStatus />
           {/* Mobile: Show notification dropdown, desktop has it in sidebar */}
           {isMobile && <NotificationDropdown />}
           {/* Mobile: Show user menu in header, desktop shows in sidebar */}

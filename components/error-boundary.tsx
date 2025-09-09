@@ -14,11 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cardPatterns, layoutPatterns } from "@/components/ui/class-variants";
-import {
-  errorReporter,
-  extractErrorContext,
-  formatErrorMessage,
-} from "@/lib/infrastructure/error-reporting";
+// Error reporting functionality removed during simplification
 
 interface Props {
   children: ReactNode;
@@ -52,12 +48,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Extract context and report error
-    const context = extractErrorContext(error, errorInfo);
-    context.errorBoundary = this.props.errorBoundaryId || "root";
-
-    // Report to error tracking service
-    errorReporter.report(error, context);
+    // Simplified error handling - just log to console
+    console.error("Error caught by boundary:", error, errorInfo);
 
     // Call custom error handler if provided
     if (this.props.onError) {
@@ -81,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       const { error, errorId } = this.state;
       const userMessage = error
-        ? formatErrorMessage(error)
+        ? error.message || "An unexpected error occurred"
         : "An unexpected error occurred";
       const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -161,13 +153,8 @@ export function useErrorHandler() {
   // const router = useRouter(); // Uncomment if navigation is needed
 
   const handleError = (error: Error, context?: Record<string, unknown>) => {
-    // Report error
-    errorReporter.report(error, context || {});
-
-    // In development, log to console
-    if (process.env.NODE_ENV === "development") {
-      console.error("Handled error:", error, context);
-    }
+    // Simplified: Just log to console
+    console.error("Handled error:", error, context);
 
     // Optionally navigate to error page
     // router.push(`/error?message=${encodeURIComponent(error.message)}`);

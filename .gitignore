@@ -314,3 +314,6 @@ playwright-report/
 
 public/silhouettes/*.json
 !public/silhouettes/index.json
+
+.git/
+node_modules/

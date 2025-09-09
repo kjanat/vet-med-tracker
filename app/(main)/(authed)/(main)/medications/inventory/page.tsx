@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDaysOfSupply } from "@/hooks/inventory/useDaysOfSupply";
-import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
+// Offline queue functionality removed during simplification
 import { trpc } from "@/server/trpc/client";
 
 // Remove mock data - now using real calculations
@@ -50,7 +50,7 @@ function InventoryContent() {
   const [editModalItem, setEditModalItem] = useState<InventoryItem | null>(
     null,
   );
-  const { enqueue } = useOfflineQueue();
+  // Simplified: Always assume online connection
   const { selectedHousehold } = useApp();
   const utils = trpc.useUtils();
 
@@ -166,17 +166,7 @@ function InventoryContent() {
       });
       console.log(inUse ? "Now in use" : "No longer in use");
     } catch (error) {
-      // Queue for offline
-      const idempotencyKey = `inventory:setInUse:${itemId}:${Math.floor(Date.now() / 60000)}`;
-      await enqueue(
-        "inventory.markAsInUse",
-        { id: itemId, householdId: selectedHousehold.id, inUse },
-        idempotencyKey,
-      );
-      console.error(
-        "Failed to update in-use status, queued for offline sync:",
-        error,
-      );
+      console.error("Failed to update in-use status:", error);
     }
   };
 
@@ -212,17 +202,7 @@ function InventoryContent() {
       });
       console.log(`Assigned item to ${animalId || "no animal"}`);
     } catch (error) {
-      // Queue for offline
-      await enqueue(
-        "inventory.update",
-        {
-          id: itemId,
-          householdId: selectedHousehold.id,
-          assignedAnimalId: animalId,
-        },
-        `inventory:assign:${itemId}:${animalId || "null"}`,
-      );
-      console.error("Failed to assign item, queued for offline sync:", error);
+      console.error("Failed to assign item:", error);
     }
   };
 

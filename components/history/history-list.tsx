@@ -27,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useOfflineQueue } from "@/hooks/offline/useOfflineQueue";
+// Offline queue functionality removed during simplification
 import { useKeyboardNavigation } from "@/lib/utils/keyboard-shortcuts";
 import type { AdministrationRecord } from "@/lib/utils/types";
 import { formatTimeLocal } from "@/utils/tz";
@@ -52,7 +52,7 @@ export function HistoryList({
   onDelete,
   onCosign,
 }: HistoryListProps) {
-  const { isOnline } = useOfflineQueue();
+  const isOnline = true; // Simplified: Always assume online connection
   const listRef = useRef<HTMLDivElement>(null);
 
   // Enable keyboard navigation for the history list
@@ -120,7 +120,7 @@ export function HistoryList({
                   onUndo={onUndo}
                   onDelete={onDelete}
                   onCosign={onCosign}
-                  isOffline={!isOnline}
+                  isOffline={false}
                 />
               ))}
             </ul>
@@ -143,7 +143,7 @@ export function HistoryList({
         </nav>
       )}
 
-      {!isOnline && (
+      {false && (
         <div
           className="py-4 text-center text-muted-foreground text-sm"
           role="alert"
