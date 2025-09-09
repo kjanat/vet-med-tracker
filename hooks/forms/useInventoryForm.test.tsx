@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import type React from "react";
 import { vi } from "vitest";
 import type { InventoryFormData } from "@/lib/schemas/inventory";
 import { useInventoryCalculations, useInventoryForm } from "./useInventoryForm";
@@ -45,6 +46,7 @@ vi.mock("@/server/trpc/client", () => ({
 }));
 
 const mockFormData: InventoryFormData = {
+  isCustomMedication: false,
   medicationId: "med-1",
   name: "Test Medication",
   brand: "Test Brand",

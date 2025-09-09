@@ -80,9 +80,8 @@ export const inventoryRouter = createTRPCRouter({
         expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
         unitsRemaining: row.item.unitsRemaining,
         unitsTotal: row.item.quantityUnits || 0,
-        isExpired: !!(
-          row.item.expiresOn && new Date(row.item.expiresOn) < new Date()
-        ),
+        isExpired:
+          row.item.expiresOn && new Date(row.item.expiresOn) < new Date(),
         isWrongMed: false, // TODO: Implement logic to check if it matches the regimen
         inUse: row.item.inUse,
         assignedAnimalId: row.item.assignedAnimalId,
@@ -151,9 +150,8 @@ export const inventoryRouter = createTRPCRouter({
         lot: row.item.lot || "",
         expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
         unitsRemaining: row.item.unitsRemaining || 0,
-        isExpired: !!(
-          row.item.expiresOn && new Date(row.item.expiresOn) < new Date()
-        ),
+        isExpired:
+          row.item.expiresOn && new Date(row.item.expiresOn) < new Date(),
         isWrongMed: false,
         inUse: row.item.inUse,
       }));
@@ -530,7 +528,7 @@ export const inventoryRouter = createTRPCRouter({
         .where(and(...inventoryConditions));
 
       // Calculate days of supply for each item
-      const daysOfSupplyResults = await Promise.all(
+      return await Promise.all(
         inventoryResult.map(async (item) => {
           try {
             // Calculate average daily usage from the last 30 days of administrations
@@ -597,8 +595,6 @@ export const inventoryRouter = createTRPCRouter({
           }
         }),
       );
-
-      return daysOfSupplyResults;
     }),
 
   // Get household inventory (used by offline queue)

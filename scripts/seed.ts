@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { loadEnvConfig } from "@next/env";
 import { drizzle } from "drizzle-orm/neon-http";
-import * as schema from "@/db/schema";
+import * as schema from "../db/schema";
 import {
   administrations,
   animals,
@@ -11,7 +11,7 @@ import {
   memberships,
   regimens,
   users,
-} from "@/db/schema";
+} from "../db/schema";
 
 // Load environment variables using Next.js env loader
 const projectDir = process.cwd();
@@ -76,7 +76,7 @@ async function createUsers(): Promise<User[]> {
       emailVerified: "2024-04-12T11:15:00Z",
     },
   ];
-  return await db.insert(users).values(userData).returning();
+  return db.insert(users).values(userData).returning();
 }
 
 async function createHouseholds(): Promise<Household[]> {
@@ -95,7 +95,7 @@ async function createHouseholds(): Promise<Household[]> {
       timezone: "America/Chicago",
     },
   ];
-  return await db.insert(households).values(householdData).returning();
+  return db.insert(households).values(householdData).returning();
 }
 
 async function createMemberships(
@@ -293,7 +293,7 @@ async function createAnimals(householdsData: Household[]): Promise<Animal[]> {
         "Found as stray. Very sweet but shy. Spay surgery scheduled for next week. FIV/FeLV negative.",
     },
   ];
-  return await db.insert(animals).values(animalData).returning();
+  return db.insert(animals).values(animalData).returning();
 }
 
 async function createMedications(): Promise<Medication[]> {
@@ -432,7 +432,7 @@ async function createMedications(): Promise<Medication[]> {
       warnings: "Nutritional supplement. May take 4-6 weeks to see effects.",
     },
   ];
-  return await db.insert(medicationCatalog).values(medicationData).returning();
+  return db.insert(medicationCatalog).values(medicationData).returning();
 }
 
 async function createRegimens(
@@ -490,7 +490,7 @@ async function createRegimens(
       route: "Under the skin (rotate injection sites)",
       highRisk: true,
       requiresCoSign: false,
-      cutoffMinutes: 120, // 2 hour window for insulin
+      cutoffMinutes: 120, // 2-hour window for insulin
     },
     // Luna - Epilepsy
     {
@@ -514,7 +514,7 @@ async function createRegimens(
       route: "By mouth",
       highRisk: true,
       requiresCoSign: false,
-      cutoffMinutes: 60, // 1 hour window for anti-seizure meds
+      cutoffMinutes: 60, // 1-hour window for anti-seizure meds
     },
     // Shadow - Asthma
     {
@@ -588,7 +588,7 @@ async function createRegimens(
       requiresCoSign: false,
     },
   ];
-  return await db.insert(regimens).values(regimenData).returning();
+  return db.insert(regimens).values(regimenData).returning();
 }
 
 // Helper function to get medication ID safely
@@ -818,7 +818,7 @@ async function createInventory(
     ...createHousehold2Inventory(household2.id, animalsData, medications),
     ...createHousehold3Inventory(household3.id, animalsData, medications),
   ];
-  return await db.insert(inventoryItems).values(inventoryItemData).returning();
+  return db.insert(inventoryItems).values(inventoryItemData).returning();
 }
 
 // Helper to create administration records
@@ -1159,7 +1159,6 @@ async function createAdministrations(
 
   const user1 = usersData[0];
   const user2 = usersData[1];
-  const _user3 = usersData[2];
   const user4 = usersData[3];
   const user5 = usersData[4];
   const household1 = householdsData[0];
@@ -1168,7 +1167,6 @@ async function createAdministrations(
   const baileyRimadyl = regimensData[0];
   const mittensInsulin = regimensData[1];
   const lunaKeppra = regimensData[2];
-  const _shadowFlovent = regimensData[3];
   const rexGabapentin = regimensData[4];
   const rexTrazodone = regimensData[5];
 

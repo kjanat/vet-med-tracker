@@ -7,7 +7,7 @@
 
 import { performance } from "node:perf_hooks";
 import { sql } from "drizzle-orm";
-import { db } from "@/db/drizzle";
+import { db } from "../db/drizzle";
 
 interface TestResult {
   testName: string;

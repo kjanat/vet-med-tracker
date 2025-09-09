@@ -4,7 +4,6 @@ node_modules/
 
 # Testing
 tests/
-coverage/
 .vitest/
 playwright-report/
 test-results/
@@ -20,7 +19,6 @@ test-results/
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 
 # Documentation
@@ -33,11 +31,9 @@ docs/
 .husky/
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
-*~
 .DS_Store
 
 # Git
@@ -55,8 +51,6 @@ docs/
 
 # Temporary files
 tmp/
-temp/
-
 # Scripts
 scripts/
 seed.ts

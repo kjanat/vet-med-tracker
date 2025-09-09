@@ -3,6 +3,7 @@
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
+import type { ComponentRef } from "react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -271,7 +272,7 @@ const Sidebar = React.forwardRef<
 Sidebar.displayName = "Sidebar";
 
 const SidebarTrigger = React.forwardRef<
-  React.ElementRef<typeof Button>,
+  ComponentRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
   const { toggleSidebar } = useSidebar();
@@ -344,7 +345,7 @@ const SidebarInset = React.forwardRef<
 SidebarInset.displayName = "SidebarInset";
 
 const SidebarInput = React.forwardRef<
-  React.ElementRef<typeof Input>,
+  ComponentRef<typeof Input>,
   React.ComponentProps<typeof Input>
 >(({ className, ...props }, ref) => {
   return (
@@ -392,7 +393,7 @@ const SidebarFooter = React.forwardRef<
 SidebarFooter.displayName = "SidebarFooter";
 
 const SidebarSeparator = React.forwardRef<
-  React.ElementRef<typeof Separator>,
+  ComponentRef<typeof Separator>,
   React.ComponentProps<typeof Separator>
 >(({ className, ...props }, ref) => {
   return (

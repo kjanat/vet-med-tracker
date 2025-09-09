@@ -1,7 +1,7 @@
 import { StackHandler } from "@stackframe/stack";
 import { redirect } from "next/navigation";
 import { checkRateLimit } from "@/lib/auth/rate-limiter";
-import { stackServerApp } from "../../../stack";
+import { stackServerApp } from "@/stack";
 
 export default async function Handler(props: {
   params: Promise<{ stack: string[] }>;
