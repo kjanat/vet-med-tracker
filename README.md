@@ -50,7 +50,7 @@ pnpm db:seed
 pnpm dev
 ```
 
-Access the application at http://localhost:3000
+Access the application at <http://localhost:3000>
 
 ### Network Access
 
@@ -83,7 +83,7 @@ Then access at http://YOUR_IP:3000
 
 ## 📁 Project Structure
 
-```
+```tree
 vet-med-tracker/
 ├── app/                    # Next.js App Router pages
 │   ├── (authed)/          # Protected routes

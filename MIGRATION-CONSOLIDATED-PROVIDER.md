@@ -25,31 +25,31 @@ The consolidated provider merges four separate providers into one efficient impl
 
 1. **Replace provider in root layout**:
 
-```tsx
-// app/layout.tsx - BEFORE
-<AppProvider>
-  <AuthProvider>
-    <UserPreferencesProvider>
-      <GlobalScreenReaderProvider>
-        {children}
-      </GlobalScreenReaderProvider>
-    </UserPreferencesProvider>
-  </AuthProvider>
-</AppProvider>
+    ```tsx
+    // app/layout.tsx - BEFORE
+    <AppProvider>
+    <AuthProvider>
+        <UserPreferencesProvider>
+        <GlobalScreenReaderProvider>
+            {children}
+        </GlobalScreenReaderProvider>
+        </UserPreferencesProvider>
+    </AuthProvider>
+    </AppProvider>
 
-// app/layout.tsx - AFTER
-import { ConsolidatedAppProvider } from '@/components/providers/app-provider-consolidated';
+    // app/layout.tsx - AFTER
+    import { ConsolidatedAppProvider } from '@/components/providers/app-provider-consolidated';
 
-<ConsolidatedAppProvider>
-  {children}
-</ConsolidatedAppProvider>
-```
+    <ConsolidatedAppProvider>
+    {children}
+    </ConsolidatedAppProvider>
+    ```
 
 2. **Test thoroughly** - All existing hooks should continue working via backwards compatibility layer.
 
 ### Phase 2: Gradual Hook Migration (Component by Component)
 
-#### Replace `useApp()` calls:
+#### Replace `useApp()` calls
 
 ```tsx
 // BEFORE - using legacy AppProvider
@@ -69,7 +69,7 @@ function MyComponent() {
 }
 ```
 
-#### Replace `useAuth()` calls:
+#### Replace `useAuth()` calls
 
 ```tsx
 // BEFORE
@@ -89,7 +89,7 @@ function AuthComponent() {
 }
 ```
 
-#### Replace `useUserPreferencesContext()` calls:
+#### Replace `useUserPreferencesContext()` calls
 
 ```tsx
 // BEFORE
@@ -109,7 +109,7 @@ function PreferencesComponent() {
 }
 ```
 
-#### Replace accessibility hooks:
+#### Replace accessibility hooks
 
 ```tsx
 // BEFORE

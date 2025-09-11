@@ -13,7 +13,7 @@ directories by feature, maintaining the conventional Next.js structure while imp
 
 **After**: Feature-based organization
 
-```
+```tree
 hooks/
 ├── admin/
 │   └── useRecordParams.ts
@@ -47,7 +47,7 @@ hooks/
 
 **After**: Clear separation by purpose
 
-```
+```tree
 lib/
 ├── infrastructure/       # System-level code
 │   ├── circuit-breaker.ts

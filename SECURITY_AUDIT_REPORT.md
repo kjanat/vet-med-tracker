@@ -42,9 +42,9 @@ pnpm audit --fix
 
 - **All vulnerabilities resolved** using package overrides
 - Package overrides added to `package.json`:
-    - `esbuild@<=0.24.2 → >=0.25.0`
-    - `cookie@<0.7.0 → >=0.7.0`
-    - `tmp@<=0.2.3 → >=0.2.4`
+  - `esbuild@<=0.24.2 → >=0.25.0`
+  - `cookie@<0.7.0 → >=0.7.0`
+  - `tmp@<=0.2.3 → >=0.2.4`
 
 ### Status: ✅ RESOLVED
 

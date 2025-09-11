@@ -6,8 +6,8 @@
  */
 
 import { eq, isNotNull } from "drizzle-orm";
-import { dbPooled as db } from "@/db/drizzle";
-import { users } from "@/db/schema";
+import { dbPooled as db } from "../db/drizzle";
+import { users } from "../db/schema";
 
 interface UserRecord {
   id: string;

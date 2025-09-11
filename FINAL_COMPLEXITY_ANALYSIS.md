@@ -87,7 +87,7 @@ export function useMediaQuery(query: string): boolean
 
 Current clean structure:
 
-```
+```tree
 app/
 ├── (authed)/(main)/     # Main authenticated routes
 ├── (authed)/(standalone)/ # Standalone auth pages  
@@ -104,7 +104,7 @@ app/
 
 **Achievements**:
 
-```
+```tree
 hooks/
 ├── admin/, history/, insights/, inventory/, offline/, settings/
 └── shared/              # Cross-cutting concerns

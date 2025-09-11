@@ -1,13 +1,15 @@
+#!/usr/bin/env node
+
 /**
  * Test script for push notification system
  * Tests key components without running the full application
  */
 
-const {
-  validateVAPIDConfig,
-  getVAPIDConfig,
+import {
   getPublicVAPIDKey,
-} = require("../lib/push-notifications/vapid-config.js");
+  getVAPIDConfig,
+  validateVAPIDConfig,
+} from "../lib/push-notifications/vapid-config.js";
 
 async function testVAPIDConfiguration() {
   console.log("🔧 Testing VAPID Configuration...");
@@ -130,4 +132,4 @@ if (require.main === module) {
   runTests().catch(console.error);
 }
 
-module.exports = { runTests };
+export default { runTests };

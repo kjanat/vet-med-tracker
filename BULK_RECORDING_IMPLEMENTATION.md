@@ -262,7 +262,7 @@ function MyComponent() {
 
 ## File Structure
 
-```
+```tree
 components/
 ├── admin/
 │   ├── bulk-recording-form.tsx     # Main bulk recording form

@@ -50,6 +50,7 @@
 **Time**: 3 hours
 
 - [ ] Create tRPC endpoints:
+
   ```typescript
   // server/api/routers/cosigner.ts
   createRequest: protectedProcedure
@@ -64,6 +65,7 @@
       // Validate, store signature, update status
     })
   ```
+
 - [ ] Add co-signer notification to queue
 - [ ] Validate co-signer has appropriate role (not VETREADONLY)
 
@@ -75,6 +77,7 @@
 
 - [ ] Create `CoSignerSelect.tsx` - dropdown of eligible household members
 - [ ] Build `SignaturePad.tsx` using canvas:
+
   ```typescript
   const SignaturePad = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -82,6 +85,7 @@
     // Export as base64 string
   }
   ```
+
 - [ ] Add pending indicator icon to administrations needing co-signature
 - [ ] Show signature with timestamp when approved
 
@@ -96,6 +100,7 @@
 **Time**: 3 hours
 
 - [ ] Create `BulkSelectionProvider` context:
+
   ```typescript
   interface BulkSelectionContext {
     selectedIds: Set<string>;
@@ -104,6 +109,7 @@
     clearSelection: () => void;
   }
   ```
+
 - [ ] Add checkbox column to data tables
 - [ ] Show floating action bar when items selected
 - [ ] Add "Select All" checkbox in header
@@ -115,6 +121,7 @@
 **Time**: 4 hours
 
 - [ ] Create bulk tRPC mutation:
+
   ```typescript
   recordBulk: protectedProcedure
     .input(z.object({
@@ -127,6 +134,7 @@
       // Use transaction, return results array
     })
   ```
+
 - [ ] Build bulk recording form
 - [ ] Show progress during submission (X of Y completed)
 - [ ] Handle partial failures gracefully
@@ -144,6 +152,7 @@
 **Time**: 6 hours
 
 - [ ] Create `DosageCalculator` class:
+
   ```typescript
   class DosageCalculator {
     calculate(weight: number, weightUnit: string, 
@@ -154,6 +163,7 @@
     }
   }
   ```
+
 - [ ] Add dosage ranges to medication catalog table
 - [ ] Implement unit conversions (kg/lbs, mg/mL, etc.)
 - [ ] Add maximum safe dose validation
@@ -184,6 +194,7 @@
 
 - [ ] Generate VAPID keys and add to .env
 - [ ] Create service worker registration:
+
   ```javascript
   // public/sw.js additions
   self.addEventListener('push', (event) => {
@@ -191,7 +202,9 @@
     self.registration.showNotification(data.title, data.options);
   });
   ```
+
 - [ ] Create subscription endpoint:
+
   ```typescript
   subscribe: protectedProcedure
     .input(z.object({ subscription: pushSubscriptionSchema }))
@@ -199,6 +212,7 @@
       // Store subscription in database
     })
   ```
+
 - [ ] Build notification scheduler using node-cron
 - [ ] Calculate notification times based on regimens
 
@@ -227,11 +241,13 @@
 - [ ] Install and configure Chart.js or Recharts
 - [ ] Create `DashboardLayout.tsx` with CSS Grid
 - [ ] Build data fetching hooks:
-  ```typescript
-  const useComplianceData = (dateRange: DateRange) => {
-    return trpc.insights.compliance.useQuery({ dateRange });
-  };
-  ```
+
+    ```typescript
+    const useComplianceData = (dateRange: DateRange) => {
+      return trpc.insights.compliance.useQuery({ dateRange });
+    };
+    ```
+
 - [ ] Add loading skeletons for each widget
 - [ ] Implement error boundaries for widget failures
 
@@ -242,9 +258,11 @@
 **Time**: 5 hours
 
 - [ ] Calculate compliance percentage:
-  ```typescript
-  const compliance = (onTime + late) / total * 100;
-  ```
+
+    ```typescript
+    const compliance = (onTime + late) / total * 100;
+    ```
+
 - [ ] Create line chart for trends over time
 - [ ] Build heat map calendar showing daily compliance
 - [ ] Add drill-down to see specific administrations
@@ -257,14 +275,16 @@
 **Time**: 5 hours
 
 - [ ] Generate PDF using jsPDF:
-  ```typescript
-  const generatePDF = async (reportData: ReportData) => {
-    const pdf = new jsPDF();
-    // Add charts as images
-    // Add data tables
-    // Format for printing
-  };
-  ```
+
+    ```typescript
+    const generatePDF = async (reportData: ReportData) => {
+      const pdf = new jsPDF();
+      // Add charts as images
+      // Add data tables
+      // Format for printing
+    };
+    ```
+
 - [ ] Create CSV export for raw data
 - [ ] Add date range selector
 - [ ] Include filters in export
@@ -280,12 +300,14 @@
 **Time**: 8 hours
 
 - [ ] Create partitioned tables:
-  ```sql
-  -- Partition administrations by month
-  CREATE TABLE vetmed_administrations_2024_01 
-    PARTITION OF vetmed_administrations
-    FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
-  ```
+
+   ```sql
+   -- Partition administrations by month
+   CREATE TABLE vetmed_administrations_2024_01 
+     PARTITION OF vetmed_administrations
+     FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+   ```
+
 - [ ] Write migration script to move existing data
 - [ ] Update queries to use partition pruning
 - [ ] Create cron job to auto-create future partitions
@@ -298,16 +320,18 @@
 **Time**: 8 hours
 
 - [ ] Create compliance stats view:
-  ```sql
-  CREATE MATERIALIZED VIEW mv_compliance_stats AS
-  SELECT 
-    animal_id,
-    date_trunc('day', scheduled_time) as day,
-    COUNT(*) FILTER (WHERE status = 'ON_TIME') as on_time,
-    COUNT(*) as total
-  FROM vetmed_administrations
-  GROUP BY animal_id, day;
-  ```
+
+    ```sql
+    CREATE MATERIALIZED VIEW mv_compliance_stats AS
+    SELECT 
+      animal_id,
+      date_trunc('day', scheduled_time) as day,
+      COUNT(*) FILTER (WHERE status = 'ON_TIME') as on_time,
+      COUNT(*) as total
+    FROM vetmed_administrations
+    GROUP BY animal_id, day;
+    ```
+
 - [ ] Set up refresh strategy (CONCURRENTLY every hour)
 - [ ] Update dashboard queries to use views
 - [ ] Monitor refresh performance
@@ -319,15 +343,19 @@
 **Time**: 6 hours
 
 - [ ] Add missing indexes based on slow query log:
+
   ```sql
   CREATE INDEX idx_administrations_animal_scheduled 
     ON vetmed_administrations(animal_id, scheduled_time);
   ```
+
 - [ ] Add GIN indexes for JSONB columns:
+
   ```sql
   CREATE INDEX idx_users_preferences 
     ON vetmed_users USING gin(preferences);
   ```
+
 - [ ] Rewrite slow queries identified in monitoring
 - [ ] Test EXPLAIN ANALYZE shows index usage
 
@@ -366,6 +394,7 @@ describe('DosageCalculator', () => {
 **Time**: 8 hours
 
 - [ ] Set up Percy:
+
   ```typescript
   // tests/e2e/visual.spec.ts
   test('dashboard renders correctly', async ({ page }) => {
@@ -373,6 +402,7 @@ describe('DosageCalculator', () => {
     await percySnapshot(page, 'Dashboard');
   });
   ```
+
 - [ ] Capture baseline screenshots for all major views
 - [ ] Add to CI pipeline to run on PRs
 - [ ] Configure auto-approval for minor changes
@@ -407,9 +437,11 @@ export const createAnimal = (overrides = {}) => ({
 
 - [ ] Run bundle analyzer, identify large chunks
 - [ ] Implement route-based code splitting:
+
   ```typescript
   const Dashboard = lazy(() => import('./pages/Dashboard'));
   ```
+
 - [ ] Move heavy dependencies to dynamic imports
 - [ ] Optimize images (WebP format, srcset)
 - [ ] Enable React Compiler in next.config.js

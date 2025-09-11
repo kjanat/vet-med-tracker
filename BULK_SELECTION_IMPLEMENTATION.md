@@ -146,7 +146,7 @@ interface BulkSelectionContextType {
 
 ### Component Composition
 
-```
+```tree
 BulkSelectionProvider
 ├── SelectAllCheckbox (header)
 ├── BulkSelectionCheckbox (per row)

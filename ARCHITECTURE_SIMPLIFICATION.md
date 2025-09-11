@@ -41,7 +41,7 @@ ClerkProvider
 
 **Current State**: 6+ duplicate component implementations
 
-```
+```tree
 components/
 ├── regimens/
 │   ├── regimen-form.tsx
@@ -97,7 +97,7 @@ lib/trpc/client.ts
 
 **Current State**: 4-5 levels deep route nesting
 
-```
+```tree
 app/(authed)/(app)/manage/animals/[id]/emergency/
 app/(authed)/(app)/settings/data-privacy/audit/
 ```
@@ -106,7 +106,7 @@ app/(authed)/(app)/settings/data-privacy/audit/
 
 **Current State**: Mixed organization strategies
 
-```
+```tree
 components/
 ├── ui/              # 80+ files (shadcn + custom)
 ├── layout/          # 15 files
@@ -166,7 +166,7 @@ ClerkProvider → TRPCProvider → AppProvider (consolidated) → ThemeProvider
 
 **Proposed Change**: Remove unnecessary nesting layers
 
-```
+```tree
 # BEFORE
 app/
   (authed)/
@@ -204,7 +204,7 @@ app/
 
 **Proposed Change**: Feature-first organization with shared library
 
-```
+```tree
 # PROPOSED STRUCTURE
 components/
   lib/              # Pure UI components (button, card, etc.)
@@ -289,7 +289,7 @@ export function useResponsive() {
 
 **Proposed Change**: Clear state hierarchy with dedicated tools
 
-```
+```txt
 Server State → tRPC + React Query (only)
 Global UI State → Zustand (replace contexts)
 Form State → React Hook Form (only)
@@ -311,7 +311,7 @@ URL State → Search params (only)
 
 ## Impact vs Effort Matrix
 
-```
+```txt
 High Impact, Low Effort (DO FIRST):
 ├── Unified Responsive Strategy
 ├── Delete duplicate components
