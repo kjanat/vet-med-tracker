@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { eq, inArray } from "drizzle-orm";
-import type { db } from "@/db/drizzle";
 import * as schema from "@/db/schema";
 import {
   checkTestDatabaseHealth,

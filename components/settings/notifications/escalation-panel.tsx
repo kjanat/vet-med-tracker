@@ -65,7 +65,7 @@ export function EscalationPanel() {
   };
 
   const addAttempt = () => {
-    const minutes = Number.parseInt(newAttempt);
+    const minutes = Number.parseInt(newAttempt, 10);
     if (!Number.isNaN(minutes) && !prefs.attempts.includes(minutes)) {
       setPrefs((prev) => ({
         ...prev,
@@ -108,7 +108,7 @@ export function EscalationPanel() {
               onValueChange={(value) =>
                 setPrefs((prev) => ({
                   ...prev,
-                  leadMinutes: Number.parseInt(value),
+                  leadMinutes: Number.parseInt(value, 10),
                 }))
               }
             >

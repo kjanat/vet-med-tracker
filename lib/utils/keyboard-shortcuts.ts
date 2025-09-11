@@ -365,9 +365,7 @@ export function useKeyboardNavigation(
       const items = getItems();
       if (items.length === 0) return;
 
-      const currentIndex = items.findIndex(
-        (item) => item === document.activeElement,
-      );
+      const currentIndex = items.indexOf(document.activeElement);
       if (currentIndex === -1) return;
 
       const navConfig =

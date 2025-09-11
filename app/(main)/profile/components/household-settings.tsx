@@ -422,7 +422,7 @@ export default function HouseholdSettingsPage() {
                 value={settings.inventoryPreferences.lowStockThreshold.toString()}
                 onValueChange={(value) =>
                   updateInventoryPreferences({
-                    lowStockThreshold: parseInt(value),
+                    lowStockThreshold: parseInt(value, 10),
                   })
                 }
               >
@@ -446,7 +446,7 @@ export default function HouseholdSettingsPage() {
                 value={settings.inventoryPreferences.expirationWarningDays.toString()}
                 onValueChange={(value) =>
                   updateInventoryPreferences({
-                    expirationWarningDays: parseInt(value),
+                    expirationWarningDays: parseInt(value, 10),
                   })
                 }
               >

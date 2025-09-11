@@ -70,8 +70,8 @@ test.describe("Inventory Management", () => {
     const updatedQuantity = await inventoryItem
       .getByTestId("quantity")
       .textContent();
-    expect(parseInt(updatedQuantity || "0")).toBeLessThan(
-      parseInt(initialQuantity || "0"),
+    expect(parseInt(updatedQuantity || "0", 10)).toBeLessThan(
+      parseInt(initialQuantity || "0", 10),
     );
   });
 

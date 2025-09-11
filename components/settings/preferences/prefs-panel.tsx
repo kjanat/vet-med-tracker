@@ -306,7 +306,7 @@ export function PrefsPanel() {
                 onValueChange={(value) =>
                   setPrefs((prev) => ({
                     ...prev,
-                    weekStartsOn: Number.parseInt(value) as 0 | 1,
+                    weekStartsOn: Number.parseInt(value, 10) as 0 | 1,
                   }))
                 }
               >

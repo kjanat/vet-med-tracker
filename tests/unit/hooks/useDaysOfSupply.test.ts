@@ -6,7 +6,6 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { useDaysOfSupply } from "@/hooks/inventory/useDaysOfSupply";
-import { testInventoryItem } from "@/tests/helpers/test-fixtures";
 
 describe("useDaysOfSupply", () => {
   it("returns map with server data when provided", () => {

@@ -345,7 +345,7 @@ export default function VetMedPreferencesPage() {
                 value={preferences.notificationPreferences.reminderLeadTime.toString()}
                 onChange={(e) =>
                   updateNotificationPreferences({
-                    reminderLeadTime: parseInt(e.target.value),
+                    reminderLeadTime: parseInt(e.target.value, 10),
                   })
                 }
               >

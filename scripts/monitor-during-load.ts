@@ -479,7 +479,7 @@ async function main(): Promise<void> {
   }
 
   const baseUrl = args[0] || "http://localhost:3000";
-  const interval = parseInt(args[1] || "5000") || 5000;
+  const interval = parseInt(args[1] || "5000", 10) || 5000;
   const outputFile = args[2] || "monitoring-report.json";
 
   const config: MonitoringConfig = {

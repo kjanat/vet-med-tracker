@@ -288,7 +288,7 @@ export function PhotoGalleryDemo() {
                   onChange={(e) =>
                     setConfig((prev) => ({
                       ...prev,
-                      maxColumns: parseInt(e.target.value),
+                      maxColumns: parseInt(e.target.value, 10),
                     }))
                   }
                   className="w-full"

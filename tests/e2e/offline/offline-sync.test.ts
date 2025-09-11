@@ -1,11 +1,8 @@
 import { expect, test } from "@playwright/test";
 import {
-  holdRecordButton,
   mockOfflineQueue,
   mockTRPCMutations,
   recordAdministration,
-  selectAnimal,
-  selectRegimen,
   simulateOffline,
   simulateOnline,
 } from "@/tests/helpers/offline-helpers";
@@ -149,8 +146,8 @@ test.describe("Offline Queue Sync Integration", () => {
     const newQuantity = await inventoryItem
       .getByTestId("quantity")
       .textContent();
-    expect(parseInt(newQuantity || "0")).toBeLessThan(
-      parseInt(initialQuantity || "0"),
+    expect(parseInt(newQuantity || "0", 10)).toBeLessThan(
+      parseInt(initialQuantity || "0", 10),
     );
   });
 

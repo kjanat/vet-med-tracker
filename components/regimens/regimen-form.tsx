@@ -260,7 +260,7 @@ export function RegimenForm({
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    cutoffMins: Number.parseInt(value),
+                    cutoffMins: Number.parseInt(value, 10),
                   }))
                 }
               >

@@ -80,7 +80,7 @@ test.describe("PWA Offline Functionality", () => {
     const syncBadge = page.getByTestId("sync-status").locator(".badge");
     await expect(syncBadge).toBeVisible();
     const badgeText = await syncBadge.textContent();
-    expect(parseInt(badgeText || "0")).toBeGreaterThanOrEqual(1);
+    expect(parseInt(badgeText || "0", 10)).toBeGreaterThanOrEqual(1);
 
     // Step 6: Check queue details
     await page.getByTestId("sync-status").click();

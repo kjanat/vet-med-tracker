@@ -466,7 +466,7 @@ export function AddItemModal({
                               {...field}
                               onChange={(e) => {
                                 const value =
-                                  Number.parseInt(e.target.value) || 0;
+                                  Number.parseInt(e.target.value, 10) || 0;
                                 field.onChange(value);
                                 // Also update remaining if it's currently 0 or greater than new total
                                 const currentRemaining =
@@ -499,7 +499,7 @@ export function AddItemModal({
                               {...field}
                               onChange={(e) =>
                                 field.onChange(
-                                  Number.parseInt(e.target.value) || 0,
+                                  Number.parseInt(e.target.value, 10) || 0,
                                 )
                               }
                             />

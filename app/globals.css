@@ -423,9 +423,9 @@
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms;
+      animation-iteration-count: 1;
+      transition-duration: 0.01ms;
     }
   }
 
@@ -517,20 +517,20 @@
 
     /* Force high contrast on all text */
     * {
-      text-shadow: none !important;
+      text-shadow: none;
     }
 
     /* Enhanced button contrast */
     button,
     [role="button"] {
-      border: 2px solid currentColor !important;
+      border: 2px solid currentColor;
     }
 
     /* Enhanced form control contrast */
     input,
     textarea,
     select {
-      border: 2px solid hsl(var(--foreground)) !important;
+      border: 2px solid hsl(var(--foreground));
     }
   }
 

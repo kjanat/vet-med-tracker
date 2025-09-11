@@ -3,22 +3,16 @@
  * Calculates and schedules push notifications for medication regimens
  */
 
-import { and as _and, eq as _eq, gte as _gte, lte } from "drizzle-orm";
+import { lte } from "drizzle-orm";
 import { DateTime } from "luxon";
 import cron from "node-cron";
 import type { db } from "@/db/drizzle";
 import { notificationQueue } from "@/db/schema";
 import { PushNotificationService } from "./push-service";
-import {
-  type MissedDose,
-  RegimenCalculator,
-  type ScheduledDose,
-} from "./regimen-calculator";
+import { RegimenCalculator } from "./regimen-calculator";
 
 export class NotificationScheduler {
   private db: typeof db;
-  private pushService: PushNotificationService;
-  private regimenCalculator: RegimenCalculator;
   private jobs: Map<string, ReturnType<typeof cron.schedule>> = new Map();
   private isRunning = false;
 
@@ -183,57 +177,6 @@ export class NotificationScheduler {
       console.log(`Cleaned up ${deleted.length} old notifications`);
     } catch (error) {
       console.error("Error cleaning up notifications:", error);
-    }
-  }
-
-  /**
-   * Check if we should send a notification for this scheduled dose
-   * Note: Placeholder implementation due to type mismatch issues
-   */
-  private async shouldSendNotification(_dose: ScheduledDose): Promise<boolean> {
-    // Note: The original code assumed properties like notificationTime and userId
-    // but ScheduledDose doesn't have these properties. This needs to be redesigned
-    // based on the actual type structure.
-    console.log("shouldSendNotification placeholder");
-    return false;
-  }
-
-  /**
-   * Send medication reminder notification using the new ScheduledDose type
-   */
-  private async sendMedicationReminderNotification(
-    dose: ScheduledDose,
-  ): Promise<void> {
-    try {
-      // Note: sendMedicationReminder method doesn't exist on PushNotificationService
-      // Would need to use existing methods like sendToUser with createMedicationReminder
-      console.log(
-        `Would send medication reminder for ${dose.animalName} - ${dose.medicationName}`,
-      );
-    } catch (error) {
-      console.error(
-        `Failed to send medication reminder for ${dose.animalName}:`,
-        error,
-      );
-    }
-  }
-
-  /**
-   * Send missed dose notification using the new MissedDose type
-   */
-  private async sendMissedDoseNotification(dose: MissedDose): Promise<void> {
-    try {
-      // Note: sendMedicationReminder method doesn't exist on PushNotificationService
-      // Would need to use existing methods like sendToUser with createMedicationReminder
-      // Also, MissedDose doesn't have minutesOverdue property
-      console.log(
-        `Would send overdue reminder for ${dose.animalName} - ${dose.medicationName}`,
-      );
-    } catch (error) {
-      console.error(
-        `Failed to send overdue reminder for ${dose.animalName}:`,
-        error,
-      );
     }
   }
 }

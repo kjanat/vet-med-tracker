@@ -484,8 +484,10 @@ export function BulkRecordingForm({
                             const date = field.value
                               ? new Date(field.value)
                               : new Date();
-                            date.setHours(Number.parseInt(hours || "0"));
-                            date.setMinutes(Number.parseInt(minutes || "0"));
+                            date.setHours(Number.parseInt(hours || "0", 10));
+                            date.setMinutes(
+                              Number.parseInt(minutes || "0", 10),
+                            );
                             field.onChange(date);
                           }}
                         />

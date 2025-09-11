@@ -207,7 +207,7 @@ export function EditItemModal({
                       min="0"
                       {...field}
                       onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 0)
+                        field.onChange(parseInt(e.target.value, 10) || 0)
                       }
                     />
                   </FormControl>
