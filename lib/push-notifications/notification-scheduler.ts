@@ -13,6 +13,10 @@ import { RegimenCalculator } from "./regimen-calculator";
 
 export class NotificationScheduler {
   private db: typeof db;
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: Will be used when notification features are re-enabled
+  private pushService: PushNotificationService;
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: Will be used when notification features are re-enabled
+  private regimenCalculator: RegimenCalculator;
   private jobs: Map<string, ReturnType<typeof cron.schedule>> = new Map();
   private isRunning = false;
 

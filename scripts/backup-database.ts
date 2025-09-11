@@ -77,7 +77,7 @@ async function createBackup(config: BackupConfig): Promise<string> {
   }
 
   try {
-    const { stdout, stderr } = await execAsync(command, {
+    const { stderr } = await execAsync(command, {
       timeout: 300000, // 5 minute timeout
     });
 
