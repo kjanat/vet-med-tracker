@@ -3,7 +3,7 @@
 import { AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   AnimalFormDialog,
   useAnimalFormDialog,
@@ -159,75 +159,122 @@ export default function DashboardPage() {
     },
   );
 
+  // Check if regimen passes section filters
+  const passesSectionFilter = useCallback(
+    (regimen: any, activeFilters: typeof filters) => {
+      if (regimen.section === "due" && !activeFilters.showDue) return false;
+      if (regimen.section === "later" && !activeFilters.showLater) return false;
+      if (regimen.section === "prn" && !activeFilters.showPRN) return false;
+      if (regimen.isOverdue && !activeFilters.showOverdue) return false;
+      return true;
+    },
+    [],
+  );
+
+  // Check if regimen matches search query
+  const matchesSearchQuery = useCallback((regimen: any, query: string) => {
+    if (!query) return true;
+
+    const queryLower = query.toLowerCase();
+    const matchesAnimal = regimen.animalName
+      ?.toLowerCase()
+      .includes(queryLower);
+    const matchesMed = regimen.medicationName
+      ?.toLowerCase()
+      .includes(queryLower);
+    return matchesAnimal || matchesMed;
+  }, []);
+
+  // Filter regimens based on active filters
+  const filterRegimens = useCallback(
+    (
+      regimens: typeof dueRegimens,
+      activeFilters: typeof filters,
+      query: string,
+    ) => {
+      if (!regimens) return [];
+
+      return regimens.filter(
+        (r) =>
+          passesSectionFilter(r, activeFilters) && matchesSearchQuery(r, query),
+      );
+    },
+    [passesSectionFilter, matchesSearchQuery],
+  );
+
+  // Create sorting strategies
+  const sortingStrategies = useMemo(() => {
+    const compareString = (a: string | undefined, b: string | undefined) =>
+      (a || "").localeCompare(b || "");
+
+    const getStatusOrder = (regimen: any) => {
+      const statusOrder: Record<string, number> = {
+        overdue: 0,
+        due: 1,
+        later: 2,
+        prn: 3,
+      };
+      const status = regimen.isOverdue ? "overdue" : regimen.section || "prn";
+      return statusOrder[status] || 99;
+    };
+
+    return {
+      time: (a: any, b: any) => compareString(a.targetTime, b.targetTime),
+      animal: (a: any, b: any) => compareString(a.animalName, b.animalName),
+      medication: (a: any, b: any) =>
+        compareString(a.medicationName, b.medicationName),
+      status: (a: any, b: any) => getStatusOrder(a) - getStatusOrder(b),
+    };
+  }, []);
+
+  // Sort regimens using selected strategy
+  const sortRegimens = useCallback(
+    (regimens: any[], sortBy: string, sortOrder: string) => {
+      const compareFn =
+        sortingStrategies[sortBy as keyof typeof sortingStrategies];
+      if (!compareFn) return regimens;
+
+      const sorted = [...regimens].sort(compareFn);
+      return sortOrder === "desc" ? sorted.reverse() : sorted;
+    },
+    [sortingStrategies],
+  );
+
+  // Transform regimen data for display
+  const transformRegimens = useCallback((regimens: any[], timezone: string) => {
+    return regimens.slice(0, 10).map((regimen) => ({
+      id: regimen.id,
+      animalId: regimen.animalId,
+      animal: regimen.animalName,
+      medication: `${regimen.medicationName} ${regimen.strength}`,
+      dueTime: regimen.targetTime
+        ? formatTimeLocal(new Date(regimen.targetTime), timezone)
+        : "As needed",
+      status: regimen.isOverdue
+        ? ("overdue" as const)
+        : regimen.section === "due"
+          ? ("due" as const)
+          : ("upcoming" as const),
+      route: regimen.route,
+    }));
+  }, []);
+
   // Calculate next actions with filtering and sorting
   const nextActions = useMemo(() => {
-    if (!dueRegimens) return [];
-
-    const filtered = dueRegimens.filter((r) => {
-      // Apply section filters
-      if (r.section === "due" && !filters.showDue) return false;
-      if (r.section === "later" && !filters.showLater) return false;
-      if (r.section === "prn" && !filters.showPRN) return false;
-      if (r.isOverdue && !filters.showOverdue) return false;
-
-      // Apply search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesAnimal = r.animalName?.toLowerCase().includes(query);
-        const matchesMed = r.medicationName?.toLowerCase().includes(query);
-        return matchesAnimal || matchesMed;
-      }
-
-      return true;
-    });
-
-    // Sort results
-    filtered.sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortBy) {
-        case "time":
-          comparison = (a.targetTime || "").localeCompare(b.targetTime || "");
-          break;
-        case "animal":
-          comparison = (a.animalName || "").localeCompare(b.animalName || "");
-          break;
-        case "medication":
-          comparison = (a.medicationName || "").localeCompare(
-            b.medicationName || "",
-          );
-          break;
-        case "status": {
-          const statusOrder = { overdue: 0, due: 1, later: 2, prn: 3 };
-          const aStatus = a.isOverdue ? "overdue" : a.section || "prn";
-          const bStatus = b.isOverdue ? "overdue" : b.section || "prn";
-          comparison =
-            (statusOrder[aStatus] || 99) - (statusOrder[bStatus] || 99);
-          break;
-        }
-      }
-
-      return sortOrder === "asc" ? comparison : -comparison;
-    });
-
-    return filtered
-      .slice(0, 10) // Show more items when using toolbar
-      .map((regimen) => ({
-        id: regimen.id,
-        animalId: regimen.animalId,
-        animal: regimen.animalName,
-        medication: `${regimen.medicationName} ${regimen.strength}`,
-        dueTime: regimen.targetTime
-          ? formatTimeLocal(new Date(regimen.targetTime), timezone)
-          : "As needed",
-        status: regimen.isOverdue
-          ? ("overdue" as const)
-          : regimen.section === "due"
-            ? ("due" as const)
-            : ("upcoming" as const),
-        route: regimen.route,
-      }));
-  }, [dueRegimens, timezone, searchQuery, sortBy, sortOrder, filters]);
+    const filtered = filterRegimens(dueRegimens, filters, searchQuery);
+    const sorted = sortRegimens(filtered, sortBy, sortOrder);
+    return transformRegimens(sorted, timezone);
+  }, [
+    dueRegimens,
+    filters,
+    searchQuery,
+    sortBy,
+    sortOrder,
+    timezone,
+    filterRegimens,
+    sortRegimens,
+    transformRegimens,
+  ]);
 
   // Calculate stats
   const todayStats = useMemo(() => {
@@ -404,7 +451,7 @@ export default function DashboardPage() {
                 </p>
               </div>
             ) : (
-              nextActions.map((action) => {
+              nextActions.map((action: any) => {
                 const foundAnimal = animals.find(
                   (a) => a.id === action.animalId,
                 );

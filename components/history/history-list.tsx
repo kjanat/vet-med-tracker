@@ -9,6 +9,7 @@ import {
   Trash2,
   UserCheck,
 } from "lucide-react";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
@@ -385,11 +386,13 @@ function AdministrationRow({
                           onClick={() => window.open(url, "_blank")}
                           aria-label={`View photo evidence ${index + 1} of ${record.media?.length}`}
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Evidence ${index + 1}`}
+                            fill
                             className="h-full w-full object-cover transition-transform group-hover:scale-110"
-                            loading="lazy"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                            unoptimized
                           />
                           <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
                         </button>

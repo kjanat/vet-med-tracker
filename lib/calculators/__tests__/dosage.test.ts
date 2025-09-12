@@ -14,6 +14,8 @@ const mockMedicationBasic: MedicationData = {
   id: "med-123",
   genericName: "Amoxicillin",
   brandName: "Amoxil",
+  category: "antibiotic",
+  formulation: "TABLET",
   route: "ORAL",
   form: "TABLET",
   dosageMinMgKg: 10,
@@ -23,6 +25,11 @@ const mockMedicationBasic: MedicationData = {
   concentrationMgMl: 50,
   unitsPerTablet: 250,
   unitType: "mg",
+  frequencyPerDay: 2,
+  duration: "7-10 days",
+  species: ["dog", "cat"],
+  isControlledSubstance: false,
+  prescriptionRequired: true,
   typicalFrequencyHours: 12,
   maxFrequencyPerDay: 2,
 };
@@ -363,7 +370,7 @@ describe("DosageCalculator", () => {
     it("identifies controlled substances as caution", () => {
       const controlledMed: MedicationData = {
         ...mockMedicationBasic,
-        controlledSubstance: true,
+        isControlledSubstance: true,
       };
 
       const result = DosageCalculator.calculate({
@@ -416,7 +423,7 @@ describe("DosageCalculator", () => {
         medication: mockMedicationBasic,
       });
 
-      expect(result.frequency).toBe("Twice daily");
+      expect(result.frequencyPerDay).toBe(2);
     });
   });
 
@@ -461,7 +468,7 @@ describe("DosageCalculator", () => {
       expect(() => {
         DosageCalculator.calculate({
           animal: mockDog,
-          medication: { ...mockMedicationBasic, dosageTypicalMgKg: undefined },
+          medication: { ...mockMedicationBasic, dosageTypicalMgKg: null },
         });
       }).toThrow("Medication does not have dosage information configured");
     });

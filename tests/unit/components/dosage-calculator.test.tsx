@@ -31,16 +31,25 @@ describe("DosageCalculator Component", () => {
     mockCalculate.mockReturnValue({
       dose: 450,
       unit: "mg",
-      frequency: "Twice daily",
+      frequencyPerDay: 2,
+      route: "oral",
       minDose: 300,
       maxDose: 600,
       safetyLevel: "safe",
-      calculationMethod: "standard",
+      warnings: [],
+      calculationMethod: "basic_weight",
+      appliedAdjustments: [],
       weightInKg: 30,
       baseDoseMgKg: 15,
       finalDoseMgKg: 15,
-      appliedAdjustments: [],
-      warnings: [],
+      metadata: {
+        calculationMethod: "basic_weight",
+        appliedAdjustments: [],
+        weightInKg: 30,
+        baseDoseMgKg: 15,
+        finalDoseMgKg: 15,
+        safetyMargin: { percentOfMax: 75, bufferZone: 150 },
+      },
       alternativeFormats: [
         { dose: 9, unit: "mL", description: "Liquid volume" },
         { dose: 1.8, unit: "tablets", description: "Number of tablets" },
@@ -116,9 +125,10 @@ describe("DosageCalculator Component", () => {
     mockCalculate.mockReturnValue({
       dose: 225,
       unit: "mg",
-      frequency: "Twice daily",
+      frequencyPerDay: 2,
       minDose: 150,
       maxDose: 300,
+      route: "ORAL",
       safetyLevel: "caution",
       calculationMethod: "breed_adjusted",
       weightInKg: 25,
@@ -131,6 +141,22 @@ describe("DosageCalculator Component", () => {
         dosesPerDay: 2,
         totalDailyDose: 450,
         timeBetweenDoses: "12 hours",
+      },
+      metadata: {
+        calculationMethod: "breed_adjusted",
+        appliedAdjustments: ["Breed adjustment: 50%"],
+        weightInKg: 25,
+        baseDoseMgKg: 15,
+        finalDoseMgKg: 7.5,
+        safetyMargin: {
+          percentOfMax: 75,
+          bufferZone: 25,
+        },
+        pharmacokinetics: {
+          totalDailyDose: 450,
+          dosesPerDay: 2,
+          timeBetweenDoses: "12 hours",
+        },
       },
     });
 
@@ -247,9 +273,10 @@ describe("DosageCalculator Component", () => {
     mockCalculate.mockReturnValue({
       dose: 225,
       unit: "mg",
-      frequency: "Twice daily",
+      frequencyPerDay: 2,
       minDose: 150,
       maxDose: 300,
+      route: "ORAL",
       safetyLevel: "caution",
       calculationMethod: "breed_adjusted",
       weightInKg: 30,
@@ -262,6 +289,22 @@ describe("DosageCalculator Component", () => {
         dosesPerDay: 2,
         totalDailyDose: 450,
         timeBetweenDoses: "12 hours",
+      },
+      metadata: {
+        calculationMethod: "breed_adjusted",
+        appliedAdjustments: ["Breed adjustment: 50%"],
+        weightInKg: 30,
+        baseDoseMgKg: 15,
+        finalDoseMgKg: 7.5,
+        safetyMargin: {
+          percentOfMax: 75,
+          bufferZone: 25,
+        },
+        pharmacokinetics: {
+          totalDailyDose: 450,
+          dosesPerDay: 2,
+          timeBetweenDoses: "12 hours",
+        },
       },
     });
 
@@ -299,11 +342,12 @@ describe("DosageCalculator Component", () => {
     mockCalculate.mockResolvedValue({
       dose: 450,
       unit: "mg",
-      frequency: "Twice daily",
+      frequencyPerDay: 2,
       minDose: 300,
       maxDose: 600,
+      route: "ORAL",
       safetyLevel: "safe",
-      calculationMethod: "standard",
+      calculationMethod: "basic_weight",
       weightInKg: 30,
       baseDoseMgKg: 15,
       finalDoseMgKg: 15,
@@ -314,6 +358,22 @@ describe("DosageCalculator Component", () => {
         dosesPerDay: 2,
         totalDailyDose: 900,
         timeBetweenDoses: "12 hours",
+      },
+      metadata: {
+        calculationMethod: "basic_weight",
+        appliedAdjustments: [],
+        weightInKg: 30,
+        baseDoseMgKg: 15,
+        finalDoseMgKg: 15,
+        safetyMargin: {
+          percentOfMax: 75,
+          bufferZone: 150,
+        },
+        pharmacokinetics: {
+          totalDailyDose: 900,
+          dosesPerDay: 2,
+          timeBetweenDoses: "12 hours",
+        },
       },
     });
 

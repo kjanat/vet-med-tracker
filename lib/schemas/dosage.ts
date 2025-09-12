@@ -12,11 +12,11 @@ export const safetyLevelSchema = z.enum(["safe", "caution", "danger"]);
 
 // Calculation method schema
 export const calculationMethodSchema = z.enum([
-  "standard",
+  "basic_weight",
   "species_adjusted",
-  "breed_adjusted",
   "age_adjusted",
-  "route_adjusted",
+  "breed_adjusted",
+  "complex_multi_factor",
 ]);
 
 // Species adjustment schema
@@ -96,7 +96,7 @@ export const animalInfoSchema = z.object({
   conditions: z.array(z.string()).optional(),
 });
 
-// Dosage calculation input schema
+// Dosage calculation input schema (for direct calculation)
 export const dosageCalculationInputSchema = z.object({
   animal: animalInfoSchema,
   medication: medicationDataSchema,
@@ -104,11 +104,24 @@ export const dosageCalculationInputSchema = z.object({
   targetUnit: z.enum(["mg", "ml", "tablets"]).default("mg"),
 });
 
+// Dosage calculation request schema (for API endpoints with medicationId)
+export const dosageCalculationRequestSchema = z
+  .object({
+    animal: animalInfoSchema,
+    medicationId: z.uuid().optional(),
+    medication: medicationDataSchema.optional(),
+    route: z.string().optional(),
+    targetUnit: z.enum(["mg", "ml", "tablets"]).default("mg"),
+  })
+  .refine((data) => data.medicationId || data.medication, {
+    message: "Either medicationId or medication must be provided",
+  });
+
 // Alternative format schema
 export const alternativeFormatSchema = z.object({
   dose: z.number(),
   unit: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
 });
 
 // Daily dosing information schema
@@ -316,6 +329,25 @@ export const validateBreedForSpecies = (
   return true; // Allow any breed for other species
 };
 
+// Batch calculation schemas for the dosage router
+export const dosageCalculationBatchInputSchema = z.object({
+  calculations: z.array(dosageCalculationInputSchema).min(1).max(20), // Limit to 20 calculations per batch
+});
+
+export const dosageCalculationBatchResultSchema = z.object({
+  results: z.array(
+    z.object({
+      animal: animalInfoSchema,
+      medication: medicationDataSchema,
+      result: dosageResultSchema.nullable(),
+      success: z.boolean(),
+      error: z.string().optional(),
+      targetUnit: z.enum(["mg", "ml", "tablets"]).optional(),
+      route: z.string().optional(),
+    }),
+  ),
+});
+
 // Type exports for TypeScript
 export type WeightUnit = z.infer<typeof weightUnitSchema>;
 export type SafetyLevel = z.infer<typeof safetyLevelSchema>;
@@ -332,4 +364,13 @@ export type BatchDosageResult = z.infer<typeof batchDosageResultSchema>;
 export type DosageValidationInput = z.infer<typeof dosageValidationInputSchema>;
 export type DosageValidationResult = z.infer<
   typeof dosageValidationResultSchema
+>;
+export type DosageCalculationBatchInput = z.infer<
+  typeof dosageCalculationBatchInputSchema
+>;
+export type DosageCalculationBatchResult = z.infer<
+  typeof dosageCalculationBatchResultSchema
+>;
+export type DosageCalculationRequestInput = z.infer<
+  typeof dosageCalculationRequestSchema
 >;

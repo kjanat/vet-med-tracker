@@ -96,6 +96,60 @@ export function isOverdue(
 }
 
 /**
+ * Format time unit with singular/plural handling
+ */
+function formatTimeUnit(value: number, unit: string): string {
+  return value === 1 ? `1 ${unit}` : `${value} ${unit}s`;
+}
+
+/**
+ * Format time with direction (ago/in)
+ */
+function formatTimeWithDirection(
+  value: number,
+  unit: string,
+  isPast: boolean,
+): string {
+  const timeUnit = formatTimeUnit(value, unit);
+  return isPast ? `${timeUnit} ago` : `in ${timeUnit}`;
+}
+
+/**
+ * Get largest time unit from diff
+ */
+function getLargestTimeUnit(diff: {
+  days: number;
+  hours: number;
+  minutes: number;
+}): {
+  value: number;
+  unit: string;
+  isPast: boolean;
+} {
+  if (Math.abs(diff.days) >= 1) {
+    return {
+      value: Math.abs(Math.floor(diff.days)),
+      unit: "day",
+      isPast: diff.days < 0,
+    };
+  }
+
+  if (Math.abs(diff.hours) >= 1) {
+    return {
+      value: Math.abs(Math.floor(diff.hours)),
+      unit: "hour",
+      isPast: diff.hours < 0,
+    };
+  }
+
+  return {
+    value: Math.abs(Math.floor(diff.minutes)),
+    unit: "minute",
+    isPast: diff.minutes < 0,
+  };
+}
+
+/**
  * Format relative time (e.g., "2 hours ago", "in 30 minutes")
  */
 export function formatTimeAgo(date: Date): string {
@@ -103,30 +157,8 @@ export function formatTimeAgo(date: Date): string {
   const now = DateTime.now();
   const diff = dt.diff(now, ["days", "hours", "minutes"]);
 
-  if (Math.abs(diff.days) >= 1) {
-    const days = Math.abs(Math.floor(diff.days));
-    if (diff.days < 0) {
-      return days === 1 ? "1 day ago" : `${days} days ago`;
-    } else {
-      return days === 1 ? "in 1 day" : `in ${days} days`;
-    }
-  }
-
-  if (Math.abs(diff.hours) >= 1) {
-    const hours = Math.abs(Math.floor(diff.hours));
-    if (diff.hours < 0) {
-      return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
-    } else {
-      return hours === 1 ? "in 1 hour" : `in ${hours} hours`;
-    }
-  }
-
-  const minutes = Math.abs(Math.floor(diff.minutes));
-  if (diff.minutes < 0) {
-    return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
-  } else {
-    return minutes === 1 ? "in 1 minute" : `in ${minutes} minutes`;
-  }
+  const { value, unit, isPast } = getLargestTimeUnit(diff);
+  return formatTimeWithDirection(value, unit, isPast);
 }
 
 /**

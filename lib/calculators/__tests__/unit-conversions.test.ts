@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   DosageConverter,
   VetUnitUtils,
+  VetUnitConversions,
   VolumeConverter,
   WeightConverter,
 } from "../unit-conversions";
@@ -273,6 +274,95 @@ describe("VetUnitUtils", () => {
     it("returns empty array for unknown unit type", () => {
       const units = VetUnitUtils.getCommonUnits("unknown" as any);
       expect(units).toEqual([]);
+    });
+  });
+});
+
+// Test new VetUnitConversions namespace - API compatibility verification
+describe("VetUnitConversions Namespace - API Compatibility", () => {
+  describe("Weight namespace compatibility", () => {
+    it("matches WeightConverter.toKg functionality", () => {
+      const classResult = WeightConverter.toKg(22.0462, "lbs");
+      const namespaceResult = VetUnitConversions.Weight.toKg(22.0462, "lbs");
+      expect(namespaceResult).toBeCloseTo(classResult, 5);
+    });
+
+    it("matches WeightConverter.convert functionality", () => {
+      const classResult = WeightConverter.convert(5, "lbs", "kg");
+      const namespaceResult = VetUnitConversions.Weight.convert(5, "lbs", "kg");
+
+      expect(namespaceResult.value).toBeCloseTo(classResult.value, 5);
+      expect(namespaceResult.unit).toBe(classResult.unit);
+      expect(namespaceResult.originalValue).toBe(classResult.originalValue);
+      expect(namespaceResult.originalUnit).toBe(classResult.originalUnit);
+    });
+  });
+
+  describe("Volume namespace compatibility", () => {
+    it("matches VolumeConverter.toMl functionality", () => {
+      const classResult = VolumeConverter.toMl(1, "L");
+      const namespaceResult = VetUnitConversions.Volume.toMl(1, "L");
+      expect(namespaceResult).toBe(classResult);
+    });
+
+    it("matches VolumeConverter.convert functionality", () => {
+      const classResult = VolumeConverter.convert(1, "L", "ml");
+      const namespaceResult = VetUnitConversions.Volume.convert(1, "L", "ml");
+
+      expect(namespaceResult.value).toBe(classResult.value);
+      expect(namespaceResult.unit).toBe(classResult.unit);
+    });
+  });
+
+  describe("Dosage namespace compatibility", () => {
+    it("matches DosageConverter.toMg functionality", () => {
+      const classResult = DosageConverter.toMg(1, "g");
+      const namespaceResult = VetUnitConversions.Dosage.toMg(1, "g");
+      expect(namespaceResult).toBe(classResult);
+    });
+
+    it("matches DosageConverter.convert with concentration", () => {
+      const classResult = DosageConverter.fromMg(100, "ml", 50);
+      const namespaceResult = VetUnitConversions.Dosage.fromMg(100, "ml", 50);
+
+      expect(namespaceResult.value).toBe(classResult.value);
+      expect(namespaceResult.unit).toBe(classResult.unit);
+    });
+  });
+
+  describe("Utils namespace compatibility", () => {
+    it("matches VetUnitUtils.roundToVetPrecision functionality", () => {
+      const classResult = VetUnitUtils.roundToVetPrecision(10.12345, "kg");
+      const namespaceResult = VetUnitConversions.Utils.roundToVetPrecision(
+        10.12345,
+        "kg",
+      );
+      expect(namespaceResult).toBe(classResult);
+    });
+
+    it("matches VetUnitUtils.formatWithUnit functionality", () => {
+      const classResult = VetUnitUtils.formatWithUnit(10.12345, "kg");
+      const namespaceResult = VetUnitConversions.Utils.formatWithUnit(
+        10.12345,
+        "kg",
+      );
+      expect(namespaceResult).toBe(classResult);
+    });
+
+    it("matches VetUnitUtils.isSafeConversion functionality", () => {
+      const classResult = VetUnitUtils.isSafeConversion(50, "kg", "g");
+      const namespaceResult = VetUnitConversions.Utils.isSafeConversion(
+        50,
+        "kg",
+        "g",
+      );
+      expect(namespaceResult).toBe(classResult);
+    });
+
+    it("matches VetUnitUtils.getCommonUnits functionality", () => {
+      const classResult = VetUnitUtils.getCommonUnits("weight");
+      const namespaceResult = VetUnitConversions.Utils.getCommonUnits("weight");
+      expect(namespaceResult).toEqual(classResult);
     });
   });
 });

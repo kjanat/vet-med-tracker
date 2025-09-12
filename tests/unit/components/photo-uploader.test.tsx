@@ -4,6 +4,7 @@
 
 import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import Image from "next/image";
 import {
   clickButton,
   renderWithProviders,
@@ -83,7 +84,13 @@ const PhotoUploader: React.FC<{
       <div data-testid="photo-list">
         {photos.map((photo: any) => (
           <div key={photo.id} data-testid={`photo-${photo.id}`}>
-            <img src={photo.url} alt={photo.originalName} />
+            <Image
+              src={photo.url}
+              alt={photo.originalName}
+              width={100}
+              height={100}
+              unoptimized
+            />
             <button
               type="button"
               onClick={() => handleDelete(photo.id)}

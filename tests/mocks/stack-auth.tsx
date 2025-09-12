@@ -3,6 +3,7 @@
  * Comprehensive mocking utilities for Stack Auth in tests
  */
 
+import Image from "next/image";
 import type React from "react";
 import { vi } from "vitest";
 
@@ -257,9 +258,12 @@ export const MockUserButton = ({ user }: { user?: MockStackUser }) => (
   <div data-testid="mock-user-button">
     {user ? (
       <div>
-        <img
+        <Image
           src={user.profileImageUrl || "/default-avatar.png"}
           alt={user.displayName || "User"}
+          width={40}
+          height={40}
+          unoptimized
         />
         <span>{user.displayName || user.primaryEmail}</span>
         <button type="button" onClick={() => user.signOut()}>
@@ -276,6 +280,7 @@ export const MockUserButton = ({ user }: { user?: MockStackUser }) => (
 // Test Utilities
 // -----------------------------------------------------------------------------
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Unit testing utility namespace - static methods provide clear test configuration API with internal state management
 export class StackAuthTestUtils {
   private static mockUser: MockStackUser | null = null;
   private static mockStackServerApp: MockStackServerApp;
@@ -385,6 +390,7 @@ export const stackAuthMocks = {
 // Playwright Test Helpers
 // -----------------------------------------------------------------------------
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Legacy duplicate of E2E testing utilities - maintains compatibility during migration
 export class StackAuthPlaywrightHelpers {
   /**
    * Mock Stack Auth for Playwright tests by intercepting API calls

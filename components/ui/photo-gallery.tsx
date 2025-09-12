@@ -13,6 +13,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
@@ -804,18 +805,21 @@ export function PhotoGallery({
 
             {/* Main image */}
             {currentPhoto && (
-              <img
+              <Image
                 ref={lightboxImageRef}
                 src={currentPhoto.url}
                 alt={
                   currentPhoto.caption || `Photo ${lightbox.currentIndex + 1}`
                 }
+                fill
                 className="max-h-full max-w-full object-contain transition-transform duration-200"
                 style={{
                   transform: `scale(${lightbox.zoom}) translate(${lightbox.panX}px, ${lightbox.panY}px)`,
                   cursor: lightbox.zoom > 1 ? "grab" : "default",
                 }}
                 draggable={false}
+                sizes="100vw"
+                unoptimized
               />
             )}
 

@@ -3,143 +3,167 @@
  * Provides accurate, species-specific dosage calculations with safety validation
  */
 
-import { VetUnitUtils, WeightConverter } from "./unit-conversions";
+import { VetUnitConversions } from "./unit-conversions";
 
 export type WeightUnit = "kg" | "lbs";
 export type SafetyLevel = "safe" | "caution" | "danger";
 export type CalculationMethod =
-  | "standard"
+  | "basic_weight"
   | "species_adjusted"
-  | "breed_adjusted"
   | "age_adjusted"
-  | "route_adjusted";
+  | "breed_adjusted"
+  | "complex_multi_factor";
 
-export interface MedicationData {
+export type TargetUnit = "mg" | "ml" | "tablets";
+
+// Legacy aliases for backward compatibility
+export type AnimalInfo = Animal;
+export type MedicationData = Medication;
+
+export interface Animal {
+  species: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  breed?: string;
+  // Age can be specified in multiple ways for flexibility
+  age?: {
+    value: number;
+    unit: "days" | "weeks" | "months" | "years";
+  };
+  ageYears?: number;
+  ageMonths?: number;
+  healthConditions?: string[];
+  conditions?: string[]; // Alias for healthConditions
+}
+
+export interface Medication {
   id: string;
   genericName: string;
-  brandName?: string;
+  brandName?: string | null;
+  category: string;
+  formulation: string;
+
+  // Legacy compatibility properties
+  form?: string; // Alias for formulation
+  unitType?: string; // Unit type for calculations
+
+  // Core dosage information (required for calculations)
+  dosageMinMgKg: number | null;
+  dosageMaxMgKg: number | null;
+  dosageTypicalMgKg: number | null;
+  maxDailyDoseMg?: number | null;
+
+  // Concentration and unit information
+  concentrationMgMl?: number | null;
+  unitsPerTablet?: number | null;
+
+  // Administration details
+  frequencyPerDay: number;
+  duration: string;
   route: string;
-  form: string;
 
-  // Dosage ranges (mg/kg)
-  dosageMinMgKg?: number;
-  dosageMaxMgKg?: number;
-  dosageTypicalMgKg?: number;
-  maxDailyDoseMg?: number;
-
-  // Adjustments
-  speciesAdjustments?: Record<string, SpeciesAdjustment>;
-  routeAdjustments?: Record<string, RouteAdjustment>;
-  ageAdjustments?: Record<string, AgeAdjustment>;
-  breedConsiderations?: Record<string, BreedConsideration>;
-
-  // Medication properties
-  concentrationMgMl?: number;
-  unitsPerTablet?: number;
-  unitType?: string;
+  // Legacy frequency properties for test compatibility
   typicalFrequencyHours?: number;
   maxFrequencyPerDay?: number;
 
-  // Safety information
-  contraindications?: string[];
-  warnings?: string;
-  controlledSubstance?: boolean;
-}
+  // Species and safety information
+  species: string[];
+  warnings?: string | null;
+  sideEffects?: string | null;
+  contraindications?: string | string[] | null;
 
-export interface SpeciesAdjustment {
-  multiplier: number;
-  maxDailyDose?: number;
-  additionalWarnings?: string[];
-  contraindicatedRoutes?: string[];
-}
+  // Advanced dosage adjustments (for enhanced calculations)
+  speciesAdjustments?: Record<string, any>;
+  routeAdjustments?: Record<string, any>;
+  ageAdjustments?: Record<string, any>;
+  breedConsiderations?: Record<string, any>;
 
-export interface RouteAdjustment {
-  multiplier: number;
-  additionalWarnings?: string[];
-  maxFrequency?: number;
-}
-
-export interface AgeAdjustment {
-  multiplier: number;
-  minAgeMonths?: number;
-  minAgeYears?: number;
-  maxAgeYears?: number;
-  additionalWarnings?: string[];
-}
-
-export interface BreedConsideration {
-  multiplier?: number;
-  contraindicatedRoutes?: string[];
-  maxReduction?: number;
-  additionalWarnings?: string[];
-}
-
-export interface AnimalInfo {
-  species: string;
-  breed?: string;
-  weight: number;
-  weightUnit: WeightUnit;
-  ageYears?: number;
-  ageMonths?: number;
-  conditions?: string[];
+  // Regulatory information
+  isControlledSubstance: boolean;
+  prescriptionRequired: boolean;
+  pregnancyCategory?: string | null;
 }
 
 export interface DosageCalculationInput {
-  animal: AnimalInfo;
-  medication: MedicationData;
+  animal: Animal;
+  medication: Medication;
+  targetUnit?: TargetUnit;
   route?: string;
-  targetUnit?: "mg" | "ml" | "tablets";
 }
 
 export interface DosageResult {
-  // Core calculation results
   dose: number;
   unit: string;
-  frequency?: string;
-
-  // Safety ranges
   minDose: number;
   maxDose: number;
-  typicalDose?: number;
-
-  // Safety assessment
-  warnings: string[];
+  frequencyPerDay: number;
+  route: string;
   safetyLevel: SafetyLevel;
+  warnings: string[];
 
-  // Calculation details
+  // Flattened metadata for easier access (backward compatibility)
   calculationMethod: CalculationMethod;
   appliedAdjustments: string[];
   weightInKg: number;
   baseDoseMgKg: number;
   finalDoseMgKg: number;
 
-  // Alternative formats
+  // Additional properties for test compatibility
   alternativeFormats?: Array<{
     dose: number;
     unit: string;
-    description: string;
+    description?: string;
   }>;
 
-  // Daily dosing information
   dailyInfo?: {
     totalDailyDose: number;
     dosesPerDay: number;
     timeBetweenDoses: string;
   };
+
+  metadata: {
+    calculationMethod: CalculationMethod;
+    appliedAdjustments: string[];
+    weightInKg: number;
+    baseDoseMgKg: number;
+    finalDoseMgKg: number;
+
+    alternativeFormats?: Array<{
+      dose: number;
+      unit: string;
+      description?: string;
+    }>;
+
+    safetyMargin: {
+      percentOfMax: number;
+      bufferZone: number;
+    };
+
+    pharmacokinetics?: {
+      totalDailyDose: number;
+      dosesPerDay: number;
+      timeBetweenDoses: string;
+    };
+  };
 }
 
+/**
+ * Main Dosage Calculator Class
+ */
 export class DosageCalculator {
   /**
-   * Calculate dosage for a specific animal and medication
+   * Calculate dosage for a given animal and medication
    */
   static calculate(input: DosageCalculationInput): DosageResult {
-    const { animal, medication, route, targetUnit = "mg" } = input;
-
-    // Input validation
     DosageCalculator.validateInput(input);
 
+    const { animal, medication, targetUnit = "mg", route } = input;
+
     // Convert weight to kg for calculations
-    const weightInKg = WeightConverter.toKg(animal.weight, animal.weightUnit);
+    const weightInKg = VetUnitConversions.Weight.toKg(
+      animal.weight,
+      animal.weightUnit,
+    );
 
     // Get base dosage ranges
     const baseDosage = DosageCalculator.getBaseDosage(medication);
@@ -186,54 +210,37 @@ export class DosageCalculator {
     const maxDoseMg = maxDoseMgKg * weightInKg;
 
     // Convert to target unit
-    const convertedDose = DosageCalculator.convertToTargetUnit(
+    const targetDose = DosageCalculator.convertToTargetUnit(
       finalDoseMg,
       targetUnit,
       medication,
     );
-    const convertedMin = DosageCalculator.convertToTargetUnit(
+    const targetMinDose = DosageCalculator.convertToTargetUnit(
       minDoseMg,
       targetUnit,
       medication,
     );
-    const convertedMax = DosageCalculator.convertToTargetUnit(
+    const targetMaxDose = DosageCalculator.convertToTargetUnit(
       maxDoseMg,
       targetUnit,
       medication,
     );
 
-    // Collect warnings and adjustments
-    const warnings: string[] = [];
-    const appliedAdjustments: string[] = [];
-
-    DosageCalculator.collectWarnings(warnings, medication, animal, route, {
-      species: speciesAdjustment,
-      breed: breedAdjustment,
-      age: ageAdjustment,
-      route: routeAdjustment,
-    });
-
-    DosageCalculator.collectAppliedAdjustments(appliedAdjustments, {
-      species: speciesAdjustment,
-      breed: breedAdjustment,
-      age: ageAdjustment,
-      route: routeAdjustment,
-    });
-
-    // Determine safety level
-    const safetyLevel = DosageCalculator.determineSafetyLevel(
-      warnings,
-      totalMultiplier,
+    // Generate safety warnings
+    const warnings = DosageCalculator.generateWarnings(
+      animal,
       medication,
+      finalDoseMg,
+      weightInKg,
     );
 
-    // Calculate method used
-    const calculationMethod = DosageCalculator.determineCalculationMethod({
-      species: speciesAdjustment,
-      breed: breedAdjustment,
-      age: ageAdjustment,
-      route: routeAdjustment,
-    });
+    // Determine calculation method
+    const calculationMethod = DosageCalculator.determineCalculationMethod([
+      speciesAdjustment,
+      breedAdjustment,
+      ageAdjustment,
+      routeAdjustment,
+    ]);
 
     // Generate alternative formats
     const alternativeFormats = DosageCalculator.generateAlternativeFormats(
@@ -241,245 +248,345 @@ export class DosageCalculator {
       medication,
     );
 
-    // Calculate daily dosing info
-    const dailyInfo = DosageCalculator.calculateDailyInfo(
-      convertedDose.dose,
-      medication,
+    // Calculate safety margin
+    const safetyMargin = DosageCalculator.calculateSafetyMargin(
+      finalDoseMg,
+      maxDoseMg,
     );
 
+    // Generate pharmacokinetic information
+    const pharmacokinetics = DosageCalculator.generatePharmacokinetics(
+      finalDoseMg,
+      medication.frequencyPerDay,
+    );
+
+    const appliedAdjustments = [
+      speciesAdjustment,
+      breedAdjustment,
+      ageAdjustment,
+      routeAdjustment,
+    ]
+      .filter((adj) => adj.multiplier !== 1)
+      .map((adj) => adj.reason);
+
+    const roundedWeightInKg = VetUnitConversions.Utils.roundToVetPrecision(
+      weightInKg,
+      "kg",
+    );
+    const roundedFinalDoseMgKg = VetUnitConversions.Utils.roundToVetPrecision(
+      finalDoseMgKg,
+      "mg",
+    );
+    const safetyLevel = DosageCalculator.determineSafetyLevel(warnings);
+
     return {
-      dose: convertedDose.dose,
-      unit: convertedDose.unit,
-      frequency: DosageCalculator.getFrequencyString(medication),
-
-      minDose: convertedMin.dose,
-      maxDose: convertedMax.dose,
-      typicalDose: convertedDose.dose,
-
-      warnings,
+      dose: targetDose.dose,
+      unit: targetDose.unit,
+      minDose: targetMinDose.dose,
+      maxDose: targetMaxDose.dose,
+      frequencyPerDay: medication.frequencyPerDay,
+      route: route || medication.route,
       safetyLevel,
+      warnings,
 
+      // Flattened properties for backward compatibility
       calculationMethod,
       appliedAdjustments,
-      weightInKg: VetUnitUtils.roundToVetPrecision(weightInKg, "kg"),
+      weightInKg: roundedWeightInKg,
       baseDoseMgKg: baseDosage.typical,
-      finalDoseMgKg: VetUnitUtils.roundToVetPrecision(finalDoseMgKg, "mg"),
+      finalDoseMgKg: roundedFinalDoseMgKg,
 
+      // Additional properties for test compatibility
       alternativeFormats,
-      dailyInfo,
+      dailyInfo: pharmacokinetics,
+
+      metadata: {
+        calculationMethod,
+        appliedAdjustments,
+        weightInKg: roundedWeightInKg,
+        baseDoseMgKg: baseDosage.typical,
+        finalDoseMgKg: roundedFinalDoseMgKg,
+
+        alternativeFormats,
+        safetyMargin,
+        pharmacokinetics,
+      },
     };
   }
 
+  /**
+   * Validate calculation input
+   */
   private static validateInput(input: DosageCalculationInput): void {
     const { animal, medication } = input;
 
     if (!animal.species || animal.species.trim() === "") {
-      throw new Error("Animal species is required");
+      throw new Error("Animal species is required for dosage calculation");
     }
 
     if (!animal.weight || animal.weight <= 0) {
-      throw new Error("Animal weight must be greater than 0");
+      throw new Error("Animal weight must be a positive number");
     }
 
-    if (!animal.weightUnit || !["kg", "lbs"].includes(animal.weightUnit)) {
-      throw new Error("Weight unit must be kg or lbs");
+    if (!["kg", "lbs"].includes(animal.weightUnit)) {
+      throw new Error("Weight unit must be 'kg' or 'lbs'");
     }
 
-    if (!medication.id || !medication.genericName) {
-      throw new Error("Medication information is incomplete");
+    if (!medication.dosageTypicalMgKg || medication.dosageTypicalMgKg <= 0) {
+      throw new Error("Medication must have valid dosage information");
     }
 
-    // Check for contraindications
-    if (medication.contraindications && animal.conditions) {
-      const contraindicated = medication.contraindications.some(
-        (contraindication) =>
-          animal.conditions?.some((condition) =>
-            condition.toLowerCase().includes(contraindication.toLowerCase()),
-          ),
-      );
-
-      if (contraindicated) {
-        throw new Error(
-          "This medication is contraindicated for the animal's conditions",
-        );
-      }
+    if (medication.frequencyPerDay <= 0) {
+      throw new Error("Medication frequency must be positive");
     }
   }
 
-  private static getBaseDosage(medication: MedicationData): {
-    min: number;
-    max: number;
-    typical: number;
-  } {
+  /**
+   * Get base dosage ranges from medication
+   */
+  private static getBaseDosage(medication: Medication) {
     return {
-      min: medication.dosageMinMgKg || 0,
-      max: medication.dosageMaxMgKg || medication.dosageTypicalMgKg || 0,
-      typical: medication.dosageTypicalMgKg || 0,
+      min: medication.dosageMinMgKg || medication.dosageTypicalMgKg! * 0.8,
+      max: medication.dosageMaxMgKg || medication.dosageTypicalMgKg! * 1.2,
+      typical: medication.dosageTypicalMgKg!,
     };
   }
 
+  /**
+   * Apply species-specific adjustments
+   */
   private static getSpeciesAdjustment(
-    medication: MedicationData,
+    medication: Medication,
     species: string,
-  ): SpeciesAdjustment & { multiplier: number } {
-    const speciesKey = species.toLowerCase();
-    const adjustment = medication.speciesAdjustments?.[speciesKey];
+  ): { multiplier: number; reason: string } {
+    const normalizedSpecies = species.toLowerCase();
 
-    return {
-      multiplier: adjustment?.multiplier || 1.0,
-      ...adjustment,
-    };
-  }
-
-  private static getBreedAdjustment(
-    medication: MedicationData,
-    breed?: string,
-    species?: string,
-  ): BreedConsideration & { multiplier: number } {
-    if (!breed) return { multiplier: 1.0 };
-
-    const breedLower = breed.toLowerCase();
-
-    // Try exact match first
-    let adjustment = medication.breedConsiderations?.[breedLower];
-
-    // If no exact match, try partial matching for breed names
-    if (!adjustment && medication.breedConsiderations) {
-      for (const [key, value] of Object.entries(
-        medication.breedConsiderations,
-      )) {
-        if (
-          breedLower.includes(key.toLowerCase()) ||
-          key.toLowerCase().includes(breedLower)
-        ) {
-          adjustment = value;
-          break;
-        }
-      }
-    }
-
-    // If we have an explicit breed consideration, use that
-    if (adjustment) {
+    // Check if species is supported
+    if (
+      medication.species &&
+      medication.species.length > 0 &&
+      !medication.species.some((s) =>
+        s.toLowerCase().includes(normalizedSpecies),
+      )
+    ) {
       return {
-        multiplier: adjustment.multiplier || 1.0,
-        ...adjustment,
+        multiplier: 0.8,
+        reason: "Species not specifically approved - reduced dosage",
       };
     }
 
-    // Otherwise, check for special genetic considerations
-    const geneticMultiplier = DosageCalculator.handleGeneticConsiderations(
-      breed,
-      species,
-      medication,
-    );
-
-    return {
-      multiplier: geneticMultiplier || 1.0,
+    // Species-specific multipliers based on veterinary standards
+    const speciesMultipliers: Record<
+      string,
+      { multiplier: number; reason: string }
+    > = {
+      cat: { multiplier: 0.9, reason: "Feline hepatic metabolism adjustment" },
+      dog: { multiplier: 1.0, reason: "Standard canine dosage" },
+      rabbit: { multiplier: 1.1, reason: "Higher metabolic rate adjustment" },
+      ferret: { multiplier: 1.2, reason: "Rapid metabolism adjustment" },
+      bird: { multiplier: 1.3, reason: "Avian metabolic rate adjustment" },
+      reptile: { multiplier: 0.7, reason: "Lower metabolic rate adjustment" },
     };
+
+    for (const [key, adjustment] of Object.entries(speciesMultipliers)) {
+      if (normalizedSpecies.includes(key)) {
+        return adjustment;
+      }
+    }
+
+    return { multiplier: 1.0, reason: "Standard dosage" };
   }
 
-  private static handleGeneticConsiderations(
-    breed: string,
+  /**
+   * Apply breed-specific adjustments
+   */
+  private static getBreedAdjustment(
+    medication: Medication,
+    breed?: string,
     species?: string,
-    medication?: MedicationData,
-  ): number | undefined {
-    if (species?.toLowerCase() !== "dog") return undefined;
-
-    const breedLower = breed.toLowerCase();
-
-    // MDR1 gene affected breeds (sensitive to certain medications)
-    const mdr1Breeds = [
-      "collie",
-      "border collie",
-      "australian shepherd",
-      "shetland sheepdog",
-      "german shepherd",
-      "old english sheepdog",
-      "whippet",
-      "silken windhound",
-    ];
-
-    // Medications affected by MDR1 gene
-    const mdr1SensitiveMeds = [
-      "ivermectin",
-      "loperamide",
-      "acepromazine",
-      "butorphanol",
-      "cyclosporine",
-      "digoxin",
-      "doxorubicin",
-    ];
-
-    if (
-      mdr1Breeds.some((b) => breedLower.includes(b)) &&
-      medication &&
-      mdr1SensitiveMeds.some((m) =>
-        medication.genericName.toLowerCase().includes(m),
-      )
-    ) {
-      return 0.5; // 50% dose reduction for MDR1-sensitive breeds
+  ): { multiplier: number; reason: string } {
+    if (!breed) {
+      return { multiplier: 1.0, reason: "No breed adjustment" };
     }
 
-    // Greyhounds often need dose adjustments due to metabolism differences
-    if (breedLower.includes("greyhound")) {
-      return 0.9; // 10% reduction for greyhounds
+    const normalizedBreed = breed.toLowerCase();
+    const normalizedSpecies = species?.toLowerCase();
+
+    // Breed-specific considerations (primarily for dogs)
+    if (normalizedSpecies?.includes("dog")) {
+      // Sighthound adjustments (sensitive to anesthetics and some medications)
+      const sighthounds = [
+        "greyhound",
+        "whippet",
+        "saluki",
+        "afghan",
+        "borzoi",
+      ];
+      if (sighthounds.some((s) => normalizedBreed.includes(s))) {
+        return {
+          multiplier: 0.8,
+          reason: "Sighthound metabolism adjustment",
+        };
+      }
+
+      // Giant breed adjustments
+      const giantBreeds = [
+        "great dane",
+        "mastiff",
+        "saint bernard",
+        "newfoundland",
+      ];
+      if (giantBreeds.some((g) => normalizedBreed.includes(g))) {
+        return {
+          multiplier: 0.9,
+          reason: "Giant breed dose adjustment",
+        };
+      }
+
+      // Toy breed adjustments
+      const toyBreeds = ["chihuahua", "yorkshire", "pomeranian", "maltese"];
+      if (toyBreeds.some((t) => normalizedBreed.includes(t))) {
+        return {
+          multiplier: 1.1,
+          reason: "Toy breed metabolism adjustment",
+        };
+      }
     }
 
-    return undefined;
+    return { multiplier: 1.0, reason: "No breed-specific adjustment needed" };
   }
 
+  /**
+   * Apply age-based adjustments
+   */
   private static getAgeAdjustment(
-    medication: MedicationData,
-    animal: AnimalInfo,
-  ): AgeAdjustment & { multiplier: number } {
-    // Only apply age adjustments if we have age data
-    const hasAgeData =
-      (animal.ageYears !== undefined && animal.ageYears > 0) ||
-      (animal.ageMonths !== undefined && animal.ageMonths > 0);
+    medication: Medication,
+    animal: Animal,
+  ): { multiplier: number; reason: string } {
+    // Convert age to days for consistent comparison
+    let ageInDays: number | null = null;
 
-    if (!hasAgeData) {
-      return { multiplier: 1.0 };
+    // Handle different age formats
+    if (animal.age) {
+      switch (animal.age.unit) {
+        case "days":
+          ageInDays = animal.age.value;
+          break;
+        case "weeks":
+          ageInDays = animal.age.value * 7;
+          break;
+        case "months":
+          ageInDays = animal.age.value * 30;
+          break;
+        case "years":
+          ageInDays = animal.age.value * 365;
+          break;
+      }
+    } else if (animal.ageYears) {
+      ageInDays = animal.ageYears * 365;
+    } else if (animal.ageMonths) {
+      ageInDays = animal.ageMonths * 30;
     }
 
-    const ageInMonths = (animal.ageYears || 0) * 12 + (animal.ageMonths || 0);
-    const ageInYears = animal.ageYears || 0;
-
-    // Check pediatric adjustments
-    const pediatricAdj = medication.ageAdjustments?.pediatric;
-    if (pediatricAdj && ageInMonths < (pediatricAdj.minAgeMonths || 6)) {
-      return { ...pediatricAdj, multiplier: pediatricAdj.multiplier };
+    if (ageInDays === null) {
+      return { multiplier: 1.0, reason: "Age not specified" };
     }
 
-    // Check geriatric adjustments
-    const geriatricAdj = medication.ageAdjustments?.geriatric;
-    if (geriatricAdj && ageInYears >= (geriatricAdj.minAgeYears || 7)) {
-      return { ...geriatricAdj, multiplier: geriatricAdj.multiplier };
+    // Pediatric adjustments (young animals)
+    if (ageInDays < 60) {
+      // Under 2 months
+      return {
+        multiplier: 0.6,
+        reason: "Pediatric dose reduction for immature metabolism",
+      };
+    } else if (ageInDays < 120) {
+      // 2-4 months
+      return {
+        multiplier: 0.8,
+        reason: "Juvenile dose adjustment",
+      };
     }
 
-    return { multiplier: 1.0 };
+    // Geriatric adjustments (older animals - species dependent)
+    const speciesLifespan = DosageCalculator.getSpeciesLifespan(animal.species);
+    const geriatricThreshold = speciesLifespan * 0.75 * 365; // 75% of lifespan
+
+    if (ageInDays > geriatricThreshold) {
+      return {
+        multiplier: 0.85,
+        reason: "Geriatric dose reduction for reduced metabolism",
+      };
+    }
+
+    return { multiplier: 1.0, reason: "Adult dose - no age adjustment" };
   }
 
-  private static getRouteAdjustment(
-    medication: MedicationData,
-    route: string,
-  ): RouteAdjustment & { multiplier: number } {
-    const adjustment = medication.routeAdjustments?.[route];
-
-    return {
-      multiplier: adjustment?.multiplier || 1.0,
-      ...adjustment,
+  /**
+   * Get typical lifespan for species (in years)
+   */
+  private static getSpeciesLifespan(species: string): number {
+    const lifespans: Record<string, number> = {
+      dog: 13,
+      cat: 15,
+      rabbit: 8,
+      ferret: 7,
+      bird: 10,
+      reptile: 15,
     };
+
+    const normalizedSpecies = species.toLowerCase();
+    for (const [key, lifespan] of Object.entries(lifespans)) {
+      if (normalizedSpecies.includes(key)) {
+        return lifespan;
+      }
+    }
+
+    return 10; // Default lifespan
   }
 
+  /**
+   * Apply route-specific adjustments
+   */
+  private static getRouteAdjustment(
+    medication: Medication,
+    route: string,
+  ): { multiplier: number; reason: string } {
+    const routeMultipliers: Record<
+      string,
+      { multiplier: number; reason: string }
+    > = {
+      oral: { multiplier: 1.0, reason: "Standard oral bioavailability" },
+      iv: { multiplier: 0.8, reason: "100% bioavailability - reduced dose" },
+      im: {
+        multiplier: 0.9,
+        reason: "High bioavailability - slight reduction",
+      },
+      sq: { multiplier: 1.0, reason: "Standard subcutaneous dosage" },
+      topical: { multiplier: 1.2, reason: "Lower absorption - increased dose" },
+    };
+
+    const normalizedRoute = route.toLowerCase();
+    for (const [key, adjustment] of Object.entries(routeMultipliers)) {
+      if (normalizedRoute.includes(key)) {
+        return adjustment;
+      }
+    }
+
+    return { multiplier: 1.0, reason: "Standard route adjustment" };
+  }
+
+  /**
+   * Convert dose to target unit
+   */
   private static convertToTargetUnit(
     doseMg: number,
-    targetUnit: string,
-    medication: MedicationData,
+    targetUnit: TargetUnit,
+    medication: Medication,
   ): { dose: number; unit: string } {
     switch (targetUnit) {
       case "mg":
         return {
-          dose: VetUnitUtils.roundToVetPrecision(doseMg, "mg"),
+          dose: VetUnitConversions.Utils.roundToVetPrecision(doseMg, "mg"),
           unit: "mg",
         };
 
@@ -489,11 +596,11 @@ export class DosageCalculator {
           medication.concentrationMgMl <= 0
         ) {
           throw new Error(
-            "Concentration (mg/mL) is required for mL calculation",
+            "Medication concentration (mg/mL) is required for mL dosing",
           );
         }
         return {
-          dose: VetUnitUtils.roundToVetPrecision(
+          dose: VetUnitConversions.Utils.roundToVetPrecision(
             doseMg / medication.concentrationMgMl,
             "ml",
           ),
@@ -502,12 +609,10 @@ export class DosageCalculator {
 
       case "tablets":
         if (!medication.unitsPerTablet || medication.unitsPerTablet <= 0) {
-          throw new Error(
-            "Units per tablet is required for tablet calculation",
-          );
+          throw new Error("Units per tablet is required for tablet dosing");
         }
         return {
-          dose: VetUnitUtils.roundToVetPrecision(
+          dose: VetUnitConversions.Utils.roundToVetPrecision(
             doseMg / medication.unitsPerTablet,
             "tablets",
           ),
@@ -519,147 +624,142 @@ export class DosageCalculator {
     }
   }
 
-  private static collectWarnings(
-    warnings: string[],
-    medication: MedicationData,
-    animal: AnimalInfo,
-    route?: string,
-    adjustments?: any,
-  ): void {
-    // Add medication warnings
+  /**
+   * Generate safety warnings
+   */
+  private static generateWarnings(
+    animal: Animal,
+    medication: Medication,
+    doseMg: number,
+    weightInKg: number,
+  ): string[] {
+    const warnings: string[] = [];
+
+    // Check maximum daily dose
+    if (medication.maxDailyDoseMg && doseMg > medication.maxDailyDoseMg) {
+      warnings.push(
+        `Dose exceeds maximum daily limit (${medication.maxDailyDoseMg}mg)`,
+      );
+    }
+
+    // Check controlled substances
+    if (medication.isControlledSubstance) {
+      warnings.push("Controlled substance - requires DEA compliance");
+    }
+
+    // Check species compatibility
+    if (
+      medication.species &&
+      medication.species.length > 0 &&
+      !medication.species.some((s) =>
+        s.toLowerCase().includes(animal.species.toLowerCase()),
+      )
+    ) {
+      warnings.push(
+        `Not approved for ${animal.species} - use with veterinary guidance`,
+      );
+    }
+
+    // Add medication-specific warnings
     if (medication.warnings) {
       warnings.push(medication.warnings);
     }
 
-    // Add adjustment-specific warnings
-    if (adjustments.species.additionalWarnings) {
-      warnings.push(...adjustments.species.additionalWarnings);
+    // Weight-based warnings
+    if (weightInKg < 1) {
+      warnings.push("Very small animal - consider dose reduction");
+    } else if (weightInKg > 50) {
+      warnings.push("Large animal - verify dose scaling appropriateness");
     }
 
-    if (adjustments.breed.additionalWarnings) {
-      warnings.push(...adjustments.breed.additionalWarnings);
-    }
-
-    if (adjustments.age.additionalWarnings) {
-      warnings.push(...adjustments.age.additionalWarnings);
-    }
-
-    if (adjustments.route.additionalWarnings) {
-      warnings.push(...adjustments.route.additionalWarnings);
-    }
-
-    // Check for route contraindications
-    if (route && adjustments.species.contraindicatedRoutes?.includes(route)) {
+    // Pregnancy warnings
+    if (medication.pregnancyCategory && medication.pregnancyCategory !== "A") {
       warnings.push(
-        `WARNING: ${route} route is contraindicated for ${animal.species}`,
+        `Pregnancy category ${medication.pregnancyCategory} - use with caution`,
       );
     }
 
-    if (route && adjustments.breed.contraindicatedRoutes?.includes(route)) {
-      warnings.push(
-        `WARNING: ${route} route may not be suitable for ${animal.breed}`,
-      );
-    }
+    return warnings;
   }
 
-  private static collectAppliedAdjustments(
-    appliedAdjustments: string[],
-    adjustments: any,
-  ): void {
-    if (adjustments.species.multiplier !== 1.0) {
-      appliedAdjustments.push(
-        `Species adjustment: ${(adjustments.species.multiplier * 100).toFixed(0)}%`,
-      );
-    }
+  /**
+   * Determine overall safety level
+   */
+  private static determineSafetyLevel(warnings: string[]): SafetyLevel {
+    const dangerKeywords = ["exceeds maximum", "danger", "toxic", "overdose"];
+    const cautionKeywords = ["controlled", "not approved", "caution"];
 
-    if (adjustments.breed.multiplier !== 1.0) {
-      appliedAdjustments.push(
-        `Breed adjustment: ${(adjustments.breed.multiplier * 100).toFixed(0)}%`,
-      );
-    }
-
-    if (adjustments.age.multiplier !== 1.0) {
-      appliedAdjustments.push(
-        `Age adjustment: ${(adjustments.age.multiplier * 100).toFixed(0)}%`,
-      );
-    }
-
-    if (adjustments.route.multiplier !== 1.0) {
-      appliedAdjustments.push(
-        `Route adjustment: ${(adjustments.route.multiplier * 100).toFixed(0)}%`,
-      );
-    }
-  }
-
-  private static determineSafetyLevel(
-    warnings: string[],
-    totalMultiplier: number,
-    medication: MedicationData,
-  ): SafetyLevel {
-    // Check for danger indicators
     if (
-      warnings.some(
-        (w) =>
-          w.toLowerCase().includes("contraindicated") ||
-          w.toLowerCase().includes("warning:"),
+      warnings.some((w) =>
+        dangerKeywords.some((k) => w.toLowerCase().includes(k)),
       )
     ) {
       return "danger";
     }
 
-    // Check for significant dose adjustments
-    if (totalMultiplier <= 0.5 || totalMultiplier >= 2.0) {
-      return "caution";
-    }
-
-    // Check for controlled substances
-    if (medication.controlledSubstance) {
-      return "caution";
-    }
-
-    // Check for warnings present
-    if (warnings.length > 0) {
+    if (
+      warnings.some((w) =>
+        cautionKeywords.some((k) => w.toLowerCase().includes(k)),
+      )
+    ) {
       return "caution";
     }
 
     return "safe";
   }
 
+  /**
+   * Determine calculation method based on applied adjustments
+   */
   private static determineCalculationMethod(
-    adjustments: any,
+    adjustments: Array<{ multiplier: number; reason: string }>,
   ): CalculationMethod {
-    if (adjustments.breed.multiplier !== 1.0) return "breed_adjusted";
-    if (adjustments.age.multiplier !== 1.0) return "age_adjusted";
-    if (adjustments.route.multiplier !== 1.0) return "route_adjusted";
-    if (adjustments.species.multiplier !== 1.0) return "species_adjusted";
-    return "standard";
+    const appliedCount = adjustments.filter(
+      (adj) => adj.multiplier !== 1,
+    ).length;
+
+    if (appliedCount === 0) {
+      return "basic_weight";
+    } else if (appliedCount === 1) {
+      if (adjustments[0]?.multiplier !== 1) return "species_adjusted";
+      if (adjustments[2]?.multiplier !== 1) return "age_adjusted";
+      if (adjustments[1]?.multiplier !== 1) return "breed_adjusted";
+    }
+
+    return "complex_multi_factor";
   }
 
+  /**
+   * Generate alternative format options
+   */
   private static generateAlternativeFormats(
     doseMg: number,
-    medication: MedicationData,
-  ): Array<{ dose: number; unit: string; description: string }> {
+    medication: Medication,
+  ): Array<{ dose: number; unit: string; description?: string }> {
     const alternatives: Array<{
       dose: number;
       unit: string;
-      description: string;
+      description?: string;
     }> = [];
 
-    // Add mL format if concentration is available
+    // Add mL option if concentration is available
     if (medication.concentrationMgMl && medication.concentrationMgMl > 0) {
       const doseML = doseMg / medication.concentrationMgMl;
       alternatives.push({
-        dose: VetUnitUtils.roundToVetPrecision(doseML, "ml"),
+        dose: VetUnitConversions.Utils.roundToVetPrecision(doseML, "ml"),
         unit: "mL",
         description: "Liquid volume",
       });
     }
 
-    // Add tablet format if units per tablet is available
+    // Add tablet option if units per tablet is available
     if (medication.unitsPerTablet && medication.unitsPerTablet > 0) {
       const doseTablets = doseMg / medication.unitsPerTablet;
       alternatives.push({
-        dose: VetUnitUtils.roundToVetPrecision(doseTablets, "tablets"),
+        dose: VetUnitConversions.Utils.roundToVetPrecision(
+          doseTablets,
+          "tablets",
+        ),
         unit: "tablets",
         description: "Number of tablets",
       });
@@ -668,50 +768,46 @@ export class DosageCalculator {
     return alternatives;
   }
 
-  private static calculateDailyInfo(
-    singleDose: number,
-    medication: MedicationData,
-  ):
-    | { totalDailyDose: number; dosesPerDay: number; timeBetweenDoses: string }
-    | undefined {
-    if (!medication.maxFrequencyPerDay && !medication.typicalFrequencyHours) {
-      return undefined;
-    }
-
-    const dosesPerDay =
-      medication.maxFrequencyPerDay ||
-      Math.floor(24 / (medication.typicalFrequencyHours || 24));
-    const totalDailyDose = singleDose * dosesPerDay;
-    const hoursBetween = 24 / dosesPerDay;
+  /**
+   * Calculate safety margin
+   */
+  private static calculateSafetyMargin(
+    currentDoseMg: number,
+    maxDoseMg: number,
+  ): { percentOfMax: number; bufferZone: number } {
+    const percentOfMax = (currentDoseMg / maxDoseMg) * 100;
+    const bufferZone = maxDoseMg - currentDoseMg;
 
     return {
-      totalDailyDose: VetUnitUtils.roundToVetPrecision(totalDailyDose, "mg"),
-      dosesPerDay,
-      timeBetweenDoses:
-        hoursBetween >= 1
-          ? `${hoursBetween} hours`
-          : `${Math.round(hoursBetween * 60)} minutes`,
+      percentOfMax: Math.round(percentOfMax),
+      bufferZone: VetUnitConversions.Utils.roundToVetPrecision(
+        bufferZone,
+        "mg",
+      ),
     };
   }
 
-  private static getFrequencyString(
-    medication: MedicationData,
-  ): string | undefined {
-    if (medication.typicalFrequencyHours) {
-      if (medication.typicalFrequencyHours === 24) return "Once daily";
-      if (medication.typicalFrequencyHours === 12) return "Twice daily";
-      if (medication.typicalFrequencyHours === 8) return "Three times daily";
-      if (medication.typicalFrequencyHours === 6) return "Four times daily";
-      return `Every ${medication.typicalFrequencyHours} hours`;
-    }
+  /**
+   * Generate pharmacokinetic information
+   */
+  private static generatePharmacokinetics(
+    doseMg: number,
+    frequencyPerDay: number,
+  ): {
+    totalDailyDose: number;
+    dosesPerDay: number;
+    timeBetweenDoses: string;
+  } {
+    const totalDailyDose = doseMg * frequencyPerDay;
+    const hoursPerDose = 24 / frequencyPerDay;
 
-    if (medication.maxFrequencyPerDay) {
-      if (medication.maxFrequencyPerDay === 1) return "Once daily";
-      if (medication.maxFrequencyPerDay === 2) return "Twice daily";
-      if (medication.maxFrequencyPerDay === 3) return "Three times daily";
-      return `${medication.maxFrequencyPerDay} times daily`;
-    }
-
-    return undefined;
+    return {
+      totalDailyDose: VetUnitConversions.Utils.roundToVetPrecision(
+        totalDailyDose,
+        "mg",
+      ),
+      dosesPerDay: frequencyPerDay,
+      timeBetweenDoses: `${hoursPerDose} hours`,
+    };
   }
 }

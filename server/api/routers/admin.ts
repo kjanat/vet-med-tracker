@@ -325,6 +325,94 @@ async function createAdministrationRecord(
   return result[0];
 }
 
+// Helper function to process administration for a single animal
+async function processAnimalAdministration(
+  db: any,
+  animal: { id: string; name: string; timezone?: string | null },
+  input: {
+    regimenId: string;
+    householdId: string;
+    idempotencyKey: string;
+    administeredAt?: string;
+    status?: "ON_TIME" | "LATE" | "VERY_LATE" | "PRN";
+    inventorySourceId?: string | null;
+    site?: string | null;
+    dose?: string | null;
+    notes?: string | null;
+    mediaUrls?: string[] | null;
+  },
+  caregiverId: string,
+) {
+  // Check if this animal has an active regimen with this ID
+  const animalRegimen = await db
+    .select()
+    .from(regimens)
+    .where(
+      and(
+        eq(regimens.id, input.regimenId),
+        eq(regimens.animalId, animal.id),
+        eq(regimens.active, true),
+      ),
+    )
+    .limit(1)
+    .execute();
+
+  if (!animalRegimen[0]) {
+    throw new Error("No active regimen found for this animal");
+  }
+
+  // Create unique idempotency key per animal
+  const animalIdempotencyKey = `${input.idempotencyKey}-${animal.id}`;
+
+  // Check for duplicate
+  const existing = await checkDuplicateAdministration(db, animalIdempotencyKey);
+
+  if (existing) {
+    return existing;
+  }
+
+  // Create administration record
+  const administeredAt = input.administeredAt
+    ? new Date(input.administeredAt)
+    : new Date();
+
+  const { status, scheduledFor } = calculateScheduledTimeAndStatus(
+    {
+      scheduleType: animalRegimen[0].scheduleType,
+      timesLocal: animalRegimen[0].timesLocal,
+      cutoffMinutes: animalRegimen[0].cutoffMinutes,
+    },
+    { timezone: animal.timezone || "UTC" },
+    administeredAt,
+    input.status,
+  );
+
+  const newAdmin: NewAdministration = {
+    regimenId: input.regimenId,
+    animalId: animal.id,
+    householdId: input.householdId,
+    caregiverId,
+    scheduledFor: scheduledFor?.toISOString() || null,
+    recordedAt: administeredAt.toISOString(),
+    status,
+    sourceItemId: input.inventorySourceId || null,
+    site: input.site || null,
+    dose: input.dose || animalRegimen[0].dose || null,
+    notes: input.notes || null,
+    mediaUrls: input.mediaUrls || null,
+    adverseEvent: false,
+    idempotencyKey: animalIdempotencyKey,
+  };
+
+  const result = await db.insert(administrations).values(newAdmin).returning();
+
+  if (!result[0]) {
+    throw new Error("Failed to create administration record");
+  }
+
+  return result[0];
+}
+
 export const adminRouter = createTRPCRouter({
   // Record a medication administration
   cosign: householdProcedure
@@ -713,96 +801,23 @@ export const adminRouter = createTRPCRouter({
       await ctx.db.transaction(async (tx) => {
         for (const animal of animalData) {
           try {
-            // Check if this animal has an active regimen with this ID
-            const animalRegimen = await tx
-              .select()
-              .from(regimens)
-              .where(
-                and(
-                  eq(regimens.id, input.regimenId),
-                  eq(regimens.animalId, animal.id),
-                  eq(regimens.active, true),
-                ),
-              )
-              .limit(1)
-              .execute();
-
-            if (!animalRegimen[0]) {
-              results.push({
-                animalId: animal.id,
-                animalName: animal.name,
-                success: false,
-                error: "No active regimen found for this animal",
-              });
-              continue;
-            }
-
-            // Create unique idempotency key per animal
-            const animalIdempotencyKey = `${input.idempotencyKey}-${animal.id}`;
-
-            // Check for duplicate
-            const existing = await checkDuplicateAdministration(
-              ctx.db,
-              animalIdempotencyKey,
-            );
-
-            if (existing) {
-              results.push({
-                animalId: animal.id,
-                animalName: animal.name,
-                success: true,
-                administration: existing,
-              });
-              continue;
-            }
-
-            // Create administration record
-            const administeredAt = input.administeredAt
-              ? new Date(input.administeredAt)
-              : new Date();
-
-            const { status, scheduledFor } = calculateScheduledTimeAndStatus(
-              {
-                scheduleType: animalRegimen[0].scheduleType,
-                timesLocal: animalRegimen[0].timesLocal,
-                cutoffMinutes: animalRegimen[0].cutoffMinutes,
-              },
+            const result = await processAnimalAdministration(
+              tx,
               animal,
-              administeredAt,
-              input.status,
+              {
+                regimenId: input.regimenId,
+                householdId: input.householdId,
+                idempotencyKey: input.idempotencyKey,
+                administeredAt: input.administeredAt,
+                status: input.status,
+                inventorySourceId: input.inventorySourceId,
+                site: input.site,
+                dose: input.dose,
+                notes: input.notes,
+                mediaUrls: input.mediaUrls,
+              },
+              ctx.dbUser.id,
             );
-
-            const newAdmin: NewAdministration = {
-              regimenId: input.regimenId,
-              animalId: animal.id,
-              householdId: input.householdId,
-              caregiverId: ctx.dbUser.id,
-              scheduledFor: scheduledFor?.toISOString() || null,
-              recordedAt: administeredAt.toISOString(),
-              status,
-              sourceItemId: input.inventorySourceId || null,
-              site: input.site || null,
-              dose: input.dose || animalRegimen[0].dose || null,
-              notes: input.notes || null,
-              mediaUrls: input.mediaUrls || null,
-              adverseEvent: false,
-              idempotencyKey: animalIdempotencyKey,
-            };
-
-            const result = await tx
-              .insert(administrations)
-              .values(newAdmin)
-              .returning();
-
-            if (!result[0]) {
-              results.push({
-                animalId: animal.id,
-                animalName: animal.name,
-                success: false,
-                error: "Failed to create administration record",
-              });
-              continue;
-            }
 
             // Create audit log
             await createAuditLog(ctx.db, {
@@ -810,15 +825,15 @@ export const adminRouter = createTRPCRouter({
               householdId: input.householdId,
               action: "CREATE",
               tableName: "administrations",
-              recordId: result[0].id,
-              newValues: result[0],
+              recordId: result.id,
+              newValues: result,
             });
 
             results.push({
               animalId: animal.id,
               animalName: animal.name,
               success: true,
-              administration: result[0],
+              administration: result,
             });
           } catch (error) {
             results.push({

@@ -6,6 +6,7 @@
 import { expect, type Page } from "@playwright/test";
 import { type MockStackUser, TEST_USERS } from "../mocks/stack-auth-playwright";
 
+// biome-ignore lint/complexity/noStaticOnlyClass: E2E testing utility namespace - static methods provide clear API boundary for Playwright authentication helpers
 export class StackAuthPlaywrightHelpers {
   /**
    * Mock Stack Auth for Playwright tests by intercepting API calls

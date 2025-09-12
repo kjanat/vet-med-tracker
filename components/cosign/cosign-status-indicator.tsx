@@ -8,6 +8,7 @@ import {
   FileSignature,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -389,11 +390,14 @@ function CoSignDetails({
                         Digital Signature:
                       </span>
                       <div className="rounded-md border bg-background p-2">
-                        <img
+                        <Image
                           src={cosignRequest.signature}
                           alt="Digital signature"
+                          width={200}
+                          height={60}
                           className="h-auto max-w-full"
                           style={{ maxHeight: "60px" }}
+                          unoptimized
                         />
                       </div>
                     </div>

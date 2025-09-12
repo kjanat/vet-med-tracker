@@ -114,37 +114,28 @@ export function SignaturePad({
     [],
   );
 
-  // Draw on canvas
-  const drawStroke = useCallback((stroke: Stroke) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!ctx || stroke.points.length === 0) return;
+  // Draw single point as dot
+  const drawSinglePoint = useCallback(
+    (ctx: CanvasRenderingContext2D, point: Point, stroke: Stroke) => {
+      ctx.fillStyle = stroke.color;
+      ctx.arc(point.x, point.y, stroke.width / 2, 0, 2 * Math.PI);
+      ctx.fill();
+    },
+    [],
+  );
 
-    ctx.strokeStyle = stroke.color;
-    ctx.lineWidth = stroke.width;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-
-    ctx.beginPath();
-
-    if (stroke.points.length === 1) {
-      // Single point - draw a dot
-      const point = stroke.points[0];
-      if (point) {
-        ctx.fillStyle = stroke.color;
-        ctx.arc(point.x, point.y, stroke.width / 2, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-    } else {
-      // Multiple points - draw smooth curve
-      const firstPoint = stroke.points[0];
+  // Draw smooth curve through multiple points
+  const drawSmoothCurve = useCallback(
+    (ctx: CanvasRenderingContext2D, points: Point[]) => {
+      const firstPoint = points[0];
       if (firstPoint) {
         ctx.moveTo(firstPoint.x, firstPoint.y);
       }
 
-      for (let i = 1; i < stroke.points.length - 2; i++) {
-        const currentPoint = stroke.points[i];
-        const nextPoint = stroke.points[i + 1];
+      // Draw quadratic curves between points
+      for (let i = 1; i < points.length - 2; i++) {
+        const currentPoint = points[i];
+        const nextPoint = points[i + 1];
         if (currentPoint && nextPoint) {
           const xc = (currentPoint.x + nextPoint.x) / 2;
           const yc = (currentPoint.y + nextPoint.y) / 2;
@@ -152,9 +143,10 @@ export function SignaturePad({
         }
       }
 
-      if (stroke.points.length >= 2) {
-        const lastPoint = stroke.points[stroke.points.length - 1];
-        const secondLastPoint = stroke.points[stroke.points.length - 2];
+      // Draw final curve to last point
+      if (points.length >= 2) {
+        const lastPoint = points[points.length - 1];
+        const secondLastPoint = points[points.length - 2];
         if (lastPoint && secondLastPoint) {
           ctx.quadraticCurveTo(
             secondLastPoint.x,
@@ -166,8 +158,42 @@ export function SignaturePad({
       }
 
       ctx.stroke();
-    }
-  }, []);
+    },
+    [],
+  );
+
+  // Setup canvas context for drawing
+  const setupCanvasContext = useCallback(
+    (ctx: CanvasRenderingContext2D, stroke: Stroke) => {
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.width;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+    },
+    [],
+  );
+
+  // Draw on canvas
+  const drawStroke = useCallback(
+    (stroke: Stroke) => {
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (!ctx || stroke.points.length === 0) return;
+
+      setupCanvasContext(ctx, stroke);
+
+      if (stroke.points.length === 1) {
+        const point = stroke.points[0];
+        if (point) {
+          drawSinglePoint(ctx, point, stroke);
+        }
+      } else {
+        drawSmoothCurve(ctx, stroke.points);
+      }
+    },
+    [setupCanvasContext, drawSinglePoint, drawSmoothCurve],
+  );
 
   // Redraw entire canvas
   const redrawCanvas = useCallback(() => {
