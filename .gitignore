@@ -315,5 +315,32 @@ playwright-report/
 public/silhouettes/*.json
 !public/silhouettes/index.json
 
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# Refactoring artifacts
+*-backup-*/
+app-backup-*/
+app-final-backup-*/
+
+# Architecture documentation artifacts
+architectural-clarity-analysis.md
+DOMAIN_ARCHITECTURE_SUMMARY.md
+API_REFACTORING_PLAN.md
+REFACTOR_CAMPAIGN_RESULTS.md
+components/FACTORY_REFACTOR_SUMMARY.md
+components/providers/ARCHITECTURE_DEMO.md
+components/providers/MIGRATION_GUIDE.md
+components/providers/REFACTOR_SUMMARY.md
+
+# Claude documentation artifacts
+claudedocs/
+
+# Migration and refactoring scripts
+scripts/*.sh
+scripts/migrate-*.ts
+scripts/standardize-*.ts
+scripts/finalize-*.sh
+
 .git/
 node_modules/

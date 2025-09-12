@@ -6,9 +6,11 @@
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+// Use the database schema type for medication catalog rows
+import { medicationCatalog } from "@/db/schema";
 import {
-  DosageCalculator,
   type DosageCalculationInput,
+  DosageCalculator,
   type DosageResult,
 } from "@/lib/calculators/dosage";
 import {
@@ -17,8 +19,7 @@ import {
   ownerProcedure,
   protectedProcedure,
 } from "@/server/api/trpc";
-// Use the database schema type for medication catalog rows
-import { medicationCatalog } from "@/db/schema";
+
 type MedicationCatalogRow = typeof medicationCatalog.$inferSelect;
 
 /**
@@ -199,6 +200,7 @@ function getDosageBreakdown(
     },
   };
 }
+
 import { VetUnitConversions } from "@/lib/calculators/unit-conversions";
 import {
   batchDosageResultSchema,
@@ -206,15 +208,13 @@ import {
   convertDosageInputSchema,
   convertVolumeInputSchema,
   convertWeightInputSchema,
+  dosageCalculationBatchInputSchema,
+  dosageCalculationBatchResultSchema,
   dosageCalculationRequestSchema,
   dosageResultSchema,
   dosageValidationInputSchema,
   dosageValidationResultSchema,
   medicationCatalogUpdateSchema,
-} from "@/lib/schemas/dosage";
-import {
-  dosageCalculationBatchInputSchema,
-  dosageCalculationBatchResultSchema,
 } from "@/lib/schemas/dosage";
 
 export const dosageRouter = createTRPCRouter({

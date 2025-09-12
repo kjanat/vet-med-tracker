@@ -317,6 +317,9 @@ importers:
       babel-plugin-react-compiler:
         specifier: 19.1.0-rc.3
         version: 19.1.0-rc.3
+      commander:
+        specifier: ^14.0.0
+        version: 14.0.0
       drizzle-kit:
         specifier: ^0.31.4
         version: 0.31.4

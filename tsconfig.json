@@ -37,5 +37,5 @@
     ".next/types/**/*.ts",
     "scripts/test-push-notifications.mjs"
   ],
-  "exclude": ["node_modules", "scripts", "public/sw.js"]
+  "exclude": ["node_modules", "scripts", "public/sw.js", "experimental", "*-backup-*"]
 }

@@ -5,8 +5,8 @@
 import { describe, expect, it } from "vitest";
 import {
   DosageConverter,
-  VetUnitUtils,
   VetUnitConversions,
+  VetUnitUtils,
   VolumeConverter,
   WeightConverter,
 } from "../unit-conversions";
