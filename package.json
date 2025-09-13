@@ -204,6 +204,9 @@
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
+  "jshintConfig": {
+    "esversion": "next"
+  },
   "engines": {
     "node": "22.x",
     "pnpm": ">=10"
