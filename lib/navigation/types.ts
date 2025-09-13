@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { Route } from "next";
+import type React from "react";
 
 /**
  * Core navigation item structure

@@ -5,8 +5,6 @@
 
 import { expect, type Page } from "@playwright/test";
 import { type MockStackUser, TEST_USERS } from "../mocks/stack-auth-playwright";
-
-// biome-ignore lint/complexity/noStaticOnlyClass: E2E testing utility namespace - static methods provide clear API boundary for Playwright authentication helpers
 export class StackAuthPlaywrightHelpers {
   /**
    * Mock Stack Auth for Playwright tests by intercepting API calls
@@ -15,44 +13,87 @@ export class StackAuthPlaywrightHelpers {
     page: Page,
     user: MockStackUser | null = TEST_USERS.OWNER,
   ) {
-    // Intercept Stack Auth API calls and requests
+    await StackAuthPlaywrightHelpers.setupApiInterceptors(page, user);
+    await StackAuthPlaywrightHelpers.setupLocalStorageMocking(page, user);
+    await StackAuthPlaywrightHelpers.setupHandlerRoutes(page, user);
+  }
+
+  /**
+   * Set up API call interceptors for Stack Auth endpoints
+   */
+  private static async setupApiInterceptors(
+    page: Page,
+    user: MockStackUser | null,
+  ) {
     await page.route("**/api/stack-auth/**", async (route) => {
       const url = route.request().url();
 
       if (url.includes("/user") || url.includes("/me")) {
-        await route.fulfill({
-          status: user ? 200 : 401,
-          contentType: "application/json",
-          body: JSON.stringify(user ? { user } : { error: "Unauthorized" }),
-        });
+        await StackAuthPlaywrightHelpers.handleUserEndpoint(route, user);
       } else if (url.includes("/session")) {
-        const session = user
-          ? {
-              user,
-              accessToken: `mock_token_${user.id}`,
-              expiresAt: Date.now() + 3600000,
-            }
-          : null;
-
-        await route.fulfill({
-          status: user ? 200 : 401,
-          contentType: "application/json",
-          body: JSON.stringify(
-            session ? { session } : { error: "Unauthorized" },
-          ),
-        });
+        await StackAuthPlaywrightHelpers.handleSessionEndpoint(route, user);
       } else if (url.includes("/sign-out")) {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({ success: true }),
-        });
+        await StackAuthPlaywrightHelpers.handleSignOutEndpoint(route);
       } else {
         await route.continue();
       }
     });
+  }
 
-    // Mock localStorage for client-side session management
+  /**
+   * Handle user/me endpoint responses
+   */
+  private static async handleUserEndpoint(
+    route: any,
+    user: MockStackUser | null,
+  ) {
+    await route.fulfill({
+      status: user ? 200 : 401,
+      contentType: "application/json",
+      body: JSON.stringify(user ? { user } : { error: "Unauthorized" }),
+    });
+  }
+
+  /**
+   * Handle session endpoint responses
+   */
+  private static async handleSessionEndpoint(
+    route: any,
+    user: MockStackUser | null,
+  ) {
+    const session = user
+      ? {
+          user,
+          accessToken: `mock_token_${user.id}`,
+          expiresAt: Date.now() + 3600000,
+        }
+      : null;
+
+    await route.fulfill({
+      status: user ? 200 : 401,
+      contentType: "application/json",
+      body: JSON.stringify(session ? { session } : { error: "Unauthorized" }),
+    });
+  }
+
+  /**
+   * Handle sign-out endpoint responses
+   */
+  private static async handleSignOutEndpoint(route: any) {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true }),
+    });
+  }
+
+  /**
+   * Set up localStorage mocking for client-side session management
+   */
+  private static async setupLocalStorageMocking(
+    page: Page,
+    user: MockStackUser | null,
+  ) {
     await page.addInitScript((userData) => {
       // Set up Stack Auth session in localStorage
       if (userData) {
@@ -73,8 +114,27 @@ export class StackAuthPlaywrightHelpers {
       window.__STACK_AUTH_MOCKED__ = true;
       window.__STACK_AUTH_USER__ = userData;
     }, user);
+  }
 
-    // Mock Stack Auth handler routes
+  /**
+   * Set up handler route interceptors for sign-in/sign-up/sign-out
+   */
+  private static async setupHandlerRoutes(
+    page: Page,
+    user: MockStackUser | null,
+  ) {
+    await StackAuthPlaywrightHelpers.setupSignInHandler(page, user);
+    await StackAuthPlaywrightHelpers.setupSignUpHandler(page, user);
+    await StackAuthPlaywrightHelpers.setupSignOutHandler(page);
+  }
+
+  /**
+   * Set up sign-in handler route
+   */
+  private static async setupSignInHandler(
+    page: Page,
+    user: MockStackUser | null,
+  ) {
     await page.route("**/handler/sign-in/**", async (route) => {
       if (user && route.request().method() === "POST") {
         await route.fulfill({
@@ -88,7 +148,15 @@ export class StackAuthPlaywrightHelpers {
         await route.continue();
       }
     });
+  }
 
+  /**
+   * Set up sign-up handler route
+   */
+  private static async setupSignUpHandler(
+    page: Page,
+    user: MockStackUser | null,
+  ) {
     await page.route("**/handler/sign-up/**", async (route) => {
       if (user && route.request().method() === "POST") {
         await route.fulfill({
@@ -102,7 +170,12 @@ export class StackAuthPlaywrightHelpers {
         await route.continue();
       }
     });
+  }
 
+  /**
+   * Set up sign-out handler route
+   */
+  private static async setupSignOutHandler(page: Page) {
     await page.route("**/handler/sign-out/**", async (route) => {
       await route.fulfill({
         status: 302,

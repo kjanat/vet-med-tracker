@@ -1,7 +1,7 @@
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import type { Metadata } from "next";
 import type React from "react";
-import { stackServerApp } from "../stack";
+import { stackServerApp } from "@/stack";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     "medication reminders",
     "animal prescription tracker",
   ],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "VetMed Tracker - Pet Medication Management",
     description:
@@ -29,6 +32,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "VetMed Tracker",
+    url: "/",
   },
   twitter: {
     card: "summary_large_image",

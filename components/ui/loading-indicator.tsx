@@ -11,8 +11,7 @@ import { useEffect, useState } from "react";
 export function LoadingIndicator() {
   const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers the effect intentionally (see Next.js docs)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname change triggers this effect intentionally
   useEffect(() => {
     // Show loading indicator on route change
     setIsNavigating(true);
@@ -26,14 +25,12 @@ export function LoadingIndicator() {
   }, [pathname]);
 
   return isNavigating ? (
-    // biome-ignore lint/a11y/useSemanticElements: role="status" is correct for loading indicators per ARIA spec
-    <div
-      role="status"
+    <output
       aria-label="Loading"
       className="ml-auto inline-block h-3 w-3 animate-fade-in animate-spin rounded-full border-2 border-current border-r-transparent border-solid opacity-0 motion-reduce:animate-[spin_1.5s_linear_infinite]"
     >
       <span className="sr-only">Loading...</span>
-    </div>
+    </output>
   ) : null;
 }
 

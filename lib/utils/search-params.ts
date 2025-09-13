@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReadonlyURLSearchParams } from "next/navigation";
 import { z } from "zod";
 
 /**
@@ -169,26 +170,26 @@ export function createTypedQueryString<T>(
 /**
  * Parses search parameters with type safety and validation
  *
- * @template T - The expected return type
+ * @template K - The page type which defines the schema and output type
  * @param searchParams - URLSearchParams or ReadonlyURLSearchParams to parse
  * @param pageType - The page type for validation schema lookup
  * @returns Parsed and validated search parameters
  *
  * @example
  * ```typescript
- * const params = parseTypedSearchParams<HistorySearchParams>(
+ * const params = parseTypedSearchParams(
  *   searchParams,
  *   'history'
  * );
  * // params.type is now properly typed as "all" | "scheduled" | "prn" | undefined
  * ```
  */
-export function parseTypedSearchParams<T>(
-  searchParams: URLSearchParams,
-  pageType: SearchParamPageType,
-): T {
+export function parseTypedSearchParams<K extends SearchParamPageType>(
+  searchParams: URLSearchParams | ReadonlyURLSearchParams,
+  pageType: K,
+): z.infer<(typeof schemaMap)[K]> {
   const schema = schemaMap[pageType];
-  const rawParams: Record<string, string | undefined> = {};
+  const rawParams: Record<string, string> = {};
 
   // Convert URLSearchParams to plain object
   for (const [key, value] of searchParams.entries()) {
@@ -199,19 +200,19 @@ export function parseTypedSearchParams<T>(
   const result = schema.safeParse(rawParams);
 
   if (result.success) {
-    return result.data as T;
+    return result.data as z.infer<(typeof schemaMap)[K]>;
   }
 
   // Log validation errors in development
   if (process.env.NODE_ENV === "development") {
     console.warn(
       `Invalid search parameters for page "${pageType}":`,
-      result.error.format(),
+      result.error.issues,
     );
   }
 
   // Return empty object on validation failure
-  return {} as T;
+  return {} as z.infer<(typeof schemaMap)[K]>;
 }
 
 /**
@@ -244,15 +245,15 @@ export function updateSearchParams<T>(
 /**
  * Creates a type-safe search parameter getter with default values
  *
- * @template T - The type of search parameters
- * @param searchParams - URLSearchParams to read from
+ * @template K - The page type which determines the schema/output
+ * @param searchParams - URLSearchParams or ReadonlyURLSearchParams to read from
  * @param pageType - Page type for validation
  * @param defaults - Default values to merge with parsed params
  * @returns Parsed parameters merged with defaults
  *
  * @example
  * ```typescript
- * const params = getTypedSearchParams<HistorySearchParams>(
+ * const params = getTypedSearchParams(
  *   searchParams,
  *   'history',
  *   { type: 'all', view: 'list' }
@@ -260,13 +261,13 @@ export function updateSearchParams<T>(
  * // Always returns type and view, even if not in URL
  * ```
  */
-export function getTypedSearchParams<T>(
-  searchParams: URLSearchParams,
-  pageType: SearchParamPageType,
-  defaults: Partial<T> = {},
-): T {
-  const parsed = parseTypedSearchParams<T>(searchParams, pageType);
-  return { ...defaults, ...parsed } as T;
+export function getTypedSearchParams<K extends SearchParamPageType>(
+  searchParams: URLSearchParams | ReadonlyURLSearchParams,
+  pageType: K,
+  defaults: Partial<z.infer<(typeof schemaMap)[K]>> = {},
+): z.infer<(typeof schemaMap)[K]> {
+  const parsed = parseTypedSearchParams(searchParams, pageType);
+  return { ...defaults, ...parsed } as z.infer<(typeof schemaMap)[K]>;
 }
 
 /**

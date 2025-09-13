@@ -1,6 +1,6 @@
 import type * as schema from "@/db/schema";
 import type { Context } from "@/server/api/trpc";
-import { createMockUser, type MockStackUser } from "../mocks/stack-auth";
+import { createMockUser, type MockStackUser } from "@/tests/mocks";
 import { createTestDatabase } from "./test-db";
 
 /**

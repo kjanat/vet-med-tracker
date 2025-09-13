@@ -60,13 +60,11 @@ interface SystemSnapshot {
 }
 
 class SystemMonitor {
-  private config: MonitoringConfig;
+  private readonly config: MonitoringConfig;
   private snapshots: SystemSnapshot[] = [];
   private isMonitoring = false;
   private monitoringInterval?: NodeJS.Timeout;
   private lastCpuUsage: NodeJS.CpuUsage;
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: Used in analysis reporting
-  private startTime = 0;
 
   constructor(config: MonitoringConfig) {
     this.config = config;

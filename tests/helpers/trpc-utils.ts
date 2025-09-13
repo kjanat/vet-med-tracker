@@ -6,7 +6,7 @@ import {
   type MockStackUser,
   StackAuthTestUtils,
   TEST_USERS,
-} from "../mocks/stack-auth";
+} from "@/tests/mocks";
 import { mockDb } from "./mock-db";
 
 // Define test session type for Stack Auth compatibility

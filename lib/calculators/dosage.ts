@@ -73,10 +73,10 @@ export interface Medication {
   contraindications?: string | string[] | null;
 
   // Advanced dosage adjustments (for enhanced calculations)
-  speciesAdjustments?: Record<string, any>;
-  routeAdjustments?: Record<string, any>;
-  ageAdjustments?: Record<string, any>;
-  breedConsiderations?: Record<string, any>;
+  speciesAdjustments?: Record<string, number>;
+  routeAdjustments?: Record<string, number>;
+  ageAdjustments?: Record<string, number>;
+  breedConsiderations?: Record<string, string | number>;
 
   // Regulatory information
   isControlledSubstance: boolean;
@@ -150,6 +150,7 @@ export interface DosageResult {
 /**
  * Main Dosage Calculator Class
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Legacy API preserved for backward compatibility
 export class DosageCalculator {
   /**
    * Calculate dosage for a given animal and medication
@@ -345,10 +346,15 @@ export class DosageCalculator {
    * Get base dosage ranges from medication
    */
   private static getBaseDosage(medication: Medication) {
+    const typicalDosage = medication.dosageTypicalMgKg;
+    if (!typicalDosage) {
+      throw new Error("Medication must have valid typical dosage");
+    }
+
     return {
-      min: medication.dosageMinMgKg || medication.dosageTypicalMgKg! * 0.8,
-      max: medication.dosageMaxMgKg || medication.dosageTypicalMgKg! * 1.2,
-      typical: medication.dosageTypicalMgKg!,
+      min: medication.dosageMinMgKg || typicalDosage * 0.8,
+      max: medication.dosageMaxMgKg || typicalDosage * 1.2,
+      typical: typicalDosage,
     };
   }
 
@@ -401,7 +407,7 @@ export class DosageCalculator {
    * Apply breed-specific adjustments
    */
   private static getBreedAdjustment(
-    medication: Medication,
+    _medication: Medication,
     breed?: string,
     species?: string,
   ): { multiplier: number; reason: string } {
@@ -460,7 +466,7 @@ export class DosageCalculator {
    * Apply age-based adjustments
    */
   private static getAgeAdjustment(
-    medication: Medication,
+    _medication: Medication,
     animal: Animal,
   ): { multiplier: number; reason: string } {
     // Convert age to days for consistent comparison
@@ -548,7 +554,7 @@ export class DosageCalculator {
    * Apply route-specific adjustments
    */
   private static getRouteAdjustment(
-    medication: Medication,
+    _medication: Medication,
     route: string,
   ): { multiplier: number; reason: string } {
     const routeMultipliers: Record<

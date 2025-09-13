@@ -1,6 +1,7 @@
 "use client";
 
 import { Camera, Tag } from "lucide-react";
+import type React from "react";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

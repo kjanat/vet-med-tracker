@@ -1,6 +1,6 @@
 "use client";
 
-import type { MutableRefObject, RefObject } from "react";
+import type { RefObject } from "react";
 import { useCallback, useRef, useState } from "react";
 
 interface BarcodeScannerOptions {
@@ -8,6 +8,7 @@ interface BarcodeScannerOptions {
   onError: (error: string) => void;
 }
 
+// Narrowing shim for browsers that expose BarcodeDetector
 interface BarcodeDetectorWindow extends Window {
   BarcodeDetector: {
     new (): {
@@ -19,9 +20,10 @@ interface BarcodeDetectorWindow extends Window {
 export function useBarcodeScanner({ onScan, onError }: BarcodeScannerOptions) {
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const isScanningRef = useRef(false);
+  const isScanningRef = useRef(false); // React 19 types: RefObject<boolean>
 
   const stopScanning = useCallback(() => {
     isScanningRef.current = false;
@@ -41,30 +43,40 @@ export function useBarcodeScanner({ onScan, onError }: BarcodeScannerOptions) {
 
   const startScanning = useCallback(async () => {
     try {
+      if (
+        !("mediaDevices" in navigator) ||
+        !navigator.mediaDevices?.getUserMedia
+      ) {
+        onError("Camera API not available in this browser");
+        setIsScanning(false);
+        setHasPermission(false);
+        return;
+      }
+
+      if (!("BarcodeDetector" in window)) {
+        onError("Barcode scanning not supported on this device");
+        setIsScanning(false);
+        return;
+      }
+
       isScanningRef.current = true;
       setIsScanning(true);
 
-      // Check if BarcodeDetector is available
-      if ("BarcodeDetector" in window) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
 
-        streamRef.current = stream;
-        setHasPermission(true);
+      streamRef.current = stream;
+      setHasPermission(true);
 
-        if (videoRef.current) {
-          setupVideoAndDetection(
-            stream,
-            videoRef,
-            isScanningRef,
-            onScan,
-            stopScanning,
-          );
-        }
-      } else {
-        onError("Barcode scanning not supported on this device");
-        setIsScanning(false);
+      if (videoRef.current) {
+        setupVideoAndDetection(
+          stream,
+          videoRef,
+          isScanningRef,
+          onScan,
+          stopScanning,
+        );
       }
     } catch (err) {
       console.error("Camera access failed:", err);
@@ -83,44 +95,51 @@ export function useBarcodeScanner({ onScan, onError }: BarcodeScannerOptions) {
   };
 }
 
-// Helper function to setup video and detection
+// Helper function to set up video and detection
 function setupVideoAndDetection(
   stream: MediaStream,
   videoRef: RefObject<HTMLVideoElement | null>,
-  isScanningRef: MutableRefObject<boolean>,
+  isScanningRef: RefObject<boolean>,
   onScan: (barcode: string) => void,
   stopScanning: () => void,
 ) {
   if (!videoRef.current) return;
 
   videoRef.current.srcObject = stream;
-  videoRef.current.play();
+
+  // play() returns a Promise in modern browsers; ignore failure (e.g., autoplay policies)
+  void videoRef.current.play().catch((e) => {
+    console.warn("Video play failed (autoplay policy?):", e);
+  });
 
   const barcodeDetector = new (
     window as unknown as BarcodeDetectorWindow
   ).BarcodeDetector();
 
-  const detectBarcode = async () => {
+  function detectBarcode() {
     if (!videoRef.current || !isScanningRef.current) return;
 
-    try {
-      const barcodes = await barcodeDetector.detect(videoRef.current);
-      if (barcodes.length > 0) {
-        const firstBarcode = barcodes[0];
-        if (firstBarcode) {
-          onScan(firstBarcode.rawValue);
-          stopScanning();
-          return;
+    barcodeDetector
+      .detect(videoRef.current)
+      .then((barcodes) => {
+        if (barcodes.length > 0) {
+          const firstBarcode = barcodes[0];
+          if (firstBarcode) {
+            onScan(firstBarcode.rawValue);
+            stopScanning();
+            return;
+          }
         }
-      }
-    } catch (err) {
-      console.warn("Barcode detection failed:", err);
-    }
-
-    if (isScanningRef.current) {
-      requestAnimationFrame(detectBarcode);
-    }
-  };
-
+        if (isScanningRef.current) {
+          requestAnimationFrame(detectBarcode);
+        }
+      })
+      .catch((err) => {
+        console.warn("Barcode detection failed:", err);
+        if (isScanningRef.current) {
+          requestAnimationFrame(detectBarcode);
+        }
+      });
+  }
   detectBarcode();
 }

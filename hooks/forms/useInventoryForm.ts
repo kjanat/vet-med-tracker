@@ -1,45 +1,47 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { type UseFormReturn, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { useToast } from "@/hooks/shared/use-toast";
 import { inventoryFormSchema } from "@/lib/schemas/inventory";
+import { InventoryDataTransformer } from "@/lib/services/inventoryDataTransformer";
+import { InventoryFormValidator } from "@/lib/services/inventoryFormValidator";
 import { trpc } from "@/server/trpc/client";
+import { useInventoryFormState } from "./useInventoryFormState";
 
 type InventoryFormData = z.infer<typeof inventoryFormSchema>;
 
-/**
- * Inventory form state interface
- */
-interface InventoryFormState {
-  isOpen: boolean;
-  isLoading: boolean;
-  isDirty: boolean;
-  error: string | null;
-}
+// Export the type for use in other modules
+export type { InventoryFormData };
 
 /**
- * Inventory form actions interface
+ * Simplified inventory form hook return type
+ * Composes focused services while maintaining backward compatibility
  */
-interface InventoryFormActions {
+interface UseInventoryFormReturn {
+  // Core form state (3 properties)
+  isOpen: boolean;
+  isLoading: boolean;
+  error: string | null;
+
+  // Form management (4 properties)
+  form: UseFormReturn<InventoryFormData>;
+  isDirty: boolean;
+
+  // Core actions (3 properties)
   openForm: () => void;
   closeForm: () => void;
   saveForm: (data: InventoryFormData) => Promise<void>;
+
+  // Additional actions
   resetForm: () => void;
   setDirty: (dirty: boolean) => void;
   clearErrorAction: () => void;
-}
 
-/**
- * Inventory form hook return type
- */
-interface UseInventoryFormReturn
-  extends InventoryFormState,
-    InventoryFormActions {
-  form: UseFormReturn<InventoryFormData>;
+  // Mutations (for backward compatibility)
   createMutation: ReturnType<typeof trpc.inventory.create.useMutation>;
   setInUseMutation: ReturnType<typeof trpc.inventory.setInUse.useMutation>;
 }
@@ -71,25 +73,17 @@ interface UseInventoryFormOptions {
 }
 
 /**
- * Storage type options with descriptions
+ * Re-export storage options from data transformer for backward compatibility
  */
-export const STORAGE_OPTIONS = [
-  { value: "ROOM", label: "Room Temperature", description: "Store at 15-25°C" },
-  { value: "FRIDGE", label: "Refrigerated", description: "Store at 2-8°C" },
-  { value: "FREEZER", label: "Frozen", description: "Store below 0°C" },
-  {
-    value: "CONTROLLED",
-    label: "Controlled",
-    description: "Special storage requirements",
-  },
-] as const;
+export const STORAGE_OPTIONS = InventoryDataTransformer.getStorageOptions();
 
 /**
- * Advanced inventory form management hook with validation, mutations, and calculations
+ * Refactored inventory form management hook using composed services
  *
- * This hook provides complete form management for inventory item creation,
- * including validation, tRPC mutations, error handling, and complex calculations
- * for medication inventory management.
+ * This hook now follows Single Responsibility Principle by composing
+ * focused services: form state, validation, and data transformation.
+ * Maintains the same API for backward compatibility while dramatically
+ * improving maintainability and testability.
  *
  * @example
  * ```tsx
@@ -141,43 +135,34 @@ export function useInventoryForm(
     validateQuantity = true,
   } = options;
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const { selectedHousehold } = useApp();
   const { toast } = useToast();
   const utils = trpc.useUtils();
 
-  // Calculate default expiry date
-  const defaultExpiryDate = new Date();
-  defaultExpiryDate.setDate(defaultExpiryDate.getDate() + defaultExpiryDays);
+  // Use focused form state management hook
+  const formState = useInventoryFormState({
+    onOpen,
+    onClose,
+  });
+
+  // Generate default values using data transformer
+  const defaultValues = useMemo(
+    () =>
+      InventoryDataTransformer.setDefaultValues({
+        storage: defaultStorage,
+        expiryDays: defaultExpiryDays,
+      }),
+    [defaultStorage, defaultExpiryDays],
+  );
 
   // Initialize form with validation
   const form = useForm({
     resolver: zodResolver(inventoryFormSchema),
-    defaultValues: {
-      medicationId: "",
-      name: "",
-      isCustomMedication: false,
-      brand: "",
-      route: "",
-      form: "",
-      strength: "",
-      concentration: "",
-      quantityUnits: 1,
-      unitsRemaining: 1,
-      lot: "",
-      expiresOn: defaultExpiryDate,
-      storage: defaultStorage,
-      assignedAnimalId: "",
-      barcode: "",
-      setInUse: false,
-    },
+    defaultValues,
     mode: "onBlur",
   });
 
-  // tRPC mutations
+  // tRPC mutations with focused error handling
   const createMutation = trpc.inventory.create.useMutation({
     onSuccess: async (data) => {
       // Invalidate queries to refresh data
@@ -196,7 +181,7 @@ export function useInventoryForm(
     onError: (error) => {
       console.error("Error creating inventory item:", error);
       const errorMessage = "Failed to add inventory item. Please try again.";
-      setError(errorMessage);
+      formState.setError(errorMessage);
       toast({
         title: "Error",
         description: errorMessage,
@@ -222,189 +207,89 @@ export function useInventoryForm(
     },
   });
 
-  /**
-   * Validate form data before submission
-   */
+  // Business logic and form management
   const validateFormData = useCallback(
     (data: InventoryFormData): boolean => {
-      setError(null);
+      const validationResult = InventoryFormValidator.validate(data, {
+        householdId: selectedHousehold?.id,
+        validateQuantity,
+        allowPastExpiry: false,
+      });
 
-      if (!selectedHousehold?.id) {
-        const errorMsg = "No household selected";
-        setError(errorMsg);
-        toast({
-          title: "Error",
-          description: errorMsg,
-          variant: "destructive",
-        });
+      if (!validationResult.isValid) {
+        const errorMessage =
+          InventoryFormValidator.getDisplayMessage(validationResult);
+        if (errorMessage) {
+          formState.setError(errorMessage);
+          toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        }
         return false;
       }
 
-      if (!data.medicationId || data.medicationId.trim() === "") {
-        const errorMsg = "Please select a medication";
-        setError(errorMsg);
-        toast({
-          title: "Error",
-          description: errorMsg,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      if (validateQuantity && data.unitsRemaining > data.quantityUnits) {
-        const errorMsg = "Units remaining cannot exceed total quantity";
-        setError(errorMsg);
-        toast({
-          title: "Error",
-          description: errorMsg,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      if (data.expiresOn && data.expiresOn < new Date()) {
-        const errorMsg = "Expiry date must be in the future";
-        setError(errorMsg);
-        toast({
-          title: "Error",
-          description: errorMsg,
-          variant: "destructive",
-        });
-        return false;
-      }
-
+      formState.clearError();
       return true;
     },
-    [selectedHousehold, validateQuantity, toast],
+    [selectedHousehold, validateQuantity, toast, formState],
   );
 
-  /**
-   * Transform form data for API calls
-   */
   const transformInventoryData = useCallback(
     (data: InventoryFormData) => {
-      if (!selectedHousehold?.id) {
+      if (!selectedHousehold) {
         throw new Error("No household selected");
       }
-      if (!data.medicationId) {
-        throw new Error("Medication ID is required");
-      }
-      return {
-        householdId: selectedHousehold.id,
-        medicationId: data.medicationId,
-        brandOverride: data.brand || undefined,
-        lot: data.lot || undefined,
-        expiresOn: data.expiresOn,
-        storage: data.storage,
-        unitsTotal: data.quantityUnits,
-        unitsRemaining: data.unitsRemaining,
-        unitType: "units", // TODO: Make this configurable
-        notes: undefined, // TODO: Add notes field to form
-        assignedAnimalId: data.assignedAnimalId || undefined,
-      };
+      return InventoryDataTransformer.toApiPayload(data, selectedHousehold);
     },
     [selectedHousehold],
   );
 
-  /**
-   * Fire instrumentation events
-   */
   const fireInstrumentationEvent = useCallback((data: InventoryFormData) => {
+    const instrumentationData =
+      InventoryDataTransformer.createInstrumentationData(data);
     window.dispatchEvent(
       new CustomEvent("inventory_item_create", {
-        detail: {
-          medicationId: data.medicationId,
-          medicationName: data.name,
-          quantity: data.quantityUnits,
-          storage: data.storage,
-          assignedAnimalId: data.assignedAnimalId,
-        },
+        detail: instrumentationData,
       }),
     );
   }, []);
 
-  /**
-   * Open the form
-   */
+  // Enhanced form lifecycle management
   const openForm = useCallback(() => {
-    setIsOpen(true);
-    setIsDirty(false);
-    setError(null);
+    formState.openForm();
 
     // Reset form with fresh default values
-    const newExpiryDate = new Date();
-    newExpiryDate.setDate(newExpiryDate.getDate() + defaultExpiryDays);
-
-    form.reset({
-      medicationId: "",
-      name: "",
-      brand: "",
-      route: "",
-      form: "",
-      strength: "",
-      concentration: "",
-      quantityUnits: 1,
-      unitsRemaining: 1,
-      lot: "",
-      expiresOn: newExpiryDate,
+    const freshDefaults = InventoryDataTransformer.createFreshDefaults({
       storage: defaultStorage,
-      assignedAnimalId: "",
-      barcode: "",
-      setInUse: false,
+      expiryDays: defaultExpiryDays,
     });
 
-    onOpen?.();
-  }, [form, defaultStorage, defaultExpiryDays, onOpen]);
+    form.reset(freshDefaults);
+  }, [form, defaultStorage, defaultExpiryDays, formState]);
 
-  /**
-   * Close the form
-   */
   const closeForm = useCallback(() => {
-    setIsOpen(false);
-    setIsDirty(false);
-    setError(null);
+    formState.closeForm();
     form.reset();
-    onClose?.();
-  }, [form, onClose]);
+  }, [form, formState]);
 
-  /**
-   * Reset the form to default values
-   */
   const resetForm = useCallback(() => {
-    const newExpiryDate = new Date();
-    newExpiryDate.setDate(newExpiryDate.getDate() + defaultExpiryDays);
-
-    form.reset({
-      medicationId: "",
-      name: "",
-      brand: "",
-      route: "",
-      form: "",
-      strength: "",
-      concentration: "",
-      quantityUnits: 1,
-      unitsRemaining: 1,
-      lot: "",
-      expiresOn: newExpiryDate,
+    const freshDefaults = InventoryDataTransformer.createFreshDefaults({
       storage: defaultStorage,
-      assignedAnimalId: "",
-      barcode: "",
-      setInUse: false,
+      expiryDays: defaultExpiryDays,
     });
-    setIsDirty(false);
-    setError(null);
-  }, [form, defaultStorage, defaultExpiryDays]);
 
-  /**
-   * Clear any existing error
-   */
+    form.reset(freshDefaults);
+    formState.setDirty(false);
+    formState.clearError();
+  }, [form, defaultStorage, defaultExpiryDays, formState]);
+
   const clearErrorAction = useCallback(() => {
-    setError(null);
-  }, []);
+    formState.clearError();
+  }, [formState]);
 
-  /**
-   * Save the form data
-   */
+  // Streamlined save function using composed services
   const saveForm = useCallback(
     async (data: InventoryFormData) => {
       if (!validateFormData(data)) {
@@ -417,7 +302,7 @@ export function useInventoryForm(
         const payload = transformInventoryData(data);
         const result = await createMutation.mutateAsync(payload);
 
-        // If setInUse is true and an animal is assigned, call the setInUse mutation
+        // Handle setInUse workflow if requested
         if (
           data.setInUse &&
           data.assignedAnimalId &&
@@ -434,8 +319,8 @@ export function useInventoryForm(
         if (autoClose) {
           closeForm();
         } else {
-          setIsDirty(false);
-          setError(null);
+          formState.setDirty(false);
+          formState.clearError();
         }
       } catch (error) {
         console.error("Error saving inventory item:", error);
@@ -451,44 +336,45 @@ export function useInventoryForm(
       selectedHousehold,
       autoClose,
       closeForm,
+      formState,
     ],
   );
 
-  /**
-   * Set dirty state
-   */
-  const setDirtyState = useCallback((dirty: boolean) => {
-    setIsDirty(dirty);
-  }, []);
+  // Watch form changes to set dirty state
+  const reactHookFormState = form.formState;
+  const setDirtyState = formState.setDirty;
 
-  // Watch form changes to set a dirty state
-  const formState = form.formState;
-  if (formState.isDirty && !isDirty) {
+  // Update dirty state when form becomes dirty
+  if (reactHookFormState.isDirty && !formState.isDirty) {
     setDirtyState(true);
   }
 
-  /**
-   * Sync units remaining with total units when total changes
-   */
+  // Enhanced quantity synchronization using transformer
   const quantityUnits = form.watch("quantityUnits");
   const unitsRemaining = form.watch("unitsRemaining");
 
-  // Auto-sync remaining units when quantity changes
+  // Auto-sync remaining units when total changes (non-destructive)
   if (quantityUnits && unitsRemaining > quantityUnits) {
-    form.setValue("unitsRemaining", quantityUnits);
+    const syncedData = InventoryDataTransformer.syncRemainingUnits(
+      form.getValues(),
+      quantityUnits,
+    );
+    if (syncedData.unitsRemaining !== undefined) {
+      form.setValue("unitsRemaining", syncedData.unitsRemaining);
+    }
   }
 
   return {
-    // State
-    isOpen,
+    // Core state (composed from focused services)
+    isOpen: formState.isOpen,
     isLoading: createMutation.isPending || setInUseMutation.isPending,
-    isDirty: isDirty || formState.isDirty,
-    error,
+    error: formState.error,
 
-    // Form
+    // Form management
     form,
+    isDirty: formState.isDirty || reactHookFormState.isDirty,
 
-    // Actions
+    // Actions (using composed services)
     openForm,
     closeForm,
     saveForm,
@@ -496,14 +382,18 @@ export function useInventoryForm(
     setDirty: setDirtyState,
     clearErrorAction,
 
-    // Mutations
+    // Mutations (for backward compatibility)
     createMutation,
     setInUseMutation,
   };
 }
 
 /**
- * Hook for inventory form calculations and derived values
+ * Refactored hook for inventory form calculations using data transformer
+ *
+ * This hook now uses the InventoryDataTransformer service for consistent
+ * calculations across the application. Provides derived values and metrics
+ * from form data.
  *
  * @example
  * ```tsx
@@ -525,37 +415,11 @@ export function useInventoryForm(
 export function useInventoryCalculations(
   form: UseFormReturn<InventoryFormData>,
 ) {
-  const quantityUnits = form.watch("quantityUnits");
-  const unitsRemaining = form.watch("unitsRemaining");
-  const expiresOn = form.watch("expiresOn");
-  const storage = form.watch("storage");
+  const formData = form.getValues();
 
-  // Calculate percentage remaining
-  const percentRemaining =
-    quantityUnits > 0 ? Math.round((unitsRemaining / quantityUnits) * 100) : 0;
-
-  // Check if expiring soon (within 30 days)
-  const isExpiringSoon = expiresOn
-    ? expiresOn.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000
-    : false;
-
-  // Get storage description
-  const storageOption = STORAGE_OPTIONS.find((opt) => opt.value === storage);
-  const storageDescription = storageOption?.description || storage;
-
-  // Calculate days until expiry
-  const daysUntilExpiry = expiresOn
-    ? Math.ceil((expiresOn.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
-    : null;
-
-  // Calculate if the quantity is low (less than 20%)
-  const isQuantityLow = percentRemaining < 20;
-
-  return {
-    daysUntilExpiry,
-    isExpiringSoon,
-    isQuantityLow,
-    percentRemaining,
-    storageDescription,
-  };
+  // Use data transformer service for consistent calculations
+  return InventoryDataTransformer.calculateDerivedFields(formData);
 }
+
+// Export types for backward compatibility
+export type { UseInventoryFormOptions, UseInventoryFormReturn };

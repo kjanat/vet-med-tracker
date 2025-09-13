@@ -108,9 +108,9 @@ The test database is configured in `vitest.config.ts`:
 
 ## File Structure
 
-```
+```text
 tests/
-├── README.md                    # This file
+├── README.md                   # This file
 ├── helpers/
 │   ├── test-db-setup.ts        # Core database setup functions
 │   ├── test-db.ts              # Database utilities and factories
@@ -277,6 +277,7 @@ steps:
 If migrating existing tests from Neon setup:
 
 1. **Update imports:**
+
    ```typescript
    // Before
    import { createTestDatabase } from "../helpers/test-db";
@@ -291,6 +292,7 @@ If migrating existing tests from Neon setup:
     - Use `TEST_DB_*` variables instead
 
 3. **Update test database initialization:**
+
    ```typescript
    // Before
    const testDb = createTestDatabase(); // Used Neon driver

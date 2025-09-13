@@ -22,7 +22,7 @@ export interface ErrorReport {
   userId?: string;
   sessionId?: string;
   featureFlags?: Record<string, boolean>;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 /**
@@ -73,7 +73,7 @@ class ErrorTrackingService {
   private config: ErrorTrackingConfig;
   private reportCount: number = 0;
   private reportedErrors: Map<string, number> = new Map();
-  private sessionId: string;
+  private readonly sessionId: string;
 
   constructor(config: Partial<ErrorTrackingConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -159,7 +159,7 @@ class ErrorTrackingService {
    */
   public captureError(
     error: Error,
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
     severity?: ErrorReport["severity"],
   ): void {
     this.reportError({
@@ -178,7 +178,7 @@ class ErrorTrackingService {
   public captureMessage(
     message: string,
     severity: ErrorReport["severity"] = "normal",
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
   ): void {
     this.reportError({
       error: message,
@@ -191,7 +191,7 @@ class ErrorTrackingService {
   /**
    * Add context to future error reports
    */
-  public setContext(key: string, value: any): void {
+  public setContext(key: string, value: unknown): void {
     // This would be implemented to store context that gets added to all future reports
     // For now, just log it
     console.debug("Error tracking context set:", key, value);
@@ -209,7 +209,7 @@ class ErrorTrackingService {
    */
   private generateSessionId(): string {
     // Use crypto.randomUUID() for cryptographically secure random IDs
-    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    if (crypto?.randomUUID) {
       return `session_${Date.now()}_${crypto.randomUUID()}`;
     }
     // Fallback for environments without crypto.randomUUID()
@@ -248,7 +248,10 @@ class ErrorTrackingService {
     });
 
     // Handle React error boundary errors (if you're using React)
-    if (typeof window !== "undefined" && (window as any).React) {
+    if (
+      typeof window !== "undefined" &&
+      (window as unknown as { React?: object }).React
+    ) {
       const originalConsoleError = console.error;
       console.error = (...args) => {
         // Check if this looks like a React error
@@ -344,7 +347,10 @@ export const errorTracker = new ErrorTrackingService();
 /**
  * React error boundary integration
  */
-export function reportReactError(error: Error, errorInfo: any): void {
+export function reportReactError(
+  error: Error,
+  errorInfo: { componentStack?: string },
+): void {
   errorTracker.captureError(
     error,
     {

@@ -67,7 +67,7 @@ pnpm db:test:health
 
 ### Directory Organization
 
-```
+```text
 tests/
 ├── unit/                    # Unit tests for components and utilities
 │   ├── components/          # React component tests

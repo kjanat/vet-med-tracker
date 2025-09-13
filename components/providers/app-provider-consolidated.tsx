@@ -4,6 +4,7 @@ import { useUser } from "@stackframe/stack";
 import {
   createContext,
   type ReactNode,
+  Suspense,
   useCallback,
   useContext,
   useEffect,
@@ -864,10 +865,11 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     }
 
     return () => {
-      timeoutRefs.current.forEach((id) => {
+      const refs = timeoutRefs.current;
+      refs.forEach((id) => {
         clearTimeout(id);
       });
-      timeoutRefs.current.clear();
+      refs.clear();
     };
   }, [state.accessibility.announcements]);
 
@@ -1094,27 +1096,29 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <AppContext.Provider value={contextValue}>
-      {children}
-      {/* Global accessibility live regions */}
-      <output
-        id="global-announcer-polite"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
-        {state.accessibility.announcements.polite}
-      </output>
-      <div
-        id="global-announcer-assertive"
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-        className="sr-only"
-      >
-        {state.accessibility.announcements.assertive}
-      </div>
-    </AppContext.Provider>
+    <Suspense fallback={<div>Loading...</div>}>
+      <AppContext.Provider value={contextValue}>
+        {children}
+        {/* Global accessibility live regions */}
+        <output
+          id="global-announcer-polite"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {state.accessibility.announcements.polite}
+        </output>
+        <div
+          id="global-announcer-assertive"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {state.accessibility.announcements.assertive}
+        </div>
+      </AppContext.Provider>
+    </Suspense>
   );
 }
 

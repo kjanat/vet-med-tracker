@@ -309,7 +309,7 @@ describe("ConsolidatedAppProvider", () => {
       const tempInCelsius = 20;
       const formattedTemp = result.current.formatTemperature(tempInCelsius);
 
-      // Should format in fahrenheit by default
+      // Should format in Fahrenheit by default
       expect(formattedTemp).toMatch(/\d+\.\d+°F/);
     });
   });

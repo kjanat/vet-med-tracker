@@ -5,6 +5,8 @@
  */
 
 // Core Context Provider
+import type React from "react";
+
 export {
   BulkSelectionProvider,
   useBulkSelection,

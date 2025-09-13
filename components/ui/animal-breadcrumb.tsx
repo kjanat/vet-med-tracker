@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -18,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils/general";
 import { useApp } from "../providers/app-provider-consolidated";
-import { AnimalAvatar } from "./animal-avatar";
 
 // Pages where animal context is relevant
 const ANIMAL_CONTEXT_PATHS = [

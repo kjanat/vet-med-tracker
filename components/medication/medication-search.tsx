@@ -80,7 +80,6 @@ export function MedicationSearch({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {/* biome-ignore lint/a11y/useSemanticElements: Custom combobox pattern with Command component */}
         <Button
           variant="outline"
           role="combobox"

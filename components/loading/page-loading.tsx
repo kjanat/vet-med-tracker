@@ -23,9 +23,13 @@ export function HomePageLoading() {
 
       {/* Action cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }, (_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-          <SummaryCardSkeleton key={i} />
+        {[
+          "home-action-1",
+          "home-action-2",
+          "home-action-3",
+          "home-action-4",
+        ].map((key) => (
+          <SummaryCardSkeleton key={key} />
         ))}
       </div>
 
@@ -33,9 +37,8 @@ export function HomePageLoading() {
       <div className="space-y-4">
         <Skeleton className="h-6 w-40" />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }, (_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-            <MedicationCardSkeleton key={i} />
+          {["pending-med-1", "pending-med-2", "pending-med-3"].map((key) => (
+            <MedicationCardSkeleton key={key} />
           ))}
         </div>
       </div>
@@ -77,12 +80,13 @@ export function HistoryPageLoading() {
 
       {/* History list */}
       <div className="space-y-2">
-        {Array.from({ length: 5 }, (_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-          <div key={i} className="rounded-lg border p-4">
-            <ListSkeleton count={1} />
-          </div>
-        ))}
+        {["history-1", "history-2", "history-3", "history-4", "history-5"].map(
+          (key) => (
+            <div key={key} className="rounded-lg border p-4">
+              <ListSkeleton count={1} />
+            </div>
+          ),
+        )}
       </div>
     </div>
   );
@@ -102,17 +106,15 @@ export function InventoryPageLoading() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {Array.from({ length: 3 }, (_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-          <SummaryCardSkeleton key={i} />
+        {["inv-stat-1", "inv-stat-2", "inv-stat-3"].map((key) => (
+          <SummaryCardSkeleton key={key} />
         ))}
       </div>
 
       {/* Inventory grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-          <InventoryItemSkeleton key={i} />
+        {["inv-1", "inv-2", "inv-3", "inv-4", "inv-5", "inv-6"].map((key) => (
+          <InventoryItemSkeleton key={key} />
         ))}
       </div>
     </div>
@@ -130,9 +132,8 @@ export function InsightsPageLoading() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        {Array.from({ length: 4 }, (_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-          <SummaryCardSkeleton key={i} />
+        {["insight-1", "insight-2", "insight-3", "insight-4"].map((key) => (
+          <SummaryCardSkeleton key={key} />
         ))}
       </div>
 
@@ -167,9 +168,15 @@ export function AnimalsPageLoading() {
 
       {/* Animal grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-          <AnimalCardSkeleton key={i} />
+        {[
+          "animal-1",
+          "animal-2",
+          "animal-3",
+          "animal-4",
+          "animal-5",
+          "animal-6",
+        ].map((key) => (
+          <AnimalCardSkeleton key={key} />
         ))}
       </div>
     </div>
@@ -187,12 +194,8 @@ export function SettingsPageLoading() {
 
       {/* Settings sections */}
       <div className="space-y-8">
-        {Array.from({ length: 3 }, (_, i) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-            key={i}
-            className="space-y-4 rounded-lg border p-6"
-          >
+        {["setting-1", "setting-2", "setting-3"].map((key) => (
+          <div key={key} className="space-y-4 rounded-lg border p-6">
             <Skeleton className="h-6 w-32" />
             <FormSkeleton fields={2} />
           </div>

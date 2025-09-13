@@ -406,7 +406,7 @@ export const householdRouter = createTRPCRouter({
     .input(
       z.object({
         householdId: z.string(),
-        email: z.string().email(),
+        email: z.email(),
         role: z.enum(["OWNER", "CAREGIVER", "VETREADONLY"]),
         message: z.string().optional(),
       }),

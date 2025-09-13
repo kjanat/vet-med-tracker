@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { AnimalAvatar } from "@/components";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -10,7 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useApp } from "../providers/app-provider-consolidated";
-import { AnimalAvatar } from "./animal-avatar";
 
 // Pages where animal context is relevant
 const ANIMAL_CONTEXT_PATHS = [

@@ -4,6 +4,7 @@
 
 import { screen, waitFor } from "@testing-library/react";
 import Image from "next/image";
+import type React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clickButton,

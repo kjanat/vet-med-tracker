@@ -1,40 +1,50 @@
 "use client";
 
-import { BarChart3, History, Home, Package, Settings } from "lucide-react";
-import type { Route } from "next";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { navigationConfig } from "@/lib/navigation/config";
 import { cn } from "@/lib/utils/general";
-
-const navigation = [
-  { name: "Home", href: "/" as Route, icon: Home },
-  { name: "History", href: "/dashboard/history" as Route, icon: History },
-  { name: "Inventory", href: "/medications/inventory" as Route, icon: Package },
-  { name: "Insights", href: "/insights" as Route, icon: BarChart3 },
-  { name: "Settings", href: "/settings" as Route, icon: Settings },
-];
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed right-0 bottom-0 left-0 z-50 border-t bg-background/95 pb-safe shadow-lg backdrop-blur-md supports-backdrop-filter:bg-background/80">
+    <nav
+      aria-label="Bottom navigation"
+      className="fixed right-0 bottom-0 left-0 z-50 border-t bg-background/95 pb-safe shadow-lg backdrop-blur-md supports-backdrop-filter:bg-background/80"
+    >
       <div className="flex">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href;
+        {navigationConfig.mobile.map((item) => {
+          // Skip items without a URL path (e.g., dialog-only actions)
+          if (!item.path) return null;
+
+          // Consider nested routes active (e.g., /settings/profile for /settings)
+          const isActive =
+            item.path === "/"
+              ? pathname === "/"
+              : pathname === item.path || pathname.startsWith(`${item.path}/`);
+
+          // Only render the icon if it is a valid component (not a string)
+          const Icon =
+            item.icon && typeof item.icon !== "string"
+              ? (item.icon as LucideIcon)
+              : undefined;
+
           return (
             <Link
-              key={item.name}
-              href={item.href}
+              key={item.path}
+              href={item.path}
               className={cn(
                 "flex min-h-[44px] flex-1 flex-col items-center justify-center gap-1 py-3 font-medium text-xs transition-colors",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground",
               )}
+              aria-current={isActive ? "page" : undefined}
             >
-              <item.icon className="h-5 w-5" />
-              {item.name}
+              {Icon ? <Icon aria-hidden="true" className="h-5 w-5" /> : null}
+              {item.title}
             </Link>
           );
         })}

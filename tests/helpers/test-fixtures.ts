@@ -120,10 +120,10 @@ export const testMedications = {
     typicalFrequencyHours: 24,
     maxFrequencyPerDay: 1,
     speciesAdjustments: {
-      cat: { multiplier: 0.5, additionalWarnings: ["Monitor kidney function"] },
+      cat: 0.5,
     },
     ageAdjustments: {
-      geriatric: { multiplier: 0.8, minAgeYears: 8 },
+      geriatric: 0.8,
     },
     warnings: "Monitor for GI upset and kidney function",
   } as MedicationData,
@@ -149,24 +149,9 @@ export const testMedications = {
     typicalFrequencyHours: 720, // Monthly
     maxFrequencyPerDay: 1,
     breedConsiderations: {
-      collie: {
-        multiplier: 0.5,
-        additionalWarnings: [
-          "MDR1 gene sensitivity - use with extreme caution",
-        ],
-      },
-      "australian shepherd": {
-        multiplier: 0.5,
-        additionalWarnings: [
-          "MDR1 gene sensitivity - use with extreme caution",
-        ],
-      },
-      "border collie": {
-        multiplier: 0.5,
-        additionalWarnings: [
-          "MDR1 gene sensitivity - use with extreme caution",
-        ],
-      },
+      collie: 0.5,
+      "australian shepherd": 0.5,
+      "border collie": 0.5,
     },
     warnings: "Check for MDR1 gene mutation in susceptible breeds",
   } as MedicationData,
@@ -191,21 +176,12 @@ export const testMedications = {
     typicalFrequencyHours: 4,
     maxFrequencyPerDay: 6,
     routeAdjustments: {
-      IV: {
-        multiplier: 0.7,
-        additionalWarnings: [
-          "Monitor respiratory function",
-          "Requires IV access",
-        ],
-      },
-      IM: {
-        multiplier: 1.0,
-        additionalWarnings: ["Slower onset than IV"],
-      },
+      IV: 0.7,
+      IM: 1.0,
     },
     ageAdjustments: {
-      pediatric: { multiplier: 0.8, minAgeMonths: 6 },
-      geriatric: { multiplier: 0.7, minAgeYears: 10 },
+      pediatric: 0.8,
+      geriatric: 0.7,
     },
     warnings: "Controlled substance - monitor for respiratory depression",
   } as MedicationData,
@@ -232,38 +208,18 @@ export const testMedications = {
     typicalFrequencyHours: 8,
     maxFrequencyPerDay: 3,
     speciesAdjustments: {
-      cat: {
-        multiplier: 0.8,
-        additionalWarnings: ["Monitor for sedation"],
-      },
-      bird: {
-        multiplier: 1.2,
-        maxDailyDose: 50,
-      },
+      cat: 0.8,
+      bird: 1.2,
     },
     routeAdjustments: {
-      IV: {
-        multiplier: 0.6,
-        additionalWarnings: ["Monitor injection site"],
-      },
+      IV: 0.6,
     },
     ageAdjustments: {
-      pediatric: {
-        multiplier: 0.7,
-        minAgeMonths: 3,
-        additionalWarnings: ["Use with caution in young animals"],
-      },
-      geriatric: {
-        multiplier: 0.9,
-        minAgeYears: 8,
-        additionalWarnings: ["Monitor organ function"],
-      },
+      pediatric: 0.7,
+      geriatric: 0.9,
     },
     breedConsiderations: {
-      greyhound: {
-        multiplier: 0.8,
-        additionalWarnings: ["Sighthound sensitivity"],
-      },
+      greyhound: 0.8,
     },
     contraindications: ["liver disease", "kidney disease"],
     warnings: "Multiple adjustments required - calculate carefully",

@@ -5,6 +5,7 @@
 
 import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
+import { StackAuthTestUtils } from "@/tests/mocks";
 import {
   AuthTestScenarios,
   ClerkToStackMigrationHelpers,
@@ -13,7 +14,6 @@ import {
   renderWithUnauthenticatedUser,
   TEST_USERS,
 } from "../helpers/stack-auth-test-utils";
-import { StackAuthTestUtils } from "../mocks/stack-auth";
 
 // Example component that uses Stack Auth hooks
 const UserProfile = () => {

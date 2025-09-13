@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface SilhouetteIndex {

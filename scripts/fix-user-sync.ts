@@ -67,7 +67,7 @@ const STACK_SECRET_KEY = process.env.STACK_SECRET_SERVER_KEY;
  */
 async function validateStackUserId(stackUserId: string): Promise<{
   valid: boolean;
-  user?: any;
+  user?: unknown;
   error?: string;
 }> {
   if (!STACK_API_URL || !STACK_SECRET_KEY) {
@@ -82,7 +82,13 @@ async function validateStackUserId(stackUserId: string): Promise<{
       method: "GET",
       headers: {
         "x-stack-secret-server-key": STACK_SECRET_KEY,
-        "x-stack-project-id": process.env.NEXT_PUBLIC_STACK_PROJECT_ID!,
+        "x-stack-project-id":
+          process.env.NEXT_PUBLIC_STACK_PROJECT_ID ||
+          (() => {
+            throw new Error(
+              "NEXT_PUBLIC_STACK_PROJECT_ID environment variable is required",
+            );
+          })(),
         "x-stack-access-type": "server",
         "Content-Type": "application/json",
       },
@@ -279,7 +285,7 @@ async function checkAllUsers() {
       "Sync table is empty - Stack Auth may not be properly configured",
     );
   } else {
-    syncUsers.forEach((user: any) => {
+    syncUsers.forEach((user) => {
       console.log(`  ${user.email || user.id}`);
       console.log(`    ${colors.dim}ID: ${user.id}${colors.reset}`);
       if (user.deleted_at) {
@@ -333,10 +339,16 @@ async function validateStackAuthIds() {
 
   let validCount = 0;
   let invalidCount = 0;
-  const invalidUsers: any[] = [];
+  const invalidUsers: typeof usersWithStackIds = [];
 
   for (const user of usersWithStackIds) {
-    const validation = await validateStackUserId(user.stackUserId!);
+    if (!user.stackUserId) {
+      console.log(
+        `  ${colors.yellow}⚠${colors.reset} ${user.email} - Missing Stack User ID`,
+      );
+      continue;
+    }
+    const validation = await validateStackUserId(user.stackUserId);
 
     if (validation.valid) {
       validCount++;

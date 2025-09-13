@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, Trash2, X } from "lucide-react";
+import type React from "react";
 import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/general";

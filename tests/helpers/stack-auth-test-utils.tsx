@@ -10,7 +10,7 @@ import {
   type MockStackUser,
   StackAuthTestUtils,
   TEST_USERS,
-} from "../mocks/stack-auth";
+} from "@/tests/mocks";
 
 // -----------------------------------------------------------------------------
 // React Testing Library Helpers

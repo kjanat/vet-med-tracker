@@ -68,7 +68,7 @@ export const createMockUser = (
 ): MockStackUser => {
   const now = Date.now();
   const defaultUser: MockStackUser = {
-    id: `user_${now}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `user_${now}_${Math.random().toString(36).substring(2, 9)}`,
     displayName: "Test User",
     primaryEmail: "testuser@example.com",
     primaryEmailVerified: true,
@@ -279,8 +279,6 @@ export const MockUserButton = ({ user }: { user?: MockStackUser }) => (
 // -----------------------------------------------------------------------------
 // Test Utilities
 // -----------------------------------------------------------------------------
-
-// biome-ignore lint/complexity/noStaticOnlyClass: Unit testing utility namespace - static methods provide clear test configuration API with internal state management
 export class StackAuthTestUtils {
   private static mockUser: MockStackUser | null = null;
   private static mockStackServerApp: MockStackServerApp;
@@ -389,8 +387,6 @@ export const stackAuthMocks = {
 // -----------------------------------------------------------------------------
 // Playwright Test Helpers
 // -----------------------------------------------------------------------------
-
-// biome-ignore lint/complexity/noStaticOnlyClass: Legacy duplicate of E2E testing utilities - maintains compatibility during migration
 export class StackAuthPlaywrightHelpers {
   /**
    * Mock Stack Auth for Playwright tests by intercepting API calls

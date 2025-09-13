@@ -2,6 +2,7 @@
  * Comprehensive type definitions for the consolidated AppProvider state management
  */
 
+import type React from "react";
 import type { vetmedUsers } from "@/db/schema";
 
 // =============================================================================

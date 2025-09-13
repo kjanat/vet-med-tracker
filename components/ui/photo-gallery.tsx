@@ -14,6 +14,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import Image from "next/image";
+import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
@@ -369,6 +370,53 @@ export function PhotoGallery({
     [enableSwipeGestures, lightbox.isOpen, lightbox.zoom],
   );
 
+  // Helper to handle single touch pan/swipe
+  const handleSingleTouchMove = useCallback(
+    (touch: React.Touch, deltaX: number, deltaY: number) => {
+      setSwipe((prev) => ({
+        ...prev,
+        currentX: touch.clientX,
+        currentY: touch.clientY,
+      }));
+
+      if (lightbox.zoom > 1) {
+        // Pan the zoomed image
+        setLightbox((prev) => ({
+          ...prev,
+          panX: prev.lastPanX + deltaX,
+          panY: prev.lastPanY + deltaY,
+        }));
+      }
+    },
+    [lightbox.zoom],
+  );
+
+  // Helper to calculate distance between two touches
+  const calculateTouchDistance = useCallback(
+    (touch1: React.Touch, touch2: React.Touch) => {
+      return Math.sqrt(
+        (touch1.clientX - touch2.clientX) ** 2 +
+          (touch1.clientY - touch2.clientY) ** 2,
+      );
+    },
+    [],
+  );
+
+  // Helper to handle pinch to zoom
+  const handlePinchZoom = useCallback(
+    (touch1: React.Touch, touch2: React.Touch) => {
+      const distance = calculateTouchDistance(touch1, touch2);
+      const scale = distance / touch.initialDistance;
+      const newZoom = Math.min(Math.max(touch.initialZoom * scale, 0.5), 5);
+
+      setLightbox((prev) => ({
+        ...prev,
+        zoom: newZoom,
+      }));
+    },
+    [calculateTouchDistance, touch.initialDistance, touch.initialZoom],
+  );
+
   /**
    * Handle touch move for swipe gestures and panning
    */
@@ -386,49 +434,23 @@ export function PhotoGallery({
         const deltaX = touch.clientX - swipe.startX;
         const deltaY = touch.clientY - swipe.startY;
 
-        setSwipe((prev) => ({
-          ...prev,
-          currentX: touch.clientX,
-          currentY: touch.clientY,
-        }));
-
-        if (lightbox.zoom > 1) {
-          // Pan the zoomed image
-          setLightbox((prev) => ({
-            ...prev,
-            panX: prev.lastPanX + deltaX,
-            panY: prev.lastPanY + deltaY,
-          }));
-        }
+        handleSingleTouchMove(touch, deltaX, deltaY);
       } else if (touches.length === 2) {
-        // Pinch to zoom
         const touch1 = touches[0];
         const touch2 = touches[1];
         if (!touch1 || !touch2) return;
 
-        const distance = Math.sqrt(
-          (touch1.clientX - touch2.clientX) ** 2 +
-            (touch1.clientY - touch2.clientY) ** 2,
-        );
-
-        const scale = distance / touch.initialDistance;
-        const newZoom = Math.min(Math.max(touch.initialZoom * scale, 0.5), 5);
-
-        setLightbox((prev) => ({
-          ...prev,
-          zoom: newZoom,
-        }));
+        handlePinchZoom(touch1, touch2);
       }
     },
     [
       enableSwipeGestures,
       lightbox.isOpen,
-      lightbox.zoom,
       swipe.isDragging,
       swipe.startX,
       swipe.startY,
-      touch.initialDistance,
-      touch.initialZoom,
+      handleSingleTouchMove,
+      handlePinchZoom,
     ],
   );
 

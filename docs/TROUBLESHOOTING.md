@@ -97,6 +97,7 @@ NODE_OPTIONS="--max-old-space-size=4096" pnpm build
     - Increase function timeout in vercel.json
 
 3. **Function size limit exceeded**
+
    ```json
    // vercel.json - Optimize functions
    {
@@ -143,7 +144,7 @@ brew services start postgresql  # macOS
 sudo service postgresql start   # Linux
 ```
 
-2. **Using Neon/Cloud database**:
+1. **Using Neon/Cloud database**:
 
 ```bash
 # Update .env.local with correct URL
@@ -151,7 +152,7 @@ DATABASE_URL=postgresql://user:pass@host.neon.tech/db
 DATABASE_URL_UNPOOLED=postgresql://user:pass@host.neon.tech/db?pool=false
 ```
 
-3. **Connection pool exhausted**:
+1. **Connection pool exhausted**:
 
 ```typescript
 // Check db/drizzle.ts settings
@@ -200,7 +201,7 @@ NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=must-be-correct
 STACK_SECRET_SERVER_KEY=must-be-correct
 ```
 
-2. **Clear auth cookies**:
+1. **Clear auth cookies**:
 
 ```javascript
 // In browser console
@@ -209,7 +210,7 @@ document.cookie.split(";").forEach(c => {
 });
 ```
 
-3. **Verify Stack Auth project settings**:
+1. **Verify Stack Auth project settings**:
     - Check allowed URLs in Stack dashboard
     - Ensure OAuth providers are configured
 
@@ -255,7 +256,7 @@ module.exports = {
 }
 ```
 
-3. **Use production build locally**:
+1. **Use production build locally**:
 
 ```bash
 pnpm build
@@ -409,23 +410,23 @@ pnpm dev --verbose
 vercel logs --prod
 ```
 
-2. **Enable debug mode**:
+1. **Enable debug mode**:
 
 ```env
 # .env.local
 DEBUG=* 
 ```
 
-3. **Search existing issues**:
+1. **Search existing issues**:
     - GitHub Issues
     - Stack Overflow
 
-4. **Create detailed bug report**:
+2. **Create detailed bug report**:
     - Error message
     - Steps to reproduce
     - Environment (OS, Node version, browser)
     - Relevant logs
 
-5. **Contact support**:
+3. **Contact support**:
     - Open GitHub issue
     - Include troubleshooting steps tried

@@ -32,7 +32,7 @@ const FormPageSkeleton = () => (
 
 // Route-based dynamic imports
 export const LazyReportsPage = dynamic(
-  () => import("@/app/(main)/(authed)/(main)/reports/page"),
+  () => import("@/app/(main)/auth/reports/page"),
   {
     loading: () => <PageSkeleton />,
     ssr: false,
@@ -40,7 +40,7 @@ export const LazyReportsPage = dynamic(
 );
 
 export const LazyInsightsPage = dynamic(
-  () => import("@/app/(main)/(authed)/(main)/insights/page"),
+  () => import("@/app/(main)/auth/insights/page"),
   {
     loading: () => <PageSkeleton />,
     ssr: false,
@@ -48,8 +48,7 @@ export const LazyInsightsPage = dynamic(
 );
 
 export const LazyDosageCalculatorPage = dynamic(
-  () =>
-    import("@/app/(main)/(authed)/(main)/medications/dosage-calculator/page"),
+  () => import("@/app/(main)/auth/medications/dosage-calculator/page"),
   {
     loading: () => <FormPageSkeleton />,
     ssr: false,
@@ -57,7 +56,7 @@ export const LazyDosageCalculatorPage = dynamic(
 );
 
 export const LazyInventoryPage = dynamic(
-  () => import("@/app/(main)/(authed)/(main)/medications/inventory/page"),
+  () => import("@/app/(main)/auth/medications/inventory/page"),
   {
     loading: () => <PageSkeleton />,
     ssr: false,
@@ -65,7 +64,7 @@ export const LazyInventoryPage = dynamic(
 );
 
 export const LazyAdminRecordPage = dynamic(
-  () => import("@/app/(main)/(authed)/(main)/admin/record/page"),
+  () => import("@/app/(main)/auth/admin/record/page"),
   {
     loading: () => <FormPageSkeleton />,
     ssr: false,
@@ -73,7 +72,7 @@ export const LazyAdminRecordPage = dynamic(
 );
 
 export const LazyCoSignPage = dynamic(
-  () => import("@/app/(main)/(authed)/(main)/cosign/page"),
+  () => import("@/app/(main)/auth/cosign/page"),
   {
     loading: () => <FormPageSkeleton />,
     ssr: false,
@@ -81,8 +80,7 @@ export const LazyCoSignPage = dynamic(
 );
 
 export const LazyAnimalEmergencyPage = dynamic(
-  () =>
-    import("@/app/(main)/(authed)/(main)/manage/animals/[id]/emergency/page"),
+  () => import("@/app/(main)/auth/manage/animals/[id]/emergency/page"),
   {
     loading: () => <FormPageSkeleton />,
     ssr: false,
@@ -90,7 +88,7 @@ export const LazyAnimalEmergencyPage = dynamic(
 );
 
 export const LazyAnimalReportPage = dynamic(
-  () => import("@/app/(main)/(authed)/(main)/reports/animal/[id]/page"),
+  () => import("@/app/(main)/auth/reports/animal/[id]/page"),
   {
     loading: () => <PageSkeleton />,
     ssr: false,
@@ -99,7 +97,7 @@ export const LazyAnimalReportPage = dynamic(
 
 // Heavy settings pages
 export const LazyDataPrivacyAuditPage = dynamic(
-  () => import("@/app/(main)/(authed)/(main)/settings/data-privacy/audit/page"),
+  () => import("@/app/(main)/auth/settings/data-privacy/audit/page"),
   {
     loading: () => <PageSkeleton />,
     ssr: false,
@@ -108,7 +106,7 @@ export const LazyDataPrivacyAuditPage = dynamic(
 
 // Profile and user management
 export const LazyProfilePage = dynamic(
-  () => import("@/app/(main)/profile/page"),
+  () => import("@/app/(main)/auth/profile/page"),
   {
     loading: () => <FormPageSkeleton />,
     ssr: false,

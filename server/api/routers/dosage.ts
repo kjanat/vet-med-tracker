@@ -15,7 +15,6 @@ import {
 } from "@/lib/calculators/dosage";
 import {
   createTRPCRouter,
-  householdProcedure,
   ownerProcedure,
   protectedProcedure,
 } from "@/server/api/trpc";
@@ -53,7 +52,7 @@ function transformMedicationRow(
     // Administration details
     frequencyPerDay: 1, // Default since not in database
     duration: "as needed", // Default since not in database
-    route: row.route,
+    route: row.route || "oral",
 
     // Species and safety information
     species: [], // Default empty array since not array in database
@@ -62,8 +61,12 @@ function transformMedicationRow(
     contraindications: row.contraindications,
 
     // Advanced adjustments from database JSON fields
-    speciesAdjustments: row.speciesAdjustments as any,
-    routeAdjustments: row.routeAdjustments as any,
+    speciesAdjustments: row.speciesAdjustments as Record<string, unknown> as
+      | Record<string, number>
+      | undefined,
+    routeAdjustments: row.routeAdjustments as Record<string, unknown> as
+      | Record<string, number>
+      | undefined,
 
     // Regulatory information
     isControlledSubstance: row.controlledSubstance || false,
@@ -72,50 +75,109 @@ function transformMedicationRow(
   };
 }
 
+interface MedicationInputData {
+  id: string;
+  genericName: string;
+  brandName?: string | null;
+  form?: string;
+  unitType?: string;
+  dosageMinMgKg?: number | null;
+  dosageMaxMgKg?: number | null;
+  dosageTypicalMgKg?: number | null;
+  maxDailyDoseMg?: number | null;
+  concentrationMgMl?: number | null;
+  unitsPerTablet?: number | null;
+  route?: string;
+  warnings?: string | null;
+  contraindications?: string | string[] | null;
+  speciesAdjustments?: Record<string, unknown>;
+  routeAdjustments?: Record<string, unknown>;
+  ageAdjustments?: Record<string, unknown>;
+  breedConsiderations?: Record<string, unknown>;
+}
+
 /**
  * Transform API medication input to full calculator format
  * Fills in missing properties with sensible defaults
  */
 function transformMedicationInput(
-  input: any,
+  input: MedicationInputData,
 ): import("@/lib/calculators/dosage").Medication {
+  return {
+    ...getBasicMedicationInfo(input),
+    ...getDosageInformation(input),
+    ...getConcentrationInfo(input),
+    ...getAdministrationDetails(input),
+    ...getSpeciesAndSafetyInfo(input),
+    ...getAdvancedAdjustments(input),
+    ...getRegulatoryInformation(),
+  };
+}
+
+function getBasicMedicationInfo(input: MedicationInputData) {
   return {
     id: input.id,
     genericName: input.genericName,
     brandName: input.brandName || null,
-    category: "custom", // Default for user-provided medications
+    category: "custom" as const, // Default for user-provided medications
     formulation: input.form || "UNKNOWN",
     form: input.form,
     unitType: input.unitType || "mg",
+  };
+}
 
-    // Core dosage information
+function getDosageInformation(input: MedicationInputData) {
+  return {
     dosageMinMgKg: input.dosageMinMgKg || null,
     dosageMaxMgKg: input.dosageMaxMgKg || null,
     dosageTypicalMgKg: input.dosageTypicalMgKg || null,
     maxDailyDoseMg: input.maxDailyDoseMg || null,
+  };
+}
 
-    // Concentration and unit information
+function getConcentrationInfo(input: MedicationInputData) {
+  return {
     concentrationMgMl: input.concentrationMgMl || null,
     unitsPerTablet: input.unitsPerTablet || null,
+  };
+}
 
-    // Administration details
+function getAdministrationDetails(input: MedicationInputData) {
+  return {
     frequencyPerDay: 1, // Default
     duration: "as needed", // Default
-    route: input.route,
+    route: input.route || "oral",
+  };
+}
 
-    // Species and safety information
+function getSpeciesAndSafetyInfo(input: MedicationInputData) {
+  return {
     species: [], // Default
     warnings: input.warnings || null,
     sideEffects: null,
     contraindications: input.contraindications || null,
+  };
+}
 
-    // Advanced adjustments
-    speciesAdjustments: input.speciesAdjustments || undefined,
-    routeAdjustments: input.routeAdjustments || undefined,
-    ageAdjustments: input.ageAdjustments || undefined,
-    breedConsiderations: input.breedConsiderations || undefined,
+function getAdvancedAdjustments(input: MedicationInputData) {
+  return {
+    speciesAdjustments: (input.speciesAdjustments || undefined) as
+      | Record<string, number>
+      | undefined,
+    routeAdjustments: (input.routeAdjustments || undefined) as
+      | Record<string, number>
+      | undefined,
+    ageAdjustments: (input.ageAdjustments || undefined) as
+      | Record<string, number>
+      | undefined,
+    breedConsiderations: (input.breedConsiderations || undefined) as
+      | Record<string, string | number>
+      | undefined,
+  };
+}
 
-    // Regulatory information
+function getRegulatoryInformation() {
+  return {
     isControlledSubstance: false, // Default for user input
     prescriptionRequired: true, // Default
     pregnancyCategory: null,
@@ -126,7 +188,7 @@ function transformMedicationInput(
  * Calculate recommended dosage for a medication and animal
  * Used internally for dosage calculation endpoints
  */
-function calculateRecommendedDosage(input: DosageCalculationInput): {
+function _calculateRecommendedDosage(input: DosageCalculationInput): {
   dosage: DosageResult;
   safetyScore: number;
   warnings: string[];
@@ -163,8 +225,8 @@ function calculateRecommendedDosage(input: DosageCalculationInput): {
  * Get dosage breakdown with detailed safety information
  * Internal function for complex dosage calculations
  */
-function getDosageBreakdown(
-  medication: any,
+function _getDosageBreakdown(
+  medication: import("@/lib/calculators/dosage").Medication,
   animal: { species: string; weight: number; weightUnit: string },
   targetUnit: string = "mg",
 ) {
@@ -172,10 +234,10 @@ function getDosageBreakdown(
     animal: {
       species: animal.species,
       weight: animal.weight,
-      weightUnit: animal.weightUnit as any,
+      weightUnit: animal.weightUnit as "kg" | "lbs",
     },
     medication,
-    targetUnit: targetUnit as any,
+    targetUnit: targetUnit as "mg" | "ml" | "tablets",
   };
 
   const recommendedResult = DosageCalculator.calculate(input);
@@ -203,7 +265,6 @@ function getDosageBreakdown(
 
 import { VetUnitConversions } from "@/lib/calculators/unit-conversions";
 import {
-  batchDosageResultSchema,
   conversionResultSchema,
   convertDosageInputSchema,
   convertVolumeInputSchema,
@@ -226,7 +287,7 @@ export const dosageRouter = createTRPCRouter({
     .output(dosageResultSchema)
     .query(async ({ ctx, input }) => {
       try {
-        let medication;
+        let medication: import("@/lib/calculators/dosage").Medication;
 
         if (input.medicationId) {
           // Fetch medication from database
@@ -243,7 +304,9 @@ export const dosageRouter = createTRPCRouter({
             });
           }
 
-          medication = transformMedicationRow(medicationRows[0]!);
+          medication = transformMedicationRow(
+            medicationRows[0] as MedicationCatalogRow,
+          );
         } else if (input.medication) {
           medication = transformMedicationInput(input.medication);
         } else {
@@ -379,7 +442,7 @@ export const dosageRouter = createTRPCRouter({
         targetUnit: z.enum(["mg", "ml", "tablets"]).default("mg"),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       try {
         // This would fetch medication and animal data from database
         // For now, return a structured response showing the expected format
@@ -586,7 +649,7 @@ export const dosageRouter = createTRPCRouter({
           });
         }
 
-        const medicationRow = medicationRows[0]!;
+        const medicationRow = medicationRows[0] as MedicationCatalogRow;
         const medication = transformMedicationRow(medicationRow);
 
         const results = [];

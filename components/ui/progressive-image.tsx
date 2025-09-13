@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type React from "react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils/general";
 import { Skeleton } from "./skeleton";

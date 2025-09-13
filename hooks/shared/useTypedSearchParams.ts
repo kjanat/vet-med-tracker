@@ -27,11 +27,11 @@ export function useTypedSearchParams<
   const searchParams = useSearchParams();
 
   // Get typed parameters with defaults
-  const params = getTypedSearchParams<T>(
+  const params = getTypedSearchParams(
     new URLSearchParams(searchParams.toString()),
     pageType,
     defaults,
-  );
+  ) as T;
 
   /**
    * Updates a single parameter

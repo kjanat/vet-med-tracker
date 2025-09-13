@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useAnimalFormDialog } from "@/components/forms/animal-form-dialog";
 import { useInventoryFormDialog } from "@/components/forms/inventory-form-dialog";
 import { NotificationsSidebarItem } from "@/components/notifications/notifications-sidebar-item";
+import { HouseholdSwitcher } from "@/components/ui/household-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +29,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { HouseholdSwitcher } from "../ui/household-switcher";
 import { NavDashboard } from "./nav-dashboard";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";

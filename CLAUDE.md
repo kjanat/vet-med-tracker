@@ -21,7 +21,7 @@ across multiple households and animals.
 - **Forms**: React Hook Form with Zod validation
 - **Code Quality**: Biome for linting/formatting
 - **Testing**: Vitest (unit/integration) + Playwright (E2E)
-- **Package Manager**: pnpm (v10.14.0)
+- **Package Manager**: pnpm (v10.16.0)
 
 ## Development Commands
 
@@ -43,9 +43,13 @@ biome check --write  # Run Biome with auto-fix (or: biome check --write)
 biome format --write # Format code with Biome
 
 # Specialized code quality commands
-biome lint --only=category/rule  # Limits the output of the linter to category/rule issues, e.g. `suspicious/noArrayIndexKey`
-biome check --reporter=summary   # Only shows the summary of what rule violations, the amount of them, and whether they are errors, warnings, or just information level issues
-biome check --reporter=github    # Formats the output in a github actions-friendly way. This is a compact summary of each issue, also reccomended for use by LLM's as it outputs less tokens, and densely provides all data.
+biome lint --only=category/rule  # Limits the output of the linter to category/rule issues
+                                 # e.g. `suspicious/noArrayIndexKey`
+biome check --reporter=summary   # Only shows the summary of what rule violations, the amount
+                                 # of them, and whether they are errors, warnings, or just information level issues
+biome check --reporter=github    # Formats the output in a github actions-friendly way.
+                                 # This is a compact summary of each issue, also reccomended for
+                                 # use by LLM's as it outputs less tokens, and densely provides all data.
 biome check --diagnostic-level=<info|warn|error> # The level of diagnostics to show.
 biome <check|lint|format> --help # Displays help information
 
@@ -63,6 +67,62 @@ pnpm test:coverage # Run tests with coverage
 pnpm test:e2e      # Run Playwright E2E tests
 pnpm test:e2e:ui   # Run Playwright with UI mode
 ```
+
+## JetBrains MCP Server Integration
+
+The project now includes JetBrains MCP server integration, providing enhanced IDE-aware development capabilities that
+complement the existing development workflow.
+
+### Capabilities
+
+**Project Analysis & Navigation**
+
+- File discovery by name keywords or glob patterns
+- Visual directory tree representation
+- Project overview (modules, dependencies, run configurations)
+- Open file tracking in IDE
+
+**Code Intelligence**
+
+- Symbol information lookup at specific positions
+- File-level problem detection (errors, warnings)
+- Project-wide quality reports
+- Semantic code understanding
+
+**Smart Editing**
+
+- IDE-aware file operations
+- Intelligent find/replace with regex support
+- Symbol renaming with dependency tracking
+- Automatic code formatting application
+
+**Advanced Search**
+
+- Fast project-wide text and regex searches
+- Symbol reference finding across codebase
+- Leverages IDE indexing for performance
+
+**Execution & Testing**
+
+- Run configuration execution
+- Terminal command execution within IDE context
+- Version control status checking
+
+### Advantages Over Standard Tools
+
+- **IDE Context**: Works with actual project setup and configurations
+- **Performance**: Uses IDE indexing instead of raw file operations
+- **Intelligence**: Understands code semantics, not just text patterns
+- **Integration**: Respects IDE settings, formatting, and project structure
+
+### Usage in Development Workflow
+
+The JetBrains integration enhances existing development patterns:
+
+- **Code Analysis**: Faster symbol lookup and cross-reference analysis
+- **Refactoring**: Safer symbol renaming with full dependency tracking
+- **Quality Assurance**: IDE-aware problem detection and resolution
+- **Project Navigation**: Efficient exploration of large codebases
 
 ## Architecture Overview
 
@@ -104,7 +164,7 @@ hooks/               # Custom React hooks (organized by feature)
 └── shared/          # Shared/common hooks
 
 lib/                 # Utilities and shared logic
-├── logging/         # Logging infrastructure  
+├── logging/         # Logging infrastructure
 ├── navigation/      # Navigation configuration
 ├── schemas/         # Zod validation schemas (organized by feature)
 ├── trpc/            # tRPC client setup
@@ -114,41 +174,35 @@ lib/                 # Utilities and shared logic
 ### Key Architecture Patterns
 
 1. **App Router Structure**:
-
     - Protected routes under `app/(authed)/` require Stack Auth authentication
     - Nested layouts for shared UI components
     - Parallel routes for modals and overlays
 
 2. **Authentication Flow**:
-
     - Stack Auth handles all auth (OAuth, email/password, social)
     - Middleware protects routes via Stack Auth
     - Users synced to database on first login via webhook
     - Multi-household support with role-based access (OWNER, CAREGIVER, VETREADONLY)
 
 3. **Database Architecture**:
-
     - All tables prefixed with `vetmed_`
     - Drizzle ORM with PostgreSQL (Neon)
     - Three database branches: production, development, test
     - Schema-first approach with type generation
 
 4. **tRPC API Layer**:
-
     - Type-safe API with automatic TypeScript inference
     - Procedures with Zod validation
     - Middleware for authentication and authorization
     - Household-scoped data access
 
 5. **Progressive Web App**:
-
     - PWA capabilities for mobile installation
     - Responsive design with mobile-first approach
     - Online-focused architecture with basic offline support
     - Optimistic UI updates for better user experience
 
 6. **State Management**:
-
     - Global state via `AppProvider` (household, animal selection)
     - Server state with React Query + tRPC
     - Form state with React Hook Form
@@ -157,13 +211,11 @@ lib/                 # Utilities and shared logic
 ### Code Organization Patterns
 
 1. **Feature-Based Hook Organization**:
-
     - Hooks are organized by feature domain (inventory, history, admin, etc.)
     - Shared hooks in `hooks/shared/` for cross-cutting concerns
     - Tests co-located with their hooks
 
 2. **Clear Library Structure**:
-
     - `lib/utils/` - Pure utility functions (no side effects)
     - `lib/schemas/` - Zod validation schemas organized by feature
     - `lib/trpc/` - tRPC client configuration and utilities
@@ -172,25 +224,21 @@ lib/                 # Utilities and shared logic
 ### Critical Implementation Details
 
 1. **TypeScript Path Aliases**:
-
     - `@/*` maps to project root
     - `@/db/*` for database files
     - `@/trpc/*` for tRPC server files
 
 2. **Tailwind CSS v4**:
-
     - Configuration in `app/globals.css` using @theme syntax
     - No traditional tailwind.config.js file
     - CSS variables for theming and dark mode
 
 3. **Multi-Tenancy**:
-
     - Household-based data isolation
     - Role-based access control per household
     - Resource-level authorization checks
 
 4. **Time Management**:
-
     - All timestamps stored in UTC
     - Display in animal's home timezone
     - Each animal has configurable timezone
@@ -250,7 +298,6 @@ appRouter/
 ## Development Workflow
 
 1. **Feature Development**:
-
     - Create/modify Drizzle schema
     - Generate types with `pnpm db:generate`
     - Implement tRPC router with Zod validation
@@ -258,14 +305,12 @@ appRouter/
     - Write tests for critical paths
 
 2. **Database Changes**:
-
     - Modify `db/schema.ts`
     - Run `pnpm db:generate` to create migration
     - Test with `pnpm db:push` (development branch)
     - Apply to production via migration
 
 3. **API Development**:
-
     - Add router in `server/api/routers/`
     - Use appropriate procedure (public, protected, household, owner)
     - Add the router to `server/api/root.ts` (appRouter)
@@ -346,21 +391,31 @@ import { trpc } from "@/lib/trpc/client";
 ## Simplification Campaign Results
 
 ### Overview
-The VetMed Tracker underwent a major simplification campaign in 2025 to eliminate over-engineering and improve user experience while maintaining functionality and safety. The campaign achieved a **62% complexity reduction** through systematic removal of unnecessary infrastructure and user experience improvements.
+
+The VetMed Tracker underwent a major simplification campaign in 2025 to eliminate over-engineering and improve user
+experience while maintaining functionality and safety. The campaign achieved a **62% complexity reduction** through
+systematic removal of unnecessary infrastructure and user experience improvements.
 
 ### Phase 1: Infrastructure Removal (Jan 2025)
+
 **Target**: Remove over-engineered infrastructure that provided minimal value
+
 **Results**:
+
 - **Files Removed**: 48 files
-- **Lines Eliminated**: 19,469 lines (14.9% reduction)  
-- **Infrastructure Removed**: Complete offline system (IndexedDB, service workers, sync queues), Redis caching layer, circuit breakers, connection queues, health monitoring
+- **Lines Eliminated**: 19,469 lines (14.9% reduction)
+- **Infrastructure Removed**: Complete offline system (IndexedDB, service workers, sync queues), Redis caching layer,
+  circuit breakers, connection queues, health monitoring
 - **Impact**: Eliminated 100x over-engineering while preserving core medication tracking functionality
 - **Maintained**: Core PWA capabilities, authentication, data persistence
 
 ### Phase 2: Smart Simplification (Jan 2025)
+
 **Target**: Remove user friction while preserving safety and functionality
 **Results**:
-- **Hybrid Medication System**: Implemented zero-friction medication entry allowing ANY medication name (custom or catalog-sourced)
+
+- **Hybrid Medication System**: Implemented zero-friction medication entry allowing ANY medication name (custom or
+  catalog-sourced)
 - **tRPC Optimization**: Removed 5 unused duplicate experimental routers (85KB dead code)
 - **User Experience**: Eliminated primary barrier to entry (forced catalog selection requirement)
 - **Safety Preserved**: Controlled substance warnings, catalog suggestions, and safety features maintained
@@ -369,22 +424,26 @@ The VetMed Tracker underwent a major simplification campaign in 2025 to eliminat
 ### Key Architecture Changes
 
 #### Medication System Evolution
+
 - **Before**: Rigid catalog-only system requiring database lookup for every medication
 - **After**: Flexible hybrid system supporting both custom and catalog medications
 - **Benefits**: Zero user friction, immediate medication entry, catalog suggestions when available
 - **Safety**: Controlled substance warnings preserved, existing data fully compatible
 
-#### Infrastructure Simplification  
+#### Infrastructure Simplification
+
 - **Removed**: Offline-first architecture, caching layers, circuit breakers, health monitoring
 - **Kept**: Core PWA functionality, Stack Auth, tRPC type safety, database operations
 - **Result**: Dramatically simplified architecture focused on essential medication tracking
 
 #### Technical Debt Elimination
+
 - **Removed**: Experimental duplicate routers, unused optimization code, complex state management
 - **Streamlined**: Component structure, hook organization, utility functions
 - **Maintained**: Type safety, code quality standards, testing infrastructure
 
 ### User Experience Improvements
+
 1. **Zero Barriers**: Enter any medication without catalog requirements or forced selections
 2. **Smart Assistance**: Catalog suggestions appear when available without blocking user flow
 3. **Preserved Safety**: Controlled substance warnings and safety features maintained
@@ -392,6 +451,7 @@ The VetMed Tracker underwent a major simplification campaign in 2025 to eliminat
 5. **Faster Onboarding**: New users can immediately start tracking medications
 
 ### Development Benefits
+
 1. **Reduced Complexity**: 62% fewer architectural components to maintain
 2. **Faster Development**: Simplified codebase enables faster feature development
 3. **Better Testing**: Fewer integration points reduce testing complexity
@@ -399,6 +459,7 @@ The VetMed Tracker underwent a major simplification campaign in 2025 to eliminat
 5. **Clear Architecture**: Focused on core medication tracking domain
 
 ### Lessons Learned
+
 1. **Over-Engineering Recognition**: Complex offline systems provided minimal real-world value
 2. **User-First Design**: Catalog flexibility dramatically improves user experience
 3. **Safety Balance**: Can maintain safety features while removing user friction
@@ -406,8 +467,9 @@ The VetMed Tracker underwent a major simplification campaign in 2025 to eliminat
 5. **Incremental Approach**: Phase-based simplification enables controlled complexity reduction
 
 ### Future Recommendations
+
 1. **Continue Simplicity Focus**: Evaluate new features against complexity cost
-2. **User Experience Priority**: Always prioritize user workflow over technical elegance  
+2. **User Experience Priority**: Always prioritize user workflow over technical elegance
 3. **Infrastructure Skepticism**: Require strong justification for any new infrastructure
 4. **Gradual Enhancement**: Add complexity only when proven necessary by user feedback
 5. **Regular Audits**: Periodic reviews to identify and eliminate accumulated technical debt
@@ -416,7 +478,7 @@ The VetMed Tracker underwent a major simplification campaign in 2025 to eliminat
 
 ### Delegation-First Approach for Major Refactors
 
-When handling large-scale refactoring or complex multi-phase projects, adopt a **Project Manager (PM) role** and
+When handling large-scale refactoring or complex multiphase projects, adopt a **Project Manager (PM) role** and
 delegate all implementation work to specialized sub-agents. This approach has proven highly effective for maintaining
 clarity, preventing context overload, and ensuring systematic progress.
 
@@ -425,7 +487,7 @@ clarity, preventing context overload, and ensuring systematic progress.
 Use this approach for:
 
 - **Major refactors** affecting >30% of the codebase
-- **Multi-phase projects** with distinct deliverables
+- **Multiphase projects** with distinct deliverables
 - **Complex architectural changes** requiring coordination
 - **Performance optimizations** needing systematic analysis
 - **Technical debt reduction** campaigns
@@ -449,6 +511,7 @@ As the PM, you should:
 ## Phase [N]: [Phase Name]
 
 ### Task [N.M]: [Task Description]
+
 **Objective**: [Clear goal]
 **Dependencies**: [Prerequisites if any]
 **Success Criteria**: [Measurable outcomes]
@@ -461,28 +524,24 @@ As the PM, you should:
 This project successfully used the delegation workflow to achieve 62% complexity reduction:
 
 1. **Phase 1: Quick Wins** (22% reduction)
-
     - Task 1.1: Remove duplicate components → Frontend specialist
     - Task 1.2: Clean up unused endpoints → Backend specialist
     - Task 1.3: Consolidate mobile detection → UI specialist
     - Task 1.4: Remove test utilities → Testing specialist
 
 2. **Phase 2: Provider Consolidation** (42% total reduction)
-
     - Task 2.1: Design consolidated provider → Architecture specialist
     - Task 2.2: Implement new provider → Frontend specialist
     - Task 2.3: Migrate components → Migration specialist
     - Task 2.4: Update tests → Testing specialist
 
 3. **Phase 3: Structure Refactor** (62% final reduction)
-
     - Task 3.1: Component reorganization → Frontend specialist
     - Task 3.2: Route flattening → Architecture specialist
     - Task 3.3: tRPC cleanup → Backend specialist
     - Task 3.4: Naming standardization → Code quality specialist
 
 4. **Validation Phase**
-
     - Validation 1: TypeScript checking → TypeScript specialist
     - Validation 2: Linting → Code quality specialist
     - Validation 3: Build verification → Build specialist
@@ -511,11 +570,13 @@ You are a [specialization] specialist. Your task is to:
 3. [Constraints/guidelines]
 
 Context:
+
 - [Relevant background]
 - [Dependencies]
 - [Expected outcomes]
 
 Execute this task and report results with:
+
 - Summary of changes
 - Files modified
 - Metrics/measurements

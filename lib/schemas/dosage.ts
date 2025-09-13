@@ -278,8 +278,7 @@ export const validateDosageRange = (
 ): boolean => {
   if (min !== undefined && typical !== undefined && min > typical) return false;
   if (typical !== undefined && max !== undefined && typical > max) return false;
-  if (min !== undefined && max !== undefined && min > max) return false;
-  return true;
+  return !(min !== undefined && max !== undefined && min > max);
 };
 
 export const validateSpeciesName = (species: string): boolean => {

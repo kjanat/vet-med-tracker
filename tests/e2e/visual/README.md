@@ -257,9 +257,9 @@ The `.github/workflows/visual-regression.yml` workflow:
 
 Add these secrets to GitHub repository settings:
 
-```
-PERCY_TOKEN                          # Percy project token
-TEST_DATABASE_URL                    # Test database connection
+```env
+PERCY_TOKEN                         # Percy project token
+TEST_DATABASE_URL                   # Test database connection
 TEST_STACK_PROJECT_ID               # Stack Auth test project
 TEST_STACK_PUBLISHABLE_CLIENT_KEY   # Stack Auth test key
 TEST_STACK_SECRET_SERVER_KEY        # Stack Auth test secret

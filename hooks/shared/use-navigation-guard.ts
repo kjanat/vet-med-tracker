@@ -24,21 +24,16 @@ export function useNavigationGuard({
   useEffect(() => {
     if (!enabled) return;
 
-    // Handle browser navigation (back/forward buttons)
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      // Chrome requires returnValue to be set
+      // Required by Chrome/Firefox/Safari to show prompt (deprecated but necessary)
+      // noinspection JSDeprecatedSymbols
       e.returnValue = message;
-      return message;
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
-
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [enabled, message]);
-
-  // For programmatic navigation, you would use NavigationGuardLink
-  // or implement custom logic in your navigation handlers
 }

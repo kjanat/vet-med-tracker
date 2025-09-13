@@ -240,6 +240,7 @@ export function useViewportState(devices: DeviceItem[]) {
   }, []);
 
   const rotate = useCallback(() => {
+    // noinspection JSSuspiciousNameCombination
     setState((prev) => ({
       ...prev,
       width: prev.height,

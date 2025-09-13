@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useRef, useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";

@@ -12,5 +12,8 @@
 #  - "biome format --write --no-errors-on-unmatched"
 #  # Lint and apply safe fixes
 #  - "biome lint --write --no-errors-on-unmatched"
-# Alternatively you can pass every files and ignore unknown extensions
-"*": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
+# Alternatively you can pass every file and ignore unknown extensions
+"*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --diagnostic-level=error"
+"*.sh":
+  - "shfmt -w"
+  - "shellcheck"

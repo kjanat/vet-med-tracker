@@ -39,13 +39,13 @@ export function useRecordParams() {
 
   // Memoize parsed parameters to prevent re-parsing
   const typedParams = useMemo(() => {
-    return getTypedSearchParams<RecordSearchParams>(
+    return getTypedSearchParams(
       new URLSearchParams(searchParamsString),
       "record",
       {
         mode: "quick",
       },
-    );
+    ) as RecordSearchParams;
   }, [searchParamsString]);
 
   // Memoize the params object to prevent unnecessary re-renders

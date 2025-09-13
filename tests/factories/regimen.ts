@@ -165,23 +165,58 @@ function generateDoseString(): string {
     "units",
   ]);
 
-  // Special formatting for tablets/capsules
-  if (["tablets", "capsules"].includes(unit)) {
-    const wholeNumber = Math.floor(amount);
-    const fraction = amount - wholeNumber;
-
-    if (fraction === 0.5) {
-      return wholeNumber > 0 ? `${wholeNumber} 1/2 ${unit}` : `1/2 ${unit}`;
-    } else if (fraction === 0.25) {
-      return wholeNumber > 0 ? `${wholeNumber} 1/4 ${unit}` : `1/4 ${unit}`;
-    } else if (fraction === 0.75) {
-      return wholeNumber > 0 ? `${wholeNumber} 3/4 ${unit}` : `3/4 ${unit}`;
-    } else {
-      return `${Math.ceil(amount)} ${unit}`;
-    }
+  if (isTabletOrCapsuleUnit(unit)) {
+    return formatTabletDose(amount, unit);
   }
 
   return `${amount} ${unit}`;
+}
+
+/**
+ * Check if unit is tablets or capsules requiring special formatting
+ */
+function isTabletOrCapsuleUnit(unit: string): boolean {
+  return ["tablets", "capsules"].includes(unit);
+}
+
+/**
+ * Format tablet/capsule doses with fractional formatting
+ */
+function formatTabletDose(amount: number, unit: string): string {
+  const wholeNumber = Math.floor(amount);
+  const fraction = amount - wholeNumber;
+
+  const fractionString = getFractionString(fraction);
+
+  if (fractionString) {
+    return formatWithFraction(wholeNumber, fractionString, unit);
+  }
+
+  return `${Math.ceil(amount)} ${unit}`;
+}
+
+/**
+ * Get fraction string representation for common fractions
+ */
+function getFractionString(fraction: number): string | null {
+  if (fraction === 0.5) return "1/2";
+  if (fraction === 0.25) return "1/4";
+  if (fraction === 0.75) return "3/4";
+  return null;
+}
+
+/**
+ * Format dose with whole number and fraction
+ */
+function formatWithFraction(
+  wholeNumber: number,
+  fractionString: string,
+  unit: string,
+): string {
+  if (wholeNumber > 0) {
+    return `${wholeNumber} ${fractionString} ${unit}`;
+  }
+  return `${fractionString} ${unit}`;
 }
 
 // Regimen builder class for complex scenarios

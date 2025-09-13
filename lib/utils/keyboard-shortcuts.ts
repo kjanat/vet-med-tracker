@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useCallback, useEffect } from "react";
 
 type NavigationDirection = "horizontal" | "vertical" | "grid";

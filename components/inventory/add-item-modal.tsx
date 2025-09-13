@@ -5,6 +5,10 @@ import { AlertCircle, Camera, Scan } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { HybridMedicationInput } from "@/components/medication/hybrid-medication-input";
+import type { vetmedMedicationCatalog } from "@/db/schema";
+
+type MedicationCatalog = typeof vetmedMedicationCatalog.$inferSelect;
+
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -112,6 +116,50 @@ export function AddItemModal({
         setScanError(error);
       },
     });
+
+  // Helper to handle controlled substance storage
+  const handleControlledSubstanceStorage = (medication: MedicationCatalog) => {
+    if (medication.controlledSubstance) {
+      form.setValue("storage", "CONTROLLED");
+    }
+  };
+
+  // Helper to auto-fill catalog medication fields
+  const autoFillCatalogFields = (medication: MedicationCatalog) => {
+    if (medication.brandName) {
+      form.setValue("brand", medication.brandName);
+    }
+    form.setValue("form", medication.form);
+    form.setValue("route", medication.route);
+    if (medication.strength) {
+      form.setValue("strength", medication.strength);
+    }
+  };
+
+  // Helper to handle medication selection changes
+  const handleMedicationChange = (
+    medicationName: string,
+    medicationId: string | undefined,
+    isCustom: boolean | undefined,
+    medication: MedicationCatalog | undefined,
+  ) => {
+    // Update the name field (primary)
+    form.setValue("name", medicationName);
+
+    // Update related fields
+    form.setValue("medicationId", medicationId);
+    form.setValue("isCustomMedication", isCustom || false);
+
+    if (medication && !isCustom) {
+      // Auto-fill form fields from catalog medication
+      autoFillCatalogFields(medication);
+
+      // Handle controlled substance storage
+      handleControlledSubstanceStorage(medication);
+    }
+    // For custom medications, don't clear user-entered data
+    // Users can still fill in details manually
+  };
 
   const onSubmit = async (data: InventoryFormData) => {
     try {
@@ -272,36 +320,16 @@ export function AddItemModal({
                               isCustom,
                               medication,
                             ) => {
-                              // Update the name field (primary)
+                              // Update the field value for react-hook-form
                               field.onChange(medicationName);
 
-                              // Update related fields
-                              form.setValue("medicationId", medicationId);
-                              form.setValue(
-                                "isCustomMedication",
-                                isCustom || false,
+                              // Handle all other medication changes
+                              handleMedicationChange(
+                                medicationName,
+                                medicationId,
+                                isCustom,
+                                medication,
                               );
-
-                              if (medication && !isCustom) {
-                                // Auto-fill form fields from catalog medication
-                                if (medication.brandName) {
-                                  form.setValue("brand", medication.brandName);
-                                }
-                                form.setValue("form", medication.form);
-                                form.setValue("route", medication.route);
-                                if (medication.strength) {
-                                  form.setValue(
-                                    "strength",
-                                    medication.strength,
-                                  );
-                                }
-                                // If it's a controlled substance, set storage appropriately
-                                if (medication.controlledSubstance) {
-                                  form.setValue("storage", "CONTROLLED");
-                                }
-                              }
-                              // For custom medications, don't clear user-entered data
-                              // Users can still fill in details manually
                             }}
                             required
                             householdId={selectedHousehold?.id}

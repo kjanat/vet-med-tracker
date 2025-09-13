@@ -1,8 +1,7 @@
 "use client";
 
-import { AlertCircle, Clock, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,50 +15,9 @@ import {
 export default function AuthErrorPage() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
-  const [countdown, setCountdown] = useState(0);
-  const [canRetry, setCanRetry] = useState(false);
-
-  useEffect(() => {
-    // If rate limited, start a 15-minute countdown
-    if (error === "rate_limit" || error === "too_many_requests") {
-      const waitTime = 15 * 60; // 15 minutes in seconds
-      setCountdown(waitTime);
-      setCanRetry(false);
-
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setCanRetry(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    } else {
-      setCanRetry(true);
-    }
-  }, [error]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
 
   const getErrorInfo = () => {
     switch (error) {
-      case "rate_limit":
-      case "too_many_requests":
-        return {
-          title: "Rate Limit Exceeded",
-          description:
-            "You've made too many authentication attempts. Please wait before trying again.",
-          icon: Clock,
-          color: "text-orange-600",
-        };
       case "configuration":
         return {
           title: "Configuration Error",
@@ -90,19 +48,67 @@ export default function AuthErrorPage() {
   const errorInfo = getErrorInfo();
   const Icon = errorInfo.icon;
 
-  const handleRetry = () => {
-    // Clear any cached auth state
-    if (typeof window !== "undefined") {
-      // Clear cookies for Stack Auth
-      document.cookie.split(";").forEach((c) => {
-        if (c.includes("stack-auth")) {
-          document.cookie = c
-            .replace(/^ +/, "")
-            .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
-        }
-      });
-    }
+  const clearAuthCookies = () => {
+    if (typeof window === "undefined") return;
 
+    try {
+      // Get all cookies safely
+      const cookies = document.cookie;
+
+      if ("cookieStore" in window) {
+        // Use Cookie Store API when available (secure)
+        const cookieStore = (
+          window as unknown as {
+            cookieStore: {
+              delete: (options: {
+                name: string;
+                path?: string;
+              }) => Promise<void>;
+            };
+          }
+        ).cookieStore;
+        cookies.split(";").forEach(async (cookieStr) => {
+          const trimmed = cookieStr.trim();
+          if (trimmed.includes("stack-auth")) {
+            const cookieName = trimmed.split("=")[0];
+            if (cookieName) {
+              try {
+                await cookieStore.delete({ name: cookieName, path: "/" });
+              } catch (deleteError) {
+                console.warn(
+                  `Failed to delete cookie ${cookieName}:`,
+                  deleteError,
+                );
+              }
+            }
+          }
+        });
+      } else {
+        // Fallback for browsers without Cookie Store API
+        cookies.split(";").forEach((cookieStr) => {
+          const trimmed = cookieStr.trim();
+          if (trimmed.includes("stack-auth")) {
+            const cookieName = trimmed.split("=")[0];
+            if (cookieName) {
+              const expiredDate = new Date(0).toUTCString();
+              // Secure cookie deletion with proper attributes - fallback for older browsers
+              const cookieString = `${cookieName}=; expires=${expiredDate}; path=/; SameSite=Strict`;
+              // Use function call to set cookie and avoid direct document.cookie assignment
+              const setCookie = (value: string) => {
+                (document as Document).cookie = value;
+              };
+              setCookie(cookieString);
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.warn("Failed to clear auth cookies:", error);
+    }
+  };
+
+  const handleRetry = () => {
+    clearAuthCookies();
     // Redirect to sign in
     window.location.href = "/handler/sign-in";
   };
@@ -124,38 +130,10 @@ export default function AuthErrorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {countdown > 0 && (
-            <Alert>
-              <Clock className="h-4 w-4" />
-              <AlertTitle>Please Wait</AlertTitle>
-              <AlertDescription>
-                You can try again in{" "}
-                <span className="font-mono font-semibold">
-                  {formatTime(countdown)}
-                </span>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {error === "rate_limit" && (
-            <div className="rounded-lg bg-muted p-4 text-sm">
-              <p className="font-medium">Why am I seeing this?</p>
-              <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
-                <li>Multiple failed login attempts</li>
-                <li>Rapid repeated requests to the auth service</li>
-                <li>Browser automation or testing tools</li>
-              </ul>
-            </div>
-          )}
-
           <div className="flex flex-col gap-2">
-            <Button
-              onClick={handleRetry}
-              disabled={!canRetry}
-              className="w-full"
-            >
+            <Button onClick={handleRetry} className="w-full">
               <RefreshCw className="mr-2 h-4 w-4" />
-              {canRetry ? "Try Again" : `Wait ${formatTime(countdown)}`}
+              Try Again
             </Button>
             <Button onClick={handleGoHome} variant="outline" className="w-full">
               Go to Homepage

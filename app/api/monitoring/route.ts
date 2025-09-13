@@ -46,7 +46,7 @@ interface MonitoringMetrics {
  * Get memory usage statistics
  */
 function getMemoryStats() {
-  if (typeof process !== "undefined" && process.memoryUsage) {
+  if (process?.memoryUsage) {
     const usage = process.memoryUsage();
     return {
       used: Math.round(usage.heapUsed / 1024 / 1024), // MB
@@ -279,7 +279,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `error_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       timestamp: errorReport.timestamp,
     });
   } catch (error) {

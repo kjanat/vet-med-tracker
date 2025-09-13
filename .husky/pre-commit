@@ -1,2 +1,4 @@
 # pnpm test
 lint-staged
+
+pnpm format:md

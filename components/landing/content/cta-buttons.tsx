@@ -39,7 +39,7 @@ export function CtaButtons({
       )}
       {user && (
         <Button size="lg" className="px-8 text-lg" asChild>
-          <Link href="/dashboard">
+          <Link href="/auth/dashboard">
             Go to Dashboard
             <ArrowRight className="ml-2 h-5 w-5" />
           </Link>

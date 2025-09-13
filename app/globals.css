@@ -411,7 +411,7 @@
   }
 
   /* High contrast mode support */
-  @media (prefers-contrast: high) {
+  @media (prefers-contrast: more) {
     *:focus-visible {
       outline: 3px solid;
       outline-offset: 3px;
@@ -504,7 +504,7 @@
   }
 
   /* High contrast mode specific overrides */
-  @media (prefers-contrast: high) {
+  @media (prefers-contrast: more) {
     :root {
       --muted-foreground: 0 0% 25%; /* Even higher contrast for high contrast mode */
       --destructive: 0 84.2% 35%; /* Even higher contrast for high contrast mode */

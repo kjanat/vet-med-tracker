@@ -12,7 +12,7 @@ try {
   toHaveNoViolations = {};
 }
 
-import { StackAuthTestUtils } from "../mocks/stack-auth";
+import { StackAuthTestUtils } from "@/tests/mocks";
 
 // Extend expect with jest-axe matchers
 expect.extend(toHaveNoViolations);

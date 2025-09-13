@@ -34,14 +34,14 @@ export function useHistoryFilters() {
 
   // Memoize the parsed parameters to prevent re-parsing on every render
   const typedParams = useMemo(() => {
-    return getTypedSearchParams<HistorySearchParams>(
+    return getTypedSearchParams(
       new URLSearchParams(searchParamsString),
       "history",
       {
         type: "all",
         view: "list",
       },
-    );
+    ) as HistorySearchParams;
   }, [searchParamsString]);
 
   // Memoize the final filters object to prevent unnecessary re-renders downstream
@@ -88,11 +88,11 @@ export function useHistoryFilters() {
       if (typeof window !== "undefined") {
         // Calculate current filters from search params to avoid filters dependency
         // This prevents the callback from being recreated every time the URL changes
-        const currentParams = getTypedSearchParams<HistorySearchParams>(
+        const currentParams = getTypedSearchParams(
           new URLSearchParams(searchParamsString),
           "history",
           { type: "all", view: "list" },
-        );
+        ) as HistorySearchParams;
         const currentFilters = { ...currentParams, [key]: value };
         window.dispatchEvent(
           new CustomEvent("history_filter_change", {

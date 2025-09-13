@@ -85,14 +85,25 @@ function MedicationDistributionWidgetContent({
   }, [chartData]);
 
   // Custom tooltip content
-  const customTooltip = ({ active, payload }: any) => {
+  const customTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{
+      name: string;
+      value: number;
+      payload: { percentage: number };
+    }>;
+  }) => {
     if (active && payload && payload.length) {
       const data = payload[0];
+      if (!data) return null;
       return (
         <div className="rounded-lg border bg-background px-3 py-2 shadow-md">
           <p className="font-medium">{data.name}</p>
           <p className="text-muted-foreground text-sm">
-            {data.value} regimens ({data.payload.percentage}%)
+            {data.value} regimens ({data.payload?.percentage || 0}%)
           </p>
         </div>
       );
@@ -136,7 +147,7 @@ function MedicationDistributionWidgetContent({
                 outerRadius={isFullscreen ? 120 : 80}
                 paddingAngle={2}
                 dataKey="count"
-                label={(entry: any) => `${entry.payload?.percentage || 0}%`}
+                label={false}
                 labelLine={false}
               >
                 {chartData.map((entry) => (

@@ -1,5 +1,20 @@
+// Browser-compatible crypto using Web Crypto API
+const getRandomBytes = (size: number): Uint8Array => {
+  if (crypto?.getRandomValues) {
+    // Modern environment with Web Crypto API (browser or Node 16+)
+    return crypto.getRandomValues(new Uint8Array(size));
+  } else {
+    // Fallback: generate pseudo-random bytes
+    const bytes = new Uint8Array(size);
+    for (let i = 0; i < size; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+    return bytes;
+  }
+};
+
 import DOMPurify from "isomorphic-dompurify";
-import { z } from "zod";
+import { type ZodType, z } from "zod";
 
 /**
  * Security utilities for input sanitization and validation
@@ -7,7 +22,7 @@ import { z } from "zod";
 
 // Common validation patterns
 export const securityPatterns = {
-  // Basic SQL injection patterns (basic defense in depth)
+  // Basic SQL injection patterns (defense-in-depth; keep conservative)
   sqlInjection:
     /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
 
@@ -22,13 +37,13 @@ export const securityPatterns = {
   // Path traversal
   pathTraversal: /(\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e%5c)/i,
 
-  // Command injection
+  // Command injection (broad; apply only where appropriate)
   commandInjection: /[;&|`$(){}[\]]/,
 
   // UUID validation
   uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
 
-  // Email validation (more strict than basic regex)
+  // Email validation (stricter than minimal)
   email:
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
 
@@ -55,10 +70,9 @@ export function sanitizeHtml(input: string): string {
 export function sanitizeText(input: string, maxLength = 1000): string {
   // Remove potential XSS patterns
   let sanitized = input;
-  securityPatterns.xssPatterns.forEach((pattern) => {
+  for (const pattern of securityPatterns.xssPatterns) {
     sanitized = sanitized.replace(pattern, "");
-  });
-
+  }
   // Trim and limit length
   return sanitized.trim().slice(0, maxLength);
 }
@@ -70,142 +84,151 @@ export function sanitizeFileName(filename: string): string {
   // Remove path traversal attempts
   let sanitized = filename.replace(securityPatterns.pathTraversal, "");
 
-  // Remove potentially dangerous characters
-  // File system reserved characters: < > : " / \ | ? *
+  // Remove filesystem-dangerous characters: < > : " / \ | ? *
   sanitized = sanitized.replace(/[<>:"/\\|?*]/g, "");
 
-  // Remove control characters using filter instead of regex with control character ranges
-  // This avoids the noControlCharactersInRegex lint rule while still providing security
+  // Strip control chars (keep space). Kept as filter to satisfy noControlCharactersInRegex.
   sanitized = sanitized
     .split("")
-    .filter((char) => {
-      const code = char.charCodeAt(0);
-      // Filter out ASCII control characters (0-31) which can break filenames
-      return code > 31 || char === " "; // Allow space (32) but not other control chars
+    .filter((ch) => {
+      const code = ch.charCodeAt(0);
+      return code > 31 || ch === " ";
     })
     .join("");
 
-  // Limit length and ensure safe characters only
+  // Collapse consecutive slashes/backslashes just in case
+  sanitized = sanitized.replace(/[\\/]+/g, "/");
+
+  // Limit length and trim
   return sanitized.slice(0, 255).trim();
 }
 
 /**
- * Enhanced Zod schemas with security validations
+ * Enhanced Zod schemas with security validations (Zod v4-ready)
  */
 export const secureSchemas = {
   // Secure string with XSS protection
-  safeString: (maxLength = 1000) =>
-    z
+  safeString: (maxLength = 1000) => {
+    const sanitized = z
       .string()
-      .transform((val) => sanitizeText(val, maxLength))
-      .refine(
-        (val) => !securityPatterns.sqlInjection.test(val),
-        "Invalid characters detected",
+      .transform((val) => sanitizeText(val, maxLength));
+    return sanitized
+      .pipe(
+        z
+          .string()
+          .max(maxLength, { message: `String too long (max ${maxLength})` }),
       )
-      .refine(
-        (val) => val.length <= maxLength,
-        `String too long (max ${maxLength})`,
-      ),
+      .refine((val) => !securityPatterns.sqlInjection.test(val), {
+        message: "Invalid characters detected",
+      });
+  },
+  // Secure HTML content (sanitize -> validate length)
+  // Strict UUID validation (use built-in)
+  uuid: z.uuid({ message: "Invalid UUID format" }),
 
-  // Secure HTML content
-  safeHtml: (maxLength = 5000) =>
-    z
-      .string()
-      .transform((val) => sanitizeHtml(val))
-      .refine(
-        (val) => val.length <= maxLength,
-        `Content too long (max ${maxLength})`,
-      ),
+  // Secure email (normalize -> validate)
+  email: z.email({ message: "Invalid email format" }),
 
-  // Strict UUID validation
-  uuid: z
-    .string()
-    .refine((val) => securityPatterns.uuid.test(val), "Invalid UUID format"),
-
-  // Secure email validation
-  email: z
-    .string()
-    .refine((val) => securityPatterns.email.test(val), "Invalid email format")
-    .transform((val) => val.toLowerCase().trim()),
-
-  // Secure phone validation
+  // Secure phone (normalize -> regex)
   phone: z
     .string()
-    .refine(
-      (val) => securityPatterns.phone.test(val),
-      "Invalid phone number format",
-    )
-    .transform((val) => val.trim()),
+    .trim()
+    .regex(securityPatterns.phone, { message: "Invalid phone number format" }),
 
-  // Secure filename
-  filename: z
-    .string()
-    .transform((val) => sanitizeFileName(val))
-    .refine((val) => val.length > 0, "Filename cannot be empty")
-    .refine((val) => !val.startsWith("."), "Hidden files not allowed")
-    .refine(
-      (val) => securityPatterns.safeFilename.test(val),
-      "Invalid filename characters",
-    ),
+  // Secure filename (sanitize -> structural checks)
+  filename: (() => {
+    const sanitized = z.string().transform((val) => sanitizeFileName(val));
+    return sanitized
+      .pipe(z.string().min(1, { message: "Filename cannot be empty" }))
+      .refine((val) => !val.startsWith("."), {
+        message: "Hidden files not allowed",
+      })
+      .refine((val) => securityPatterns.safeFilename.test(val), {
+        message: "Invalid filename characters",
+      });
+  })(),
 
-  // URL validation with whitelist
+  // URL validation with optional host allowlist (returns string)
   url: (allowedHosts?: string[]) =>
-    z
-      .string()
-      .url("Invalid URL format")
-      .refine((val) => {
-        if (!allowedHosts) return true;
+    z.url({ message: "Invalid URL format" }).refine(
+      (val) => {
+        if (!allowedHosts || allowedHosts.length === 0) return true;
         try {
-          const url = new URL(val);
-          return allowedHosts.includes(url.hostname);
+          const u = new URL(val);
+          return allowedHosts.includes(u.hostname);
         } catch {
           return false;
         }
-      }, "URL host not allowed"),
+      },
+      { message: "URL host not allowed" },
+    ),
 
-  // Numeric validations with bounds
-  positiveNumber: (max?: number) =>
-    z
-      .number()
-      .positive("Must be positive")
-      .finite("Must be finite")
-      .refine((val) => !max || val <= max, `Must be less than ${max}`),
+  // Numeric validations with bounds (finite by default in v4)
+  positiveNumber: (max?: number) => {
+    let s = z.number().positive({ message: "Must be positive" });
+    if (typeof max === "number") {
+      s = s.lte(max, { message: `Must be ≤ ${max}` });
+    }
+    return s;
+  },
 
   // Array validation with size limits
-  limitedArray: <T>(itemSchema: z.ZodSchema<T>, maxItems = 100) =>
-    z.array(itemSchema).max(maxItems, `Too many items (max ${maxItems})`),
+  limitedArray: <T>(itemSchema: z.ZodType<T>, maxItems = 100) =>
+    z
+      .array(itemSchema)
+      .max(maxItems, { message: `Too many items (max ${maxItems})` }),
 
-  // Date validation with reasonable bounds
+  // Date validation with reasonable bounds (accepts strings or Dates; returns Date)
   recentDate: (yearsBack = 150, yearsFuture = 10) => {
     const minDate = new Date();
     minDate.setFullYear(minDate.getFullYear() - yearsBack);
+
     const maxDate = new Date();
     maxDate.setFullYear(maxDate.getFullYear() + yearsFuture);
 
-    return z
+    return z.coerce
       .date()
-      .min(minDate, `Date too old (before ${minDate.getFullYear()})`)
-      .max(maxDate, `Date too far in future (after ${maxDate.getFullYear()})`);
+      .min(minDate, {
+        message: `Date too old (before ${minDate.getFullYear()})`,
+      })
+      .max(maxDate, {
+        message: `Date too far in future (after ${maxDate.getFullYear()})`,
+      });
   },
 };
 
 /**
  * Security validation middleware for tRPC procedures
+ * Prefer superRefine for better error reporting (no generic bool refine).
  */
-export function createSecurityValidator<T>(schema: z.ZodSchema<T>) {
-  return schema.refine((data: unknown) => {
-    // Additional runtime security checks
-    const jsonStr = JSON.stringify(data);
+export function createSecurityValidator<T>(schema: ZodType<T>) {
+  return schema.superRefine((data, ctx) => {
+    try {
+      const jsonStr = JSON.stringify(data);
 
-    // Check for excessively large payloads
-    if (jsonStr.length > 100000) {
-      // 100KB limit
-      return false;
+      if (jsonStr.length > 100_000) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Payload too large (max 100KB)",
+          path: [], // root
+        });
+      }
+
+      if (securityPatterns.sqlInjection.test(jsonStr)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Security validation failed",
+          path: [],
+        });
+      }
+    } catch {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Unable to serialize payload for security checks",
+        path: [],
+      });
     }
-
-    // Check for suspicious patterns in serialized data
-    return !securityPatterns.sqlInjection.test(jsonStr);
-  }, "Security validation failed");
+  });
 }
 
 /**
@@ -214,9 +237,7 @@ export function createSecurityValidator<T>(schema: z.ZodSchema<T>) {
 export const rateLimitHelpers = {
   // Generate rate limit key based on user context
   generateKey(userId?: string, ip?: string, action?: string): string {
-    if (userId) {
-      return `user:${userId}${action ? `:${action}` : ""}`;
-    }
+    if (userId) return `user:${userId}${action ? `:${action}` : ""}`;
     return `ip:${ip || "unknown"}${action ? `:${action}` : ""}`;
   },
 
@@ -228,7 +249,7 @@ export const rateLimitHelpers = {
       /^192\.168\./, // 192.168.0.0/16
       /^172\.(1[6-9]|2\d|3[01])\./, // 172.16.0.0/12
     ];
-    return privateRanges.some((range) => range.test(ip));
+    return privateRanges.some((re) => re.test(ip));
   },
 };
 
@@ -238,11 +259,21 @@ export const rateLimitHelpers = {
 export const cspHelpers = {
   // Generate nonce for inline scripts
   generateNonce(): string {
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-      "",
-    );
+    // Prefer base64 to avoid hex-only nonces
+    if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      // base64url (no padding) is CSP-safe
+      return btoa(String.fromCharCode(...bytes))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    }
+    const bytes = getRandomBytes(16);
+    return btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
   },
 
   // Validate CSP-safe content
@@ -261,18 +292,10 @@ export function sanitizeErrorMessage(
   isProduction = process.env.NODE_ENV === "production",
 ): string {
   if (isProduction) {
-    // In production, return generic messages to prevent information disclosure
-    if (error instanceof z.ZodError) {
-      return "Validation failed";
-    }
+    if (error instanceof z.ZodError) return "Validation failed";
     return "An error occurred";
   }
-
-  // In development, allow more detailed errors
-  if (error instanceof Error) {
-    return error.message;
-  }
-
+  if (error instanceof Error) return error.message;
   return String(error);
 }
 
@@ -285,6 +308,7 @@ export function createSecurityAuditLog(
   ip?: string,
   details?: Record<string, unknown>,
 ) {
+  // Intentionally minimal; wire into your logger if needed
   console.log(
     JSON.stringify({
       timestamp: new Date().toISOString(),

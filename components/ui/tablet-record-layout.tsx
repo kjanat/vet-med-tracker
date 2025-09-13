@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, X } from "lucide-react";
+import type React from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";

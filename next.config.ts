@@ -91,6 +91,18 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false, // Temporary for bundle optimization
   },
+  async redirects() {
+    return [
+      // Legacy /public route redirects - permanent redirects for SEO
+      { source: "/public/privacy", destination: "/privacy", permanent: true },
+      { source: "/public/terms", destination: "/terms", permanent: true },
+      { source: "/public/cookies", destination: "/cookies", permanent: true },
+      { source: "/public/faq", destination: "/faq", permanent: true },
+      { source: "/public/help", destination: "/help", permanent: true },
+      // Root redirect (already handled by /public/page.tsx)
+      { source: "/public", destination: "/", permanent: true },
+    ];
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);

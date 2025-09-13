@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     // Generate a unique error ID for tracking
-    const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const errorId = `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     return {
       hasError: true,

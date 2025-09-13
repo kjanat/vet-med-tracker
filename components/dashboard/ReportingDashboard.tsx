@@ -54,7 +54,12 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
   const DEFAULT_PERIOD_VALUE = "30d"; // Last 30 days
   const defaultPeriod =
     PERIOD_OPTIONS.find((p) => p.value === DEFAULT_PERIOD_VALUE) ??
-    PERIOD_OPTIONS[0]!;
+    PERIOD_OPTIONS[0];
+
+  if (!defaultPeriod) {
+    throw new Error("No period options available");
+  }
+
   const [selectedPeriod, setSelectedPeriod] = useState<Period>(defaultPeriod);
   const [dateRange, setDateRange] = useState<DateRange>(() =>
     getDateRangeFromPeriod(defaultPeriod),

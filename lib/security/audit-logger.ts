@@ -177,7 +177,7 @@ class ConsoleAuditLogger implements AuditLogger {
     await this.log({
       type: "security",
       action,
-      outcome: context.outcome as any,
+      outcome: context.outcome as "success" | "failure",
       userId: context.userId,
       clientIp: context.clientIp,
       severity: context.severity,
@@ -194,7 +194,7 @@ class ConsoleAuditLogger implements AuditLogger {
   }
 
   private generateId(): string {
-    return `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `audit_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   }
 }
 
@@ -376,21 +376,11 @@ export const auditHelpers = {
  * Audit middleware for tRPC
  */
 export function createAuditMiddleware() {
-  return async function auditMiddleware({
-    ctx,
-    next,
-    path,
-    type,
-  }: {
-    ctx: any;
-    next: () => Promise<any>;
-    path: string;
-    type: string;
-  }) {
+  return async function auditMiddleware(opts: any) {
+    const { ctx, next, path, type } = opts;
     const startTime = Date.now();
     const userId = ctx.dbUser?.id;
-    const _clientIp =
-      ctx.headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const _clientIp = "unknown"; // Headers not available in this context
 
     try {
       const result = await next();
@@ -401,7 +391,7 @@ export function createAuditMiddleware() {
         resource: path,
         action: type,
         outcome: "success",
-        householdId: ctx.currentHouseholdId,
+        householdId: ctx.currentHouseholdId ?? undefined,
         metadata: {
           executionTimeMs: Date.now() - startTime,
         },
@@ -415,7 +405,7 @@ export function createAuditMiddleware() {
         resource: path,
         action: type,
         outcome: "failure",
-        householdId: ctx.currentHouseholdId,
+        householdId: ctx.currentHouseholdId ?? undefined,
         metadata: {
           error: error instanceof Error ? error.message : String(error),
           executionTimeMs: Date.now() - startTime,

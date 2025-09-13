@@ -2,6 +2,7 @@
 
 import { FileText, Plus, Syringe } from "lucide-react";
 import { useSelectedLayoutSegments } from "next/navigation";
+import type React from "react";
 import { useAnimalFormDialog } from "@/components/forms/animal-form-dialog";
 import { useInventoryFormDialog } from "@/components/forms/inventory-form-dialog";
 import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";

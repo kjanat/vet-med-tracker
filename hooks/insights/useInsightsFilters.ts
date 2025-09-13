@@ -40,14 +40,14 @@ export function useInsightsFilters() {
 
   // Memoize parsed parameters to prevent re-parsing
   const typedParams = useMemo(() => {
-    return getTypedSearchParams<InsightsSearchParams>(
+    return getTypedSearchParams(
       new URLSearchParams(searchParamsString),
       "insights",
       {
         view: "summary",
         metric: "all",
       },
-    );
+    ) as InsightsSearchParams;
   }, [searchParamsString]);
 
   // Memoize default date calculation to prevent recreation on every render

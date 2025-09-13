@@ -24,7 +24,7 @@ export interface ConversionResult {
 /**
  * Weight conversion functions
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: Unit conversion domain boundary - provides clear functional API for weight conversions with veterinary precision
+// biome-ignore lint/complexity/noStaticOnlyClass: Legacy API preserved for backward compatibility
 export class WeightConverter {
   private static readonly KG_TO_LBS = 2.20462;
   private static readonly G_TO_KG = 0.001;
@@ -94,7 +94,7 @@ export class WeightConverter {
 /**
  * Volume conversion functions
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: Unit conversion domain boundary - provides clear functional API for volume conversions with veterinary precision
+// biome-ignore lint/complexity/noStaticOnlyClass: Legacy API preserved for backward compatibility
 export class VolumeConverter {
   private static readonly ML_TO_L = 0.001;
   private static readonly TSP_TO_ML = 4.92892;
@@ -175,7 +175,7 @@ export class VolumeConverter {
 /**
  * Dosage unit conversion functions
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: Unit conversion domain boundary - provides clear functional API for dosage conversions with medication-specific handling
+// biome-ignore lint/complexity/noStaticOnlyClass: Legacy API preserved for backward compatibility
 export class DosageConverter {
   private static readonly MG_TO_MCG = 1000;
   private static readonly G_TO_MG = 1000;
@@ -266,7 +266,6 @@ export class DosageConverter {
 /**
  * Common veterinary unit conversion utilities
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: Unit conversion utility namespace - provides common utility functions for veterinary precision formatting and validation
 export class VetUnitUtils {
   /**
    * Round to appropriate precision for veterinary use
@@ -310,19 +309,44 @@ export class VetUnitUtils {
     // Prevent extremely large or small values that might indicate errors
     if (value <= 0 || !Number.isFinite(value)) return false;
 
+    return (
+      VetUnitUtils.isWeightSafetyPassed(value, fromUnit, toUnit) &&
+      VetUnitUtils.isVolumeSafetyPassed(value, fromUnit, toUnit) &&
+      VetUnitUtils.isDosageSafetyPassed(value, fromUnit, toUnit)
+    );
+  }
+
+  private static isWeightSafetyPassed(
+    value: number,
+    fromUnit: string,
+    toUnit: string,
+  ): boolean {
     // Weight safety checks
     if (fromUnit === "kg" && toUnit === "g" && value > 1000) return false; // > 1000kg animal
     if (fromUnit === "g" && toUnit === "kg" && value > 1000000) return false; // > 1000kg in grams
     if (fromUnit === "lbs" && value > 2000) return false; // > 2000 lbs animal
+    return true;
+  }
 
+  private static isVolumeSafetyPassed(
+    value: number,
+    fromUnit: string,
+    toUnit: string,
+  ): boolean {
     // Volume safety checks
     if (fromUnit === "L" && toUnit === "ml" && value > 100) return false; // > 100L
     if (fromUnit === "ml" && value > 100000) return false; // > 100L in ml
+    return true;
+  }
 
+  private static isDosageSafetyPassed(
+    value: number,
+    fromUnit: string,
+    toUnit: string,
+  ): boolean {
     // Dosage safety checks
     if (fromUnit === "g" && toUnit === "mg" && value > 100) return false; // > 100g dose
     if (fromUnit === "mg" && value > 100000) return false; // > 100g in mg
-
     return true;
   }
 
@@ -349,7 +373,6 @@ export class VetUnitUtils {
  * This provides a modular architecture with organized sub-namespaces while maintaining
  * full backwards compatibility with existing class-based APIs during the migration period.
  */
-// biome-ignore lint/style/useExportType: Namespace provides better tree-shaking than modules for calculator utilities
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace VetUnitConversions {
   /**
@@ -676,19 +699,44 @@ export namespace VetUnitConversions {
       // Prevent extremely large or small values that might indicate errors
       if (value <= 0 || !Number.isFinite(value)) return false;
 
+      return (
+        isWeightSafetyPassed(value, fromUnit, toUnit) &&
+        isVolumeSafetyPassed(value, fromUnit, toUnit) &&
+        isDosageSafetyPassed(value, fromUnit, toUnit)
+      );
+    }
+
+    function isWeightSafetyPassed(
+      value: number,
+      fromUnit: string,
+      toUnit: string,
+    ): boolean {
       // Weight safety checks
       if (fromUnit === "kg" && toUnit === "g" && value > 1000) return false; // > 1000kg animal
       if (fromUnit === "g" && toUnit === "kg" && value > 1000000) return false; // > 1000kg in grams
       if (fromUnit === "lbs" && value > 2000) return false; // > 2000 lbs animal
+      return true;
+    }
 
+    function isVolumeSafetyPassed(
+      value: number,
+      fromUnit: string,
+      toUnit: string,
+    ): boolean {
       // Volume safety checks
       if (fromUnit === "L" && toUnit === "ml" && value > 100) return false; // > 100L
       if (fromUnit === "ml" && value > 100000) return false; // > 100L in ml
+      return true;
+    }
 
+    function isDosageSafetyPassed(
+      value: number,
+      fromUnit: string,
+      toUnit: string,
+    ): boolean {
       // Dosage safety checks
       if (fromUnit === "g" && toUnit === "mg" && value > 100) return false; // > 100g dose
       if (fromUnit === "mg" && value > 100000) return false; // > 100g in mg
-
       return true;
     }
 

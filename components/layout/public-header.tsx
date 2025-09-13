@@ -69,7 +69,7 @@ export function PublicHeader() {
             </>
           ) : (
             <Button asChild>
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/auth/dashboard">Dashboard</Link>
             </Button>
           )}
         </div>
@@ -124,7 +124,10 @@ export function PublicHeader() {
                   </>
                 ) : (
                   <Button asChild className="w-full">
-                    <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                    <Link
+                      href="/auth/dashboard"
+                      onClick={() => setIsOpen(false)}
+                    >
                       Dashboard
                     </Link>
                   </Button>

@@ -98,10 +98,17 @@ export function ChartSkeleton({ className }: { className?: string }) {
         </div>
         <div className="relative h-64">
           <div className="absolute right-0 bottom-0 left-0 flex items-end justify-between gap-1">
-            {Array.from({ length: 7 }, (_, i) => (
+            {[
+              "bar-1",
+              "bar-2",
+              "bar-3",
+              "bar-4",
+              "bar-5",
+              "bar-6",
+              "bar-7",
+            ].map((key) => (
               <Skeleton
-                // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-                key={i}
+                key={key}
                 className="flex-1"
                 style={{
                   height: `${Math.random() * 60 + 40}%`,
@@ -127,8 +134,7 @@ export function ListSkeleton({
     <div className={cn("space-y-3", className)}>
       {Array.from({ length: count }, (_, i) => (
         <div
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-          key={i}
+          key={`list-${i}-${count}`}
           className="flex items-center gap-3 py-2"
         >
           <Skeleton className="h-10 w-10 rounded-full" />
@@ -147,8 +153,7 @@ export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
   return (
     <tr>
       {Array.from({ length: columns }, (_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-        <td key={i} className="p-3">
+        <td key={`col-${i}-${columns}`} className="p-3">
           <Skeleton className="h-4 w-full" />
         </td>
       ))}
@@ -161,8 +166,7 @@ export function FormSkeleton({ fields = 3 }: { fields?: number }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: fields }, (_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton loader
-        <div key={i} className="space-y-2">
+        <div key={`field-${i}-${fields}`} className="space-y-2">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-10 w-full" />
         </div>

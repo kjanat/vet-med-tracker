@@ -115,7 +115,7 @@ function formatTimeWithDirection(
 }
 
 /**
- * Get largest time unit from diff
+ * Get the largest time unit from diff
  */
 function getLargestTimeUnit(diff: {
   days: number;
@@ -224,41 +224,69 @@ export function endOfDay(date: Date, timezone?: string): Date {
  * Format duration in human-readable format
  */
 export function formatDuration(milliseconds: number): string {
+  const diff = calculateTimeDifference(milliseconds);
+  const parts = buildDurationParts(diff);
+  return parts.slice(0, 2).join(" ");
+}
+
+function calculateTimeDifference(milliseconds: number) {
   const duration = DateTime.fromMillis(0).plus({ milliseconds });
-  const diff = duration.diff(DateTime.fromMillis(0), [
+  return duration.diff(DateTime.fromMillis(0), [
     "days",
     "hours",
     "minutes",
     "seconds",
   ]);
+}
 
+interface DurationDiff {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+function buildDurationParts(diff: DurationDiff): string[] {
   const parts: string[] = [];
 
+  addDaysIfPresent(diff, parts);
+  addHoursIfPresent(diff, parts);
+  addMinutesIfPresent(diff, parts);
+  addSecondsIfEmpty(diff, parts);
+
+  return parts;
+}
+
+function addDaysIfPresent(diff: DurationDiff, parts: string[]) {
   if (diff.days >= 1) {
     const days = Math.floor(diff.days);
     parts.push(days === 1 ? "1 day" : `${days} days`);
   }
+}
 
+function addHoursIfPresent(diff: DurationDiff, parts: string[]) {
   if (diff.hours >= 1) {
     const hours = Math.floor(diff.hours % 24);
     if (hours > 0) {
       parts.push(hours === 1 ? "1 hour" : `${hours} hours`);
     }
   }
+}
 
+function addMinutesIfPresent(diff: DurationDiff, parts: string[]) {
   if (diff.minutes >= 1 && parts.length < 2) {
     const minutes = Math.floor(diff.minutes % 60);
     if (minutes > 0) {
       parts.push(minutes === 1 ? "1 minute" : `${minutes} minutes`);
     }
   }
+}
 
+function addSecondsIfEmpty(diff: DurationDiff, parts: string[]) {
   if (parts.length === 0) {
     const seconds = Math.floor(diff.seconds);
     parts.push(seconds === 1 ? "1 second" : `${seconds} seconds`);
   }
-
-  return parts.slice(0, 2).join(" ");
 }
 
 /**
@@ -267,7 +295,25 @@ export function formatDuration(milliseconds: number): string {
 export function parseFrequency(frequency: string): ParsedFrequency {
   const normalized = frequency.toUpperCase().trim();
 
-  // Standard veterinary frequencies
+  // Try standard frequencies first
+  const standardResult = tryParseStandardFrequency(normalized);
+  if (standardResult) return standardResult;
+
+  // Try hourly intervals next
+  const hourlyResult = tryParseHourlyInterval(normalized);
+  if (hourlyResult) return hourlyResult;
+
+  // Try custom formats
+  const customResult = tryParseCustomFormats(normalized);
+  if (customResult) return customResult;
+
+  throw new Error(`Unknown frequency format: ${frequency}`);
+}
+
+/**
+ * Try to parse standard veterinary frequency codes
+ */
+function tryParseStandardFrequency(normalized: string): ParsedFrequency | null {
   const standardFrequencies: Record<string, ParsedFrequency> = {
     SID: { hours: 24, timesPerDay: 1 }, // Once daily
     BID: { hours: 12, timesPerDay: 2 }, // Twice daily
@@ -275,21 +321,29 @@ export function parseFrequency(frequency: string): ParsedFrequency {
     QID: { hours: 6, timesPerDay: 4 }, // Four times daily
   };
 
-  if (standardFrequencies[normalized]) {
-    return standardFrequencies[normalized];
-  }
+  return standardFrequencies[normalized] || null;
+}
 
-  // Hourly intervals (Q4H, Q6H, etc.)
+/**
+ * Try to parse hourly interval patterns (Q4H, Q6H, etc.)
+ */
+function tryParseHourlyInterval(normalized: string): ParsedFrequency | null {
   const hourlyMatch = normalized.match(/Q(\d+)H/);
-  if (hourlyMatch) {
-    const hours = parseInt(hourlyMatch[1]!, 10);
-    return {
-      hours,
-      timesPerDay: Math.floor(24 / hours),
-    };
-  }
+  if (!hourlyMatch) return null;
 
-  // Custom formats
+  const hoursStr = hourlyMatch[1];
+  if (!hoursStr) return null;
+  const hours = parseInt(hoursStr, 10);
+  return {
+    hours,
+    timesPerDay: Math.floor(24 / hours),
+  };
+}
+
+/**
+ * Try to parse custom format patterns
+ */
+function tryParseCustomFormats(normalized: string): ParsedFrequency | null {
   const customPatterns = [
     { pattern: /EVERY (\d+) HOURS?/, multiplier: 1 },
     { pattern: /TWICE DAILY/, hours: 12, timesPerDay: 2 },
@@ -298,22 +352,44 @@ export function parseFrequency(frequency: string): ParsedFrequency {
     { pattern: /FOUR TIMES DAILY/, hours: 6, timesPerDay: 4 },
   ];
 
-  for (const { pattern, multiplier, hours, timesPerDay } of customPatterns) {
-    const match = normalized.match(pattern);
-    if (match) {
-      if (multiplier) {
-        const parsedHours = parseInt(match[1]!, 10);
-        return {
-          hours: parsedHours,
-          timesPerDay: Math.floor(24 / parsedHours),
-        };
-      } else if (hours && timesPerDay) {
-        return { hours, timesPerDay };
-      }
-    }
+  for (const patternConfig of customPatterns) {
+    const result = tryMatchCustomPattern(normalized, patternConfig);
+    if (result) return result;
   }
 
-  throw new Error(`Unknown frequency format: ${frequency}`);
+  return null;
+}
+
+/**
+ * Try to match a single custom pattern configuration
+ */
+function tryMatchCustomPattern(
+  normalized: string,
+  config: {
+    pattern: RegExp;
+    multiplier?: number;
+    hours?: number;
+    timesPerDay?: number;
+  },
+): ParsedFrequency | null {
+  const match = normalized.match(config.pattern);
+  if (!match) return null;
+
+  if (config.multiplier) {
+    const hoursStr = match[1];
+    if (!hoursStr) return null;
+    const parsedHours = parseInt(hoursStr, 10);
+    return {
+      hours: parsedHours,
+      timesPerDay: Math.floor(24 / parsedHours),
+    };
+  }
+
+  if (config.hours && config.timesPerDay) {
+    return { hours: config.hours, timesPerDay: config.timesPerDay };
+  }
+
+  return null;
 }
 
 /**

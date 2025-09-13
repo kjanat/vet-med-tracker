@@ -37,18 +37,18 @@ const mockMedicationBasic: MedicationData = {
 const mockMedicationWithAdjustments: MedicationData = {
   ...mockMedicationBasic,
   speciesAdjustments: {
-    cat: { multiplier: 0.8, additionalWarnings: ["Monitor for GI upset"] },
-    bird: { multiplier: 1.2, maxDailyDose: 200 },
+    cat: 0.8,
+    bird: 1.2,
   },
   routeAdjustments: {
-    IV: { multiplier: 0.7, additionalWarnings: ["Monitor infusion site"] },
+    IV: 0.7,
   },
   ageAdjustments: {
-    pediatric: { multiplier: 0.8, minAgeMonths: 2 },
-    geriatric: { multiplier: 0.9, minAgeYears: 7 },
+    pediatric: 0.8,
+    geriatric: 0.9,
   },
   breedConsiderations: {
-    collie: { multiplier: 0.5, additionalWarnings: ["MDR1 gene sensitivity"] },
+    collie: 0.5,
   },
   contraindications: ["penicillin allergy", "severe renal disease"],
   warnings: "May cause GI upset if not given with food",
@@ -339,7 +339,7 @@ describe("DosageCalculator", () => {
       const extremeReduction: MedicationData = {
         ...mockMedicationBasic,
         speciesAdjustments: {
-          cat: { multiplier: 0.3 }, // Extreme reduction
+          cat: 0.3, // Extreme reduction
         },
       };
 

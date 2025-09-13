@@ -10,6 +10,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import Image from "next/image";
+import type React from "react";
 import { useRef, useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";

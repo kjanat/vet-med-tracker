@@ -139,6 +139,15 @@
           }
         }
       }
+    },
+    {
+      "includes": ["scripts/*.js"],
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      }
     }
   ]
 }

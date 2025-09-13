@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "jetbrains": {
+      "type": "stdio",
+      "env": {
+        "IJ_MCP_SERVER_PORT": "${VAR:-64342}"
+      },
+      "command": "/home/${USER}/.local/share/JetBrains/Toolbox/apps/webstorm/jbr/bin/java",
+      "args": [
+        "-classpath",
+        "/home/${USER}/.local/share/JetBrains/Toolbox/apps/webstorm/plugins/mcpserver/lib/mcpserver-frontend.jar:/home/${USER}/.local/share/JetBrains/Toolbox/apps/webstorm/lib/util-8.jar",
+        "com.intellij.mcpserver.stdio.McpStdioRunnerKt"
+      ]
+    }
+  }
+}

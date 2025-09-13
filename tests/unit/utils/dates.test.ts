@@ -376,7 +376,7 @@ describe("Date Utilities", () => {
   describe("formatDuration", () => {
     it("formats duration in minutes", () => {
       expect(formatDuration(30 * 60 * 1000)).toBe("30 minutes");
-      expect(formatDuration(1 * 60 * 1000)).toBe("1 minute");
+      expect(formatDuration(60 * 1000)).toBe("1 minute");
     });
 
     it("formats duration in hours", () => {

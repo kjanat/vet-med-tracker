@@ -191,12 +191,14 @@ export async function compressImage(
 
   // Merge options with defaults
   const finalOptions: Required<CompressionOptions> = {
-    maxWidth: options.maxWidth ?? DEFAULT_COMPRESSION_OPTIONS.maxWidth!,
-    maxHeight: options.maxHeight ?? DEFAULT_COMPRESSION_OPTIONS.maxHeight!,
-    quality: options.quality ?? DEFAULT_COMPRESSION_OPTIONS.quality!,
+    maxWidth: options.maxWidth ?? DEFAULT_COMPRESSION_OPTIONS.maxWidth ?? 1200,
+    maxHeight:
+      options.maxHeight ?? DEFAULT_COMPRESSION_OPTIONS.maxHeight ?? 1200,
+    quality: options.quality ?? DEFAULT_COMPRESSION_OPTIONS.quality ?? 0.8,
     targetSizeKB:
-      options.targetSizeKB ?? DEFAULT_COMPRESSION_OPTIONS.targetSizeKB!,
-    format: options.format ?? DEFAULT_COMPRESSION_OPTIONS.format!,
+      options.targetSizeKB ?? DEFAULT_COMPRESSION_OPTIONS.targetSizeKB ?? 500,
+    format:
+      options.format ?? DEFAULT_COMPRESSION_OPTIONS.format ?? "image/jpeg",
   };
 
   try {

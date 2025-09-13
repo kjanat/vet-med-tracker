@@ -1,15 +1,17 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { useToast } from "@/hooks/shared/use-toast";
 import type { AnimalFormData } from "@/lib/schemas/animal";
+import { AnimalDataTransformer } from "@/lib/services/animalDataTransformer";
+import { AnimalFormValidator } from "@/lib/services/animalFormValidator";
 import type { Animal } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
-import { BROWSER_ZONE } from "@/utils/timezone-helpers";
+import { useAnimalFormState } from "./useAnimalFormState";
 
 // Simplified schema for form validation to avoid complex type inference issues
 const formSchema = z.object({
@@ -25,23 +27,13 @@ const formSchema = z.object({
   timezone: z.string().min(1, "Timezone is required"),
   vetName: z.string().optional(),
   vetPhone: z.string().optional(),
-  vetEmail: z.string().email().optional().or(z.literal("")),
+  vetEmail: z.email().optional().or(z.literal("")),
   clinicName: z.string().optional(),
   notes: z.string().optional(),
   allergies: z.array(z.string()),
   conditions: z.array(z.string()),
-  photoUrl: z.string().url().optional().or(z.literal("")),
+  photoUrl: z.url().optional().or(z.literal("")),
 });
-
-/**
- * Animal form state interface
- */
-interface AnimalFormState {
-  isOpen: boolean;
-  editingAnimal: Animal | null;
-  isLoading: boolean;
-  isDirty: boolean;
-}
 
 /**
  * Animal form actions interface
@@ -57,8 +49,21 @@ interface AnimalFormActions {
 /**
  * Animal form hook return type
  */
-interface UseAnimalFormReturn extends AnimalFormState, AnimalFormActions {
+interface UseAnimalFormReturn extends AnimalFormActions {
+  // Core form state
+  isOpen: boolean;
+  editingAnimal: Animal | null;
+  isLoading: boolean;
+  isDirty: boolean;
+  error: string | null;
+
+  // Form management
   form: ReturnType<typeof useForm<AnimalFormData>>;
+
+  // Additional actions
+  clearErrorAction: () => void;
+
+  // tRPC mutations (for backward compatibility)
   createMutation: ReturnType<typeof trpc.animal.create.useMutation>;
   updateMutation: ReturnType<typeof trpc.animal.update.useMutation>;
 }
@@ -141,37 +146,30 @@ export function useAnimalForm(
     // draftSaveInterval = 5000,
   } = options;
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingAnimal, setEditingAnimal] = useState<Animal | null>(null);
-  const [isDirty, setIsDirty] = useState(false);
-
   const { selectedHousehold } = useApp();
   const { toast } = useToast();
   const utils = trpc.useUtils();
 
+  // Use the extracted state management service
+  const {
+    isOpen,
+    editingAnimal,
+    isDirty,
+    error,
+    setError,
+    setDirty: setIsDirty,
+    clearError,
+    openForm: openFormState,
+    closeForm: closeFormState,
+  } = useAnimalFormState({
+    onOpen,
+    onClose,
+  });
+
   // Initialize form with validation
   const form = useForm<AnimalFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      species: "",
-      breed: "",
-      sex: undefined,
-      neutered: false,
-      dob: undefined,
-      weightKg: undefined,
-      microchipId: "",
-      color: "",
-      timezone: BROWSER_ZONE || "America/New_York",
-      vetName: "",
-      vetPhone: "",
-      vetEmail: "",
-      clinicName: "",
-      notes: "",
-      allergies: [],
-      conditions: [],
-      photoUrl: "",
-    },
+    defaultValues: AnimalDataTransformer.createDefaultValues(),
     mode: "onBlur",
   });
 
@@ -233,64 +231,19 @@ export function useAnimalForm(
   });
 
   /**
-   * Transform form data for API calls
-   */
-  const transformAnimalData = useCallback((data: AnimalFormData) => {
-    return {
-      ...data,
-      dob: data.dob ? data.dob.toISOString() : undefined,
-      weightKg: data.weightKg || undefined,
-      breed: data.breed || undefined,
-      microchipId: data.microchipId || undefined,
-      color: data.color || undefined,
-      vetName: data.vetName || undefined,
-      vetPhone: data.vetPhone || undefined,
-      vetEmail: data.vetEmail || undefined,
-      clinicName: data.clinicName || undefined,
-      notes: data.notes || undefined,
-      photoUrl: data.photoUrl || undefined,
-    };
-  }, []);
-
-  /**
-   * Validate form data before submission
-   */
-  const validateFormData = useCallback(
-    (data: AnimalFormData): boolean => {
-      if (!selectedHousehold) {
-        toast({
-          title: "Error",
-          description: "No household selected",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      if (!data.name?.trim() || !data.species?.trim()) {
-        toast({
-          title: "Error",
-          description: "Name and species are required",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      return true;
-    },
-    [selectedHousehold, toast],
-  );
-
-  /**
-   * Fire instrumentation events
+   * Fire instrumentation events using the data transformer
    */
   const fireInstrumentationEvent = useCallback(
     (data: AnimalFormData, isNew: boolean) => {
-      const eventType = isNew
-        ? "settings_animals_create"
-        : "settings_animals_update";
+      const eventData = AnimalDataTransformer.toInstrumentationData(
+        data,
+        isNew,
+        editingAnimal?.id,
+      );
+
       window.dispatchEvent(
-        new CustomEvent(eventType, {
-          detail: { animalId: editingAnimal?.id, name: data.name },
+        new CustomEvent(eventData.eventType, {
+          detail: eventData.detail,
         }),
       );
     },
@@ -298,121 +251,83 @@ export function useAnimalForm(
   );
 
   /**
-   * Get form data from existing animal
-   */
-  const getFormDataFromAnimal = useCallback(
-    (animal: Animal): AnimalFormData => {
-      return {
-        name: animal.name,
-        species: animal.species,
-        breed: animal.breed || "",
-        sex: animal.sex,
-        neutered: animal.neutered || false,
-        dob: animal.dob,
-        weightKg: animal.weightKg,
-        microchipId: animal.microchipId || "",
-        color: animal.color || "",
-        timezone: animal.timezone || BROWSER_ZONE || "America/New_York",
-        vetName: animal.vetName || "",
-        vetPhone: animal.vetPhone || "",
-        vetEmail: animal.vetEmail || "",
-        clinicName: animal.clinicName || "",
-        notes: animal.notes || "",
-        allergies: animal.allergies || [],
-        conditions: animal.conditions || [],
-        // Use photo property from Animal type instead of photoUrl
-        photoUrl: animal.photo || "",
-      };
-    },
-    [],
-  );
-
-  /**
-   * Initialize form state for opening
-   */
-  const initializeFormState = useCallback((animal?: Animal | null) => {
-    setEditingAnimal(animal || null);
-    setIsOpen(true);
-    setIsDirty(false);
-  }, []);
-
-  /**
-   * Setup form data based on animal
-   */
-  const setupFormData = useCallback(
-    (animal?: Animal | null) => {
-      if (animal) {
-        const formData = getFormDataFromAnimal(animal);
-        form.reset(formData);
-      } else {
-        form.reset();
-      }
-    },
-    [form, getFormDataFromAnimal],
-  );
-
-  /**
    * Open the form for creating or editing an animal
    */
   const openForm = useCallback(
     (animal?: Animal | null) => {
-      initializeFormState(animal);
-      setupFormData(animal);
-      onOpen?.(animal || null);
+      if (animal) {
+        const formData = AnimalDataTransformer.fromAnimalRecord(animal);
+        form.reset(formData);
+      } else {
+        form.reset(AnimalDataTransformer.createDefaultValues());
+      }
+
+      openFormState(animal);
     },
-    [initializeFormState, setupFormData, onOpen],
+    [form, openFormState],
   );
 
   /**
    * Close the form
    */
   const closeForm = useCallback(() => {
-    setIsOpen(false);
-    setEditingAnimal(null);
-    setIsDirty(false);
     form.reset();
-    onClose?.();
-  }, [form, onClose]);
+    closeFormState();
+  }, [form, closeFormState]);
 
   /**
    * Reset the form to default values
    */
   const resetForm = useCallback(() => {
-    form.reset();
+    form.reset(AnimalDataTransformer.createDefaultValues());
     setIsDirty(false);
-  }, [form]);
+  }, [form, setIsDirty]);
 
   /**
    * Save the form data
    */
   const saveForm = useCallback(
     async (data: AnimalFormData) => {
-      if (!validateFormData(data)) {
+      // Validate form data using the validation service
+      const validationContext = {
+        household: selectedHousehold,
+        isEditing: !!editingAnimal,
+      };
+
+      if (!AnimalFormValidator.canSubmit(data, validationContext)) {
+        const errorMessage = AnimalFormValidator.getErrorMessage(
+          data,
+          validationContext,
+        );
+        if (errorMessage) {
+          setError(errorMessage);
+          toast({
+            title: "Validation Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        }
         return;
       }
+
+      // Clear any previous errors on successful validation
+      clearError();
 
       try {
         const isNew = !editingAnimal;
         fireInstrumentationEvent(data, isNew);
 
-        const transformedData = transformAnimalData(data);
-
         if (editingAnimal) {
           // Update existing animal
-          await updateMutation.mutateAsync({
-            id: editingAnimal.id,
-            ...transformedData,
-          });
+          const updatePayload = AnimalDataTransformer.toUpdatePayload(
+            data,
+            editingAnimal.id,
+          );
+          await updateMutation.mutateAsync(updatePayload);
         } else {
           // Create new animal
-          await createMutation.mutateAsync({
-            ...transformedData,
-            name: data.name,
-            species: data.species,
-            allergies: data.allergies || [],
-            conditions: data.conditions || [],
-            timezone: data.timezone || BROWSER_ZONE || "America/New_York",
-          });
+          const createPayload = AnimalDataTransformer.toCreatePayload(data);
+          await createMutation.mutateAsync(createPayload);
         }
 
         if (autoClose) {
@@ -426,23 +341,19 @@ export function useAnimalForm(
       }
     },
     [
-      validateFormData,
+      selectedHousehold,
       editingAnimal,
+      setError,
+      clearError,
       fireInstrumentationEvent,
-      transformAnimalData,
       updateMutation,
       createMutation,
       autoClose,
       closeForm,
+      setIsDirty,
+      toast,
     ],
   );
-
-  /**
-   * Set dirty state
-   */
-  const setDirtyState = useCallback((dirty: boolean) => {
-    setIsDirty(dirty);
-  }, []);
 
   // Watch form changes to set dirty state
   const _watchedValues = form.watch();
@@ -450,27 +361,31 @@ export function useAnimalForm(
 
   // Set dirty state when form data changes
   if (formState.isDirty && !isDirty) {
-    setDirtyState(true);
+    setIsDirty(true);
   }
 
   return {
-    // State
+    // Core form state
     isOpen,
     editingAnimal,
     isLoading: createMutation.isPending || updateMutation.isPending,
     isDirty: isDirty || formState.isDirty,
+    error,
 
-    // Form
+    // Form management
     form,
 
-    // Actions
+    // Core actions
     openForm,
     closeForm,
     saveForm,
-    resetForm,
-    setDirty: setDirtyState,
 
-    // Mutations
+    // Additional actions
+    resetForm,
+    setDirty: setIsDirty,
+    clearErrorAction: clearError,
+
+    // Mutations (for backward compatibility)
     createMutation,
     updateMutation,
   };
@@ -501,27 +416,7 @@ export function useSimpleAnimalForm(animal?: Animal | null) {
 
   // Initialize with animal data if provided
   if (animal && !form.formState.isDirty) {
-    form.reset({
-      name: animal.name,
-      species: animal.species,
-      breed: animal.breed || "",
-      sex: animal.sex,
-      neutered: animal.neutered || false,
-      dob: animal.dob,
-      weightKg: animal.weightKg,
-      microchipId: animal.microchipId || "",
-      color: animal.color || "",
-      timezone: animal.timezone || BROWSER_ZONE || "America/New_York",
-      vetName: animal.vetName || "",
-      vetPhone: animal.vetPhone || "",
-      vetEmail: animal.vetEmail || "",
-      clinicName: animal.clinicName || "",
-      notes: animal.notes || "",
-      allergies: animal.allergies || [],
-      conditions: animal.conditions || [],
-      // Use photo property from Animal type instead of photoUrl
-      photoUrl: animal.photo || "",
-    });
+    form.reset(AnimalDataTransformer.fromAnimalRecord(animal));
   }
 
   return {
@@ -532,3 +427,95 @@ export function useSimpleAnimalForm(animal?: Animal | null) {
     updateMutation,
   };
 }
+
+/**
+ * Animal calculations hook for derived values
+ *
+ * Provides calculated values from form data including completeness percentage,
+ * age calculations, and record status indicators. Uses the AnimalDataTransformer
+ * service for consistent calculations.
+ *
+ * @example
+ * ```tsx
+ * function AnimalSummary() {
+ *   const form = useForm<AnimalFormData>();
+ *   const { completenessPercentage, ageInYears, isCompleteRecord } =
+ *     useAnimalCalculations(form);
+ *
+ *   return (
+ *     <div>
+ *       <p>Completion: {completenessPercentage}%</p>
+ *       <p>Age: {ageInYears} years</p>
+ *       {!isCompleteRecord && <p>⚠️ Incomplete record</p>}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useAnimalCalculations(
+  form: ReturnType<typeof useForm<AnimalFormData>>,
+) {
+  const formData = form.watch();
+
+  // Use data transformer service for consistent calculations
+  const completenessPercentage =
+    AnimalDataTransformer.calculateCompleteness(formData);
+  const isCompleteRecord = AnimalDataTransformer.isCompleteRecord(formData);
+  const hasRequiredFields = AnimalDataTransformer.hasRequiredFields(formData);
+
+  // Calculate age in years if DOB is available
+  const ageInYears = formData.dob
+    ? Math.floor(
+        (Date.now() - formData.dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
+      )
+    : null;
+
+  // Calculate age status
+  const isAgeKnown = !!formData.dob;
+  const isPuppy = ageInYears !== null && ageInYears < 1;
+  const isSenior = ageInYears !== null && ageInYears > 7; // Varies by species/breed
+
+  // Health information completeness
+  const hasHealthInfo = !!(
+    (formData.allergies && formData.allergies.length > 0) ||
+    (formData.conditions && formData.conditions.length > 0) ||
+    formData.weightKg ||
+    formData.microchipId
+  );
+
+  // Vet contact completeness
+  const hasVetInfo = !!(
+    formData.vetName ||
+    formData.vetPhone ||
+    formData.vetEmail ||
+    formData.clinicName
+  );
+
+  return {
+    // Core calculations
+    completenessPercentage,
+    isCompleteRecord,
+    hasRequiredFields,
+
+    // Age calculations
+    ageInYears,
+    isAgeKnown,
+    isPuppy,
+    isSenior,
+
+    // Information categories
+    hasHealthInfo,
+    hasVetInfo,
+
+    // Summary indicators
+    recordStatus:
+      completenessPercentage >= 80
+        ? "complete"
+        : completenessPercentage >= 50
+          ? "partial"
+          : "minimal",
+  };
+}
+
+// Export types for backward compatibility
+export type { UseAnimalFormOptions, UseAnimalFormReturn };

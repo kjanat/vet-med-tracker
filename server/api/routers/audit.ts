@@ -132,7 +132,7 @@ export const auditRouter = createTRPCRouter({
   getActiveUsers: householdProcedure
     .input(z.object({ householdId: z.uuid() }))
     .query(async ({ ctx, input }) => {
-      const result = await ctx.db
+      return ctx.db
         .selectDistinct({
           userId: auditLog.userId,
           userName: users.name,
@@ -142,7 +142,5 @@ export const auditRouter = createTRPCRouter({
         .innerJoin(users, eq(auditLog.userId, users.id))
         .where(eq(auditLog.householdId, input.householdId))
         .orderBy(users.name);
-
-      return result;
     }),
 });

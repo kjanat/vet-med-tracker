@@ -1,8 +1,8 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { eq } from "drizzle-orm";
-import superjson from "superjson";
-import { ZodError } from "zod";
+import SuperJSON from "superjson";
+import { ZodError, z } from "zod";
 import { dbPooled as db } from "@/db/drizzle";
 import type { households, memberships, users } from "@/db/schema";
 import {
@@ -177,7 +177,7 @@ export const createTRPCContext = async (
 
 // Initialize tRPC with Stack context and enhanced error handling
 const t = initTRPC.context<Context>().create({
-  transformer: superjson,
+  transformer: SuperJSON,
   errorFormatter({ shape, error, path }) {
     // Simplified error handling
     console.error("tRPC Error:", {
@@ -191,7 +191,7 @@ const t = initTRPC.context<Context>().create({
       data: {
         ...shape.data,
         zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+          error.cause instanceof ZodError ? z.treeifyError(error.cause) : null,
       },
     };
   },

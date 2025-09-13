@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -34,18 +35,19 @@ export function PageLoadingSkeleton() {
  * Loading skeleton for table views
  */
 export function TableLoadingSkeleton({ rows = 5 }: { rows?: number }) {
+  const rowKeys = useMemo(
+    () => Array.from({ length: rows }, () => crypto.randomUUID()),
+    [rows],
+  );
+
   return (
     <div className="rounded-md border">
       <div className="border-b p-4">
         <Skeleton className="h-4 w-full max-w-sm" />
       </div>
       <div className="divide-y">
-        {Array.from({ length: rows }).map((_, i) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: Loading skeletons are presentational and have no state
-            key={`row-skeleton-${i}`}
-            className="flex items-center gap-4 p-4"
-          >
+        {rowKeys.map((key) => (
+          <div key={key} className="flex items-center gap-4 p-4">
             <Skeleton className="h-10 w-10 rounded-full" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-1/3" />
@@ -63,13 +65,15 @@ export function TableLoadingSkeleton({ rows = 5 }: { rows?: number }) {
  * Loading skeleton for card grid views
  */
 export function CardGridLoadingSkeleton({ cards = 6 }: { cards?: number }) {
+  const cardKeys = useMemo(
+    () => Array.from({ length: cards }, () => crypto.randomUUID()),
+    [cards],
+  );
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: cards }).map((_, i) => (
-        <Card
-          // biome-ignore lint/suspicious/noArrayIndexKey: Loading skeletons are presentational and have no state
-          key={`card-skeleton-${i}`}
-        >
+      {cardKeys.map((key) => (
+        <Card key={key}>
           <CardHeader>
             <Skeleton className="h-6 w-3/4" />
           </CardHeader>

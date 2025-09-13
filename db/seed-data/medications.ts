@@ -149,7 +149,7 @@ export const commonVeterinaryMedications: Omit<
       "Pre-filled pen. Refrigerate. Do not shake. Prime before first use.",
   },
 
-  // Pain Management & NSAIDs
+  // Pain Management & NSAID's
   {
     genericName: "Carprofen",
     brandName: "Rimadyl",

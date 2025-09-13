@@ -1,6 +1,7 @@
 "use client";
 
 import { Eraser, PenTool, RotateCcw, Save } from "lucide-react";
+import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,48 +71,88 @@ export function SignaturePad({
     return () => window.removeEventListener("resize", updateCanvasSize);
   }, [width, height]);
 
+  // Helper to extract client coordinates and pressure from touch event
+  const getTouchEventData = useCallback(
+    (
+      touchEvent: TouchEvent,
+    ): { clientX: number; clientY: number; pressure: number } | null => {
+      if (touchEvent.touches.length === 0) return null;
+
+      const touch = touchEvent.touches[0];
+      return {
+        clientX: touch?.clientX || 0,
+        clientY: touch?.clientY || 0,
+        pressure: typeof touch?.force === "number" ? touch.force : 0.5,
+      };
+    },
+    [],
+  );
+
+  // Helper to extract client coordinates and pressure from mouse event
+  const getMouseEventData = useCallback(
+    (
+      mouseEvent: MouseEvent,
+    ): { clientX: number; clientY: number; pressure: number } => {
+      let pressure = 0.5;
+
+      if (window.PointerEvent && mouseEvent instanceof PointerEvent) {
+        pressure = mouseEvent.pressure || 0.5;
+      }
+
+      return {
+        clientX: mouseEvent.clientX,
+        clientY: mouseEvent.clientY,
+        pressure,
+      };
+    },
+    [],
+  );
+
+  // Helper to calculate canvas scaling factors
+  const getCanvasScaling = useCallback(
+    (
+      canvas: HTMLCanvasElement,
+    ): { scaleX: number; scaleY: number; rect: DOMRect } => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        rect,
+        scaleX: canvas.width / rect.width,
+        scaleY: canvas.height / rect.height,
+      };
+    },
+    [],
+  );
+
   // Get coordinates relative to canvas
   const getCoordinates = useCallback(
     (event: MouseEvent | TouchEvent): Point | null => {
       const canvas = canvasRef.current;
       if (!canvas) return null;
 
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
+      const { rect, scaleX, scaleY } = getCanvasScaling(canvas);
 
-      let clientX: number;
-      let clientY: number;
-      let pressure = 0.5;
+      let eventData: {
+        clientX: number;
+        clientY: number;
+        pressure: number;
+      } | null;
 
       if (event.type.startsWith("touch")) {
-        const touchEvent = event as TouchEvent;
-        if (touchEvent.touches.length === 0) return null;
-        clientX = touchEvent.touches[0]?.clientX || 0;
-        clientY = touchEvent.touches[0]?.clientY || 0;
-        // Many browsers support pressure on touch events
-        const touch = touchEvent.touches[0];
-        pressure = typeof touch?.force === "number" ? touch.force : 0.5;
+        eventData = getTouchEventData(event as TouchEvent);
       } else {
-        const mouseEvent = event as MouseEvent;
-        clientX = mouseEvent.clientX;
-        clientY = mouseEvent.clientY;
-        // Some browsers support pressure on pointer events
-        if (window.PointerEvent && mouseEvent instanceof PointerEvent) {
-          pressure = mouseEvent.pressure || 0.5;
-        } else {
-          pressure = 0.5;
-        }
+        eventData = getMouseEventData(event as MouseEvent);
       }
 
+      if (!eventData) return null;
+
       return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY,
-        pressure,
+        x: (eventData.clientX - rect.left) * scaleX,
+        y: (eventData.clientY - rect.top) * scaleY,
+        pressure: eventData.pressure,
         timestamp: Date.now(),
       };
     },
-    [],
+    [getCanvasScaling, getMouseEventData, getTouchEventData],
   );
 
   // Draw single point as dot

@@ -9,7 +9,7 @@ async function updateUserPreferences(
   stackUserId: string,
   preferences: {
     vetMedPreferences?: Partial<VetMedPreferences>;
-    householdSettings?: any;
+    householdSettings?: Record<string, unknown>;
   },
   _dbContext: {
     userId: string;
@@ -42,7 +42,7 @@ export const userRouter = createTRPCRouter({
       .where(eq(memberships.userId, ctx.dbUser.id));
 
     // Add member and animal counts
-    const enrichedMemberships = await Promise.all(
+    return await Promise.all(
       userMemberships.map(async (membership) => {
         const [memberCount, animalCount] = await Promise.all([
           ctx.db
@@ -72,8 +72,6 @@ export const userRouter = createTRPCRouter({
         };
       }),
     );
-
-    return enrichedMemberships;
   }),
 
   // Get user's membership in a specific household
@@ -117,8 +115,8 @@ export const userRouter = createTRPCRouter({
       pronouns: ctx.dbUser.pronouns,
       location: ctx.dbUser.location,
       website: ctx.dbUser.website,
-      socialLinks: ctx.dbUser.socialLinks as Record<string, any>,
-      profileData: ctx.dbUser.profileData as Record<string, any>,
+      socialLinks: ctx.dbUser.socialLinks as Record<string, unknown>,
+      profileData: ctx.dbUser.profileData as Record<string, unknown>,
       profileVisibility: ctx.dbUser.profileVisibility as Record<
         string,
         boolean

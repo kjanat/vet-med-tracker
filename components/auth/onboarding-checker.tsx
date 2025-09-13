@@ -2,6 +2,7 @@
 
 import { useUser } from "@stackframe/stack";
 import { usePathname } from "next/navigation";
+import type React from "react";
 import { useEffect, useState } from "react";
 import { WelcomeFlow } from "@/components/onboarding/welcome-flow";
 

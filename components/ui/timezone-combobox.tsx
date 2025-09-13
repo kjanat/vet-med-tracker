@@ -113,7 +113,6 @@ export function TimezoneCombobox({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {/* biome-ignore lint/a11y/useSemanticElements: This is correct for shadcn/ui Command pattern */}
         <Button
           variant="outline"
           role="combobox"

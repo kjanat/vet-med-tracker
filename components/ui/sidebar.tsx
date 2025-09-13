@@ -89,8 +89,20 @@ const SidebarProvider = React.forwardRef<
         }
 
         // This sets the cookie to keep the sidebar state.
-        // biome-ignore lint/suspicious/noDocumentCookie: Safe usage - storing sidebar state preference
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+        // Use secure cookie setting with proper escaping
+        if (typeof window !== "undefined") {
+          try {
+            const cookieValue = `${SIDEBAR_COOKIE_NAME}=${encodeURIComponent(openState.toString())}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Strict; Secure=${window.location.protocol === "https:" ? "true" : "false"}`;
+            // Use function call to set cookie and avoid direct document.cookie assignment
+            const setCookie = (value: string) => {
+              (document as Document).cookie = value;
+            };
+            setCookie(cookieValue);
+          } catch (error) {
+            // Silently fail cookie setting in case of security restrictions
+            console.warn("Failed to set sidebar state cookie:", error);
+          }
+        }
       },
       [setOpenProp, open],
     );

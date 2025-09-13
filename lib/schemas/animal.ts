@@ -81,7 +81,7 @@ export const animalFormSimpleSchema = z.object({
     }, "Invalid timezone format"),
   vetName: z.string().max(100, "Vet name too long").optional(),
   vetPhone: z.string().max(20, "Phone too long").optional(),
-  vetEmail: z.string().email("Invalid email").optional().or(z.literal("")),
+  vetEmail: z.email("Invalid email").optional().or(z.literal("")),
   clinicName: z.string().max(200, "Clinic name too long").optional(),
   notes: z.string().max(2000, "Notes too long").optional(),
   allergies: z
@@ -90,7 +90,7 @@ export const animalFormSimpleSchema = z.object({
   conditions: z
     .array(z.string().max(100, "Condition too long"))
     .max(50, "Too many conditions"),
-  photoUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  photoUrl: z.url("Invalid URL").optional().or(z.literal("")),
 });
 
 export type AnimalFormData = z.infer<typeof animalFormSimpleSchema>;

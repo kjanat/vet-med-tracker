@@ -372,7 +372,7 @@ async function getSuggestionsFromDb(
     .limit(limit);
 
   // Convert database suggestions to the interface format
-  const dbSuggestions: Suggestion[] = existingSuggestions.map((s) => ({
+  return existingSuggestions.map((s) => ({
     id: s.id,
     type: s.type as Suggestion["type"],
     summary: s.summary,
@@ -381,8 +381,6 @@ async function getSuggestionsFromDb(
     estimatedImpact: s.estimatedImpact || "",
     action: s.action as Suggestion["action"],
   }));
-
-  return dbSuggestions;
 }
 
 // Generate suggestions based on patterns in administration data

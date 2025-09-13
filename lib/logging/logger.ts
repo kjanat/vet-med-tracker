@@ -243,9 +243,9 @@ class DataMasker {
  * Performance tracker for operations
  */
 class PerformanceTracker {
-  private startTime: number;
-  private startMemory?: NodeJS.MemoryUsage;
-  private startCpu?: NodeJS.CpuUsage;
+  private readonly startTime: number;
+  private readonly startMemory?: NodeJS.MemoryUsage;
+  private readonly startCpu?: NodeJS.CpuUsage;
 
   constructor() {
     this.startTime = Date.now();

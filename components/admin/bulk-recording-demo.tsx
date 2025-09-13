@@ -46,12 +46,6 @@ function AnimalTable() {
     setAvailableIds(animals.map((a) => a.id));
   }, [animals, setAvailableIds]);
 
-  // Clear selection when household changes to avoid cross-household selections
-  // biome-ignore lint/correctness/useExhaustiveDependencies: selectedHouseholdId is intentionally included to clear selection on household change
-  React.useEffect(() => {
-    setAvailableIds([]);
-  }, [selectedHouseholdId, setAvailableIds]);
-
   if (isLoading) {
     return <div>Loading animals...</div>;
   }

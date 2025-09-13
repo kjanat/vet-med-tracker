@@ -104,7 +104,10 @@ const monitor: {
 } | null = null;
 
 // Connection URLs - use pooled for high-frequency operations, unpooled for long-running operations
-const DATABASE_URL = process.env.DATABASE_URL!;
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
 const DATABASE_URL_UNPOOLED = process.env.DATABASE_URL_UNPOOLED || DATABASE_URL;
 
 // Configure Neon client with timeout settings
@@ -358,7 +361,7 @@ export const timedOperations = {
 // }
 
 // Graceful shutdown handling - only in Node.js runtime, not Edge Runtime
-if (typeof process !== "undefined" && process.on) {
+if (process?.on) {
     process.on("SIGTERM", async () => {
         console.log("Shutting down database connections...");
         await closeConnections();

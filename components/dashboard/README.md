@@ -19,7 +19,7 @@ The dashboard infrastructure provides:
 
 ### Component Structure
 
-```
+```text
 components/dashboard/
 ├── DashboardLayout.tsx           # Responsive grid system
 ├── ReportingDashboard.tsx        # Main dashboard page
@@ -38,7 +38,7 @@ components/dashboard/
 
 ### Data Layer
 
-```
+```text
 hooks/dashboard/
 └── useDashboardData.ts           # tRPC data fetching hooks
 ```

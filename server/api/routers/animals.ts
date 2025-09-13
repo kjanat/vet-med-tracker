@@ -45,7 +45,7 @@ export const animalRouter = createTRPCRouter({
         conditions.push(isNull(animals.deletedAt));
       }
 
-      return await ctx.db
+      return ctx.db
         .select()
         .from(animals)
         .where(and(...conditions))

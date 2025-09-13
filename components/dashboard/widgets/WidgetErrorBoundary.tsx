@@ -219,7 +219,7 @@ export function useWidgetError() {
 }
 
 // Higher-order component for automatic error boundary wrapping
-export function withWidgetErrorBoundary<T extends Record<string, any>>(
+export function withWidgetErrorBoundary<T extends Record<string, unknown>>(
   Component: React.ComponentType<T>,
   widgetName: string,
   options?: {
@@ -227,7 +227,7 @@ export function withWidgetErrorBoundary<T extends Record<string, any>>(
     fallback?: React.ComponentType<{ error: Error; retry: () => void }>;
   },
 ) {
-  const WrappedComponent = React.forwardRef<any, T>((props, _ref) => (
+  const WrappedComponent = React.forwardRef<HTMLElement, T>((props, _ref) => (
     <WidgetErrorBoundary
       widgetName={widgetName}
       maxRetries={options?.maxRetries}

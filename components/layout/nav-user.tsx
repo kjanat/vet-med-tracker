@@ -95,12 +95,14 @@ export function NavUser() {
                   Profile
                 </DropdownMenuItem>
               </ProfilePopover>
-              <DropdownMenuItem onClick={() => router.push("/settings")}>
+              <DropdownMenuItem onClick={() => router.push("/auth/settings")}>
                 <Settings />
                 Settings
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => router.push("/settings/notifications" as Route)}
+                onClick={() =>
+                  router.push("/auth/settings/notifications" as Route)
+                }
               >
                 <Bell />
                 Notifications

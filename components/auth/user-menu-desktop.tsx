@@ -100,13 +100,13 @@ export function UserMenuDesktop() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/settings" className="cursor-pointer">
+                <Link href="/auth/settings" className="cursor-pointer">
                   <Settings />
                   Settings
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/settings#profile" className="cursor-pointer">
+                <Link href="/auth/profile" className="cursor-pointer">
                   <User />
                   Profile
                 </Link>

@@ -40,10 +40,10 @@ The materialized views pre-compute expensive aggregations and provide consistent
 - **CONCURRENT refresh** - No blocking during updates
 - **Automated scheduling** via pg_cron (when available)
 - **Smart refresh intervals** based on data freshness needs:
-    - Compliance stats: Every 15 minutes (business hours)
-    - Medication usage: Every 30 minutes
-    - Inventory: Every hour
-    - Health trends: Every 4 hours
+  - Compliance stats: Every 15 minutes (business hours)
+  - Medication usage: Every 30 minutes
+  - Inventory: Every hour
+  - Health trends: Every 4 hours
 
 ### Performance Monitoring
 
@@ -73,6 +73,7 @@ psql $DATABASE_URL -f deploy.sql
 ### Manual Steps
 
 1. **Create views and functions:**
+
    ```sql
    \i refresh_functions.sql
    \i 001_compliance_statistics.sql
@@ -82,11 +83,13 @@ psql $DATABASE_URL -f deploy.sql
    ```
 
 2. **Set up automated refresh:**
+
    ```sql
    \i automated_refresh.sql
    ```
 
 3. **Initial refresh:**
+
    ```sql
    SELECT refresh_all_materialized_views();
    ```
@@ -159,6 +162,7 @@ SELECT cleanup_mv_refresh_logs();
 ### Common Issues
 
 1. **Refresh failures**
+
    ```sql
    -- Check for blocking queries
    SELECT * FROM pg_stat_activity 
@@ -169,6 +173,7 @@ SELECT cleanup_mv_refresh_logs();
    ```
 
 2. **Stale data**
+
    ```sql
    -- Force immediate refresh
    SELECT refresh_all_materialized_views();
@@ -178,6 +183,7 @@ SELECT cleanup_mv_refresh_logs();
    ```
 
 3. **Performance degradation**
+
    ```sql
    -- Analyze view sizes
    SELECT schemaname, matviewname, 
@@ -194,6 +200,7 @@ SELECT cleanup_mv_refresh_logs();
 ### Recovery Procedures
 
 1. **Complete rebuild (if corruption/issues):**
+
    ```sql
    -- Drop and recreate views
    DROP MATERIALIZED VIEW mv_compliance_stats CASCADE;
@@ -201,11 +208,13 @@ SELECT cleanup_mv_refresh_logs();
    ```
 
 2. **Reset refresh logging:**
+
    ```sql
    TRUNCATE mv_refresh_log;
    ```
 
 3. **Disable automated refresh:**
+
    ```sql
    SELECT cron.unschedule('refresh-compliance-stats');
    SELECT cron.unschedule('refresh-medication-usage');

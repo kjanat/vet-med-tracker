@@ -142,76 +142,155 @@ function generateResourceValues(
   resourceType: string,
   context: "create" | "old" | "new" | "delete",
 ): any {
-  const baseValues: Record<string, any> = {
-    animal: {
-      name: random.arrayElement(["Buddy", "Max", "Bella", "Charlie", "Luna"]),
-      species: "dog",
-      breed: "Golden Retriever",
-      weight: 30.5,
-    },
-    regimen: {
-      name: "Antibiotic course",
-      dose: "250 mg",
-      frequency: "BID",
-      active: true,
-    },
-    administration: {
-      dose: "250 mg",
-      status: "ON_TIME",
-      notes: "Given with food",
-    },
-    inventory: {
-      quantityRemaining: 25,
-      inUse: true,
-      expiresOn: "2024-12-31",
-    },
-    user: {
-      name: person.fullName(),
-      email: person.email(),
-      role: "CAREGIVER",
-    },
-    household: {
-      name: "Test Household",
-      timezone: "America/New_York",
-    },
-    medication: {
-      genericName: "Amoxicillin",
-      dosage: "10-20 mg/kg",
-      route: "ORAL",
-    },
-    notification: {
-      title: "Medication Due",
-      priority: "medium",
-      read: false,
-    },
-  };
-
-  const base = baseValues[resourceType] || { id: random.uuid() };
+  const base = getBaseResourceValues(resourceType);
 
   if (context === "new" || context === "old") {
-    // For updates, modify some values
-    const modified = { ...base };
-
-    if (context === "new") {
-      // Simulate changes for 'new' values
-      if (resourceType === "animal" && modified.weight) {
-        modified.weight = modified.weight + random.float(-2, 2, 1);
-      }
-      if (resourceType === "regimen" && modified.dose) {
-        modified.dose = random.arrayElement(["250 mg", "500 mg", "125 mg"]);
-      }
-      if (resourceType === "inventory" && modified.quantityRemaining) {
-        modified.quantityRemaining = Math.max(
-          0,
-          modified.quantityRemaining - random.int(1, 5),
-        );
-      }
-    }
-
-    return modified;
+    return applyContextModifications(base, resourceType, context);
   }
 
   return base;
+}
+
+/**
+ * Get base values for different resource types
+ */
+function getBaseResourceValues(resourceType: string): any {
+  const baseValues: Record<string, any> = {
+    animal: createAnimalValues(),
+    regimen: createRegimenValues(),
+    administration: createAdministrationValues(),
+    inventory: createInventoryValues(),
+    user: createUserValues(),
+    household: createHouseholdValues(),
+    medication: createMedicationValues(),
+    notification: createNotificationValues(),
+  };
+
+  return baseValues[resourceType] || { id: random.uuid() };
+}
+
+/**
+ * Create animal resource values
+ */
+function createAnimalValues(): any {
+  return {
+    name: random.arrayElement(["Buddy", "Max", "Bella", "Charlie", "Luna"]),
+    species: "dog",
+    breed: "Golden Retriever",
+    weight: 30.5,
+  };
+}
+
+/**
+ * Create regimen resource values
+ */
+function createRegimenValues(): any {
+  return {
+    name: "Antibiotic course",
+    dose: "250 mg",
+    frequency: "BID",
+    active: true,
+  };
+}
+
+/**
+ * Create administration resource values
+ */
+function createAdministrationValues(): any {
+  return {
+    dose: "250 mg",
+    status: "ON_TIME",
+    notes: "Given with food",
+  };
+}
+
+/**
+ * Create inventory resource values
+ */
+function createInventoryValues(): any {
+  return {
+    quantityRemaining: 25,
+    inUse: true,
+    expiresOn: "2024-12-31",
+  };
+}
+
+/**
+ * Create user resource values
+ */
+function createUserValues(): any {
+  return {
+    name: person.fullName(),
+    email: person.email(),
+    role: "CAREGIVER",
+  };
+}
+
+/**
+ * Create household resource values
+ */
+function createHouseholdValues(): any {
+  return {
+    name: "Test Household",
+    timezone: "America/New_York",
+  };
+}
+
+/**
+ * Create medication resource values
+ */
+function createMedicationValues(): any {
+  return {
+    genericName: "Amoxicillin",
+    dosage: "10-20 mg/kg",
+    route: "ORAL",
+  };
+}
+
+/**
+ * Create notification resource values
+ */
+function createNotificationValues(): any {
+  return {
+    title: "Medication Due",
+    priority: "medium",
+    read: false,
+  };
+}
+
+/**
+ * Apply context-specific modifications to base values
+ */
+function applyContextModifications(
+  base: any,
+  resourceType: string,
+  context: "old" | "new",
+): any {
+  const modified = { ...base };
+
+  if (context === "new") {
+    applyNewValueModifications(modified, resourceType);
+  }
+
+  return modified;
+}
+
+/**
+ * Apply modifications for 'new' context values
+ */
+function applyNewValueModifications(modified: any, resourceType: string): void {
+  if (resourceType === "animal" && modified.weight) {
+    modified.weight = modified.weight + random.float(-2, 2, 1);
+  }
+  if (resourceType === "regimen" && modified.dose) {
+    modified.dose = random.arrayElement(["250 mg", "500 mg", "125 mg"]);
+  }
+  if (resourceType === "inventory" && modified.quantityRemaining) {
+    modified.quantityRemaining = Math.max(
+      0,
+      modified.quantityRemaining - random.int(1, 5),
+    );
+  }
 }
 
 function getChangedFields(oldValues: any, newValues: any): string[] {

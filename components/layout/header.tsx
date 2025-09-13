@@ -1,11 +1,13 @@
 "use client";
 
+import {
+  AnimalBreadcrumb,
+  HouseholdSwitcher,
+  NotificationDropdown,
+} from "@/components";
 import { useIsMobile } from "@/hooks/shared/useResponsive";
 import { UserMenu } from "../auth/user-menu";
-import { AnimalBreadcrumb } from "../ui/animal-breadcrumb";
-import { HouseholdSwitcher } from "../ui/household-switcher";
 import { Logo } from "../ui/logo";
-import { NotificationDropdown } from "../ui/notification-dropdown";
 import { SidebarTrigger } from "../ui/sidebar";
 // Sync status functionality removed during simplification
 

@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import type React from "react";
 
 interface MockReactProps {
   children?: React.ReactNode;
@@ -189,8 +190,8 @@ export async function fillFormField(
 ) {
   const element = page.locator(selector);
   await element.click();
-  await element.fill("");
-  await element.type(value, { delay: 50 });
+  await element.fill(""); // clear
+  await element.fill(value); // set new value
   await element.blur();
 }
 

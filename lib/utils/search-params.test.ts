@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   createTypedQueryString,
   getTypedSearchParams,
-  type HistorySearchParams,
   hasSearchParamValues,
   isValidHistoryStatus,
   isValidHistoryType,
@@ -12,7 +11,6 @@ import {
   isValidUUID,
   parseTypedSearchParams,
   removeSearchParams,
-  type SettingsSearchParams,
   updateSearchParams,
 } from "./search-params";
 
@@ -54,10 +52,7 @@ describe("search-params", () => {
       const searchParams = new URLSearchParams(
         "animalId=123&type=scheduled&from=2024-01-01",
       );
-      const result = parseTypedSearchParams<HistorySearchParams>(
-        searchParams,
-        "history",
-      );
+      const result = parseTypedSearchParams(searchParams, "history");
 
       expect(result).toEqual({
         animalId: "123",
@@ -70,10 +65,7 @@ describe("search-params", () => {
       const searchParams = new URLSearchParams(
         "animalId=invalid-uuid&type=invalid&from=invalid-date",
       );
-      const result = parseTypedSearchParams<HistorySearchParams>(
-        searchParams,
-        "history",
-      );
+      const result = parseTypedSearchParams(searchParams, "history");
 
       // Should return empty object on validation failure
       expect(result).toEqual({});
@@ -81,10 +73,7 @@ describe("search-params", () => {
 
     it("should parse valid settings parameters", () => {
       const searchParams = new URLSearchParams("tab=preferences");
-      const result = parseTypedSearchParams<SettingsSearchParams>(
-        searchParams,
-        "settings",
-      );
+      const result = parseTypedSearchParams(searchParams, "settings");
 
       expect(result).toEqual({
         tab: "preferences",
@@ -117,11 +106,10 @@ describe("search-params", () => {
   describe("getTypedSearchParams", () => {
     it("should merge parsed parameters with defaults", () => {
       const searchParams = new URLSearchParams("animalId=123");
-      const result = getTypedSearchParams<HistorySearchParams>(
-        searchParams,
-        "history",
-        { type: "all", view: "list" },
-      );
+      const result = getTypedSearchParams(searchParams, "history", {
+        type: "all",
+        view: "list",
+      });
 
       expect(result).toEqual({
         animalId: "123",
@@ -132,11 +120,10 @@ describe("search-params", () => {
 
     it("should override defaults with parsed values", () => {
       const searchParams = new URLSearchParams("type=scheduled&view=calendar");
-      const result = getTypedSearchParams<HistorySearchParams>(
-        searchParams,
-        "history",
-        { type: "all", view: "list" },
-      );
+      const result = getTypedSearchParams(searchParams, "history", {
+        type: "all",
+        view: "list",
+      });
 
       expect(result).toEqual({
         type: "scheduled",

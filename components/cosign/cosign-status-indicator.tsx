@@ -141,7 +141,16 @@ export function CoSignStatusIndicator({
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge
-            variant={config.color as any}
+            variant={
+              config.color as
+                | "default"
+                | "secondary"
+                | "destructive"
+                | "outline"
+                | "success"
+                | "warning"
+                | "info"
+            }
             className={cn("flex items-center gap-1", className)}
           >
             {IconComponent && <IconComponent className="h-3 w-3" />}
@@ -174,7 +183,19 @@ export function CoSignStatusIndicator({
   // Full version with details
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Badge variant={config.color as any} className="flex items-center gap-1">
+      <Badge
+        variant={
+          config.color as
+            | "default"
+            | "secondary"
+            | "destructive"
+            | "outline"
+            | "success"
+            | "warning"
+            | "info"
+        }
+        className="flex items-center gap-1"
+      >
         {IconComponent && <IconComponent className="h-3 w-3" />}
         {config.label}
       </Badge>
@@ -210,253 +231,255 @@ interface CoSignDetailsProps {
   coSignNotes?: string | null;
 }
 
+// Helper functions for formatting
+const formatUserName = (
+  user: { name: string | null; email: string | null } | null,
+) => {
+  if (!user) return "Unknown User";
+  return user.name || user.email || "Unknown User";
+};
+
+const formatTimestamp = (timestamp: string) => {
+  return formatDistanceToNow(parseISO(timestamp), { addSuffix: true });
+};
+
+// User display component to reduce duplication
+function UserDisplay({
+  user,
+  textClassName,
+}: {
+  user: {
+    name: string | null;
+    email: string | null;
+    image: string | null;
+  } | null;
+  textClassName?: string;
+}) {
+  const userName = formatUserName(user);
+
+  return (
+    <div className="flex items-center gap-1">
+      <Avatar className="h-4 w-4">
+        {user?.image && <AvatarImage src={user.image} />}
+        <AvatarFallback className={cn(getAvatarColor(userName), "text-[8px]")}>
+          {userName[0]?.toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+      <span className={cn("font-medium", textClassName)}>{userName}</span>
+    </div>
+  );
+}
+
+// Detail row component to reduce duplication
+function DetailRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex justify-between">
+      <span>{label}:</span>
+      {children}
+    </div>
+  );
+}
+
 function CoSignDetails({
   status,
   cosignRequest,
   coSignedAt,
   coSignNotes,
 }: CoSignDetailsProps) {
-  const formatUserName = (
-    user: { name: string | null; email: string | null } | null,
-  ) => {
-    if (!user) return "Unknown User";
-    return user.name || user.email || "Unknown User";
-  };
-
-  const formatTimestamp = (timestamp: string) => {
-    return formatDistanceToNow(parseISO(timestamp), { addSuffix: true });
-  };
-
   return (
     <Card className="border-0 shadow-none">
       <CardContent className="space-y-3 p-0">
         <div>
           <h4 className="mb-2 font-medium text-sm">Co-signature Details</h4>
           <div className="space-y-1 text-muted-foreground text-xs">
-            {status === "pending" && cosignRequest && (
-              <>
-                <div className="flex justify-between">
-                  <span>Requested by:</span>
-                  <div className="flex items-center gap-1">
-                    <Avatar className="h-4 w-4">
-                      {cosignRequest.requester.image && (
-                        <AvatarImage src={cosignRequest.requester.image} />
-                      )}
-                      <AvatarFallback
-                        className={cn(
-                          getAvatarColor(
-                            formatUserName(cosignRequest.requester),
-                          ),
-                          "text-[8px]",
-                        )}
-                      >
-                        {formatUserName(
-                          cosignRequest.requester,
-                        )[0]?.toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">
-                      {formatUserName(cosignRequest.requester)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Assigned to:</span>
-                  <div className="flex items-center gap-1">
-                    {cosignRequest.cosigner && (
-                      <>
-                        <Avatar className="h-4 w-4">
-                          {cosignRequest.cosigner.image && (
-                            <AvatarImage src={cosignRequest.cosigner.image} />
-                          )}
-                          <AvatarFallback
-                            className={cn(
-                              getAvatarColor(
-                                formatUserName(cosignRequest.cosigner || null),
-                              ),
-                              "text-[8px]",
-                            )}
-                          >
-                            {formatUserName(
-                              cosignRequest.cosigner || null,
-                            )[0]?.toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">
-                          {formatUserName(cosignRequest.cosigner || null)}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Requested:</span>
-                  <span>{formatTimestamp(cosignRequest.createdAt)}</span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Expires:</span>
-                  <span className="text-amber-600">
-                    {formatTimestamp(cosignRequest.expiresAt)}
-                  </span>
-                </div>
-              </>
-            )}
-
-            {status === "approved" && (
-              <>
-                {cosignRequest && (
-                  <>
-                    <div className="flex justify-between">
-                      <span>Requested by:</span>
-                      <div className="flex items-center gap-1">
-                        <Avatar className="h-4 w-4">
-                          {cosignRequest.requester.image && (
-                            <AvatarImage src={cosignRequest.requester.image} />
-                          )}
-                          <AvatarFallback
-                            className={cn(
-                              getAvatarColor(
-                                formatUserName(cosignRequest.requester),
-                              ),
-                              "text-[8px]",
-                            )}
-                          >
-                            {formatUserName(
-                              cosignRequest.requester,
-                            )[0]?.toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">
-                          {formatUserName(cosignRequest.requester)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span>Approved by:</span>
-                      <div className="flex items-center gap-1">
-                        {cosignRequest.cosigner && (
-                          <>
-                            <Avatar className="h-4 w-4">
-                              {cosignRequest.cosigner.image && (
-                                <AvatarImage
-                                  src={cosignRequest.cosigner.image}
-                                />
-                              )}
-                              <AvatarFallback
-                                className={cn(
-                                  getAvatarColor(
-                                    formatUserName(
-                                      cosignRequest.cosigner || null,
-                                    ),
-                                  ),
-                                  "text-[8px]",
-                                )}
-                              >
-                                {formatUserName(
-                                  cosignRequest.cosigner,
-                                )[0]?.toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium text-green-700">
-                              {formatUserName(cosignRequest.cosigner || null)}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {(coSignedAt || cosignRequest?.signedAt) && (
-                  <div className="flex justify-between">
-                    <span>Signed:</span>
-                    <span className="font-medium text-green-700">
-                      {formatTimestamp(
-                        coSignedAt || cosignRequest?.signedAt || "",
-                      )}
-                    </span>
-                  </div>
-                )}
-
-                {cosignRequest?.signature && (
-                  <>
-                    <Separator className="my-2" />
-                    <div className="space-y-1">
-                      <span className="font-medium text-xs">
-                        Digital Signature:
-                      </span>
-                      <div className="rounded-md border bg-background p-2">
-                        <Image
-                          src={cosignRequest.signature}
-                          alt="Digital signature"
-                          width={200}
-                          height={60}
-                          className="h-auto max-w-full"
-                          style={{ maxHeight: "60px" }}
-                          unoptimized
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-
-            {status === "rejected" && cosignRequest && (
-              <>
-                <div className="flex justify-between">
-                  <span>Requested by:</span>
-                  <span className="font-medium">
-                    {formatUserName(cosignRequest.requester)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Rejected by:</span>
-                  <span className="font-medium text-red-700">
-                    {formatUserName(cosignRequest.cosigner || null)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Rejected:</span>
-                  <span className="text-red-700">
-                    {formatTimestamp(cosignRequest.createdAt)}
-                  </span>
-                </div>
-
-                {cosignRequest.rejectionReason && (
-                  <>
-                    <Separator className="my-2" />
-                    <div className="space-y-1">
-                      <span className="font-medium text-xs">
-                        Rejection Reason:
-                      </span>
-                      <p className="rounded border bg-red-50 p-2 text-red-800 text-xs">
-                        {cosignRequest.rejectionReason}
-                      </p>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-
-            {coSignNotes && (
-              <>
-                <Separator className="my-2" />
-                <div className="space-y-1">
-                  <span className="font-medium text-xs">Notes:</span>
-                  <p className="rounded bg-muted p-2 text-xs">{coSignNotes}</p>
-                </div>
-              </>
-            )}
+            <PendingDetails status={status} cosignRequest={cosignRequest} />
+            <ApprovedDetails
+              status={status}
+              cosignRequest={cosignRequest}
+              coSignedAt={coSignedAt}
+            />
+            <RejectedDetails status={status} cosignRequest={cosignRequest} />
+            <NotesSection coSignNotes={coSignNotes} />
           </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// Pending status details
+function PendingDetails({
+  status,
+  cosignRequest,
+}: {
+  status: string;
+  cosignRequest?: CoSignRequestData | null;
+}) {
+  if (status !== "pending" || !cosignRequest) return null;
+
+  return (
+    <>
+      <DetailRow label="Requested by">
+        <UserDisplay user={cosignRequest.requester} />
+      </DetailRow>
+
+      <DetailRow label="Assigned to">
+        {cosignRequest.cosigner && (
+          <UserDisplay user={cosignRequest.cosigner} />
+        )}
+      </DetailRow>
+
+      <DetailRow label="Requested">
+        <span>{formatTimestamp(cosignRequest.createdAt)}</span>
+      </DetailRow>
+
+      <DetailRow label="Expires">
+        <span className="text-amber-600">
+          {formatTimestamp(cosignRequest.expiresAt)}
+        </span>
+      </DetailRow>
+    </>
+  );
+}
+
+// Approved status details
+function ApprovedDetails({
+  status,
+  cosignRequest,
+  coSignedAt,
+}: {
+  status: string;
+  cosignRequest?: CoSignRequestData | null;
+  coSignedAt?: string | null;
+}) {
+  if (status !== "approved") return null;
+
+  return (
+    <>
+      {cosignRequest && (
+        <>
+          <DetailRow label="Requested by">
+            <UserDisplay user={cosignRequest.requester} />
+          </DetailRow>
+
+          <DetailRow label="Approved by">
+            {cosignRequest.cosigner && (
+              <UserDisplay
+                user={cosignRequest.cosigner}
+                textClassName="text-green-700"
+              />
+            )}
+          </DetailRow>
+        </>
+      )}
+
+      {(coSignedAt || cosignRequest?.signedAt) && (
+        <DetailRow label="Signed">
+          <span className="font-medium text-green-700">
+            {formatTimestamp(coSignedAt || cosignRequest?.signedAt || "")}
+          </span>
+        </DetailRow>
+      )}
+
+      <DigitalSignature signature={cosignRequest?.signature ?? undefined} />
+    </>
+  );
+}
+
+// Rejected status details
+function RejectedDetails({
+  status,
+  cosignRequest,
+}: {
+  status: string;
+  cosignRequest?: CoSignRequestData | null;
+}) {
+  if (status !== "rejected" || !cosignRequest) return null;
+
+  return (
+    <>
+      <DetailRow label="Requested by">
+        <span className="font-medium">
+          {formatUserName(cosignRequest.requester)}
+        </span>
+      </DetailRow>
+
+      <DetailRow label="Rejected by">
+        <span className="font-medium text-red-700">
+          {formatUserName(cosignRequest.cosigner || null)}
+        </span>
+      </DetailRow>
+
+      <DetailRow label="Rejected">
+        <span className="text-red-700">
+          {formatTimestamp(cosignRequest.createdAt)}
+        </span>
+      </DetailRow>
+
+      <RejectionReason reason={cosignRequest.rejectionReason} />
+    </>
+  );
+}
+
+// Digital signature display
+function DigitalSignature({ signature }: { signature?: string }) {
+  if (!signature) return null;
+
+  return (
+    <>
+      <Separator className="my-2" />
+      <div className="space-y-1">
+        <span className="font-medium text-xs">Digital Signature:</span>
+        <div className="rounded-md border bg-background p-2">
+          <Image
+            src={signature}
+            alt="Digital signature"
+            width={200}
+            height={60}
+            className="h-auto max-w-full"
+            style={{ maxHeight: "60px" }}
+            unoptimized
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Rejection reason display
+function RejectionReason({ reason }: { reason?: string | null }) {
+  if (!reason) return null;
+
+  return (
+    <>
+      <Separator className="my-2" />
+      <div className="space-y-1">
+        <span className="font-medium text-xs">Rejection Reason:</span>
+        <p className="rounded border bg-red-50 p-2 text-red-800 text-xs">
+          {reason}
+        </p>
+      </div>
+    </>
+  );
+}
+
+// Notes section
+function NotesSection({ coSignNotes }: { coSignNotes?: string | null }) {
+  if (!coSignNotes) return null;
+
+  return (
+    <>
+      <Separator className="my-2" />
+      <div className="space-y-1">
+        <span className="font-medium text-xs">Notes:</span>
+        <p className="rounded bg-muted p-2 text-xs">{coSignNotes}</p>
+      </div>
+    </>
   );
 }

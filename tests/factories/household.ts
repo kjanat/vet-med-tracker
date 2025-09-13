@@ -246,31 +246,25 @@ export const householdUtils = {
     type: "family" | "clinic" | "rescue" | "shelter" = "family",
   ) => {
     const templates = {
-      // biome-ignore lint/suspicious/noTemplateCurlyInString: These are intentional template placeholders replaced by .replace() method
-      family: ["${surname} Family", "${surname} Household", "The ${surname}s"],
+      family: [
+        "{{surname}} Family",
+        "{{surname}} Household",
+        "The {{surname}}s",
+      ],
       clinic: [
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} Animal Hospital",
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} Veterinary Clinic",
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} Pet Care Center",
+        "{{name}} Animal Hospital",
+        "{{name}} Veterinary Clinic",
+        "{{name}} Pet Care Center",
       ],
       rescue: [
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} Animal Rescue",
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} Pet Rescue",
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} Second Chances",
+        "{{name}} Animal Rescue",
+        "{{name}} Pet Rescue",
+        "{{name}} Second Chances",
       ],
       shelter: [
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} Animal Shelter",
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} Humane Society",
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: Template placeholders replaced by .replace() method
-        "${name} SPCA",
+        "{{name}} Animal Shelter",
+        "{{name}} Humane Society",
+        "{{name}} SPCA",
       ],
     };
 
@@ -289,6 +283,6 @@ export const householdUtils = {
     const nameType = template.includes("surname") ? "surname" : "name";
     const selectedName = random.arrayElement(names[nameType]);
 
-    return template.replace(`\${${nameType}}`, selectedName);
+    return template.replace(`{{${nameType}}}`, selectedName);
   },
 };

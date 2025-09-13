@@ -360,19 +360,10 @@ async function testViewHealth(): Promise<TestResult> {
   }
 }
 
-async function runAllTests(): Promise<void> {
-  console.log("🚀 Starting Materialized Views Performance Tests");
-  console.log("================================================");
-
-  const tests = [
-    testComplianceStats,
-    testMedicationUsage,
-    testInventoryConsumption,
-    testAnimalHealthTrends,
-    testRefreshPerformance,
-    testViewHealth,
-  ];
-
+// Helper to execute all tests and collect results
+async function executeTestSuite(
+  tests: Array<() => Promise<TestResult>>,
+): Promise<TestResult[]> {
   const results: TestResult[] = [];
 
   for (const test of tests) {
@@ -393,7 +384,11 @@ async function runAllTests(): Promise<void> {
     }
   }
 
-  // Display results
+  return results;
+}
+
+// Helper to display test results
+function displayTestResults(results: TestResult[]): void {
   console.log("\n📊 Test Results Summary");
   console.log("========================");
   console.table(
@@ -407,8 +402,10 @@ async function runAllTests(): Promise<void> {
       Details: r.details || "",
     })),
   );
+}
 
-  // Overall summary
+// Helper to show overall success summary
+function showOverallSummary(results: TestResult[]): number {
   const passed = results.filter((r) => r.status === "PASS").length;
   const total = results.length;
   const overallSuccess = passed / total;
@@ -425,10 +422,15 @@ async function runAllTests(): Promise<void> {
     console.log("❌ Materialized views deployment needs attention");
   }
 
-  // Performance summary
+  return overallSuccess;
+}
+
+// Helper to show performance summary
+function showPerformanceSummary(results: TestResult[]): void {
   const performanceTests = results.filter(
     (r) => r.originalQueryTime > 0 && r.materializedViewTime > 0,
   );
+
   if (performanceTests.length > 0) {
     const avgImprovement =
       performanceTests.reduce((sum, r) => sum + r.improvementPct, 0) /
@@ -445,6 +447,25 @@ async function runAllTests(): Promise<void> {
       console.log("📝 Consider optimizing further");
     }
   }
+}
+
+async function runAllTests(): Promise<void> {
+  console.log("🚀 Starting Materialized Views Performance Tests");
+  console.log("================================================");
+
+  const tests = [
+    testComplianceStats,
+    testMedicationUsage,
+    testInventoryConsumption,
+    testAnimalHealthTrends,
+    testRefreshPerformance,
+    testViewHealth,
+  ];
+
+  const results = await executeTestSuite(tests);
+  displayTestResults(results);
+  const overallSuccess = showOverallSummary(results);
+  showPerformanceSummary(results);
 
   process.exit(overallSuccess >= 0.8 ? 0 : 1);
 }

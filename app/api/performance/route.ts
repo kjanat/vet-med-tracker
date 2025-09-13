@@ -33,13 +33,45 @@ type PerformanceMetrics = z.infer<typeof PerformanceMetricsSchema>;
 
 export async function POST(request: NextRequest) {
   try {
+    // Basic content-type check
+    const contentType = request.headers.get("content-type") || "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json(
+        { error: "Unsupported Media Type. Expected application/json" },
+        { status: 415, headers: corsHeaders },
+      );
+    }
+
+    // Read raw body safely to handle empty payloads
+    const bodyText = await request.text();
+    if (!bodyText || bodyText.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Empty request body" },
+        { status: 400, headers: corsHeaders },
+      );
+    }
+
+    // Parse JSON with explicit try/catch to return 400 on bad JSON
+    let json: unknown;
+    try {
+      json = JSON.parse(bodyText);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400, headers: corsHeaders },
+      );
+    }
+
     // Validate input with Zod schema
-    const json = await request.json();
     const parseResult = PerformanceDataSchema.safeParse(json);
 
     if (!parseResult.success) {
       return NextResponse.json(
-        { error: "Invalid request data", details: parseResult.error.flatten() },
+        {
+          error: "Invalid request data",
+          // Use standard Zod formatting (treeifyError is not a Zod API)
+          details: z.treeifyError(parseResult.error),
+        },
         { status: 400, headers: corsHeaders },
       );
     }
@@ -51,7 +83,7 @@ export async function POST(request: NextRequest) {
     // 2. Send to analytics service (e.g., DataDog, New Relic)
     // 3. Trigger alerts for poor performance
 
-    // For now, just log to console in development
+    // For now, just log to the console in development
     if (process.env.NODE_ENV === "development") {
       console.log("📊 Performance Metrics:", {
         url: data.url,
@@ -60,7 +92,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Send to analytics service (example)
+    // Send it to an analytics service (example)
     if (process.env.ANALYTICS_API_KEY) {
       // Example: await sendToAnalyticsService(data);
     }

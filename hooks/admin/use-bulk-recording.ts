@@ -37,7 +37,7 @@ export function useBulkRecording() {
     setIsRecording(true);
 
     try {
-      const idempotencyKey = `bulk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const idempotencyKey = `bulk-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
       const result = await bulkRecordMutation.mutateAsync({
         householdId: selectedHouseholdId,

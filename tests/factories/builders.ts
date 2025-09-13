@@ -572,7 +572,14 @@ export class ComplianceDataBuilder {
     if (!this.data.regimen.startDate) {
       throw new Error("Regimen start date is required");
     }
-    const startDate = new Date(this.data.regimen.startDate);
+
+    const { startDate, endDate } = this.calculateDateRange(days);
+    this.generateRealisticAdministrations(startDate, endDate);
+    return this;
+  }
+
+  private calculateDateRange(days: number): { startDate: Date; endDate: Date } {
+    const startDate = new Date(this.data.regimen.startDate!);
     const endDate = new Date(
       Math.min(
         startDate.getTime() + days * 24 * 60 * 60 * 1000,
@@ -581,8 +588,13 @@ export class ComplianceDataBuilder {
           : Date.now(),
       ),
     );
+    return { startDate, endDate };
+  }
 
-    // Generate administrations with realistic compliance patterns
+  private generateRealisticAdministrations(
+    startDate: Date,
+    endDate: Date,
+  ): void {
     const currentDate = new Date(startDate);
     let complianceRate = 0.85; // Start with 85% compliance
 
@@ -590,31 +602,13 @@ export class ComplianceDataBuilder {
       const times = this.data.regimen.timesLocal ?? ["08:00", "20:00"];
 
       for (const timeStr of times) {
-        const [hours = 8, minutes = 0] = timeStr.split(":").map(Number);
-        const scheduledTime = new Date(currentDate);
-        scheduledTime.setHours(hours, minutes, 0, 0);
+        const scheduledTime = this.createScheduledTime(currentDate, timeStr);
 
-        if (scheduledTime <= endDate && random.float(0, 1) < complianceRate) {
-          // Determine status based on realistic probabilities
-          let status: "ON_TIME" | "LATE" | "VERY_LATE" | "MISSED";
-          const rand = random.float(0, 1);
-
-          if (rand < 0.75) status = "ON_TIME";
-          else if (rand < 0.9) status = "LATE";
-          else if (rand < 0.98) status = "VERY_LATE";
-          else status = "MISSED";
-
-          if (!this.data.regimen.id || !this.data.regimen.animalId) {
-            throw new Error("Regimen id and animalId are required");
-          }
-          const administration = AdministrationBuilder.create()
-            .forRegimen(this.data.regimen.id)
-            .forAnimal(this.data.regimen.animalId)
-            .scheduledFor(scheduledTime)
-            .withStatus(status)
-            .build();
-
-          this.data.administrations.push(administration);
+        if (
+          scheduledTime <= endDate &&
+          this.shouldCreateAdministration(complianceRate)
+        ) {
+          this.createAdministration(scheduledTime);
         }
 
         // Gradually decline compliance over time (realistic pattern)
@@ -623,8 +617,47 @@ export class ComplianceDataBuilder {
 
       currentDate.setDate(currentDate.getDate() + 1);
     }
+  }
 
-    return this;
+  private createScheduledTime(currentDate: Date, timeStr: string): Date {
+    const [hours = 8, minutes = 0] = timeStr.split(":").map(Number);
+    const scheduledTime = new Date(currentDate);
+    scheduledTime.setHours(hours, minutes, 0, 0);
+    return scheduledTime;
+  }
+
+  private shouldCreateAdministration(complianceRate: number): boolean {
+    return random.float(0, 1) < complianceRate;
+  }
+
+  private createAdministration(scheduledTime: Date): void {
+    const status = this.determineAdministrationStatus();
+
+    if (!this.data.regimen.id || !this.data.regimen.animalId) {
+      throw new Error("Regimen id and animalId are required");
+    }
+
+    const administration = AdministrationBuilder.create()
+      .forRegimen(this.data.regimen.id)
+      .forAnimal(this.data.regimen.animalId)
+      .scheduledFor(scheduledTime)
+      .withStatus(status)
+      .build();
+
+    this.data.administrations.push(administration);
+  }
+
+  private determineAdministrationStatus():
+    | "ON_TIME"
+    | "LATE"
+    | "VERY_LATE"
+    | "MISSED" {
+    const rand = random.float(0, 1);
+
+    if (rand < 0.75) return "ON_TIME";
+    if (rand < 0.9) return "LATE";
+    if (rand < 0.98) return "VERY_LATE";
+    return "MISSED";
   }
 
   withPerfectCompliance(days = 14): ComplianceDataBuilder {

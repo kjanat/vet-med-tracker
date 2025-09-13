@@ -45,7 +45,7 @@ export const lazyUIComponents = {
 };
 
 // Utility for creating component-specific lazy loaders
-export function createLazyComponent<T = any>(
+export function createLazyComponent<T = Record<string, unknown>>(
   importFn: () => Promise<{ default: React.ComponentType<T> }>,
   fallback?: React.ComponentType,
 ) {
@@ -56,7 +56,7 @@ export function createLazyComponent<T = any>(
 }
 
 // Utility for lazy loading with custom loading states
-export function createLazyComponentWithLoading<T = any>(
+export function createLazyComponentWithLoading<T = Record<string, unknown>>(
   importFn: () => Promise<{ default: React.ComponentType<T> }>,
   LoadingComponent: React.ComponentType,
 ) {
@@ -78,7 +78,9 @@ export async function lazyImport<T>(importFn: () => Promise<T>): Promise<T> {
 
 // Preload utilities for critical paths
 export function preloadComponent(
-  importFn: () => Promise<{ default: React.ComponentType<any> }>,
+  importFn: () => Promise<{
+    default: React.ComponentType<Record<string, unknown>>;
+  }>,
 ) {
   // Preload during idle time
   if (typeof window !== "undefined" && "requestIdleCallback" in window) {

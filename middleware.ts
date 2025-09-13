@@ -8,10 +8,6 @@ import { stackServerApp } from "./stack";
  * 1. Security headers (CSP, HSTS, XSS protection, etc.)
  * 2. Authentication via Stack Auth
  * 3. Basic request routing protection
- * 4. Rate limiting for public endpoints (in-memory fallback)
- *
- * Note: Redis-based rate limiting is handled in the auth handler
- * This in-memory rate limiting serves as a fallback
  */
 
 // Security headers configuration
@@ -53,46 +49,6 @@ const securityHeaders = {
   "X-Powered-By": "",
 };
 
-// Rate limiting store (simple in-memory implementation)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-// Rate limiting configuration for different endpoints
-const rateLimits = {
-  default: { maxRequests: 100, windowMs: 60000 }, // 100 requests per minute
-  auth: { maxRequests: 5, windowMs: 900000 }, // 5 auth attempts per 15 minutes
-  api: { maxRequests: 300, windowMs: 60000 }, // 300 API calls per minute
-  public: { maxRequests: 50, windowMs: 60000 }, // 50 public requests per minute
-};
-
-function getRateLimitKey(req: NextRequest): string {
-  // Use forwarded IP, fallback to connection IP, then to 'unknown'
-  const forwarded = req.headers.get("x-forwarded-for");
-  const realIp = req.headers.get("x-real-ip");
-  return forwarded?.split(",")[0]?.trim() || realIp || "unknown";
-}
-
-function checkRateLimit(
-  ip: string,
-  limit: { maxRequests: number; windowMs: number },
-): boolean {
-  const now = Date.now();
-  const key = ip;
-  const entry = rateLimitStore.get(key);
-
-  if (!entry || now > entry.resetTime) {
-    // Reset window
-    rateLimitStore.set(key, { count: 1, resetTime: now + limit.windowMs });
-    return true;
-  }
-
-  if (entry.count >= limit.maxRequests) {
-    return false; // Rate limit exceeded
-  }
-
-  entry.count++;
-  return true;
-}
-
 function addSecurityHeaders(response: NextResponse): NextResponse {
   Object.entries(securityHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
@@ -101,57 +57,6 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
 }
 
 export default async function middleware(req: NextRequest) {
-  // Apply rate limiting and security headers to all requests
-  const clientIp = getRateLimitKey(req);
-
-  // Determine rate limit type based on path
-  let rateLimit = rateLimits.default;
-  if (req.nextUrl.pathname.startsWith("/handler/")) {
-    rateLimit = rateLimits.auth;
-  } else if (
-    req.nextUrl.pathname.startsWith("/api") ||
-    req.nextUrl.pathname.startsWith("/trpc")
-  ) {
-    rateLimit = rateLimits.api;
-  } else if (!req.nextUrl.pathname.startsWith("/authed")) {
-    rateLimit = rateLimits.public;
-  }
-
-  // Skip rate limiting for health checks, static files, and auth handlers
-  // Auth handlers have their own Redis-based rate limiting
-  const skipRateLimit =
-    req.nextUrl.pathname === "/api/health" ||
-    req.nextUrl.pathname === "/api/breaker-status" ||
-    req.nextUrl.pathname.startsWith("/_next") ||
-    req.nextUrl.pathname.includes(".") ||
-    req.nextUrl.pathname.startsWith("/handler/"); // Skip for auth - handled by Redis
-
-  // Apply rate limiting
-  if (!skipRateLimit && !checkRateLimit(clientIp, rateLimit)) {
-    const response = NextResponse.json(
-      {
-        error: "Too many requests",
-        message: "Rate limit exceeded. Please try again later.",
-      },
-      { status: 429 },
-    );
-    response.headers.set(
-      "Retry-After",
-      Math.ceil(rateLimit.windowMs / 1000).toString(),
-    );
-    return addSecurityHeaders(response);
-  }
-
-  // Allow health checks, monitoring endpoints, and static files without further processing
-  if (skipRateLimit) {
-    return addSecurityHeaders(NextResponse.next());
-  }
-
-  // Allow Stack Auth handler routes
-  if (req.nextUrl.pathname.startsWith("/handler/")) {
-    return addSecurityHeaders(NextResponse.next());
-  }
-
   // For API routes, just continue - connection safeguards are handled in tRPC
   if (
     req.nextUrl.pathname.startsWith("/api") ||

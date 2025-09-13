@@ -1,18 +1,9 @@
 "use client";
 
-import { BarChart3, History, Home, Package, Settings } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { navigationConfig } from "@/lib/navigation/config";
 import { cn } from "@/lib/utils/general";
-
-const navigation = [
-  { name: "Home", href: "/" as Route, icon: Home },
-  { name: "History", href: "/dashboard/history" as Route, icon: History },
-  { name: "Inventory", href: "/medications/inventory" as Route, icon: Package },
-  { name: "Insights", href: "/insights" as Route, icon: BarChart3 },
-  { name: "Settings", href: "/settings" as Route, icon: Settings },
-];
 
 export function LeftRail() {
   const pathname = usePathname();
@@ -24,12 +15,17 @@ export function LeftRail() {
       </div>
 
       <nav className="px-3">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href;
+        {navigationConfig.mobile.map((item) => {
+          const isActive = pathname === item.path;
+          const IconComponent = item.icon;
+
+          // Skip items without paths
+          if (!item.path) return null;
+
           return (
             <Link
-              key={item.name}
-              href={item.href}
+              key={item.title}
+              href={item.path}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
                 isActive
@@ -37,8 +33,10 @@ export function LeftRail() {
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
-              <item.icon className="h-4 w-4" />
-              {item.name}
+              {IconComponent && typeof IconComponent !== "string" && (
+                <IconComponent className="h-4 w-4" />
+              )}
+              {item.title}
             </Link>
           );
         })}

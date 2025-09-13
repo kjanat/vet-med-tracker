@@ -233,6 +233,162 @@ async function storeFile(
   };
 }
 
+// Helper for authentication check
+async function authenticateUser(clientIp: string, request: NextRequest) {
+  const user = await stackServerApp.getUser();
+  if (!user) {
+    await auditHelpers.logThreat(
+      "unauthorized_upload_attempt",
+      "medium",
+      clientIp,
+      undefined,
+      { endpoint: "/api/upload" },
+    );
+
+    return withCors(
+      request,
+      createErrorResponse("Authentication required", 401, "UNAUTHORIZED"),
+    );
+  }
+  return user;
+}
+
+// Helper for form data parsing
+async function parseFormData(
+  clientIp: string,
+  request: NextRequest,
+  userId: string,
+) {
+  try {
+    return await request.formData();
+  } catch (error) {
+    await auditHelpers.logThreat(
+      "malformed_upload_request",
+      "medium",
+      clientIp,
+      userId,
+      { error: error instanceof Error ? error.message : String(error) },
+    );
+
+    throw withCors(
+      request,
+      createErrorResponse("Invalid form data", 400, "INVALID_REQUEST"),
+    );
+  }
+}
+
+// Helper for file extraction and validation
+async function extractAndValidateFile(
+  formData: FormData,
+  clientIp: string,
+  userId: string,
+  request: NextRequest,
+) {
+  const file = formData.get("file") as File | null;
+
+  if (!file) {
+    throw withCors(
+      request,
+      createErrorResponse("No file provided", 400, "NO_FILE"),
+    );
+  }
+
+  // Check for multiple files (security measure)
+  const allFiles = formData.getAll("file");
+  if (allFiles.length > MAX_FILES_PER_REQUEST) {
+    await auditHelpers.logThreat(
+      "multiple_file_upload_attempt",
+      "high",
+      clientIp,
+      userId,
+      { fileCount: allFiles.length, maxAllowed: MAX_FILES_PER_REQUEST },
+    );
+
+    throw withCors(
+      request,
+      createErrorResponse(
+        `Maximum ${MAX_FILES_PER_REQUEST} file(s) allowed per request`,
+        400,
+        "TOO_MANY_FILES",
+      ),
+    );
+  }
+
+  // Validate file with enhanced security checks
+  const validation = await validateFile(file);
+  if (!validation.isValid) {
+    await auditHelpers.logValidationFailure(
+      file.name,
+      "file_upload_validation",
+      clientIp,
+      userId,
+    );
+
+    throw withCors(
+      request,
+      createErrorResponse(
+        validation.error || "File validation failed",
+        400,
+        "INVALID_FILE",
+      ),
+    );
+  }
+
+  return file;
+}
+
+// Helper for processing and storing file
+async function processAndStoreFile(file: File, userId: string) {
+  const fileName = generateFileName(file.name, userId, file.type);
+  const { url } = await storeFile(file, fileName);
+
+  await auditHelpers.logDataAccess(
+    "file_uploaded",
+    userId,
+    "animal_photo",
+    true,
+    {
+      fileName: file.name,
+      fileSize: file.size,
+      contentType: file.type,
+      storedAs: fileName,
+    },
+  );
+
+  return { url, fileName };
+}
+
+// Helper for error handling
+async function handleUploadError(
+  error: unknown,
+  clientIp: string,
+  request: NextRequest,
+) {
+  console.error("Upload error:", error);
+
+  const user = await stackServerApp.getUser();
+  await auditHelpers.logThreat("upload_error", "medium", clientIp, user?.id, {
+    error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  });
+
+  if (error instanceof Error) {
+    return withCors(
+      request,
+      createErrorResponse(
+        "Upload failed due to server error",
+        500,
+        "UPLOAD_ERROR",
+      ),
+    );
+  }
+
+  return withCors(
+    request,
+    createErrorResponse("Internal server error", 500, "INTERNAL_ERROR"),
+  );
+}
+
 /**
  * POST /api/upload
  * Secure upload endpoint for animal photos
@@ -243,110 +399,22 @@ export async function POST(request: NextRequest) {
 
   try {
     // Check authentication
-    const user = await stackServerApp.getUser();
-    if (!user) {
-      await auditHelpers.logThreat(
-        "unauthorized_upload_attempt",
-        "medium",
-        clientIp,
-        undefined,
-        { endpoint: "/api/upload" },
-      );
+    const user = await authenticateUser(clientIp, request);
+    if (user instanceof NextResponse) return user; // Error response
 
-      return withCors(
-        request,
-        createErrorResponse("Authentication required", 401, "UNAUTHORIZED"),
-      );
-    }
+    // Parse multipart form data
+    const formData = await parseFormData(clientIp, request, user.id);
 
-    // Parse multipart form data with size limit
-    let formData: FormData;
-    try {
-      formData = await request.formData();
-    } catch (error) {
-      await auditHelpers.logThreat(
-        "malformed_upload_request",
-        "medium",
-        clientIp,
-        user.id,
-        { error: error instanceof Error ? error.message : String(error) },
-      );
-
-      return withCors(
-        request,
-        createErrorResponse("Invalid form data", 400, "INVALID_REQUEST"),
-      );
-    }
-
-    const file = formData.get("file") as File | null;
-
-    if (!file) {
-      return withCors(
-        request,
-        createErrorResponse("No file provided", 400, "NO_FILE"),
-      );
-    }
-
-    // Check for multiple files (security measure)
-    const allFiles = formData.getAll("file");
-    if (allFiles.length > MAX_FILES_PER_REQUEST) {
-      await auditHelpers.logThreat(
-        "multiple_file_upload_attempt",
-        "high",
-        clientIp,
-        user.id,
-        { fileCount: allFiles.length, maxAllowed: MAX_FILES_PER_REQUEST },
-      );
-
-      return withCors(
-        request,
-        createErrorResponse(
-          `Maximum ${MAX_FILES_PER_REQUEST} file(s) allowed per request`,
-          400,
-          "TOO_MANY_FILES",
-        ),
-      );
-    }
-
-    // Validate file with enhanced security checks
-    const validation = await validateFile(file);
-    if (!validation.isValid) {
-      await auditHelpers.logValidationFailure(
-        file.name,
-        "file_upload_validation",
-        clientIp,
-        user.id,
-      );
-
-      return withCors(
-        request,
-        createErrorResponse(
-          validation.error || "File validation failed",
-          400,
-          "INVALID_FILE",
-        ),
-      );
-    }
-
-    // Generate unique filename (derive extension from validated MIME)
-    const fileName = generateFileName(file.name, user.id, file.type);
-
-    // Store the file
-    const { url } = await storeFile(file, fileName);
-
-    // Log successful upload
-    await auditHelpers.logDataAccess(
-      "file_uploaded",
+    // Extract and validate file
+    const file = await extractAndValidateFile(
+      formData,
+      clientIp,
       user.id,
-      "animal_photo",
-      true,
-      {
-        fileName: file.name,
-        fileSize: file.size,
-        contentType: file.type,
-        storedAs: fileName,
-      },
+      request,
     );
+
+    // Process and store file
+    const { url, fileName } = await processAndStoreFile(file, user.id);
 
     // Return success response
     return withCors(
@@ -358,31 +426,14 @@ export async function POST(request: NextRequest) {
         contentType: file.type,
       }),
     );
-  } catch (error) {
-    console.error("Upload error:", error);
-
-    // Log error for security monitoring
-    const user = await stackServerApp.getUser();
-    await auditHelpers.logThreat("upload_error", "medium", clientIp, user?.id, {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-
-    if (error instanceof Error) {
-      return withCors(
-        request,
-        createErrorResponse(
-          "Upload failed due to server error",
-          500,
-          "UPLOAD_ERROR",
-        ),
-      );
+  } catch (errorResponse) {
+    // If it's already a NextResponse from validation, return it
+    if (errorResponse instanceof NextResponse) {
+      return errorResponse;
     }
 
-    return withCors(
-      request,
-      createErrorResponse("Internal server error", 500, "INTERNAL_ERROR"),
-    );
+    // Handle unexpected errors
+    return await handleUploadError(errorResponse, clientIp, request);
   }
 }
 

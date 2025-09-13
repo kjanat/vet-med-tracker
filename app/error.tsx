@@ -58,7 +58,7 @@ export default function ErrorPage({
             Try Again
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/dashboard">
+            <Link href="/auth/dashboard">
               <Home className="mr-2 h-4 w-4" />
               Go to Dashboard
             </Link>
@@ -73,7 +73,10 @@ export default function ErrorPage({
               contact support
             </Link>{" "}
             or check our{" "}
-            <Link href="/dashboard" className="text-primary hover:underline">
+            <Link
+              href="/auth/dashboard"
+              className="text-primary hover:underline"
+            >
               dashboard
             </Link>
             .

@@ -19,7 +19,7 @@ function getScheduler() {
   return scheduler;
 }
 
-// Force dynamic rendering and disable caching for status endpoint
+// Force dynamic rendering and disable caching for the status endpoint
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -44,7 +44,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authentication: Verify user is logged in
+    // Authentication: Verify the user is logged in
     const user = await stackServerApp.getUser();
     if (!user) {
       return NextResponse.json(
@@ -75,8 +75,9 @@ export async function POST(request: NextRequest) {
     const parseResult = BodySchema.safeParse(json);
 
     if (!parseResult.success) {
+      const errorDetails = z.treeifyError(parseResult.error);
       return NextResponse.json(
-        { error: "Invalid request body", details: parseResult.error.flatten() },
+        { error: "Invalid request body", details: errorDetails },
         { status: 400 },
       );
     }

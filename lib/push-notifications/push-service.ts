@@ -121,10 +121,16 @@ export class PushNotificationService {
       })),
     );
 
-    return results.map((result, index) => ({
-      userId: userIds[index]!,
-      success: result.status === "fulfilled" ? result.value.success : false,
-    }));
+    return results.map((result, index) => {
+      const userId = userIds[index];
+      if (!userId) {
+        throw new Error(`Missing userId at index ${index}`);
+      }
+      return {
+        userId,
+        success: result.status === "fulfilled" ? result.value.success : false,
+      };
+    });
   }
 
   /**
@@ -189,14 +195,19 @@ export class PushNotificationService {
       await this.updateSubscriptionLastUsed(subscription.id);
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(
         `Failed to send notification to subscription ${subscription.id}:`,
         error,
       );
 
       // Handle invalid/expired subscriptions
-      if (error.statusCode === 410 || error.statusCode === 404) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "statusCode" in error &&
+        (error.statusCode === 410 || error.statusCode === 404)
+      ) {
         await this.removeInvalidSubscription(subscription.id);
       }
 

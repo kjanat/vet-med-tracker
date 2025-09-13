@@ -1,9 +1,9 @@
 "use client";
 
+import { AnimalAvatar } from "@/components";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/general";
 import { useApp } from "../providers/app-provider-consolidated";
-import { AnimalAvatar } from "./animal-avatar";
 import { ScrollArea, ScrollBar } from "./scroll-area";
 
 export function AnimalSwitcher() {

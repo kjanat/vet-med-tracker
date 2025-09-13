@@ -19,7 +19,7 @@ export const medicationRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { query, limit } = input;
 
-      const medications = await ctx.db
+      return await ctx.db
         .select()
         .from(medicationCatalog)
         .where(
@@ -30,8 +30,6 @@ export const medicationRouter = createTRPCRouter({
         )
         .orderBy(medicationCatalog.genericName, medicationCatalog.brandName)
         .limit(limit);
-
-      return medications;
     }),
 
   getById: protectedProcedure
