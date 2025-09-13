@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20'
-  PNPM_VERSION: '10.14.0'
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10.16.0'
 
 jobs:
   pre-checks:
