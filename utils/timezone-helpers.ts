@@ -33,10 +33,37 @@ export const TZ_ALIASES = {
 export type IanaZone = (typeof IANA_TIMEZONES)[number];
 export type TzAlias = keyof typeof TZ_ALIASES;
 
+declare global {
+  // Used exclusively in tests to provide a deterministic timezone
+  // eslint-disable-next-line no-var
+  var __TEST_TIMEZONE__: string | undefined;
+}
+
+const getRuntimeConfiguredTimezone = (): IanaZone | undefined => {
+  const testZone =
+    typeof globalThis !== "undefined" &&
+    typeof globalThis.__TEST_TIMEZONE__ === "string"
+      ? (globalThis.__TEST_TIMEZONE__ as IanaZone)
+      : undefined;
+
+  if (testZone?.length) {
+    return testZone;
+  }
+
+  const envZone =
+    typeof process !== "undefined" &&
+    typeof process.env?.TZ === "string" &&
+    process.env.TZ.length > 0
+      ? (process.env.TZ as IanaZone)
+      : undefined;
+
+  return envZone;
+};
+
 /** Browser's current timezone */
-export const BROWSER_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone as
-  | IanaZone
-  | undefined;
+export const BROWSER_ZONE =
+  getRuntimeConfiguredTimezone() ??
+  (Intl.DateTimeFormat().resolvedOptions().timeZone as IanaZone | undefined);
 
 /** Optional map of friendly labels. Expand as needed */
 const FRIENDLY = {

@@ -39,6 +39,18 @@ describe("OnboardingChecker", () => {
       jestGlobal.advanceTimersByTime = () => {};
     }
 
+    // Reset any leftover fake timer markers from other tests
+    const timeoutAny = setTimeout as {
+      clock?: unknown;
+      _isMockFunction?: boolean;
+    };
+    if (typeof timeoutAny.clock !== "undefined") {
+      delete timeoutAny.clock;
+    }
+    if (timeoutAny._isMockFunction) {
+      timeoutAny._isMockFunction = false;
+    }
+
     // Ensure clean DOM state
     document.body.innerHTML = "";
 

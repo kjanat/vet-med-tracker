@@ -13,11 +13,7 @@ import {
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import * as sinon from "sinon"; // Import sinon
 
-mock.module("lucide-react", () => ({
-  LogIn: ({ className }: { className?: string }) => (
-    <svg data-testid="login-icon" className={className} />
-  ),
-}));
+// Use actual lucide-react exports to avoid interfering with other test modules
 
 // Mock the auth provider
 const mockLogin = mock(() => {});
@@ -28,12 +24,17 @@ type AuthState = {
 };
 let authState: AuthState;
 
+const actualAppProviderModule = await import(
+  "@/components/providers/app-provider-consolidated"
+);
+
 const setAuthState = (state: AuthState) => {
   authState = state;
   mockUseAuth.mockImplementation(() => authState);
 };
 
 mock.module("@/components/providers/app-provider-consolidated", () => ({
+  ...actualAppProviderModule,
   useAuth: mockUseAuth,
 }));
 

@@ -20,6 +20,11 @@ type JestCompat = {
 declare global {
   // noinspection ES6ConvertVarToLetConst
   var jest: JestCompat | undefined;
+  var __TEST_TIMEZONE__: string | undefined;
+}
+
+if (typeof globalThis.__TEST_TIMEZONE__ !== "string") {
+  globalThis.__TEST_TIMEZONE__ = "Europe/Amsterdam";
 }
 
 const ensureJestGlobal = (): JestCompat => {
