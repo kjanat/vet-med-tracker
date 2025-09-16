@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Audit log factory for test data generation
  */

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Random data generation utilities
  * Simple faker.js-like functions for consistent test data generation

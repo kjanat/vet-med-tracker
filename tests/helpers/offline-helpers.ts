@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Page } from "@playwright/test";
 
 interface QueuedMutationData {

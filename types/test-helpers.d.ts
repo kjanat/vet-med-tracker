@@ -1,20 +1,29 @@
 import "vitest";
 
+import type { createElement } from "react";
 import type { Mock } from "vitest";
 import type { TRPCClientErrorLike } from "@trpc/client";
 
-// Mock window interface for tests
-export interface MockWindow extends Window {
-  // Auth mock
-  mockAuthUser?: {
+// Additional window properties used throughout the test suite
+interface MockAuthUser {
+  id: string;
+  email: string;
+  name: string;
+  households?: Array<{
     id: string;
-    email: string;
     name: string;
-  };
+    role: string;
+  }>;
+  [key: string]: unknown;
+}
+
+interface MockWindowExtensions {
+  // Auth mock
+  mockAuthUser?: MockAuthUser;
 
   // React mock
   React?: {
-    createElement: (...args: unknown[]) => unknown;
+    createElement: typeof createElement;
   };
 
   // Offline queue methods
@@ -61,6 +70,9 @@ export interface MockWindow extends Window {
   };
 }
 
+// Public type that includes both the standard Window and our test helpers
+export type MockWindow = Window & MockWindowExtensions;
+
 // Helper type for mocking tRPC mutations
 export type MockTRPCMutation<TOutput = unknown, TInput = unknown> = {
   mutateAsync: Mock<(input: TInput) => Promise<TOutput>>;
@@ -86,7 +98,7 @@ export type MockTRPCMutation<TOutput = unknown, TInput = unknown> = {
 };
 
 declare global {
-  interface Window extends MockWindow {
+  interface Window extends MockWindowExtensions {
     indexedDB?: IDBFactory;
   }
 }

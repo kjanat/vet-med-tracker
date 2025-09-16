@@ -1,30 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
 import { mockDb, resetMockDb } from "./mock-db";
 
-type SelectBuilderMock<T> = {
-  from: () => SelectBuilderMock<T>;
-  where: () => SelectBuilderMock<T>;
-  leftJoin: () => SelectBuilderMock<T>;
-  innerJoin: () => SelectBuilderMock<T>;
-  orderBy: () => SelectBuilderMock<T>;
-  limit: () => SelectBuilderMock<T>;
-  offset: () => SelectBuilderMock<T>;
-  execute: () => Promise<T>;
-};
+const createSelectBuilderMock = <T>(
+  data: T,
+): ReturnType<typeof mockDb.select> => {
+  const builder: Record<string, unknown> = {};
 
-const createSelectBuilderMock = <T>(data: T): SelectBuilderMock<T> => {
-  const builder: SelectBuilderMock<T> = {
-    from: vi.fn(() => builder),
-    where: vi.fn(() => builder),
-    leftJoin: vi.fn(() => builder),
-    innerJoin: vi.fn(() => builder),
-    orderBy: vi.fn(() => builder),
-    limit: vi.fn(() => builder),
-    offset: vi.fn(() => builder),
+  const chain = () => builder as ReturnType<typeof mockDb.select>;
+
+  Object.assign(builder, {
+    from: vi.fn(chain),
+    where: vi.fn(chain),
+    leftJoin: vi.fn(chain),
+    innerJoin: vi.fn(chain),
+    orderBy: vi.fn(chain),
+    limit: vi.fn(chain),
+    offset: vi.fn(chain),
     execute: vi.fn(async () => data),
-  };
+  });
 
-  return builder;
+  return builder as ReturnType<typeof mockDb.select>;
 };
 
 describe("mockDb", () => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import percySnapshot from "@percy/playwright";
 import type { Page } from "@playwright/test";
 

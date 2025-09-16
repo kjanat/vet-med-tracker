@@ -73,22 +73,30 @@ export async function addTestIds(page: Page) {
     };
 
     // Override React createElement to add test IDs
-    const originalCreateElement = window.React?.createElement;
-    if (originalCreateElement && window.React) {
-      window.React.createElement = function (...args: unknown[]) {
-        const [type, props, ...children] = args;
+    const react = window.React;
+    if (react?.createElement) {
+      const originalCreateElement = react.createElement.bind(react);
 
-        // Add test IDs based on component type or className
+      react.createElement = ((
+        type: unknown,
+        props?: MockReactProps | null,
+        ...children: unknown[]
+      ) => {
         if (props && typeof type === "string") {
-          const newProps = addTestIdToProps(type, props as MockReactProps);
-          return originalCreateElement.call(this, type, newProps, ...children);
+          const newProps = addTestIdToProps(type, props);
+          return originalCreateElement(
+            type as never,
+            newProps as never,
+            ...(children as never[]),
+          );
         }
 
-        return originalCreateElement.apply(
-          this,
-          args as [unknown, ...unknown[]],
+        return originalCreateElement(
+          type as never,
+          props as never,
+          ...(children as never[]),
         );
-      };
+      }) as typeof react.createElement;
     }
   });
 }
@@ -109,7 +117,7 @@ export async function mockDateTime(page: Page, dateTime: Date) {
         }
       }
 
-      static now() {
+      static override now() {
         return timestamp;
       }
     };

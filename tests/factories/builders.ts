@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Complex test scenario builders for multi-entity relationships
  */

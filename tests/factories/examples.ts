@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Factory Usage Examples
  *

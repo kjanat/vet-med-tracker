@@ -1,4 +1,4 @@
 # pnpm test
 lint-staged
-
-pnpm format:md
+bun format:md
+bun lint:fix

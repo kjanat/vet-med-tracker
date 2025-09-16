@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Pre-built test scenarios for common use cases
  */

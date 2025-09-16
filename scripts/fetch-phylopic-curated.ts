@@ -198,9 +198,11 @@ async function main() {
   index.totalImages = svgFiles.length;
 
   for (const file of svgFiles) {
-    const animalType = file.split("-")[0];
-    if (!index.animals[animalType]) index.animals[animalType] = [];
-    index.animals[animalType].push(file);
+    const [animalType] = file.split("-");
+    if (!animalType) continue;
+
+    const existing = index.animals[animalType] ?? [];
+    index.animals[animalType] = [...existing, file];
   }
 
   await Bun.write(`${OUTPUT_DIR}/index.json`, JSON.stringify(index, null, 2));

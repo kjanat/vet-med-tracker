@@ -2,24 +2,23 @@ import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
 
+type ExpectExtendMap = Parameters<typeof expect.extend>[0];
+
 // jest-axe is optional in test environment
-let axeMatchers: Record<string, (...args: unknown[]) => unknown>;
+let axeMatchers: ExpectExtendMap | undefined;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const jestAxe = require("jest-axe");
-  axeMatchers = jestAxe.toHaveNoViolations as Record<
-    string,
-    (...args: unknown[]) => unknown
-  >;
+  axeMatchers = jestAxe.toHaveNoViolations as ExpectExtendMap;
 } catch {
   // jest-axe not available, use no-op
-  axeMatchers = {};
+  axeMatchers = {} as ExpectExtendMap;
 }
 
 import { StackAuthTestUtils } from "@/tests/mocks";
 
 // Extend expect with jest-axe matchers
-expect.extend(axeMatchers);
+expect.extend(axeMatchers ?? ({} as ExpectExtendMap));
 
 // Cleanup after each test
 afterEach(() => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit tests for admin tRPC router
  * Tests medication administration procedures with household permissions

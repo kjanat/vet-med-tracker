@@ -47,7 +47,7 @@ class WidgetErrorBoundaryClass extends React.Component<
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error(
       `Widget Error Boundary (${this.props.widgetName}):`,
       error,
@@ -90,7 +90,7 @@ class WidgetErrorBoundaryClass extends React.Component<
     }
   };
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       const { fallback: CustomFallback } = this.props;
 

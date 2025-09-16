@@ -8,6 +8,22 @@ import Image from "next/image";
 import type React from "react";
 import { vi } from "vitest";
 
+interface MockVetMedPreferences {
+  defaultTimezone?: string;
+  role?: string;
+  [key: string]: unknown;
+}
+
+interface MockClientMetadata
+  extends Record<string, unknown | MockVetMedPreferences> {
+  onboardingComplete?: boolean;
+  vetMedPreferences?: MockVetMedPreferences;
+}
+
+interface MockClientReadOnlyMetadata extends Record<string, unknown> {
+  householdSettings?: Record<string, unknown>;
+}
+
 // -----------------------------------------------------------------------------
 // Mock Types (matching Stack Auth's actual types)
 // -----------------------------------------------------------------------------
@@ -23,8 +39,8 @@ export interface MockStackUser {
   hasPassword: boolean;
   oauthProviders: readonly { id: string }[];
   selectedTeamId: string | null;
-  clientMetadata: Record<string, unknown>;
-  clientReadOnlyMetadata: Record<string, unknown>;
+  clientMetadata: MockClientMetadata;
+  clientReadOnlyMetadata: MockClientReadOnlyMetadata;
   otpAuthEnabled: boolean;
   passkeyAuthEnabled: boolean;
   isMultiFactorRequired: boolean;
@@ -39,6 +55,7 @@ export interface MockStackUser {
   update: (data: Partial<MockStackUser>) => Promise<void>;
   signOut: () => Promise<void>;
   delete: () => Promise<void>;
+  signedIn?: boolean;
 }
 
 export interface MockStackSession {
@@ -109,6 +126,7 @@ export const createMockUser = (
     update: vi.fn().mockResolvedValue(undefined),
     signOut: vi.fn().mockResolvedValue(undefined),
     delete: vi.fn().mockResolvedValue(undefined),
+    signedIn: true,
   };
 
   return {
@@ -170,7 +188,7 @@ export const TEST_USERS = {
 // -----------------------------------------------------------------------------
 
 export const createMockSession = (user: MockStackUser): MockStackSession => {
-  const refreshMock = vi.fn<[], Promise<MockStackSession>>();
+  const refreshMock = vi.fn<() => Promise<MockStackSession>>();
   const session: MockStackSession = {
     user,
     accessToken: `mock_token_${user.id}`,
@@ -485,10 +503,18 @@ export class StackAuthPlaywrightHelpers {
 // -----------------------------------------------------------------------------
 
 export interface LegacyClerkUserData {
+  id: string;
   firstName?: string;
   lastName?: string;
   email?: string;
-  emailAddresses?: Array<{ emailAddress: string }>;
+  emailAddresses?: Array<{
+    emailAddress: string;
+    verification?: { status?: string } | null;
+  }>;
+  primaryEmailAddress?: {
+    emailAddress: string;
+    verification?: { status?: string } | null;
+  } | null;
   publicMetadata?: {
     onboardingComplete?: boolean;
   };
