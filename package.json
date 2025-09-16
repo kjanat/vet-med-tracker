@@ -2,14 +2,10 @@
   "name": "vet-med-tracker",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "next build",
-    "build:analyze": "ANALYZE=true next build",
-    "build:stats": "next build && npx @next/bundle-analyzer build",
-    "build:vercel": "bunx vercel build",
-    "check": "biome check .",
-    "check:unsafe": "biome check --write --unsafe .",
-    "check:write": "biome check --write .",
+    "build:stats": "next build && bunx @next/bundle-analyzer build",
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
     "db:pull": "drizzle-kit pull --config=drizzle.config.ts",
@@ -21,11 +17,9 @@
     "deploy:staging": "bun build && vercel deploy --prebuilt",
     "deploy:production": "bun build && vercel deploy --prebuilt --prod",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
-    "dev": "next dev",
-    "dev:host": "next dev --hostname 0.0.0.0",
-    "dev:turbo": "next dev --turbopack",
+    "dev": "next dev --turbopack",
     "preview": "next build && next start",
-    "preview:dev": "NODE_ENV=development next build && NODE_ENV=development next start",
+    "preview:dev": "vercel dev",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --formatter-enabled=false --assist-enabled=false",
@@ -37,12 +31,6 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:all": "bun test && playwright test",
-    "db:test:init": "bun scripts/db-test-init.js",
-    "db:test:reset": "bun scripts/db-test-reset.js",
-    "db:test:seed": "bun scripts/db-test-seed.js",
-    "db:test:health": "bun scripts/db-test-health.js",
-    "rate-limit:status": "bun scripts/manage-rate-limits.js status",
-    "rate-limit:clear": "bun scripts/manage-rate-limits.js clear",
     "lighthouse": "bun build && lhci autorun",
     "lighthouse:ci": "lhci autorun --upload.target=temporary-public-storage",
     "perf:audit": "bun build && lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
@@ -101,13 +89,14 @@
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.3",
     "embla-carousel-react": "8.6.0",
+    "eslint-config-next": "^15.5.3",
     "geist": "^1.5.1",
     "input-otp": "1.4.2",
     "ioredis": "^5.7.0",
     "isomorphic-dompurify": "^2.27.0",
     "lucide-react": "^0.544.0",
     "luxon": "^3.7.2",
-    "next": "^15.5.3",
+    "next": "^15.6.0-canary.9",
     "next-themes": "^0.4.6",
     "node-cron": "^4.2.1",
     "react": "^19.1.1",
@@ -130,12 +119,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
-    "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.35.0",
     "@happy-dom/global-registrator": "^18.0.1",
     "@lhci/cli": "^0.15.1",
     "@next/bundle-analyzer": "^15.5.3",
-    "@next/eslint-plugin-next": "^15.5.3",
     "@percy/playwright": "^1.0.9",
     "@playwright/test": "^1.55.0",
     "@size-limit/preset-app": "^11.2.0",
@@ -157,9 +143,6 @@
     "commander": "^14.0.1",
     "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.9",
-    "eslint": "^9.35.0",
-    "eslint-config-next": "^15.5.3",
-    "eslint-plugin-react-hooks": "^5.2.0",
     "glob": "^11.0.3",
     "husky": "^9.1.7",
     "jest-axe": "^10.0.0",
@@ -174,14 +157,15 @@
     "size-limit": "^11.2.0",
     "tailwindcss": "^4.1.13",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
-  },
-  "jshintConfig": {
-    "esversion": "next"
+    "typescript": "^5.9.2",
+    "vercel": "^48.0.2"
   },
   "engines": {
     "bun": ">=1.2",
     "node": "22.x"
   },
-  "packageManager": "bun@1.2.22"
+  "packageManager": "bun@1.2.22",
+  "trustedDependencies": [
+    "@tailwindcss/oxide"
+  ]
 }

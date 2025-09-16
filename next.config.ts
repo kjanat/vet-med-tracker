@@ -16,9 +16,6 @@ const nextConfig: NextConfig = {
     emotion: undefined,
   },
   compress: true,
-  eslint: {
-    ignoreDuringBuilds: false, // Temporary for bundle optimization
-  },
   experimental: {
     reactCompiler: true,
     optimizePackageImports: [

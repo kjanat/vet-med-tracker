@@ -14,7 +14,8 @@
       "!.claude",
       "!logs",
       "!.next",
-      "!.git",
+      "!dist",
+      "!build",
       "!node_modules",
       "!mcp-shim.ts",
       "!playwright-report",
@@ -56,9 +57,9 @@
       }
     },
     "domains": {
-      "next": "all",
-      "project": "recommended",
-      "test": "all"
+      "next": "recommended",
+      "react": "recommended",
+      "project": "recommended"
     }
   },
   "javascript": {

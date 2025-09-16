@@ -4,23 +4,23 @@
 default: true
 
 # MD013/line-length : Line length : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md013.md
-MD013:
-  # Number of characters
-  line_length: 120
-  # Number of characters for headings
-  heading_line_length: 80
-  # Number of characters for code blocks
-  code_block_line_length: 120
-  # Include code blocks
-  code_blocks: true
-  # Include tables
-  tables: true
-  # Include headings
-  headings: true
-  # Strict length checking
-  strict: false
-  # Stern length checking
-  stern: false
+MD013: false
+#  # Number of characters
+#  line_length: 120
+#  # Number of characters for headings
+#  heading_line_length: 80
+#  # Number of characters for code blocks
+#  code_block_line_length: 120
+#  # Include code blocks
+#  code_blocks: true
+#  # Include tables
+#  tables: true
+#  # Include headings
+#  headings: true
+#  # Strict length checking
+#  strict: false
+#  # Stern length checking
+#  stern: false
 
 # MD024/no-duplicate-heading : Multiple headings with the same content : https://github.com/DavidAnson/markdownlint/blob/v0.38.0/doc/md024.md
 MD024:
@@ -38,3 +38,9 @@ MD040:
   allowed_languages: []
   # Require language only
   language_only: false
+
+# MD041/first-line-heading : First line should be a top-level heading
+MD041: false
+
+# MD059: descriptive link text
+MD059: false

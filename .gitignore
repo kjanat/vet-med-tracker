@@ -1,3 +1,4 @@
+demo/
 test-auth.js
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
@@ -325,8 +326,3 @@ scripts/*.sh
 scripts/migrate-*.ts
 scripts/standardize-*.ts
 scripts/finalize-*.sh
-
-.git/
-node_modules/
-
-mcp-shim.ts
