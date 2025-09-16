@@ -46,7 +46,7 @@ export async function createMockContext(
   // Note: stackUser is intentionally null here for testing unauthenticated scenarios
   // Use createAuthenticatedContext() for authenticated test scenarios
   return {
-    db: mockDb as any,
+    db: mockDb as unknown as Context["db"],
     headers: mockReq.headers,
     requestedHouseholdId: null,
     stackUser: null,

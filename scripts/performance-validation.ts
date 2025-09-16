@@ -167,12 +167,13 @@ class PerformanceValidator {
 
     // Identify unused indexes
     const unusedIndexes = indexStats.rows.filter(
-      (row: any) => row.idx_scan === 0 && !row.indexname.endsWith("_pkey"),
+      (row: { idx_scan: number; indexname: string }) =>
+        row.idx_scan === 0 && !row.indexname.endsWith("_pkey"),
     );
 
     if (unusedIndexes.length > 0) {
       console.log("\n⚠️  Unused Indexes Found:");
-      unusedIndexes.forEach((idx: any) => {
+      unusedIndexes.forEach((idx: { indexname: string; size: string }) => {
         console.log(`   - ${idx.indexname} (${idx.size})`);
       });
     }
@@ -296,13 +297,13 @@ class PerformanceValidator {
 
   private async runSingleBenchmark(
     name: string,
-    query: any,
+    query: () => Promise<unknown>,
     _description: string,
   ) {
     const iterations = 3;
     const executionTimes: number[] = [];
     let rowsReturned = 0;
-    let queryPlan: any = null;
+    let queryPlan: unknown = null;
 
     for (let i = 0; i < iterations; i++) {
       const startTime = performance.now();
@@ -499,14 +500,14 @@ class PerformanceValidator {
         `;
   }
 
-  private extractIndexesFromPlan(queryPlan: any): string[] {
+  private extractIndexesFromPlan(queryPlan: unknown): string[] {
     const indexes: string[] = [];
     if (!queryPlan) return indexes;
 
     try {
       const planData =
         typeof queryPlan === "string" ? JSON.parse(queryPlan) : queryPlan;
-      const extractFromNode = (node: any) => {
+      const extractFromNode = (node: Record<string, unknown>) => {
         if (
           node["Node Type"] === "Index Scan" ||
           node["Node Type"] === "Index Only Scan"
@@ -515,8 +516,8 @@ class PerformanceValidator {
             indexes.push(node["Index Name"]);
           }
         }
-        if (node.Plans) {
-          node.Plans.forEach((subNode: any) => {
+        if (Array.isArray(node.Plans)) {
+          node.Plans.forEach((subNode: Record<string, unknown>) => {
             extractFromNode(subNode);
           });
         }
@@ -534,7 +535,7 @@ class PerformanceValidator {
 
   private generateRecommendations(
     executionTime: number,
-    queryPlan: any,
+    queryPlan: unknown,
     queryName: string,
   ): string[] {
     const recommendations: string[] = [];
@@ -569,7 +570,7 @@ class PerformanceValidator {
           );
         }
       }
-    } catch (_error) {
+    } catch {
       // Ignore parsing errors
     }
 

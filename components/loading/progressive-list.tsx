@@ -133,18 +133,18 @@ export function ProgressiveList<T>({
  */
 export function VirtualList<T>({
   items,
-  renderItem,
+  renderItemAction,
   itemHeight,
   containerHeight,
   className = "",
-  keyExtractor,
+  keyExtractorAction,
 }: {
   items: T[];
-  renderItem: (item: T, index: number) => React.ReactNode;
+  renderItemAction: (item: T, index: number) => React.ReactNode;
   itemHeight: number;
   containerHeight: number;
   className?: string;
-  keyExtractor?: (item: T, index: number) => React.Key;
+  keyExtractorAction?: (item: T, index: number) => React.Key;
 }) {
   const [scrollTop, setScrollTop] = useState(0);
   const scrollElementRef = useRef<HTMLDivElement>(null);
@@ -184,10 +184,10 @@ export function VirtualList<T>({
             const actualIndex = startIndex + index;
             return (
               <div
-                key={keyExtractor?.(item, actualIndex) ?? actualIndex}
+                key={keyExtractorAction?.(item, actualIndex) ?? actualIndex}
                 style={{ height: itemHeight }}
               >
-                {renderItem(item, actualIndex)}
+                {renderItemAction(item, actualIndex)}
               </div>
             );
           })}
@@ -202,16 +202,16 @@ export function VirtualList<T>({
  */
 export function StaggeredList<T>({
   items,
-  renderItem,
+  renderItemAction,
   className = "",
   staggerDelay = 50,
-  keyExtractor,
+  keyExtractorAction,
 }: {
   items: T[];
-  renderItem: (item: T, index: number) => React.ReactNode;
+  renderItemAction: (item: T, index: number) => React.ReactNode;
   className?: string;
   staggerDelay?: number;
-  keyExtractor?: (item: T, index: number) => React.Key;
+  keyExtractorAction?: (item: T, index: number) => React.Key;
 }) {
   const [visibleIndexes, setVisibleIndexes] = useState<Set<number>>(new Set());
 
@@ -238,14 +238,14 @@ export function StaggeredList<T>({
     <div className={className}>
       {items.map((item, index) => (
         <div
-          key={keyExtractor?.(item, index) ?? index}
+          key={keyExtractorAction?.(item, index) ?? index}
           className={`transition-all duration-300 ${
             visibleIndexes.has(index)
               ? "translate-y-0 opacity-100"
               : "translate-y-2 opacity-0"
           }`}
         >
-          {renderItem(item, index)}
+          {renderItemAction(item, index)}
         </div>
       ))}
     </div>

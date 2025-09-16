@@ -3,6 +3,7 @@
  * Comprehensive mocking utilities for Stack Auth in tests
  */
 
+import type { Page, Route } from "@playwright/test";
 import Image from "next/image";
 import type React from "react";
 import { vi } from "vitest";
@@ -22,18 +23,18 @@ export interface MockStackUser {
   hasPassword: boolean;
   oauthProviders: readonly { id: string }[];
   selectedTeamId: string | null;
-  clientMetadata: Record<string, any>;
-  clientReadOnlyMetadata: Record<string, any>;
+  clientMetadata: Record<string, unknown>;
+  clientReadOnlyMetadata: Record<string, unknown>;
   otpAuthEnabled: boolean;
   passkeyAuthEnabled: boolean;
   isMultiFactorRequired: boolean;
   isAnonymous: boolean;
   emailAuthEnabled: boolean;
-  toClientJson: () => any;
-  _internalSession: any;
-  currentSession: any;
+  toClientJson: () => unknown;
+  _internalSession: MockStackSession | null;
+  currentSession: MockStackSession | null;
   getAuthHeaders: () => Promise<{ "x-stack-auth": string }>;
-  getAuthJson: () => any;
+  getAuthJson: () => unknown;
   registerPasskey: () => Promise<void>;
   update: (data: Partial<MockStackUser>) => Promise<void>;
   signOut: () => Promise<void>;
@@ -168,14 +169,20 @@ export const TEST_USERS = {
 // Mock Session Factory
 // -----------------------------------------------------------------------------
 
-export const createMockSession = (user: MockStackUser): MockStackSession => ({
-  user,
-  accessToken: `mock_token_${user.id}`,
-  refreshToken: `mock_refresh_${user.id}`,
-  expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
-  refresh: vi.fn().mockResolvedValue({} as MockStackSession),
-  revoke: vi.fn().mockResolvedValue(undefined),
-});
+export const createMockSession = (user: MockStackUser): MockStackSession => {
+  const refreshMock = vi.fn<[], Promise<MockStackSession>>();
+  const session: MockStackSession = {
+    user,
+    accessToken: `mock_token_${user.id}`,
+    refreshToken: `mock_refresh_${user.id}`,
+    expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+    refresh: refreshMock,
+    revoke: vi.fn().mockResolvedValue(undefined),
+  };
+
+  refreshMock.mockResolvedValue(session);
+  return session;
+};
 
 // -----------------------------------------------------------------------------
 // Mock Stack Server App
@@ -279,6 +286,7 @@ export const MockUserButton = ({ user }: { user?: MockStackUser }) => (
 // -----------------------------------------------------------------------------
 // Test Utilities
 // -----------------------------------------------------------------------------
+// biome-ignore lint/complexity/noStaticOnlyClass: Test utility class with static state management
 export class StackAuthTestUtils {
   private static mockUser: MockStackUser | null = null;
   private static mockStackServerApp: MockStackServerApp;
@@ -387,16 +395,17 @@ export const stackAuthMocks = {
 // -----------------------------------------------------------------------------
 // Playwright Test Helpers
 // -----------------------------------------------------------------------------
+// biome-ignore lint/complexity/noStaticOnlyClass: Test utility class with static methods for consistency
 export class StackAuthPlaywrightHelpers {
   /**
    * Mock Stack Auth for Playwright tests by intercepting API calls
    */
   static async mockStackAuth(
-    page: any,
+    page: Page,
     user: MockStackUser | null = TEST_USERS.OWNER,
   ) {
     // Intercept Stack Auth API calls
-    await page.route("**/api/stack-auth/**", async (route: any) => {
+    await page.route("**/api/stack-auth/**", async (route: Route) => {
       const url = route.request().url();
 
       if (url.includes("/user")) {
@@ -437,7 +446,7 @@ export class StackAuthPlaywrightHelpers {
   /**
    * Sign in a test user in Playwright
    */
-  static async signIn(page: any, user: MockStackUser = TEST_USERS.OWNER) {
+  static async signIn(page: Page, user: MockStackUser = TEST_USERS.OWNER) {
     await StackAuthPlaywrightHelpers.mockStackAuth(page, user);
 
     // Navigate to sign-in page and simulate successful authentication
@@ -458,7 +467,7 @@ export class StackAuthPlaywrightHelpers {
   /**
    * Sign out the current user in Playwright
    */
-  static async signOut(page: any) {
+  static async signOut(page: Page) {
     await StackAuthPlaywrightHelpers.mockStackAuth(page, null);
 
     await page.evaluate(() => {
@@ -475,13 +484,27 @@ export class StackAuthPlaywrightHelpers {
 // Legacy Compatibility (for migration from Clerk)
 // -----------------------------------------------------------------------------
 
+export interface LegacyClerkUserData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  emailAddresses?: Array<{ emailAddress: string }>;
+  publicMetadata?: {
+    onboardingComplete?: boolean;
+  };
+  unsafeMetadata?: {
+    vetMedPreferences?: Record<string, unknown>;
+    householdSettings?: Record<string, unknown>;
+  };
+}
+
 /**
  * Compatibility layer for tests migrating from Clerk
  * These functions provide similar APIs to the old Clerk test utils
  */
 export const ClerkCompatibilityLayer = {
   // Map old Clerk user creation to Stack Auth
-  createMockClerkUser: (userData: any) =>
+  createMockClerkUser: (userData: LegacyClerkUserData) =>
     createMockUser({
       displayName: `${userData.firstName} ${userData.lastName}`,
       primaryEmail:
@@ -495,13 +518,13 @@ export const ClerkCompatibilityLayer = {
     }),
 
   // Map old Clerk session to Stack Auth session
-  createTestSession: (userData: any) => {
+  createTestSession: (userData: LegacyClerkUserData) => {
     const user = ClerkCompatibilityLayer.createMockClerkUser(userData);
     return createMockSession(user);
   },
 };
 
-export default {
+const stackAuthMocksExport = {
   StackAuthTestUtils,
   StackAuthPlaywrightHelpers,
   createMockUser,
@@ -511,3 +534,5 @@ export default {
   stackAuthMocks,
   ClerkCompatibilityLayer,
 };
+
+export default stackAuthMocksExport;

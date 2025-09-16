@@ -462,7 +462,7 @@ class DatabaseFailureSimulator {
       await fetch(
         "http://localhost:3000/api/health?detailed=true&simulate_slow=true",
       );
-    } catch (_error) {
+    } catch {
       // Expected to fail
     }
   }
@@ -471,7 +471,7 @@ class DatabaseFailureSimulator {
     try {
       // Try to access an endpoint that should trigger database errors
       await fetch("http://localhost:3000/api/trpc/nonexistent.endpoint");
-    } catch (_error) {
+    } catch {
       // Expected to fail
     }
   }

@@ -17,7 +17,7 @@ test.describe("Animal Management Visual Regression", () => {
   test("animal profile with complete information", async ({ page }) => {
     // Mock detailed animal data
     await page.addInitScript(() => {
-      (window as any).__TEST_ANIMAL_DETAIL__ = {
+      window.__TEST_ANIMAL_DETAIL__ = {
         id: "test-animal-123",
         name: "Buddy",
         species: "DOG",
@@ -170,7 +170,7 @@ test.describe("Animal Management Visual Regression", () => {
   test("animal profile with missing data", async ({ page }) => {
     // Mock minimal animal data
     await page.addInitScript(() => {
-      (window as any).__TEST_ANIMAL_DETAIL__ = {
+      window.__TEST_ANIMAL_DETAIL__ = {
         id: "test-animal-minimal",
         name: "Stray Cat",
         species: "CAT",
@@ -242,7 +242,14 @@ test.describe("Animal Management Visual Regression", () => {
   test("animal card variations", async ({ page }) => {
     // Mock different animal types
     await page.addInitScript(() => {
-      (window as any).__TEST_HOUSEHOLD__.animals = [
+      if (!window.__TEST_HOUSEHOLD__) {
+        window.__TEST_HOUSEHOLD__ = {
+          id: "test-household",
+          name: "Test Household",
+          animals: [],
+        };
+      }
+      window.__TEST_HOUSEHOLD__.animals = [
         {
           id: "1",
           name: "Buddy",

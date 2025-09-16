@@ -12,9 +12,15 @@ interface FetchEvent extends ExtendableEvent {
   respondWith(response: Promise<Response> | Response): void;
 }
 
-interface InstallEvent extends ExtendableEvent {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface InstallEvent extends ExtendableEvent {
+  // Event properties can be added here when needed
+}
 
-interface ActivateEvent extends ExtendableEvent {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface ActivateEvent extends ExtendableEvent {
+  // Event properties can be added here when needed
+}
 
 interface SyncEvent extends ExtendableEvent {
   tag: string;

@@ -185,7 +185,7 @@ export async function mockAuthenticatedUser(page: Page): Promise<void> {
   // Mock authentication context
   await page.addInitScript(() => {
     // Mock Stack Auth
-    (window as any).__STACK_AUTH_USER__ = {
+    window.__STACK_AUTH_USER__ = {
       id: "test-user-123",
       displayName: "Test User",
       primaryEmail: "test@example.com",
@@ -201,7 +201,7 @@ export async function mockAuthenticatedUser(page: Page): Promise<void> {
 export async function mockHouseholdData(page: Page): Promise<void> {
   await page.addInitScript(() => {
     // Mock household data
-    (window as any).__TEST_HOUSEHOLD__ = {
+    window.__TEST_HOUSEHOLD__ = {
       id: "test-household-123",
       name: "Test Family",
       animals: [
@@ -267,7 +267,7 @@ export async function fillTestForm(
  */
 export async function setupMedicationTestData(page: Page): Promise<void> {
   await page.addInitScript(() => {
-    (window as any).__TEST_MEDICATIONS__ = [
+    window.__TEST_MEDICATIONS__ = [
       {
         id: "test-med-1",
         name: "Prednisone",
@@ -282,7 +282,7 @@ export async function setupMedicationTestData(page: Page): Promise<void> {
       },
     ];
 
-    (window as any).__TEST_REGIMENS__ = [
+    window.__TEST_REGIMENS__ = [
       {
         id: "test-regimen-1",
         animalId: "test-animal-123",

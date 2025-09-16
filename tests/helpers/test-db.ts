@@ -89,7 +89,7 @@ export const testFactories = {
       timesLocal: ["10:00", "22:00"],
       dose: "1 tablet",
       cutoffMinutes: 240,
-      startDate: new Date().toISOString().split("T")[0]!,
+      startDate: new Date().toISOString().split("T")[0],
     };
     return { ...defaults, ...overrides };
   },

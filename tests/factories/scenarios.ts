@@ -16,8 +16,8 @@ export const quickScenarios = {
   // Single user with one pet
   singleUserOnePet: () => {
     const user = userPresets.completedUser();
-    const household = householdPresets.singleOwner(user.id!);
-    const animal = animalPresets.healthyDog(household.household.id!);
+    const household = householdPresets.singleOwner(user.id);
+    const animal = animalPresets.healthyDog(household.household.id);
     const medication = medicationPresets.amoxicillin();
 
     return {
@@ -38,13 +38,10 @@ export const quickScenarios = {
   familyMultiplePets: () => {
     const owner = userPresets.completedUser();
     const caregiver = userPresets.completedUser();
-    const household = householdPresets.familyHousehold(
-      owner.id!,
-      caregiver.id!,
-    );
+    const household = householdPresets.familyHousehold(owner.id, caregiver.id);
 
-    const dog = animalPresets.healthyDog(household.household.id!);
-    const cat = animalPresets.healthyCat(household.household.id!);
+    const dog = animalPresets.healthyDog(household.household.id);
+    const cat = animalPresets.healthyCat(household.household.id);
 
     const antibiotics = medicationPresets.amoxicillin();
     const painMed = medicationPresets.carprofen();
@@ -67,12 +64,12 @@ export const quickScenarios = {
   vetClinic: () => {
     const vet = userPresets.veterinarian();
     const assistant = userPresets.completedUser();
-    const household = householdPresets.vetClinic(vet.id!, assistant.id!);
+    const household = householdPresets.vetClinic(vet.id, assistant.id);
 
     const patient1 = animalPresets.seniorDogWithConditions(
-      household.household.id!,
+      household.household.id,
     );
-    const patient2 = animalPresets.diabeticCat(household.household.id!);
+    const patient2 = animalPresets.diabeticCat(household.household.id);
 
     return {
       users: [vet, assistant],
@@ -178,25 +175,55 @@ export const complexScenarios = {
     const volunteer2 = userPresets.petSitter();
     const vet = userPresets.veterinarian();
 
+    const adminEmail = admin.email;
+    const adminFirst = admin.firstName;
+    const adminLast = admin.lastName;
+    const volunteer1Email = volunteer1.email;
+    const volunteer1First = volunteer1.firstName;
+    const volunteer1Last = volunteer1.lastName;
+    const volunteer2Email = volunteer2.email;
+    const volunteer2First = volunteer2.firstName;
+    const volunteer2Last = volunteer2.lastName;
+    const vetEmail = vet.email;
+    const vetFirst = vet.firstName;
+    const vetLast = vet.lastName;
+
+    if (
+      !adminEmail ||
+      !adminFirst ||
+      !adminLast ||
+      !volunteer1Email ||
+      !volunteer1First ||
+      !volunteer1Last ||
+      !volunteer2Email ||
+      !volunteer2First ||
+      !volunteer2Last ||
+      !vetEmail ||
+      !vetFirst ||
+      !vetLast
+    ) {
+      throw new Error("Preset users must include email and name information");
+    }
+
     return TestScenarioBuilder.create()
       .withCustomUser((builder) =>
         builder
-          .withEmail(admin.email!)
-          .withName(admin.firstName!, admin.lastName!)
+          .withEmail(adminEmail)
+          .withName(adminFirst, adminLast)
           .withOnboarding(true),
       )
       .withCustomUser((builder) =>
         builder
-          .withEmail(volunteer1.email!)
-          .withName(volunteer1.firstName!, volunteer1.lastName!),
+          .withEmail(volunteer1Email)
+          .withName(volunteer1First, volunteer1Last),
       )
       .withCustomUser((builder) =>
         builder
-          .withEmail(volunteer2.email!)
-          .withName(volunteer2.firstName!, volunteer2.lastName!),
+          .withEmail(volunteer2Email)
+          .withName(volunteer2First, volunteer2Last),
       )
       .withCustomUser((builder) =>
-        builder.withEmail(vet.email!).withName(vet.firstName!, vet.lastName!),
+        builder.withEmail(vetEmail).withName(vetFirst, vetLast),
       )
       .withHouseholds(1, "rescue")
       .withHouseholdMembers(

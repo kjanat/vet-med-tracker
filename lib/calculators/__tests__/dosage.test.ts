@@ -7,6 +7,8 @@ import {
   type AnimalInfo,
   DosageCalculator,
   type MedicationData,
+  type TargetUnit,
+  type WeightUnit,
 } from "../dosage";
 
 // Test medication data
@@ -449,7 +451,10 @@ describe("DosageCalculator", () => {
     it("validates weight unit", () => {
       expect(() => {
         DosageCalculator.calculate({
-          animal: { ...mockDog, weightUnit: "invalid" as any },
+          animal: {
+            ...mockDog,
+            weightUnit: "invalid" as unknown as WeightUnit,
+          },
           medication: mockMedicationBasic,
         });
       }).toThrow("Weight unit must be kg or lbs");
@@ -500,7 +505,7 @@ describe("DosageCalculator", () => {
         DosageCalculator.calculate({
           animal: mockDog,
           medication: mockMedicationBasic,
-          targetUnit: "invalid" as any,
+          targetUnit: "invalid" as unknown as TargetUnit,
         });
       }).toThrow("Unsupported target unit: invalid");
     });

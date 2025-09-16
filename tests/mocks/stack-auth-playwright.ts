@@ -265,10 +265,12 @@ export const testHelpers = {
   },
 };
 
-export default {
+const stackAuthPlaywrightMocks = {
   TEST_USERS,
   createMockSession,
   createMockAuthState,
   mockApiResponses,
   testHelpers,
 };
+
+export default stackAuthPlaywrightMocks;

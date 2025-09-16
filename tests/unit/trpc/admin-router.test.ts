@@ -5,6 +5,7 @@
 
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { adminStatusEnum } from "@/db/schema";
 import { adminRouter } from "@/server/api/routers/admin";
 import { mockDb, resetMockDb } from "@/tests/helpers/mock-db";
 import {
@@ -17,6 +18,8 @@ import {
   createAuthenticatedContext,
   createMockContext,
 } from "@/tests/helpers/trpc-utils";
+
+type AdministrationStatus = (typeof adminStatusEnum.enumValues)[number];
 
 describe("adminRouter", () => {
   beforeEach(() => {
@@ -229,7 +232,7 @@ describe("adminRouter", () => {
       await expect(
         caller.create({
           ...validInput,
-          status: "INVALID_STATUS" as any,
+          status: "INVALID_STATUS" as unknown as AdministrationStatus,
         }),
       ).rejects.toThrow();
     });

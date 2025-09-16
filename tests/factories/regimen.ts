@@ -8,7 +8,7 @@ import { random } from "./utils/random";
 
 // Regimen factory function
 export function createRegimen(overrides: Partial<NewRegimen> = {}): NewRegimen {
-  const scheduleType = random.arrayElement([
+  const scheduleType = random.arrayElement<NewRegimen["scheduleType"]>([
     "FIXED",
     "INTERVAL",
     "PRN",
@@ -31,7 +31,7 @@ export function createRegimen(overrides: Partial<NewRegimen> = {}): NewRegimen {
     medicationId: random.uuid(), // Should be overridden with actual medication ID
     name: generateRegimenName(),
     instructions: generateInstructions(scheduleType),
-    scheduleType: scheduleType as any,
+    scheduleType,
     timesLocal: timesLocal,
     intervalHours: intervalHours,
     startDate: dates.toDateString(startDate) as string,
@@ -86,8 +86,10 @@ function generateRegimenName(): string | null {
   return random.arrayElement(names);
 }
 
-function generateInstructions(scheduleType: string): string {
-  const instructionsByType: Record<string, string[]> = {
+function generateInstructions(
+  scheduleType: NewRegimen["scheduleType"],
+): string {
+  const instructionsByType: Record<NewRegimen["scheduleType"], string[]> = {
     FIXED: [
       "Give with food to prevent stomach upset",
       "Administer at the same times each day",

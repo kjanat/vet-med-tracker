@@ -2,7 +2,11 @@
  * Medical-specific test data utilities
  */
 
+import type { NewAdministration, NewInventoryItem } from "@/db/schema";
 import { random } from "./random";
+
+type AdministrationStatus = NewAdministration["status"];
+type InventoryStorage = NewInventoryItem["storage"];
 
 // Medication catalog data
 export const medications = {
@@ -115,9 +119,12 @@ export const administration = {
     { status: "VERY_LATE", probability: 0.1 },
     { status: "MISSED", probability: 0.04 },
     { status: "PRN", probability: 0.01 },
-  ] as const,
+  ] as ReadonlyArray<{
+    status: AdministrationStatus;
+    probability: number;
+  }>,
 
-  getRandomStatus: () => {
+  getRandomStatus: (): AdministrationStatus => {
     return random.weightedArrayElement(
       administration.statuses.map((s) => ({
         weight: s.probability * 100,
@@ -127,7 +134,7 @@ export const administration = {
   },
 
   // Generate realistic administration notes
-  generateNotes: (status: string) => {
+  generateNotes: (status: AdministrationStatus) => {
     const notesByStatus: Record<string, string[]> = {
       ON_TIME: [
         "Given with breakfast",
@@ -216,8 +223,8 @@ export const storage = {
     { type: "CONTROLLED", description: "Controlled substance storage" },
   ],
 
-  getRandomStorage: () => {
-    const weights = [
+  getRandomStorage: (): InventoryStorage => {
+    const weights: Array<{ weight: number; value: InventoryStorage }> = [
       { weight: 70, value: "ROOM" },
       { weight: 20, value: "FRIDGE" },
       { weight: 5, value: "FREEZER" },

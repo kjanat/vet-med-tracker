@@ -73,6 +73,10 @@ describe("Database Connection", () => {
       })
       .returning();
 
+    if (!user) {
+      throw new Error("Failed to create test user");
+    }
+
     // Create a household
     const [household] = await db
       .insert(schema.households)
@@ -83,21 +87,29 @@ describe("Database Connection", () => {
       })
       .returning();
 
+    if (!household) {
+      throw new Error("Failed to create test household");
+    }
+
     // Create membership (foreign key relationship)
     const [membership] = await db
       .insert(schema.memberships)
       .values({
         ...testFactories.membership({
-          userId: user!.id,
-          householdId: household!.id,
+          userId: user.id,
+          householdId: household.id,
           role: "OWNER",
         }),
       })
       .returning();
 
+    if (!membership) {
+      throw new Error("Failed to create membership");
+    }
+
     expect(membership).toBeDefined();
-    expect(membership?.userId).toBe(user!.id);
-    expect(membership?.householdId).toBe(household!.id);
+    expect(membership?.userId).toBe(user.id);
+    expect(membership?.householdId).toBe(household.id);
     expect(membership?.role).toBe("OWNER");
 
     // Query with join to verify relationship
@@ -114,7 +126,7 @@ describe("Database Connection", () => {
         schema.households,
         eq(schema.households.id, schema.memberships.householdId),
       )
-      .where(eq(schema.memberships.id, membership!.id));
+      .where(eq(schema.memberships.id, membership.id));
 
     expect(membershipWithRelations).toHaveLength(1);
     expect(membershipWithRelations[0]?.userEmail).toBe("fk-test@example.com");
@@ -124,15 +136,15 @@ describe("Database Connection", () => {
 
   it("should enforce table prefixes", async () => {
     // Verify that all tables have the vetmed_ prefix
-    const tableQuery = await db.execute(sql`
+    const tableQuery = (await db.execute(sql`
 			SELECT table_name 
 			FROM information_schema.tables 
 			WHERE table_schema = 'public' 
 			AND table_name LIKE 'vetmed_%'
 			ORDER BY table_name
-		`);
+		`)) as Array<{ table_name: string }>;
 
-    const tableNames = tableQuery.map((row: any) => row.table_name);
+    const tableNames = tableQuery.map((row) => row.table_name);
 
     // Check that we have the expected vetmed_ prefixed tables
     expect(tableNames).toContain("vetmed_users");

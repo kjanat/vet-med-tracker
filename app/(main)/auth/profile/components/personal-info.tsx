@@ -28,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/server/trpc/client";
+import type { UserProfile } from "@/types/app-state";
 
 const ProfileDataSchema = z.object({
   // Basic Info (all optional)
@@ -121,7 +122,7 @@ export default function PersonalInfoSection() {
 
   // Helper function to transform profile data for form
   const transformProfileForForm = useCallback(
-    (profile: any): ProfileData => ({
+    (profile: UserProfile): ProfileData => ({
       firstName: profile.firstName ?? "",
       lastName: profile.lastName ?? "",
       pronouns: profile.pronouns ?? "",
@@ -129,10 +130,10 @@ export default function PersonalInfoSection() {
       location: profile.location ?? "",
       website: profile.website ?? "",
       socialLinks: {
-        linkedin: profile.socialLinks?.linkedin || "",
-        twitter: profile.socialLinks?.twitter || "",
-        github: profile.socialLinks?.github || "",
-        instagram: profile.socialLinks?.instagram || "",
+        linkedin: (profile.socialLinks?.linkedin as string) || "",
+        twitter: (profile.socialLinks?.twitter as string) || "",
+        github: (profile.socialLinks?.github as string) || "",
+        instagram: (profile.socialLinks?.instagram as string) || "",
       },
       profileVisibility: {
         name: profile.profileVisibility?.name ?? true,

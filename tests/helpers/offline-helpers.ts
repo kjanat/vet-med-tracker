@@ -12,13 +12,6 @@ interface MockInput {
   id: string;
 }
 
-interface MockWindow extends Window {
-  getOfflineQueueData: () => QueuedMutationData[];
-  clearOfflineQueue: () => void;
-  apiCallCount: Record<string, number>;
-  mockTRPCFailures: Record<string, () => boolean>;
-}
-
 /**
  * Mock IndexedDB offline queue for testing
  */
@@ -29,82 +22,83 @@ export async function mockOfflineQueue(page: Page) {
     let queueData: QueuedMutationData[] = [];
 
     // Override IndexedDB
-    (window as any).indexedDB = {
-      open: (): IDBOpenDBRequest => {
-        return {
-          onsuccess: null,
-          onerror: null,
-          onupgradeneeded: null,
-          result: {
-            transaction: () => ({
-              objectStore: () => ({
-                put: (data: QueuedMutationData) => {
-                  queueData.push(data);
-                  storage.set(data.id, data);
-                  return { onsuccess: null };
-                },
-                get: (id: string) => {
-                  const data = storage.get(id);
-                  return {
-                    onsuccess: null,
-                    result: data,
-                  };
-                },
-                delete: (id: string) => {
-                  storage.delete(id);
-                  queueData = queueData.filter((item) => item.id !== id);
-                  return { onsuccess: null };
-                },
-                clear: () => {
-                  storage.clear();
-                  queueData = [];
-                  return { onsuccess: null };
-                },
-                count: () => {
-                  return {
-                    onsuccess: null,
-                    result: queueData.length,
-                  };
-                },
-                openCursor: () => {
-                  let index = 0;
-                  return {
-                    onsuccess: null,
-                    result: {
-                      value: queueData[index],
-                      continue: () => {
-                        index++;
-                        return queueData[index];
-                      },
-                    },
-                  };
-                },
-                index: () => ({
-                  openCursor: () => ({
-                    onsuccess: null,
-                    result: null,
-                  }),
+    Object.defineProperty(window, "indexedDB", {
+      configurable: true,
+      value: {
+        open: (): IDBOpenDBRequest => {
+          return {
+            onsuccess: null,
+            onerror: null,
+            onupgradeneeded: null,
+            result: {
+              transaction: () => ({
+                objectStore: () => ({
+                  put: (data: QueuedMutationData) => {
+                    queueData.push(data);
+                    storage.set(data.id, data);
+                    return { onsuccess: null };
+                  },
+                  get: (id: string) => {
+                    const data = storage.get(id);
+                    return {
+                      onsuccess: null,
+                      result: data,
+                    };
+                  },
+                  delete: (id: string) => {
+                    storage.delete(id);
+                    queueData = queueData.filter((item) => item.id !== id);
+                    return { onsuccess: null };
+                  },
+                  clear: () => {
+                    storage.clear();
+                    queueData = [];
+                    return { onsuccess: null };
+                  },
                   count: () => ({
                     onsuccess: null,
-                    result: 0,
+                    result: queueData.length,
+                  }),
+                  openCursor: () => {
+                    let index = 0;
+                    return {
+                      onsuccess: null,
+                      result: {
+                        value: queueData[index],
+                        continue: () => {
+                          index++;
+                          return queueData[index];
+                        },
+                      },
+                    };
+                  },
+                  index: () => ({
+                    openCursor: () => ({
+                      onsuccess: null,
+                      result: null,
+                    }),
+                    count: () => ({
+                      onsuccess: null,
+                      result: 0,
+                    }),
                   }),
                 }),
               }),
-            }),
-            objectStoreNames: {
-              contains: () => true,
+              objectStoreNames: {
+                contains: () => true,
+              },
+              createObjectStore: () => ({
+                createIndex: () => {},
+              }),
             },
-            createObjectStore: () => ({
-              createIndex: () => {},
-            }),
-          },
-        } as unknown as IDBOpenDBRequest;
+          } as unknown as IDBOpenDBRequest;
+        },
       },
-    };
+    });
 
     // Expose queue data for testing
-    (window as unknown as MockWindow).getOfflineQueueData = () => queueData;
-    (window as unknown as MockWindow).clearOfflineQueue = () => {
+    window.getOfflineQueueData = () => queueData;
+    window.clearOfflineQueue = () => {
       storage.clear();
       queueData = [];
     };
@@ -117,76 +111,83 @@ export async function mockOfflineQueue(page: Page) {
 export async function mockTRPCMutations(page: Page) {
   await page.addInitScript(() => {
     // Track API calls
-    (window as any).apiCallCount = {
+    window.apiCallCount = {
       "admin.create": 0,
       "inventory.update": 0,
       "inventory.markAsInUse": 0,
     };
+    const apiCallCount = window.apiCallCount ?? {};
+    window.apiCallCount = apiCallCount;
 
     // Mock failure conditions
-    (window as any).mockTRPCFailures = {
+    window.mockTRPCFailures = {
       "admin.create": () => false,
       "inventory.update": () => false,
       "inventory.markAsInUse": () => false,
     };
+    const failureHandlers = window.mockTRPCFailures ?? {};
+    window.mockTRPCFailures = failureHandlers;
 
     // Override tRPC client
-    const originalApi = (window as any).api;
+    const originalApi = window.api;
     if (originalApi) {
       // Mock admin.create
-      const originalAdminCreate = originalApi.admin?.create?.mutate;
-      if (originalAdminCreate) {
-        originalApi.admin.create.mutate = async (input: unknown) => {
-          (window as any).apiCallCount["admin.create"]++;
+      const adminApi = originalApi.admin;
+      const createMutation = adminApi?.create;
+      if (createMutation?.mutate) {
+        createMutation.mutate = async (input: Record<string, unknown>) => {
+          apiCallCount["admin.create"]++;
 
-          if ((window as any).mockTRPCFailures["admin.create"]()) {
+          if (failureHandlers["admin.create"]?.()) {
             throw new Error("Mock network error");
           }
 
           // Return mock success response
           return {
             id: `admin-${Date.now()}`,
-            ...(input as any),
+            ...input,
             createdAt: new Date().toISOString(),
           };
         };
       }
 
       // Mock inventory.updateQuantity
-      const originalInventoryUpdate =
-        originalApi.inventory?.updateQuantity?.mutate;
-      if (originalInventoryUpdate) {
-        originalApi.inventory.updateQuantity.mutate = async (
-          input: unknown,
+      const inventoryApi = originalApi.inventory;
+      const updateQuantityMutation = inventoryApi?.updateQuantity;
+      if (updateQuantityMutation?.mutate) {
+        updateQuantityMutation.mutate = async (
+          input: Record<string, unknown>,
         ) => {
-          (window as any).apiCallCount["inventory.update"]++;
+          apiCallCount["inventory.update"]++;
 
-          if ((window as any).mockTRPCFailures["inventory.update"]()) {
+          if (failureHandlers["inventory.update"]?.()) {
             throw new Error("Mock network error");
           }
 
+          const { id } = input as MockInput;
           return {
-            id: (input as MockInput).id,
+            id,
             quantity: 100, // Mock updated quantity
-            ...(input as any),
+            ...input,
           };
         };
       }
 
       // Mock inventory.markAsInUse
-      const originalMarkAsInUse = originalApi.inventory?.markAsInUse?.mutate;
-      if (originalMarkAsInUse) {
-        originalApi.inventory.markAsInUse.mutate = async (input: unknown) => {
-          (window as any).apiCallCount["inventory.markAsInUse"]++;
+      const markAsInUseMutation = inventoryApi?.markAsInUse;
+      if (markAsInUseMutation?.mutate) {
+        markAsInUseMutation.mutate = async (input: Record<string, unknown>) => {
+          apiCallCount["inventory.markAsInUse"]++;
 
-          if ((window as any).mockTRPCFailures["inventory.markAsInUse"]()) {
+          if (failureHandlers["inventory.markAsInUse"]?.()) {
             throw new Error("Mock network error");
           }
 
+          const { id } = input as MockInput;
           return {
-            id: (input as MockInput).id,
+            id,
             inUse: true,
-            ...(input as any),
+            ...input,
           };
         };
       }
@@ -231,7 +232,7 @@ export async function simulateOnline(page: Page) {
  */
 export async function getQueueSize(page: Page): Promise<number> {
   return await page.evaluate(() => {
-    const data = (window as any).getOfflineQueueData();
+    const data = window.getOfflineQueueData?.();
     return data ? data.length : 0;
   });
 }
@@ -241,7 +242,7 @@ export async function getQueueSize(page: Page): Promise<number> {
  */
 export async function getQueueData(page: Page): Promise<QueuedMutationData[]> {
   return await page.evaluate(() => {
-    return (window as any).getOfflineQueueData() || [];
+    return window.getOfflineQueueData?.() ?? [];
   });
 }
 
@@ -250,7 +251,7 @@ export async function getQueueData(page: Page): Promise<QueuedMutationData[]> {
  */
 export async function clearOfflineQueue(page: Page) {
   await page.evaluate(() => {
-    (window as any).clearOfflineQueue();
+    window.clearOfflineQueue?.();
   });
 }
 
@@ -260,7 +261,7 @@ export async function clearOfflineQueue(page: Page) {
 export async function waitForSync(page: Page, timeout = 5000) {
   await page.waitForFunction(
     () => {
-      const data = (window as any).getOfflineQueueData();
+      const data = window.getOfflineQueueData?.();
       return !data || data.length === 0;
     },
     { timeout },
@@ -273,7 +274,10 @@ export async function waitForSync(page: Page, timeout = 5000) {
 export async function mockSuccessfulSync(page: Page, mutationTypes: string[]) {
   await page.evaluate((types) => {
     types.forEach((type) => {
-      (window as any).mockTRPCFailures[type] = () => false;
+      if (!window.mockTRPCFailures) {
+        window.mockTRPCFailures = {};
+      }
+      window.mockTRPCFailures[type] = () => false;
     });
   }, mutationTypes);
 }
@@ -284,7 +288,10 @@ export async function mockSuccessfulSync(page: Page, mutationTypes: string[]) {
 export async function mockFailedSync(page: Page, mutationTypes: string[]) {
   await page.evaluate((types) => {
     types.forEach((type) => {
-      (window as any).mockTRPCFailures[type] = () => true;
+      if (!window.mockTRPCFailures) {
+        window.mockTRPCFailures = {};
+      }
+      window.mockTRPCFailures[type] = () => true;
     });
   }, mutationTypes);
 }
@@ -296,7 +303,7 @@ export async function getApiCallCounts(
   page: Page,
 ): Promise<Record<string, number>> {
   return await page.evaluate(() => {
-    return (window as any).apiCallCount || {};
+    return window.apiCallCount ?? {};
   });
 }
 
@@ -305,7 +312,7 @@ export async function getApiCallCounts(
  */
 export async function resetApiCallCounts(page: Page) {
   await page.evaluate(() => {
-    (window as any).apiCallCount = {
+    window.apiCallCount = {
       "admin.create": 0,
       "inventory.update": 0,
       "inventory.markAsInUse": 0,

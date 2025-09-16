@@ -524,6 +524,7 @@ const OptimizedAnimalCard = React.memo(({ animalId }: { animalId: string }) => {
     </div>
   );
 });
+OptimizedAnimalCard.displayName = "OptimizedAnimalCard";
 
 /**
  * Component demonstrating efficient list rendering

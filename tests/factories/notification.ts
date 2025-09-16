@@ -6,11 +6,21 @@ import type { NewNotification } from "@/db/schema";
 import { dates } from "./utils/dates";
 import { random } from "./utils/random";
 
+type NotificationType = NewNotification["type"];
+type NotificationPriority = NewNotification["priority"];
+
+interface NotificationData {
+  title: string;
+  message: string;
+  actionUrl: string | null;
+  data: Record<string, unknown>;
+}
+
 // Notification factory function
 export function createNotification(
   overrides: Partial<NewNotification> = {},
 ): NewNotification {
-  const type = random.arrayElement([
+  const type = random.arrayElement<NotificationType>([
     "medication",
     "inventory",
     "system",
@@ -18,12 +28,16 @@ export function createNotification(
     "overdue",
     "reminder",
   ]);
-  const priority = random.weightedArrayElement([
+  const priorityWeights: Array<{
+    weight: number;
+    value: NotificationPriority;
+  }> = [
     { weight: 10, value: "low" },
     { weight: 60, value: "medium" },
     { weight: 25, value: "high" },
     { weight: 5, value: "critical" },
-  ]);
+  ];
+  const priority = random.weightedArrayElement(priorityWeights);
 
   const notificationData = generateNotificationData(type, priority);
 
@@ -47,13 +61,11 @@ export function createNotification(
 }
 
 // Helper functions for notification-specific data
-function generateNotificationData(type: string, priority: string) {
-  const data: {
-    title: string;
-    message: string;
-    actionUrl: string | null;
-    data: any;
-  } = {
+function generateNotificationData(
+  type: NotificationType,
+  priority: NotificationPriority,
+): NotificationData {
+  const data: NotificationData = {
     title: "",
     message: "",
     actionUrl: null,
@@ -160,7 +172,7 @@ function generateNotificationData(type: string, priority: string) {
   return data;
 }
 
-function generateMedicationMessage(priority: string): string {
+function generateMedicationMessage(priority: NotificationPriority): string {
   const messages = {
     low: [
       "Medication reminder for later today",
@@ -189,7 +201,7 @@ function generateMedicationMessage(priority: string): string {
   );
 }
 
-function generateInventoryMessage(priority: string): string {
+function generateInventoryMessage(priority: NotificationPriority): string {
   const messages = {
     low: [
       "Inventory item expires in 3 months",
@@ -218,7 +230,7 @@ function generateInventoryMessage(priority: string): string {
   );
 }
 
-function generateSystemMessage(priority: string): string {
+function generateSystemMessage(priority: NotificationPriority): string {
   const messages = {
     low: [
       "App updated to latest version",
@@ -259,7 +271,7 @@ function generateDueMessage(): string {
   return random.arrayElement(messages);
 }
 
-function generateOverdueMessage(priority: string): string {
+function generateOverdueMessage(priority: NotificationPriority): string {
   const timeDescriptions = {
     medium: ["30 minutes late", "1 hour overdue", "2 hours past due"],
     high: [
@@ -309,22 +321,12 @@ export class NotificationBuilder {
     return this;
   }
 
-  withType(
-    type:
-      | "medication"
-      | "inventory"
-      | "system"
-      | "due"
-      | "overdue"
-      | "reminder",
-  ): NotificationBuilder {
+  withType(type: NotificationType): NotificationBuilder {
     this.notification.type = type;
     return this;
   }
 
-  withPriority(
-    priority: "low" | "medium" | "high" | "critical",
-  ): NotificationBuilder {
+  withPriority(priority: NotificationPriority): NotificationBuilder {
     this.notification.priority = priority;
     return this;
   }
@@ -344,7 +346,7 @@ export class NotificationBuilder {
     return this;
   }
 
-  withData(data: any): NotificationBuilder {
+  withData(data: Record<string, unknown>): NotificationBuilder {
     this.notification.data = data;
     return this;
   }

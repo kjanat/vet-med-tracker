@@ -37,7 +37,7 @@ export function PublicLayout({
         )}
 
         <div
-          className={`relative z-10 ${backgroundVariant === "none" ? "" : ""}
+          className={`relative z-10 ${""}
         `}
         >
           {children}

@@ -121,7 +121,7 @@ export class HouseholdBuilder {
     const memberships = this.members.map((member) =>
       createMembership({
         userId: member.userId,
-        householdId: household.id!,
+        householdId: household.id,
         role: member.role,
       }),
     );

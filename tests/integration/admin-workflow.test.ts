@@ -51,10 +51,10 @@ describe("Administration Workflow Integration", () => {
         dose: "250mg",
         scheduleType: "FIXED" as const,
         timesLocal: ["08:00", "20:00"],
-        startDate: new Date().toISOString().split("T")[0]!,
+        startDate: new Date().toISOString().split("T")[0],
         endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
           .toISOString()
-          .split("T")[0]!,
+          .split("T")[0],
         instructions: "Take with food",
         active: true,
       };
@@ -154,10 +154,10 @@ describe("Administration Workflow Integration", () => {
         dose: "100mg",
         scheduleType: "FIXED" as const,
         timesLocal: ["09:00"],
-        startDate: new Date().toISOString().split("T")[0]!,
+        startDate: new Date().toISOString().split("T")[0],
         endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
           .toISOString()
-          .split("T")[0]!,
+          .split("T")[0],
         active: true,
       };
       const regimenResult = await testDb
@@ -223,10 +223,10 @@ describe("Administration Workflow Integration", () => {
         dose: "100mg",
         scheduleType: "FIXED" as const,
         timesLocal: ["08:00", "20:00"],
-        startDate: new Date().toISOString().split("T")[0]!,
+        startDate: new Date().toISOString().split("T")[0],
         endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
           .toISOString()
-          .split("T")[0]!,
+          .split("T")[0],
         active: true,
       };
       const regimenResult = await testDb
@@ -279,7 +279,7 @@ describe("Administration Workflow Integration", () => {
         dose: "5mg",
         scheduleType: "PRN" as const,
         timesLocal: [],
-        startDate: new Date().toISOString().split("T")[0]!,
+        startDate: new Date().toISOString().split("T")[0],
         instructions: "As needed for pain",
         active: true,
       };
@@ -334,10 +334,10 @@ describe("Administration Workflow Integration", () => {
         dose: "100mg",
         scheduleType: "FIXED" as const,
         timesLocal: ["08:00", "20:00"], // Twice daily = 14 doses in 7 days
-        startDate: startDate.toISOString().split("T")[0]!,
+        startDate: startDate.toISOString().split("T")[0],
         endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
           .toISOString()
-          .split("T")[0]!,
+          .split("T")[0],
         active: true,
       };
       const regimenResult = await testDb
@@ -378,25 +378,29 @@ describe("Administration Workflow Integration", () => {
   describe("Multi-household access control", () => {
     it("should prevent access to resources from other households", async () => {
       // Create another household
-      const otherHousehold = (
-        await testDb
-          .insert(households)
-          .values({
-            name: "Other Household",
-          })
-          .returning()
-      )[0]!;
+      const otherHouseholdResult = await testDb
+        .insert(households)
+        .values({
+          name: "Other Household",
+        })
+        .returning();
+      const otherHousehold = otherHouseholdResult[0];
+      if (!otherHousehold) {
+        throw new Error("Failed to create other household");
+      }
 
-      const _otherAnimal = (
-        await testDb
-          .insert(animals)
-          .values({
-            name: "Max",
-            species: "cat",
-            householdId: otherHousehold.id,
-          })
-          .returning()
-      )[0]!;
+      const otherAnimalResult = await testDb
+        .insert(animals)
+        .values({
+          name: "Max",
+          species: "cat",
+          householdId: otherHousehold.id,
+        })
+        .returning();
+      const _otherAnimal = otherAnimalResult[0];
+      if (!_otherAnimal) {
+        throw new Error("Failed to create other animal");
+      }
 
       // Try to access other household's animal
       const mockSession: TestSession = {
@@ -424,14 +428,16 @@ describe("Administration Workflow Integration", () => {
 
     it("should allow users with multiple household memberships to switch context", async () => {
       // Add user to second household
-      const secondHousehold = (
-        await testDb
-          .insert(households)
-          .values({
-            name: "Second Household",
-          })
-          .returning()
-      )[0]!;
+      const secondHouseholdResult = await testDb
+        .insert(households)
+        .values({
+          name: "Second Household",
+        })
+        .returning();
+      const secondHousehold = secondHouseholdResult[0];
+      if (!secondHousehold) {
+        throw new Error("Failed to create second household");
+      }
 
       await testDb.insert(memberships).values({
         userId: testData.user.id,
@@ -439,16 +445,18 @@ describe("Administration Workflow Integration", () => {
         role: "CAREGIVER",
       });
 
-      const secondAnimal = (
-        await testDb
-          .insert(animals)
-          .values({
-            name: "Luna",
-            species: "cat",
-            householdId: secondHousehold.id,
-          })
-          .returning()
-      )[0]!;
+      const secondAnimalResult = await testDb
+        .insert(animals)
+        .values({
+          name: "Luna",
+          species: "cat",
+          householdId: secondHousehold.id,
+        })
+        .returning();
+      const secondAnimal = secondAnimalResult[0];
+      if (!secondAnimal) {
+        throw new Error("Failed to create second animal");
+      }
 
       // Access with first household context
       const ctx1 = await createAuthenticatedContext({

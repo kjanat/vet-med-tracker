@@ -149,8 +149,8 @@ export class TestScenarioBuilder {
 
       household.memberships.push({
         id: random.uuid(),
-        userId: user.id!,
-        householdId: household.household.id!,
+        userId: user.id,
+        householdId: household.household.id,
         role,
         createdAt: dates.datePast(90).toISOString(),
         updatedAt: dates.dateRecent(7).toISOString(),
@@ -573,13 +573,19 @@ export class ComplianceDataBuilder {
       throw new Error("Regimen start date is required");
     }
 
-    const { startDate, endDate } = this.calculateDateRange(days);
+    const { startDate, endDate } = this.calculateDateRange(
+      this.data.regimen.startDate,
+      days,
+    );
     this.generateRealisticAdministrations(startDate, endDate);
     return this;
   }
 
-  private calculateDateRange(days: number): { startDate: Date; endDate: Date } {
-    const startDate = new Date(this.data.regimen.startDate!);
+  private calculateDateRange(
+    startDateValue: string,
+    days: number,
+  ): { startDate: Date; endDate: Date } {
+    const startDate = new Date(startDateValue);
     const endDate = new Date(
       Math.min(
         startDate.getTime() + days * 24 * 60 * 60 * 1000,

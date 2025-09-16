@@ -82,7 +82,7 @@ test.describe("Offline Queue Sync Integration", () => {
     // Set up to fail first sync attempt
     await page.evaluate(() => {
       let attemptCount = 0;
-      (window as any).mockTRPCFailures = {
+      window.mockTRPCFailures = {
         "admin.create": () => {
           attemptCount++;
           return attemptCount === 1; // Fail first attempt only
@@ -201,7 +201,7 @@ test.describe("Offline Queue Sync Integration", () => {
   test("should handle idempotency correctly", async ({ page }) => {
     // Set up to track API calls
     await page.evaluate(() => {
-      (window as any).apiCallCount = {
+      window.apiCallCount = {
         "admin.create": 0,
         "inventory.update": 0,
       };
@@ -227,7 +227,7 @@ test.describe("Offline Queue Sync Integration", () => {
     ).toBeVisible();
 
     // Verify only one API call was made
-    const callCounts = await page.evaluate(() => (window as any).apiCallCount);
+    const callCounts = await page.evaluate(() => window.apiCallCount ?? {});
     expect(callCounts["admin.create"]).toBe(1);
   });
 });

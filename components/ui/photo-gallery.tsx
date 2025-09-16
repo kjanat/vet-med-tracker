@@ -918,12 +918,13 @@ function PhotoGridItem({
 
   useEffect(() => {
     if (enableLazyLoading && intersectionObserver && itemRef.current) {
-      itemRef.current.setAttribute("data-photo-id", photo.id);
-      intersectionObserver.observe(itemRef.current);
+      const currentItem = itemRef.current;
+      currentItem.setAttribute("data-photo-id", photo.id);
+      intersectionObserver.observe(currentItem);
 
       return () => {
-        if (itemRef.current) {
-          intersectionObserver.unobserve(itemRef.current);
+        if (currentItem) {
+          intersectionObserver.unobserve(currentItem);
         }
       };
     }

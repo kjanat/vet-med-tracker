@@ -1,4 +1,4 @@
-/// <reference types="vitest" />
+import "vitest";
 
 import type { Mock } from "vitest";
 import type { TRPCClientErrorLike } from "@trpc/client";
@@ -18,17 +18,47 @@ export interface MockWindow extends Window {
   };
 
   // Offline queue methods
-  getOfflineQueueData: () => unknown[] | undefined;
-  clearOfflineQueue: () => void;
+  getOfflineQueueData?: () => unknown[] | undefined;
+  clearOfflineQueue?: () => void;
 
   // API tracking
-  apiCallCount: Record<string, number>;
+  apiCallCount?: Record<string, number>;
 
   // TRPC failure mocks
-  mockTRPCFailures: Record<string, () => boolean>;
+  mockTRPCFailures?: Record<string, () => boolean>;
 
   // Date constructor override
   Date: typeof Date;
+
+  // Stack Auth visual test data
+  __STACK_AUTH_USER__?: Record<string, unknown>;
+  __TEST_HOUSEHOLD__?: Record<string, unknown> & {
+    animals?: Array<Record<string, unknown>>;
+  };
+  __TEST_MEDICATIONS__?: Array<Record<string, unknown>>;
+  __TEST_REGIMENS__?: Array<Record<string, unknown>>;
+  __TEST_INVENTORY__?: Array<Record<string, unknown>>;
+  __LOW_STOCK_ALERTS__?: Array<Record<string, unknown>>;
+  __TEST_TABLE_DATA__?: Array<Record<string, unknown>>;
+  __TEST_NOTIFICATIONS__?: Array<Record<string, unknown>>;
+  __TEST_ANIMAL_DETAIL__?: Record<string, unknown>;
+
+  // API client mock used in offline helpers
+  api?: {
+    admin?: {
+      create?: {
+        mutate?: (input: Record<string, unknown>) => Promise<unknown>;
+      };
+    };
+    inventory?: {
+      updateQuantity?: {
+        mutate?: (input: Record<string, unknown>) => Promise<unknown>;
+      };
+      markAsInUse?: {
+        mutate?: (input: Record<string, unknown>) => Promise<unknown>;
+      };
+    };
+  };
 }
 
 // Helper type for mocking tRPC mutations
@@ -56,7 +86,7 @@ export type MockTRPCMutation<TOutput = unknown, TInput = unknown> = {
 };
 
 declare global {
-  interface Window {
+  interface Window extends MockWindow {
     indexedDB?: IDBFactory;
   }
 }

@@ -5,6 +5,48 @@ import {
 } from "@/tests/helpers/trpc-utils";
 import { inventoryRouter } from "./inventory";
 
+const createInsertReturningMock = <T>(rows: T[]) =>
+  ({
+    values: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue(rows),
+  }) as unknown as {
+    values: () => unknown;
+    returning: () => Promise<T[]>;
+  };
+
+const createInsertExecuteMock = () =>
+  ({
+    values: vi.fn().mockReturnThis(),
+    execute: vi.fn().mockResolvedValue([]),
+  }) as unknown as {
+    values: () => unknown;
+    execute: () => Promise<unknown>;
+  };
+
+const createSelectMock = <T>(rows: T[]) =>
+  ({
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    execute: vi.fn().mockResolvedValue(rows),
+  }) as unknown as {
+    from: () => unknown;
+    where: () => unknown;
+    limit: () => unknown;
+    execute: () => Promise<T[]>;
+  };
+
+const createUpdateMock = <T>(rows: T[]) =>
+  ({
+    set: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue(rows),
+  }) as unknown as {
+    set: () => unknown;
+    where: () => unknown;
+    returning: () => Promise<T[]>;
+  };
+
 describe("inventoryRouter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -29,12 +71,8 @@ describe("inventoryRouter", () => {
         updatedAt: new Date(),
       };
 
-      vi.spyOn(ctx.db, "insert").mockImplementation(
-        () =>
-          ({
-            values: vi.fn().mockReturnThis(),
-            returning: vi.fn().mockResolvedValue([mockInventoryItem]),
-          }) as any,
+      vi.spyOn(ctx.db, "insert").mockImplementation(() =>
+        createInsertReturningMock([mockInventoryItem]),
       );
 
       const result = await caller.create({
@@ -113,30 +151,19 @@ describe("inventoryRouter", () => {
       };
 
       // Mock finding the item
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            limit: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue([
-              {
-                id: "88888888-8888-4888-8888-888888888888",
-                householdId: mockSession.access.householdId,
-                unitsRemaining: 30,
-              },
-            ]),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock([
+          {
+            id: "88888888-8888-4888-8888-888888888888",
+            householdId: mockSession.access.householdId,
+            unitsRemaining: 30,
+          },
+        ]),
       );
 
       // Mock updating the item
-      vi.spyOn(ctx.db, "update").mockImplementation(
-        () =>
-          ({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            returning: vi.fn().mockResolvedValue([updatedItem]),
-          }) as any,
+      vi.spyOn(ctx.db, "update").mockImplementation(() =>
+        createUpdateMock([updatedItem]),
       );
 
       const result = await caller.updateQuantity({
@@ -169,40 +196,25 @@ describe("inventoryRouter", () => {
       const caller = inventoryRouter.createCaller(ctx);
 
       // Mock finding the item
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            limit: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue([
-              {
-                id: "88888888-8888-4888-8888-888888888888",
-                householdId: mockSession.access.householdId,
-                unitsRemaining: 30,
-              },
-            ]),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock([
+          {
+            id: "88888888-8888-4888-8888-888888888888",
+            householdId: mockSession.access.householdId,
+            unitsRemaining: 30,
+          },
+        ]),
       );
 
       // Mock update
-      vi.spyOn(ctx.db, "update").mockImplementation(
-        () =>
-          ({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            returning: vi.fn().mockResolvedValue([{ unitsRemaining: 25 }]),
-          }) as any,
+      vi.spyOn(ctx.db, "update").mockImplementation(() =>
+        createUpdateMock([{ unitsRemaining: 25 }]),
       );
 
       // Mock audit log insert
-      const auditLogSpy = vi.spyOn(ctx.db, "insert").mockImplementation(
-        () =>
-          ({
-            values: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue([]),
-          }) as any,
-      );
+      const auditLogSpy = vi
+        .spyOn(ctx.db, "insert")
+        .mockImplementation(() => createInsertExecuteMock());
 
       await caller.updateQuantity({
         id: "88888888-8888-4888-8888-888888888888",
@@ -245,31 +257,20 @@ describe("inventoryRouter", () => {
       };
 
       // Mock finding the item
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            limit: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue([
-              {
-                id: "88888888-8888-4888-8888-888888888888",
-                householdId: mockSession.access.householdId,
-                inUse: false,
-                medicationId: "77777777-7777-4777-8777-777777777777",
-              },
-            ]),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock([
+          {
+            id: "88888888-8888-4888-8888-888888888888",
+            householdId: mockSession.access.householdId,
+            inUse: false,
+            medicationId: "77777777-7777-4777-8777-777777777777",
+          },
+        ]),
       );
 
       // Mock updating the item
-      vi.spyOn(ctx.db, "update").mockImplementation(
-        () =>
-          ({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            returning: vi.fn().mockResolvedValue([updatedItem]),
-          }) as any,
+      vi.spyOn(ctx.db, "update").mockImplementation(() =>
+        createUpdateMock([updatedItem]),
       );
 
       const result = await caller.markAsInUse({
@@ -290,31 +291,20 @@ describe("inventoryRouter", () => {
       const caller = inventoryRouter.createCaller(ctx);
 
       // Mock finding the item
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            limit: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue([
-              {
-                id: "88888888-8888-4888-8888-888888888888",
-                householdId: mockSession.access.householdId,
-                inUse: false,
-                medicationId: "77777777-7777-4777-8777-777777777777",
-              },
-            ]),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock([
+          {
+            id: "88888888-8888-4888-8888-888888888888",
+            householdId: mockSession.access.householdId,
+            inUse: false,
+            medicationId: "77777777-7777-4777-8777-777777777777",
+          },
+        ]),
       );
 
-      const updateSpy = vi.spyOn(ctx.db, "update").mockImplementation(
-        () =>
-          ({
-            set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            returning: vi.fn().mockResolvedValue([{ isInUse: true }]),
-          }) as any,
-      );
+      const updateSpy = vi
+        .spyOn(ctx.db, "update")
+        .mockImplementation(() => createUpdateMock([{ isInUse: true }]));
 
       await caller.markAsInUse({
         id: "88888888-8888-4888-8888-888888888888",
@@ -371,7 +361,27 @@ describe("inventoryRouter", () => {
                 },
               })),
             ),
-          }) as any,
+          }) as unknown as {
+            from: () => unknown;
+            innerJoin: () => unknown;
+            where: () => unknown;
+            orderBy: () => unknown;
+            execute: () => Promise<
+              Array<{
+                item: {
+                  id: string;
+                  unitsRemaining: number;
+                  expiresOn: string;
+                  inUse: boolean;
+                  brandOverride: string | null;
+                };
+                medication: {
+                  genericName: string;
+                  brandName: string | null;
+                };
+              }>
+            >;
+          },
       );
 
       const result = await caller.getHouseholdInventory({
@@ -395,7 +405,13 @@ describe("inventoryRouter", () => {
             where: whereSpy,
             orderBy: vi.fn().mockReturnThis(),
             execute: vi.fn().mockResolvedValue([]),
-          }) as any,
+          }) as unknown as {
+            from: () => unknown;
+            innerJoin: () => unknown;
+            where: typeof whereSpy;
+            orderBy: () => unknown;
+            execute: () => Promise<unknown[]>;
+          },
       );
 
       await caller.getHouseholdInventory({

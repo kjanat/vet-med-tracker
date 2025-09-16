@@ -9,6 +9,7 @@ import {
   VetUnitUtils,
   VolumeConverter,
   WeightConverter,
+  type WeightUnit,
 } from "../unit-conversions";
 
 describe("WeightConverter", () => {
@@ -32,9 +33,9 @@ describe("WeightConverter", () => {
     });
 
     it("throws error for invalid unit", () => {
-      expect(() => WeightConverter.toKg(10, "invalid" as any)).toThrow(
-        "Unsupported weight unit: invalid",
-      );
+      expect(() =>
+        WeightConverter.toKg(10, "invalid" as unknown as WeightUnit),
+      ).toThrow("Unsupported weight unit: invalid");
     });
   });
 
@@ -272,7 +273,8 @@ describe("VetUnitUtils", () => {
     });
 
     it("returns empty array for unknown unit type", () => {
-      const units = VetUnitUtils.getCommonUnits("unknown" as any);
+      // @ts-expect-error - deliberately passing an unsupported unit type
+      const units = VetUnitUtils.getCommonUnits("unknown");
       expect(units).toEqual([]);
     });
   });

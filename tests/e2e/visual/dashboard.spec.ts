@@ -125,7 +125,7 @@ test.describe("Dashboard Visual Regression", () => {
   test("dashboard with notifications", async ({ page }) => {
     // Add test notifications via API or mock
     await page.addInitScript(() => {
-      (window as any).__TEST_NOTIFICATIONS__ = [
+      window.__TEST_NOTIFICATIONS__ = [
         {
           id: "notif-1",
           type: "OVERDUE",
@@ -196,7 +196,7 @@ test.describe("Dashboard Visual Regression", () => {
   test("dashboard with multiple animals", async ({ page }) => {
     // Mock data for multiple animals
     await page.addInitScript(() => {
-      (window as any).__TEST_HOUSEHOLD__ = {
+      window.__TEST_HOUSEHOLD__ = {
         id: "test-household-123",
         name: "Multi Pet Family",
         animals: [

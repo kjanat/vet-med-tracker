@@ -7,6 +7,8 @@ import { dates } from "./utils/dates";
 import { storage } from "./utils/medical";
 import { random } from "./utils/random";
 
+type InventoryStorage = NewInventoryItem["storage"];
+
 // Inventory factory function
 export function createInventoryItem(
   overrides: Partial<NewInventoryItem> = {},
@@ -39,7 +41,7 @@ export function createInventoryItem(
       ? random.float(10, 200, 2).toString()
       : null,
     quantityUnits: quantityUnits,
-    storage: storage.getRandomStorage() as any,
+    storage: storage.getRandomStorage(),
     supplier: random.boolean(0.8) ? generateSupplier() : null,
     unitType: random.arrayElement([
       "tablets",
@@ -189,10 +191,8 @@ export class InventoryBuilder {
     return this;
   }
 
-  withStorage(
-    storageType: "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED",
-  ): InventoryBuilder {
-    this.item.storage = storageType as any;
+  withStorage(storageType: InventoryStorage): InventoryBuilder {
+    this.item.storage = storageType;
     return this;
   }
 

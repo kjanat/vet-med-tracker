@@ -8,20 +8,14 @@ import { DateTime } from "luxon";
 import cron from "node-cron";
 import type { db } from "@/db/drizzle";
 import { notificationQueue } from "@/db/schema";
-import { PushNotificationService } from "./push-service";
-import { RegimenCalculator } from "./regimen-calculator";
 
 export class NotificationScheduler {
   private db: typeof db;
   private jobs: Map<string, ReturnType<typeof cron.schedule>> = new Map();
   private isRunning = false;
-  private pushService: PushNotificationService;
-  private regimenCalculator: RegimenCalculator;
 
   constructor(database: typeof db) {
     this.db = database;
-    this.pushService = new PushNotificationService();
-    this.regimenCalculator = new RegimenCalculator();
   }
 
   /**

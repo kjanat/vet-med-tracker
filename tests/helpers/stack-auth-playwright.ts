@@ -3,8 +3,9 @@
  * E2E testing utilities for Stack Auth with Playwright
  */
 
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page, type Route } from "@playwright/test";
 import { type MockStackUser, TEST_USERS } from "../mocks/stack-auth-playwright";
+// biome-ignore lint/complexity/noStaticOnlyClass: Test utility class with static methods for consistency
 export class StackAuthPlaywrightHelpers {
   /**
    * Mock Stack Auth for Playwright tests by intercepting API calls
@@ -44,7 +45,7 @@ export class StackAuthPlaywrightHelpers {
    * Handle user/me endpoint responses
    */
   private static async handleUserEndpoint(
-    route: any,
+    route: Route,
     user: MockStackUser | null,
   ) {
     await route.fulfill({
@@ -58,7 +59,7 @@ export class StackAuthPlaywrightHelpers {
    * Handle session endpoint responses
    */
   private static async handleSessionEndpoint(
-    route: any,
+    route: Route,
     user: MockStackUser | null,
   ) {
     const session = user
@@ -79,7 +80,7 @@ export class StackAuthPlaywrightHelpers {
   /**
    * Handle sign-out endpoint responses
    */
-  private static async handleSignOutEndpoint(route: any) {
+  private static async handleSignOutEndpoint(route: Route) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",

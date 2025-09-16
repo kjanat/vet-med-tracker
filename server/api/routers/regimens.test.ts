@@ -5,6 +5,34 @@ import {
 } from "@/tests/helpers/trpc-utils";
 import { regimenRouter } from "./regimens";
 
+type SelectOverrides = Partial<
+  Record<
+    "innerJoin" | "leftJoin" | "where" | "orderBy" | "limit",
+    ReturnType<typeof vi.fn>
+  >
+>;
+
+const createSelectMock = <T>(rows: T[], overrides: SelectOverrides = {}) =>
+  ({
+    from: vi.fn().mockReturnThis(),
+    innerJoin: (overrides.innerJoin ?? vi.fn()).mockReturnThis(),
+    leftJoin: overrides.leftJoin
+      ? overrides.leftJoin.mockReturnThis()
+      : vi.fn().mockReturnThis(),
+    where: (overrides.where ?? vi.fn()).mockReturnThis(),
+    orderBy: (overrides.orderBy ?? vi.fn()).mockReturnThis(),
+    limit: (overrides.limit ?? vi.fn()).mockReturnThis(),
+    execute: vi.fn().mockResolvedValue(rows),
+  }) as unknown as {
+    from: () => unknown;
+    innerJoin: () => unknown;
+    leftJoin: () => unknown;
+    where: () => unknown;
+    orderBy: () => unknown;
+    limit: () => unknown;
+    execute: () => Promise<T[]>;
+  };
+
 describe("regimenRouter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -54,15 +82,8 @@ describe("regimenRouter", () => {
         },
       ];
 
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            innerJoin: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            orderBy: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue(mockRegimens),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock(mockRegimens),
       );
 
       const result = await caller.list({
@@ -78,15 +99,8 @@ describe("regimenRouter", () => {
       const caller = regimenRouter.createCaller(ctx);
 
       const whereSpy = vi.fn().mockReturnThis();
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            innerJoin: vi.fn().mockReturnThis(),
-            where: whereSpy,
-            orderBy: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue([]),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock([], { where: whereSpy }),
       );
 
       await caller.list({
@@ -135,16 +149,10 @@ describe("regimenRouter", () => {
         },
       ];
 
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            innerJoin: vi.fn().mockReturnThis(),
-            leftJoin: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            orderBy: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue(mockActiveRegimens),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock(mockActiveRegimens, {
+          leftJoin: vi.fn(),
+        }),
       );
 
       const result = await caller.listDue({
@@ -198,15 +206,8 @@ describe("regimenRouter", () => {
         },
       };
 
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            innerJoin: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            limit: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue([mockRegimen]),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock([mockRegimen], { limit: vi.fn() }),
       );
 
       const result = await caller.getById({
@@ -221,15 +222,8 @@ describe("regimenRouter", () => {
       const ctx = await createAuthenticatedContext(mockSession);
       const caller = regimenRouter.createCaller(ctx);
 
-      vi.spyOn(ctx.db, "select").mockImplementation(
-        () =>
-          ({
-            from: vi.fn().mockReturnThis(),
-            innerJoin: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            limit: vi.fn().mockReturnThis(),
-            execute: vi.fn().mockResolvedValue([]),
-          }) as any,
+      vi.spyOn(ctx.db, "select").mockImplementation(() =>
+        createSelectMock([], { limit: vi.fn() }),
       );
 
       await expect(

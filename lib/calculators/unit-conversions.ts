@@ -266,6 +266,7 @@ export class DosageConverter {
 /**
  * Common veterinary unit conversion utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Legacy API preserved for backward compatibility
 export class VetUnitUtils {
   /**
    * Round to appropriate precision for veterinary use

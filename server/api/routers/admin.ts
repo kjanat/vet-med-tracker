@@ -327,6 +327,7 @@ async function createAdministrationRecord(
 
 // Helper function to process administration for a single animal
 async function processAnimalAdministration(
+  // biome-ignore lint/suspicious/noExplicitAny: Database transaction type compatibility
   db: any,
   animal: { id: string; name: string; timezone?: string | null },
   input: {

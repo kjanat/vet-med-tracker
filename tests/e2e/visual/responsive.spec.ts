@@ -161,7 +161,7 @@ test.describe("Responsive Design Visual Regression", () => {
   test("data tables responsive behavior", async ({ page }) => {
     // Mock table data for consistent testing
     await page.addInitScript(() => {
-      (window as any).__TEST_TABLE_DATA__ = Array(10)
+      window.__TEST_TABLE_DATA__ = Array(10)
         .fill(null)
         .map((_, i) => ({
           id: i + 1,

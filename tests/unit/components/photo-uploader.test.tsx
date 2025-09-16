@@ -6,40 +6,47 @@ import { screen, waitFor } from "@testing-library/react";
 import Image from "next/image";
 import type React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { usePhotoUploadState } from "@/components/ui/photo-uploader/hooks/usePhotoUploadState";
 import {
   clickButton,
   renderWithProviders,
   uploadFile,
 } from "@/tests/helpers/rtl-utils";
 
+type UploadedPhoto = {
+  id: string;
+  url: string;
+  originalName: string;
+};
+
 // Mock the usePhotoUpload hook
 const mockUploadPhoto = vi.fn();
 const mockDeletePhoto = vi.fn();
 
-vi.mock("@/hooks/offline/usePhotoUpload", () => ({
-  usePhotoUpload: () => ({
-    uploadPhoto: mockUploadPhoto,
-    deletePhoto: mockDeletePhoto,
-    photos: [],
-    isUploading: false,
-    uploadProgress: 0,
-    error: null,
+vi.mock("@/components/ui/photo-uploader/hooks/usePhotoUploadState", () => ({
+  usePhotoUploadState: () => ({
+    state: {
+      isUploading: false,
+      isCompressing: false,
+      progress: 0,
+      error: null,
+      preview: null,
+      originalFile: null,
+      compressedFile: null,
+    },
+    setState: vi.fn(),
+    clearState: vi.fn(),
   }),
 }));
 
 // Simple PhotoUploader component for testing
 const PhotoUploader: React.FC<{
   maxFiles?: number;
-  onUploadComplete?: (photos: any[]) => void;
+  onUploadComplete?: (photos: UploadedPhoto[]) => void;
 }> = ({ maxFiles = 5, onUploadComplete }) => {
-  const {
-    uploadPhoto,
-    deletePhoto,
-    photos,
-    isUploading,
-    uploadProgress,
-    error,
-  } = require("@/hooks/offline/usePhotoUpload").usePhotoUpload();
+  const { state } = usePhotoUploadState();
+  const { isUploading, progress: uploadProgress, error } = state;
+  const photos: UploadedPhoto[] = [];
 
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -48,9 +55,10 @@ const PhotoUploader: React.FC<{
     if (!files) return;
 
     try {
-      await uploadPhoto(files[0]);
+      // Simplified - just call the mock function
+      mockUploadPhoto(files[0]);
       if (onUploadComplete) {
-        onUploadComplete(photos);
+        onUploadComplete([]);
       }
     } catch (err) {
       console.error("Upload failed:", err);
@@ -58,7 +66,7 @@ const PhotoUploader: React.FC<{
   };
 
   const handleDelete = async (photoId: string) => {
-    await deletePhoto(photoId);
+    mockDeletePhoto(photoId);
   };
 
   return (
@@ -83,7 +91,7 @@ const PhotoUploader: React.FC<{
       )}
 
       <div data-testid="photo-list">
-        {photos.map((photo: any) => (
+        {photos.map((photo) => (
           <div key={photo.id} data-testid={`photo-${photo.id}`}>
             <Image
               src={photo.url}

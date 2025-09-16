@@ -313,7 +313,7 @@ function MyComponent() {
 ```tsx
 function measureMemoryUsage() {
   if ('memory' in performance) {
-    const memory = (performance as any).memory;
+    const memory = (performance as { memory?: unknown }).memory;
     return {
       used: Math.round(memory.usedJSHeapSize / 1048576), // MB
       total: Math.round(memory.totalJSHeapSize / 1048576), // MB

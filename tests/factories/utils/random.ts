@@ -35,7 +35,8 @@ export const random = {
     if (array.length === 0) {
       throw new Error("Cannot select element from empty array");
     }
-    return array[Math.floor(seededRandom() * array.length)]!;
+    const index = Math.floor(seededRandom() * array.length);
+    return array[index];
   },
   arrayElements: <T>(array: T[], count = 1): T[] => {
     const _result: T[] = [];
@@ -77,7 +78,11 @@ export const random = {
       randomWeight -= item.weight;
       if (randomWeight <= 0) return item.value;
     }
-    return items[items.length - 1]!.value;
+    const fallback = items[items.length - 1];
+    if (!fallback) {
+      throw new Error("No weighted item available");
+    }
+    return fallback.value;
   },
 };
 

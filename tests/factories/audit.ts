@@ -6,6 +6,12 @@ import type { NewAuditLog } from "@/db/schema";
 import { dates } from "./utils/dates";
 import { person, random } from "./utils/random";
 
+type JsonPrimitive = string | number | boolean | null;
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
+
 // Define audit log types
 type AuditAction =
   | "CREATE"
@@ -26,11 +32,27 @@ type ResourceType =
   | "medication"
   | "notification";
 
+type AuditResourceValues = JsonObject;
+
+interface AuditDetails extends JsonObject {
+  action: AuditAction;
+  resourceType: ResourceType;
+  description?: string;
+  fieldsChanged?: string[];
+}
+
+interface AuditData {
+  resourceId: string | null;
+  oldValues: AuditResourceValues | null;
+  newValues: AuditResourceValues | null;
+  details: AuditDetails;
+}
+
 // Audit log factory function
 export function createAuditLog(
   overrides: Partial<NewAuditLog> = {},
 ): NewAuditLog {
-  const action = random.arrayElement([
+  const action = random.arrayElement<AuditAction>([
     "CREATE",
     "UPDATE",
     "DELETE",
@@ -40,7 +62,7 @@ export function createAuditLog(
     "APPROVE",
     "REJECT",
   ]);
-  const resourceType = random.arrayElement([
+  const resourceType = random.arrayElement<ResourceType>([
     "user",
     "animal",
     "regimen",
@@ -56,8 +78,8 @@ export function createAuditLog(
     id: random.uuid(),
     userId: random.uuid(), // Should be overridden with actual user ID
     householdId: random.uuid(), // Should be overridden with actual household ID
-    action: action,
-    resourceType: resourceType,
+    action,
+    resourceType,
     resourceId: auditData.resourceId,
     oldValues: auditData.oldValues,
     newValues: auditData.newValues,
@@ -71,14 +93,17 @@ export function createAuditLog(
 }
 
 // Helper functions for audit-specific data
-function generateAuditData(action: string, resourceType: string) {
+function generateAuditData(
+  action: AuditAction,
+  resourceType: ResourceType,
+): AuditData {
   const resourceId = ["VIEW", "LOGIN", "LOGOUT"].includes(action)
     ? null
     : random.uuid();
 
   let oldValues = null;
   let newValues = null;
-  const details: any = { action, resourceType };
+  const details: AuditDetails = { action, resourceType };
 
   switch (action) {
     case "CREATE":
@@ -139,9 +164,9 @@ function generateAuditData(action: string, resourceType: string) {
 }
 
 function generateResourceValues(
-  resourceType: string,
+  resourceType: ResourceType,
   context: "create" | "old" | "new" | "delete",
-): any {
+): AuditResourceValues {
   const base = getBaseResourceValues(resourceType);
 
   if (context === "new" || context === "old") {
@@ -154,8 +179,10 @@ function generateResourceValues(
 /**
  * Get base values for different resource types
  */
-function getBaseResourceValues(resourceType: string): any {
-  const baseValues: Record<string, any> = {
+function getBaseResourceValues(
+  resourceType: ResourceType,
+): AuditResourceValues {
+  const baseValues: Record<ResourceType, AuditResourceValues> = {
     animal: createAnimalValues(),
     regimen: createRegimenValues(),
     administration: createAdministrationValues(),
@@ -166,13 +193,13 @@ function getBaseResourceValues(resourceType: string): any {
     notification: createNotificationValues(),
   };
 
-  return baseValues[resourceType] || { id: random.uuid() };
+  return baseValues[resourceType];
 }
 
 /**
  * Create animal resource values
  */
-function createAnimalValues(): any {
+function createAnimalValues(): AuditResourceValues {
   return {
     name: random.arrayElement(["Buddy", "Max", "Bella", "Charlie", "Luna"]),
     species: "dog",
@@ -184,7 +211,7 @@ function createAnimalValues(): any {
 /**
  * Create regimen resource values
  */
-function createRegimenValues(): any {
+function createRegimenValues(): AuditResourceValues {
   return {
     name: "Antibiotic course",
     dose: "250 mg",
@@ -196,7 +223,7 @@ function createRegimenValues(): any {
 /**
  * Create administration resource values
  */
-function createAdministrationValues(): any {
+function createAdministrationValues(): AuditResourceValues {
   return {
     dose: "250 mg",
     status: "ON_TIME",
@@ -207,7 +234,7 @@ function createAdministrationValues(): any {
 /**
  * Create inventory resource values
  */
-function createInventoryValues(): any {
+function createInventoryValues(): AuditResourceValues {
   return {
     quantityRemaining: 25,
     inUse: true,
@@ -218,7 +245,7 @@ function createInventoryValues(): any {
 /**
  * Create user resource values
  */
-function createUserValues(): any {
+function createUserValues(): AuditResourceValues {
   return {
     name: person.fullName(),
     email: person.email(),
@@ -229,7 +256,7 @@ function createUserValues(): any {
 /**
  * Create household resource values
  */
-function createHouseholdValues(): any {
+function createHouseholdValues(): AuditResourceValues {
   return {
     name: "Test Household",
     timezone: "America/New_York",
@@ -239,7 +266,7 @@ function createHouseholdValues(): any {
 /**
  * Create medication resource values
  */
-function createMedicationValues(): any {
+function createMedicationValues(): AuditResourceValues {
   return {
     genericName: "Amoxicillin",
     dosage: "10-20 mg/kg",
@@ -250,7 +277,7 @@ function createMedicationValues(): any {
 /**
  * Create notification resource values
  */
-function createNotificationValues(): any {
+function createNotificationValues(): AuditResourceValues {
   return {
     title: "Medication Due",
     priority: "medium",
@@ -262,11 +289,11 @@ function createNotificationValues(): any {
  * Apply context-specific modifications to base values
  */
 function applyContextModifications(
-  base: any,
-  resourceType: string,
+  base: AuditResourceValues,
+  resourceType: ResourceType,
   context: "old" | "new",
-): any {
-  const modified = { ...base };
+): AuditResourceValues {
+  const modified: AuditResourceValues = { ...base };
 
   if (context === "new") {
     applyNewValueModifications(modified, resourceType);
@@ -278,14 +305,20 @@ function applyContextModifications(
 /**
  * Apply modifications for 'new' context values
  */
-function applyNewValueModifications(modified: any, resourceType: string): void {
-  if (resourceType === "animal" && modified.weight) {
+function applyNewValueModifications(
+  modified: AuditResourceValues,
+  resourceType: ResourceType,
+): void {
+  if (resourceType === "animal" && typeof modified.weight === "number") {
     modified.weight = modified.weight + random.float(-2, 2, 1);
   }
-  if (resourceType === "regimen" && modified.dose) {
+  if (resourceType === "regimen" && typeof modified.dose === "string") {
     modified.dose = random.arrayElement(["250 mg", "500 mg", "125 mg"]);
   }
-  if (resourceType === "inventory" && modified.quantityRemaining) {
+  if (
+    resourceType === "inventory" &&
+    typeof modified.quantityRemaining === "number"
+  ) {
     modified.quantityRemaining = Math.max(
       0,
       modified.quantityRemaining - random.int(1, 5),
@@ -293,7 +326,10 @@ function applyNewValueModifications(modified: any, resourceType: string): void {
   }
 }
 
-function getChangedFields(oldValues: any, newValues: any): string[] {
+function getChangedFields(
+  oldValues: AuditResourceValues | null,
+  newValues: AuditResourceValues | null,
+): string[] {
   if (!oldValues || !newValues) return [];
 
   const changed: string[] = [];
@@ -368,17 +404,17 @@ export class AuditLogBuilder {
     return this;
   }
 
-  withOldValues(values: any): AuditLogBuilder {
+  withOldValues(values: AuditResourceValues): AuditLogBuilder {
     this.auditLog.oldValues = values;
     return this;
   }
 
-  withNewValues(values: any): AuditLogBuilder {
+  withNewValues(values: AuditResourceValues): AuditLogBuilder {
     this.auditLog.newValues = values;
     return this;
   }
 
-  withDetails(details: any): AuditLogBuilder {
+  withDetails(details: AuditDetails): AuditLogBuilder {
     this.auditLog.details = details;
     return this;
   }

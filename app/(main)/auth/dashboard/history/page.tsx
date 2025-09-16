@@ -8,7 +8,6 @@ import { HistoryCalendar } from "@/components/history/history-calendar";
 import { HistoryList } from "@/components/history/history-list";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { useHistoryFilters } from "@/hooks/history/useHistoryFilters";
-// Offline queue functionality removed during simplification
 import type { AdministrationRecord } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 import { localDayISO } from "@/utils/tz";

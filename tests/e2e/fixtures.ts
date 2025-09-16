@@ -37,6 +37,7 @@ export const test = base.extend<MyFixtures>({
       );
     });
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(page);
   },
 });

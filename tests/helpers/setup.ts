@@ -3,19 +3,23 @@ import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
 
 // jest-axe is optional in test environment
-let toHaveNoViolations: any;
+let axeMatchers: Record<string, (...args: unknown[]) => unknown>;
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const jestAxe = require("jest-axe");
-  toHaveNoViolations = jestAxe.toHaveNoViolations;
+  axeMatchers = jestAxe.toHaveNoViolations as Record<
+    string,
+    (...args: unknown[]) => unknown
+  >;
 } catch {
   // jest-axe not available, use no-op
-  toHaveNoViolations = {};
+  axeMatchers = {};
 }
 
 import { StackAuthTestUtils } from "@/tests/mocks";
 
 // Extend expect with jest-axe matchers
-expect.extend(toHaveNoViolations);
+expect.extend(axeMatchers);
 
 // Cleanup after each test
 afterEach(() => {
@@ -67,6 +71,7 @@ vi.mock("next/navigation", () => ({
 
 // Mock Stack Auth module
 vi.mock("@stackframe/stack", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { stackAuthMocks } = require("../mocks/stack-auth");
   return stackAuthMocks["@stackframe/stack"];
 });

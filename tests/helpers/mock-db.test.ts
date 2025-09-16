@@ -1,6 +1,32 @@
 import { describe, expect, it, vi } from "vitest";
 import { mockDb, resetMockDb } from "./mock-db";
 
+type SelectBuilderMock<T> = {
+  from: () => SelectBuilderMock<T>;
+  where: () => SelectBuilderMock<T>;
+  leftJoin: () => SelectBuilderMock<T>;
+  innerJoin: () => SelectBuilderMock<T>;
+  orderBy: () => SelectBuilderMock<T>;
+  limit: () => SelectBuilderMock<T>;
+  offset: () => SelectBuilderMock<T>;
+  execute: () => Promise<T>;
+};
+
+const createSelectBuilderMock = <T>(data: T): SelectBuilderMock<T> => {
+  const builder: SelectBuilderMock<T> = {
+    from: vi.fn(() => builder),
+    where: vi.fn(() => builder),
+    leftJoin: vi.fn(() => builder),
+    innerJoin: vi.fn(() => builder),
+    orderBy: vi.fn(() => builder),
+    limit: vi.fn(() => builder),
+    offset: vi.fn(() => builder),
+    execute: vi.fn(async () => data),
+  };
+
+  return builder;
+};
+
 describe("mockDb", () => {
   it("should support chaining select operations", async () => {
     const result = await mockDb
@@ -18,18 +44,8 @@ describe("mockDb", () => {
   it("should support mocking specific results", async () => {
     const expectedData = [{ id: 1, name: "test" }];
 
-    mockDb.select.mockImplementationOnce(
-      () =>
-        ({
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          leftJoin: vi.fn().mockReturnThis(),
-          innerJoin: vi.fn().mockReturnThis(),
-          orderBy: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockReturnThis(),
-          offset: vi.fn().mockReturnThis(),
-          execute: vi.fn().mockResolvedValue(expectedData),
-        }) as any,
+    mockDb.select.mockImplementationOnce(() =>
+      createSelectBuilderMock(expectedData),
     );
 
     const result = await mockDb

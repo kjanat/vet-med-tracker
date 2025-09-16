@@ -89,10 +89,10 @@
       "linter": {
         "rules": {
           "suspicious": {
-            "noExplicitAny": "off"
+            "noExplicitAny": "warn"
           },
           "style": {
-            "noNonNullAssertion": "off"
+            "noNonNullAssertion": "warn"
           }
         }
       }
@@ -103,29 +103,12 @@
         "enabled": false
       },
       "linter": {
-        "rules": {
-          "style": {
-            "noNonNullAssertion": "off"
-          },
-          "correctness": {
-            "noUnusedImports": "off"
-          }
-        }
+        "enabled": false
       },
       "assist": {
         "actions": {
           "source": {
             "organizeImports": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["lib/lazy-load.tsx", "lib/connection-middleware.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "off"
           }
         }
       }
@@ -143,10 +126,10 @@
     {
       "includes": ["scripts/*.js"],
       "linter": {
-        "enabled": false
+        "enabled": true
       },
       "formatter": {
-        "enabled": false
+        "enabled": true
       }
     }
   ]

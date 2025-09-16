@@ -155,7 +155,7 @@ test.describe("Administration Recording Visual Regression", () => {
   test("administration form with overdue indicator", async ({ page }) => {
     // Mock overdue regimen
     await page.addInitScript(() => {
-      (window as any).__TEST_REGIMENS__ = [
+      window.__TEST_REGIMENS__ = [
         {
           id: "overdue-regimen",
           animalId: "test-animal-123",
@@ -259,7 +259,7 @@ test.describe("Administration Recording Visual Regression", () => {
   }) => {
     // Mock different medication types
     await page.addInitScript(() => {
-      (window as any).__TEST_MEDICATIONS__ = [
+      window.__TEST_MEDICATIONS__ = [
         {
           id: "tablet-med",
           name: "Prednisone",

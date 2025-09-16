@@ -7,6 +7,7 @@ import { type RenderOptions, render } from "@testing-library/react";
 import type React from "react";
 import {
   createMockUser,
+  type LegacyClerkUserData,
   type MockStackUser,
   StackAuthTestUtils,
   TEST_USERS,
@@ -118,12 +119,16 @@ export const AuthTestScenarios = {
  * Helper for testing components that use useUser hook
  */
 export const withMockUser = (user: MockStackUser | null) => {
-  return (WrappedComponent: React.ComponentType<any>) => {
-    return (props: any) => {
+  return function withUserWrapper<P extends object>(
+    WrappedComponent: React.ComponentType<P>,
+  ) {
+    const MockUserWrapper = (props: P) => {
       // Set the mock user before component renders
       StackAuthTestUtils.setMockUser(user);
       return <WrappedComponent {...props} />;
     };
+    MockUserWrapper.displayName = `withMockUser(${WrappedComponent.displayName || WrappedComponent.name || "Component"})`;
+    return MockUserWrapper;
   };
 };
 
@@ -237,7 +242,7 @@ export const ClerkToStackMigrationHelpers = {
   /**
    * Convert Clerk user mock to Stack Auth user mock
    */
-  convertClerkUser: (clerkUser: any): MockStackUser => {
+  convertClerkUser: (clerkUser: LegacyClerkUserData): MockStackUser => {
     return createMockUser({
       id: clerkUser.id,
       displayName:
@@ -310,7 +315,7 @@ export {
 } from "../mocks/stack-auth";
 
 // Default export with all utilities
-export default {
+const stackAuthTestUtilsExport = {
   renderWithAuth,
   renderWithAuthenticatedUser,
   renderWithUnauthenticatedUser,
@@ -327,3 +332,5 @@ export default {
   createMockUser,
   TEST_USERS,
 };
+
+export default stackAuthTestUtilsExport;

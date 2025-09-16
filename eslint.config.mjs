@@ -52,10 +52,35 @@ const eslintConfig = [
     ignores: [
       "node_modules/**",
       ".next/**",
+      ".vercel/**",
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "**/*.config.js",
+      "**/*.config.mjs",
+      "**/*.generated.*",
+      "db/drizzle.js",
+      "scripts/*.js",
+      "scripts/*.mjs",
+      "scripts/test-*.ts",
+      "scripts/test-*.js",
+      "scripts/screenshot-*.mjs",
+      "scripts/monitor-*.js",
     ],
+  },
+  // Allow 'any' types in test files
+  {
+    files: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "tests/**/*.ts",
+      "tests/**/*.tsx",
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
   },
   ...compat.config({
     extends: [

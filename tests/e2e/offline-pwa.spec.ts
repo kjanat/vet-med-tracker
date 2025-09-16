@@ -149,7 +149,10 @@ test.describe("PWA Offline Functionality", () => {
 
     // Set up to fail sync
     await page.evaluate(() => {
-      (window as any).mockTRPCFailures["admin.create"] = () => true;
+      if (!window.mockTRPCFailures) {
+        window.mockTRPCFailures = {};
+      }
+      window.mockTRPCFailures["admin.create"] = () => true;
     });
 
     // Go online to trigger sync
@@ -164,7 +167,10 @@ test.describe("PWA Offline Functionality", () => {
 
     // Fix the mock to allow success
     await page.evaluate(() => {
-      (window as any).mockTRPCFailures["admin.create"] = () => false;
+      if (!window.mockTRPCFailures) {
+        window.mockTRPCFailures = {};
+      }
+      window.mockTRPCFailures["admin.create"] = () => false;
     });
 
     // Manual retry

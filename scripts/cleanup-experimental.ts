@@ -25,7 +25,7 @@ interface CleanupSummary {
 /**
  * Calculate directory size recursively
  */
-function getDirectorySize(dirPath: string): number {
+async function getDirectorySize(dirPath: string): Promise<number> {
   try {
     const _totalSize = 0;
     const stats = statSync(dirPath);
@@ -35,15 +35,15 @@ function getDirectorySize(dirPath: string): number {
     }
 
     if (stats.isDirectory()) {
-      const { execSync } = require("node:child_process");
+      const { execSync } = await import("node:child_process");
       const result = execSync(`du -sb "${dirPath}"`, { encoding: "utf8" });
       const size = parseInt(result.split("\t")[0], 10);
       return size || 0;
     }
 
     return 0;
-  } catch (_error) {
-    console.warn(`Warning: Could not calculate size for ${dirPath}`);
+  } catch (error) {
+    console.warn(`Warning: Could not calculate size for ${dirPath}:`, error);
     return 0;
   }
 }
@@ -78,12 +78,12 @@ async function cleanupExperimental(): Promise<CleanupSummary> {
 
     // Calculate sizes before cleanup
     if (existsSync(experimentalDir)) {
-      summary.totalSize += getDirectorySize(experimentalDir);
+      summary.totalSize += await getDirectorySize(experimentalDir);
       summary.directories.push("experimental/");
     }
 
     if (existsSync(experimentalTest)) {
-      summary.totalSize += getDirectorySize(experimentalTest);
+      summary.totalSize += await getDirectorySize(experimentalTest);
       summary.files.push(
         "components/providers/__tests__/provider-refactor.test.tsx",
       );
@@ -145,8 +145,8 @@ async function updateGitignore() {
     } else {
       console.log("✅ No experimental references found in .gitignore");
     }
-  } catch (_error) {
-    console.warn("Warning: Could not check .gitignore");
+  } catch (error) {
+    console.warn("Warning: Could not check .gitignore:", error);
   }
 }
 
@@ -162,8 +162,8 @@ async function runLintCheck() {
 
     console.log("📊 Post-cleanup lint results:");
     console.log(stdout);
-  } catch (_error) {
-    console.log("ℹ️  Lint check completed (warnings may remain)");
+  } catch (error) {
+    console.log("ℹ️  Lint check completed (warnings may remain):", error);
   }
 }
 

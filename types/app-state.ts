@@ -31,6 +31,17 @@ export interface UserProfile {
   email: string | null;
   name: string | null;
   image: string | null;
+  // Extended profile fields
+  firstName?: string | null;
+  lastName?: string | null;
+  bio?: string | null;
+  pronouns?: string | null;
+  location?: string | null;
+  website?: string | null;
+  socialLinks?: Record<string, unknown> | null;
+  profileData?: Record<string, unknown> | null;
+  profileVisibility?: Record<string, boolean> | null;
+  profileCompletedAt?: Date | string | null;
   preferences: {
     timezone: string | null;
     phoneNumber: string | null;

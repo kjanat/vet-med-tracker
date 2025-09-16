@@ -19,7 +19,7 @@ export async function login(page: Page, email = "test@example.com") {
     localStorage.setItem("user-email", userEmail);
 
     // Mock auth hook
-    (window as any).mockAuthUser = {
+    window.mockAuthUser = {
       id: "user-123",
       email: userEmail,
       name: "Test User",
@@ -73,9 +73,9 @@ export async function addTestIds(page: Page) {
     };
 
     // Override React createElement to add test IDs
-    const originalCreateElement = (window as any).React?.createElement;
-    if (originalCreateElement && (window as any).React) {
-      (window as any).React!.createElement = function (...args: unknown[]) {
+    const originalCreateElement = window.React?.createElement;
+    if (originalCreateElement && window.React) {
+      window.React.createElement = function (...args: unknown[]) {
         const [type, props, ...children] = args;
 
         // Add test IDs based on component type or className
@@ -100,7 +100,7 @@ export async function mockDateTime(page: Page, dateTime: Date) {
   await page.addInitScript((timestamp) => {
     // Mock Date constructor
     const OriginalDate = Date;
-    (window as any).Date = class extends OriginalDate {
+    const MockDate = class extends OriginalDate {
       constructor(...args: unknown[]) {
         if (args.length === 0) {
           super(timestamp);
@@ -115,11 +115,12 @@ export async function mockDateTime(page: Page, dateTime: Date) {
     };
 
     // Preserve other Date methods
-    Object.setPrototypeOf((window as any).Date, OriginalDate);
-    Object.setPrototypeOf(
-      (window as any).Date.prototype,
-      OriginalDate.prototype,
-    );
+    Object.defineProperty(window, "Date", {
+      configurable: true,
+      value: MockDate,
+    });
+    Object.setPrototypeOf(MockDate, OriginalDate);
+    Object.setPrototypeOf(MockDate.prototype, OriginalDate.prototype);
   }, dateTime.getTime());
 }
 
@@ -141,7 +142,7 @@ export async function mockGeolocation(
 export async function mockTimezone(page: Page, timezone: string) {
   await page.addInitScript((tz) => {
     // Override Intl.DateTimeFormat
-    (window as any).Intl.DateTimeFormat = class extends Intl.DateTimeFormat {
+    const MockDateTimeFormat = class extends Intl.DateTimeFormat {
       constructor(
         locale?: string | string[],
         options?: Intl.DateTimeFormatOptions,
@@ -149,6 +150,11 @@ export async function mockTimezone(page: Page, timezone: string) {
         super(locale, { ...options, timeZone: tz });
       }
     };
+
+    Object.defineProperty(window.Intl, "DateTimeFormat", {
+      configurable: true,
+      value: MockDateTimeFormat,
+    });
 
     // Override Date.prototype.toLocaleString and related methods
     const dateProto = Date.prototype;

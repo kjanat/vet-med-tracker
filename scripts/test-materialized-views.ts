@@ -19,10 +19,10 @@ interface TestResult {
   details?: string;
 }
 
-async function measureQuery(
+async function measureQuery<T>(
   name: string,
-  queryFn: () => Promise<any>,
-): Promise<{ time: number; result: any }> {
+  queryFn: () => Promise<T>,
+): Promise<{ time: number; result: T }> {
   console.log(`  Running ${name}...`);
   const start = performance.now();
   const result = await queryFn();

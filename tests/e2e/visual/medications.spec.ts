@@ -88,7 +88,7 @@ test.describe("Medication Features Visual Regression", () => {
   test("inventory with different stock levels", async ({ page }) => {
     // Mock inventory data with various stock levels
     await page.addInitScript(() => {
-      (window as any).__TEST_INVENTORY__ = [
+      window.__TEST_INVENTORY__ = [
         {
           id: "1",
           medicationName: "Prednisone 5mg",
@@ -248,7 +248,7 @@ test.describe("Medication Features Visual Regression", () => {
   test("inventory low stock alerts", async ({ page }) => {
     // Mock low stock items
     await page.addInitScript(() => {
-      (window as any).__LOW_STOCK_ALERTS__ = [
+      window.__LOW_STOCK_ALERTS__ = [
         {
           medicationName: "Prednisone 5mg",
           daysRemaining: 2,

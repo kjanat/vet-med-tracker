@@ -117,14 +117,20 @@ export async function resetTestDatabase(): Promise<void> {
   try {
     console.log("🗑️  Resetting test database...");
 
+    getTestDatabase();
+    const sql = testSql;
+    if (!sql) {
+      throw new Error("Test database connection is not initialized");
+    }
+
     // Get all table names with vetmed_ prefix
-    const tablesResult = await testSql!`
+    const tablesResult = (await sql`
 			SELECT table_name 
 			FROM information_schema.tables 
 			WHERE table_schema = 'public' 
 			AND table_name LIKE 'vetmed_%'
 			ORDER BY table_name
-		`;
+		`) as Array<{ table_name: string }>;
 
     if (tablesResult.length > 0) {
       const tableNames = tablesResult
@@ -132,13 +138,13 @@ export async function resetTestDatabase(): Promise<void> {
         .join(", ");
 
       // Disable foreign key checks temporarily
-      await testSql!`SET session_replication_role = replica`;
+      await sql`SET session_replication_role = replica`;
 
       // Truncate all tables
-      await testSql!.unsafe(`TRUNCATE TABLE ${tableNames} CASCADE`);
+      await sql.unsafe(`TRUNCATE TABLE ${tableNames} CASCADE`);
 
       // Re-enable foreign key checks
-      await testSql!`SET session_replication_role = DEFAULT`;
+      await sql`SET session_replication_role = DEFAULT`;
     }
 
     console.log("✅ Test database reset completed");
@@ -186,7 +192,10 @@ export async function checkTestDatabaseHealth(): Promise<boolean> {
   try {
     // Ensure database connection is initialized
     getTestDatabase();
-    await testSql!`SELECT 1 as health_check`;
+    if (!testSql) {
+      throw new Error("Test database connection is not initialized");
+    }
+    await testSql`SELECT 1 as health_check`;
     return true;
   } catch (error) {
     console.error("Test database health check failed:", error);

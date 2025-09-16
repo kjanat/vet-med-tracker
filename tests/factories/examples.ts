@@ -17,7 +17,7 @@ import {
   complexScenarios,
   createAnimal,
   createHousehold,
-  createMedication,
+  createRegimen,
   createUser,
   inventoryPresets,
   medicationPresets,
@@ -165,17 +165,16 @@ describe("Example 5: Compliance Testing", () => {
     // Create a regimen first
     const _user = createUser();
     const household = createHousehold();
-    const animal = animalPresets.healthyDog(household.id!);
+    const animal = animalPresets.healthyDog(household.id);
     const medication = medicationPresets.amoxicillin();
 
     // Create a realistic BID (twice daily) regimen
-    const regimen = {
-      ...createMedication(),
+    const regimen = createRegimen({
       id: "regimen-123",
-      animalId: animal.id!,
-      medicationId: medication.id!,
-      scheduleType: "FIXED" as const,
-      timesLocal: ["08:00", "20:00"], // Morning and evening
+      animalId: animal.id,
+      medicationId: medication.id,
+      scheduleType: "FIXED",
+      timesLocal: ["08:00", "20:00"],
       startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
         .toISOString()
         .split("T")[0],
@@ -183,11 +182,11 @@ describe("Example 5: Compliance Testing", () => {
         .toISOString()
         .split("T")[0],
       active: true,
-    };
+    });
 
     // Generate realistic compliance data (starts at 85%, gradually declines)
     const complianceData = ComplianceDataBuilder.create()
-      .forRegimen(regimen as any)
+      .forRegimen(regimen)
       .withRealisticPattern(30) // 30 days
       .build();
 
@@ -203,7 +202,7 @@ describe("Example 5: Compliance Testing", () => {
 
     // Generate perfect compliance for testing edge cases
     const perfectData = ComplianceDataBuilder.create()
-      .forRegimen(regimen as any)
+      .forRegimen(regimen)
       .withPerfectCompliance(14)
       .build();
 
@@ -222,11 +221,11 @@ describe("Example 6: Inventory Testing", () => {
 
     // Different inventory states for testing
     const inventoryScenarios = [
-      inventoryPresets.newMedication(household.id!, medication.id!),
-      inventoryPresets.partiallyUsed(household.id!, medication.id!),
-      inventoryPresets.nearExpiration(household.id!, medication.id!),
-      inventoryPresets.expiredMedication(household.id!, medication.id!),
-      inventoryPresets.emptyContainer(household.id!, medication.id!),
+      inventoryPresets.newMedication(household.id, medication.id),
+      inventoryPresets.partiallyUsed(household.id, medication.id),
+      inventoryPresets.nearExpiration(household.id, medication.id),
+      inventoryPresets.expiredMedication(household.id, medication.id),
+      inventoryPresets.emptyContainer(household.id, medication.id),
     ];
 
     // Verify different states
@@ -249,33 +248,33 @@ describe("Example 7: Administration Scenarios", () => {
   it("creates various administration scenarios", () => {
     const user = createUser();
     const household = createHousehold();
-    const animal = createAnimal({ householdId: household.id! });
+    const animal = createAnimal({ householdId: household.id });
     const regimen = "regimen-123";
 
     // Different administration scenarios
     const onTime = administrationPresets.onTimeOral(
       regimen,
-      animal.id!,
-      household.id!,
-      user.id!,
+      animal.id,
+      household.id,
+      user.id,
     );
     const late = administrationPresets.lateWithExcuse(
       regimen,
-      animal.id!,
-      household.id!,
-      user.id!,
+      animal.id,
+      household.id,
+      user.id,
     );
     const missed = administrationPresets.missedDose(
       regimen,
-      animal.id!,
-      household.id!,
-      user.id!,
+      animal.id,
+      household.id,
+      user.id,
     );
     const adverse = administrationPresets.withAdverseEvent(
       regimen,
-      animal.id!,
-      household.id!,
-      user.id!,
+      animal.id,
+      household.id,
+      user.id,
     );
 
     // Verify different statuses and timing
@@ -285,7 +284,10 @@ describe("Example 7: Administration Scenarios", () => {
     expect(adverse.adverseEvent).toBe(true);
 
     // Verify timing relationships
-    const scheduledTime = new Date(onTime.scheduledFor!).getTime();
+    if (!onTime.scheduledFor) {
+      throw new Error("Expected scheduled time for on-time administration");
+    }
+    const scheduledTime = new Date(onTime.scheduledFor).getTime();
     const recordedTime = new Date(onTime.recordedAt).getTime();
     const timeDifference = Math.abs(recordedTime - scheduledTime) / (1000 * 60); // minutes
 

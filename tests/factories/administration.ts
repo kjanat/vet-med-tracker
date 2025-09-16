@@ -7,6 +7,8 @@ import { dates } from "./utils/dates";
 import { administration } from "./utils/medical";
 import { random } from "./utils/random";
 
+type AdministrationStatus = NewAdministration["status"];
+
 // Administration factory function
 export function createAdministration(
   overrides: Partial<NewAdministration> = {},
@@ -24,7 +26,7 @@ export function createAdministration(
     caregiverId: random.uuid(), // Should be overridden with actual caregiver ID
     scheduledFor: scheduledFor.toISOString(),
     recordedAt: recordedAt.toISOString(),
-    status: status as "ON_TIME" | "LATE" | "VERY_LATE" | "MISSED" | "PRN",
+    status,
     sourceItemId: random.boolean(0.6) ? random.uuid() : null, // 60% linked to inventory
     site: generateSite(
       random.arrayElement(["ORAL", "SC", "IM", "IV", "TOPICAL"]),
@@ -47,7 +49,10 @@ export function createAdministration(
 }
 
 // Helper functions for administration-specific data
-function generateRecordedAt(scheduledFor: Date, status: string): Date {
+function generateRecordedAt(
+  scheduledFor: Date,
+  status: AdministrationStatus,
+): Date {
   const scheduledTime = scheduledFor.getTime();
 
   switch (status) {
@@ -189,10 +194,8 @@ export class AdministrationBuilder {
     return this;
   }
 
-  withStatus(
-    status: "ON_TIME" | "LATE" | "VERY_LATE" | "MISSED" | "PRN",
-  ): AdministrationBuilder {
-    this.administration.status = status as any;
+  withStatus(status: AdministrationStatus): AdministrationBuilder {
+    this.administration.status = status;
     return this;
   }
 

@@ -167,8 +167,8 @@ async function checkAndFixUser(email: string) {
     console.log();
 
     // Check if we should delete the user
-    const readline = require("node:readline");
-    const rl = readline.createInterface({
+    const { createInterface } = await import("node:readline");
+    const rl = createInterface({
       input: process.stdin,
       output: process.stdout,
     });
@@ -414,8 +414,8 @@ async function cleanTestUsers() {
     console.log(`  ${colors.dim}•${colors.reset} ${user.email}`);
   });
 
-  const readline = require("node:readline");
-  const rl = readline.createInterface({
+  const { createInterface } = await import("node:readline");
+  const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
   });

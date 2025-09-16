@@ -376,6 +376,7 @@ export const auditHelpers = {
  * Audit middleware for tRPC
  */
 export function createAuditMiddleware() {
+  // biome-ignore lint/suspicious/noExplicitAny: tRPC middleware requires any type for compatibility
   return async function auditMiddleware(opts: any) {
     const { ctx, next, path, type } = opts;
     const startTime = Date.now();

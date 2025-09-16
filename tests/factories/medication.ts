@@ -7,6 +7,44 @@ import { dates } from "./utils/dates";
 import { dosage, medications } from "./utils/medical";
 import { random } from "./utils/random";
 
+type MedicationRoute = NewMedicationCatalog["route"];
+type MedicationForm = NewMedicationCatalog["form"];
+
+type SpeciesAdjustments = Record<
+  string,
+  {
+    multiplier: number;
+    additionalWarnings?: string[];
+    maxDailyDose?: number;
+  }
+>;
+
+type RouteAdjustments = Record<
+  string,
+  {
+    multiplier: number;
+    additionalWarnings?: string[];
+  }
+>;
+
+type AgeAdjustments = Record<
+  string,
+  {
+    multiplier: number;
+    minAgeMonths?: number;
+    minAgeYears?: number;
+    additionalWarnings?: string[];
+  }
+>;
+
+type BreedConsiderations = Record<
+  string,
+  {
+    multiplier?: number;
+    additionalWarnings?: string[];
+  }
+>;
+
 // Medication factory function
 export function createMedication(
   overrides: Partial<NewMedicationCatalog> = {},
@@ -18,8 +56,12 @@ export function createMedication(
     "heartworm",
   ] as const);
   const medication = medications.getRandomMedication(medicationType);
-  const form = random.arrayElement(medication.forms);
-  const route = random.arrayElement(medication.routes);
+  const form = random.arrayElement<MedicationForm>(
+    medication.forms as MedicationForm[],
+  );
+  const route = random.arrayElement<MedicationRoute>(
+    medication.routes as MedicationRoute[],
+  );
   const dosingInfo = dosage.generateDosing(medicationType);
   const concentration = dosage.generateConcentration(form);
 
@@ -30,8 +72,8 @@ export function createMedication(
       ? `${medication.name} ${random.arrayElement(["Plus", "XR", "SR", "Pro"])}`
       : null,
     strength: `${concentration}${random.arrayElement(["mg", "mL"])}`,
-    route: route as any, // Cast to enum type
-    form: form as any, // Cast to enum type
+    route,
+    form,
     controlledSubstance: random.boolean(0.1), // 10% are controlled substances
     commonDosing: `${dosingInfo.typical} mg/kg ${random.arrayElement(["BID", "TID", "QID", "SID"])}`,
     warnings: generateMedicationWarnings(medicationType),
@@ -105,10 +147,10 @@ function generateMedicationWarnings(type: string): string {
   return random.arrayElement(warnings[type] || ["Monitor for adverse effects"]);
 }
 
-function generateSpeciesAdjustments(): any {
+function generateSpeciesAdjustments(): SpeciesAdjustments | null {
   if (!random.boolean(0.6)) return null; // 60% chance of having species adjustments
 
-  const adjustments: any = {};
+  const adjustments: SpeciesAdjustments = {};
 
   if (random.boolean(0.8)) {
     adjustments.dog = { multiplier: 1.0 };
@@ -133,10 +175,12 @@ function generateSpeciesAdjustments(): any {
   return Object.keys(adjustments).length > 0 ? adjustments : null;
 }
 
-function generateRouteAdjustments(route: string): any {
+function generateRouteAdjustments(
+  route: MedicationRoute,
+): RouteAdjustments | null {
   if (!random.boolean(0.4)) return null; // 40% chance of having route adjustments
 
-  const adjustments: any = {};
+  const adjustments: RouteAdjustments = {};
 
   if (route === "IV") {
     adjustments.IV = {
@@ -178,10 +222,10 @@ function generateContraindications(type: string): string[] {
   );
 }
 
-function generateAgeAdjustments(): any {
+function generateAgeAdjustments(): AgeAdjustments | null {
   if (!random.boolean(0.5)) return null; // 50% chance of having age adjustments
 
-  const adjustments: any = {};
+  const adjustments: AgeAdjustments = {};
 
   if (random.boolean(0.7)) {
     adjustments.pediatric = {
@@ -206,7 +250,9 @@ function generateAgeAdjustments(): any {
   return Object.keys(adjustments).length > 0 ? adjustments : null;
 }
 
-function generateBreedConsiderations(medicationName: string): any {
+function generateBreedConsiderations(
+  medicationName: string,
+): BreedConsiderations | null {
   // Only certain medications have breed considerations
   if (!["Ivermectin", "Morphine", "Acepromazine"].includes(medicationName)) {
     return null;
@@ -214,7 +260,7 @@ function generateBreedConsiderations(medicationName: string): any {
 
   if (!random.boolean(0.3)) return null; // 30% chance
 
-  const considerations: any = {};
+  const considerations: BreedConsiderations = {};
 
   if (medicationName === "Ivermectin") {
     considerations["border collie"] = {
@@ -248,13 +294,13 @@ export class MedicationBuilder {
   withBasicInfo(info: {
     genericName: string;
     brandName?: string;
-    route: string;
-    form: string;
+    route: MedicationRoute;
+    form: MedicationForm;
   }): MedicationBuilder {
     this.medication.genericName = info.genericName;
     this.medication.brandName = info.brandName || null;
-    this.medication.route = info.route as any;
-    this.medication.form = info.form as any;
+    this.medication.route = info.route;
+    this.medication.form = info.form;
     return this;
   }
 
@@ -279,7 +325,10 @@ export class MedicationBuilder {
     this.medication.unitType = unitType;
     if (this.medication.form === "LIQUID") {
       this.medication.concentrationMgMl = concentration.toString();
-    } else if (["TABLET", "CAPSULE"].includes(this.medication.form as string)) {
+    } else if (
+      this.medication.form &&
+      ["TABLET", "CAPSULE"].includes(this.medication.form)
+    ) {
       this.medication.unitsPerTablet = concentration.toString();
     }
     return this;
@@ -300,12 +349,16 @@ export class MedicationBuilder {
     return this;
   }
 
-  withSpeciesAdjustments(adjustments: any): MedicationBuilder {
+  withSpeciesAdjustments(
+    adjustments: SpeciesAdjustments | null,
+  ): MedicationBuilder {
     this.medication.speciesAdjustments = adjustments;
     return this;
   }
 
-  withBreedConsiderations(considerations: any): MedicationBuilder {
+  withBreedConsiderations(
+    considerations: BreedConsiderations | null,
+  ): MedicationBuilder {
     this.medication.breedConsiderations = considerations;
     return this;
   }

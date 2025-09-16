@@ -12,5 +12,12 @@
         "com.intellij.mcpserver.stdio.McpStdioRunnerKt"
       ]
     }
+  },
+  "bun": {
+    "command": "bunx",
+    "args": ["mcp-bun@latest"],
+    "env": {
+      "DISABLE_NOTIFICATIONS": "true"
+    }
   }
 }
