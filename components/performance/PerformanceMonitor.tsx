@@ -247,18 +247,29 @@ export function useBundleAnalytics() {
 
     // Monitor chunk loading
     const originalFetch = window.fetch;
-    window.fetch = function (...args) {
-      const [url] = args;
-      if (typeof url === "string" && url.includes("_next/static/chunks/")) {
+    const instrumentedFetch = (
+      input: Parameters<typeof window.fetch>[0],
+      init?: Parameters<typeof window.fetch>[1],
+    ) => {
+      const targetUrl =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input instanceof Request
+              ? input.url
+              : String(input);
+
+      if (targetUrl.includes("_next/static/chunks/")) {
         const startTime = performance.now();
-        return originalFetch.apply(this, args).then((response) => {
+        return originalFetch.call(window, input, init).then((response) => {
           const endTime = performance.now();
           const loadTime = endTime - startTime;
 
           // Report chunk load time
           if (window.gtag) {
             window.gtag?.("event", "chunk_load", {
-              chunk_url: url,
+              chunk_url: targetUrl,
               load_time: Math.round(loadTime),
             });
           }
@@ -266,8 +277,15 @@ export function useBundleAnalytics() {
           return response;
         });
       }
-      return originalFetch.apply(this, args);
+
+      return originalFetch.call(window, input, init);
     };
+
+    const patchedFetch = Object.assign(
+      instrumentedFetch,
+      originalFetch,
+    ) as typeof window.fetch;
+    window.fetch = patchedFetch;
 
     return () => {
       window.fetch = originalFetch;

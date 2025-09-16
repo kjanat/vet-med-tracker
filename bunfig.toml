@@ -1,0 +1,31 @@
+[test]
+preload = "./happydom.ts"
+
+# always enable coverage
+coverage = true
+
+# to require 90% line-level and function-level coverage
+coverageThreshold = 0.7
+
+# to set different thresholds for lines and functions
+#coverageThreshold = { lines = 0.9, functions = 0.9, statements = 0.9 }
+
+# Ignorefiles
+# # Single pattern
+#coveragePathIgnorePatterns = "**/*.spec.ts"
+
+# # Multiple patterns
+#coveragePathIgnorePatterns = [
+#  "**/*.spec.ts",
+#  "**/*.test.ts",
+#  "src/utils/**",
+#  "*.config.js"
+#]
+
+# Coverage
+#coverageReporter  = ["text", "lcov"]  # default ["text"]
+#coverageDir = "path/to/somewhere"  # default "coverage"
+
+#[test.reporter]
+#junit = "path/to/junit.xml"  # Output path for JUnit XML report
+

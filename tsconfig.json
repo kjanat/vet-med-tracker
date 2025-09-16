@@ -28,7 +28,7 @@
     "isolatedModules": true,
     "incremental": true,
 
-    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "types": ["bun-types"],
     "plugins": [
       {
         "name": "next"

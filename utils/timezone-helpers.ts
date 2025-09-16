@@ -114,23 +114,27 @@ export function labelFor(
 }
 
 /** Search zones with ranking */
-export function searchZones(query: string): IanaZone[] {
+export function searchZones(
+  query: string,
+  zones: readonly string[] = IANA_TIMEZONES,
+): IanaZone[] {
   const q = query.trim().toLowerCase();
-  if (!q) return IANA_TIMEZONES as IanaZone[];
+  if (!q) return zones as IanaZone[];
 
   // Expand alias first
   const alias = TZ_ALIASES[q.toUpperCase() as TzAlias];
-  if (alias) return [alias, ...IANA_TIMEZONES.filter((z) => z !== alias)];
+  if (alias) return [alias, ...zones.filter((z) => z !== alias)];
 
   // Simple ranking: startsWith > includes
-  return IANA_TIMEZONES.filter((z) => z.toLowerCase().includes(q)).sort(
-    (a, b) =>
+  return zones
+    .filter((z) => z.toLowerCase().includes(q))
+    .sort((a, b) =>
       a.toLowerCase().startsWith(q) === b.toLowerCase().startsWith(q)
         ? a.localeCompare(b)
         : a.toLowerCase().startsWith(q)
           ? -1
           : 1,
-  );
+    );
 }
 
 /** Get most commonly used timezones for quick access */
