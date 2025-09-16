@@ -1,5 +1,8 @@
 [test]
-preload = "./happydom.ts"
+preload = [
+  "./happydom.ts" #,
+  #"./happydom.test.ts"
+]
 
 # always enable coverage
 coverage = true
@@ -28,4 +31,3 @@ coverageThreshold = 0.7
 
 #[test.reporter]
 #junit = "path/to/junit.xml"  # Output path for JUnit XML report
-

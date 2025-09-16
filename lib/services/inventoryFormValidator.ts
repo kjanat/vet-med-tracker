@@ -126,11 +126,17 @@ export class InventoryFormValidator {
 
   /**
    * Validate medication selection requirements
+   * Fixed to properly handle hybrid approach: medicationId OR name required
    */
   private static validateMedication(data: InventoryFormData): ValidationResult {
     const errors: ValidationError[] = [];
 
-    if (!data.medicationId || data.medicationId.trim() === "") {
+    // For hybrid approach: require either medicationId OR name (not both)
+    const hasMedicationId =
+      data.medicationId && data.medicationId.trim() !== "";
+    const hasName = data.name && data.name.trim() !== "";
+
+    if (!hasMedicationId && !hasName) {
       errors.push({
         field: "medicationId",
         message:
@@ -140,7 +146,7 @@ export class InventoryFormValidator {
     }
 
     // Validate custom medication has required name
-    if (data.isCustomMedication && (!data.name || data.name.trim() === "")) {
+    if (data.isCustomMedication && !hasName) {
       errors.push({
         field: "name",
         message: "Custom medication name is required.",

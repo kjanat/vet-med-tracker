@@ -13,27 +13,36 @@ interface OnboardingCheckerProps {
 export function OnboardingChecker({ children }: OnboardingCheckerProps) {
   const user = useUser();
   const pathname = usePathname();
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setShowOnboarding(null);
+      return;
+    }
 
     // Check if user needs onboarding
-    const hasPreferences =
+    const hasPreferences = Boolean(
       user.clientMetadata?.vetMedPreferences ||
-      user.clientMetadata?.householdSettings;
-    const hasCompletedOnboarding = user.clientMetadata?.onboardingComplete;
+        user.clientMetadata?.householdSettings,
+    );
+    const hasCompletedOnboarding = Boolean(
+      user.clientMetadata?.onboardingComplete,
+    );
     const needsOnboarding = !hasPreferences && !hasCompletedOnboarding;
 
     // Don't show onboarding on profile pages or if already completed
     const isProfilePage = pathname.startsWith("/profile");
-    const shouldShowOnboarding = needsOnboarding && !isProfilePage;
+    const shouldShow = needsOnboarding && !isProfilePage;
 
-    setShowOnboarding(shouldShowOnboarding);
+    // Only update if value actually changed to prevent re-render loops
+    setShowOnboarding((prevShow) =>
+      prevShow !== shouldShow ? shouldShow : prevShow,
+    );
   }, [user, pathname]);
 
   // Show loading while determining onboarding status
-  if (user === undefined) {
+  if (user === undefined || showOnboarding === null) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="h-8 w-8 animate-spin rounded-full border-green-600 border-b-2"></div>
@@ -41,11 +50,6 @@ export function OnboardingChecker({ children }: OnboardingCheckerProps) {
     );
   }
 
-  // Show onboarding flow for first-time users
-  if (showOnboarding) {
-    return <WelcomeFlow />;
-  }
-
-  // Show normal app content
-  return <>{children}</>;
+  // Definitive rendering based on stable state
+  return showOnboarding ? <WelcomeFlow /> : children;
 }

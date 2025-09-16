@@ -328,3 +328,5 @@ scripts/finalize-*.sh
 
 .git/
 node_modules/
+
+mcp-shim.ts

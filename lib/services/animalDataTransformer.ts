@@ -174,18 +174,29 @@ export class AnimalDataTransformer {
    *
    * Determines whether the form data contains enough information
    * to represent a meaningful animal record.
+   * Fixed to be more lenient - requires just basic info + one additional field
    */
   static isCompleteRecord(data: AnimalFormData): boolean {
     const hasBasicInfo = AnimalDataTransformer.hasRequiredFields(data);
+    if (!hasBasicInfo) {
+      return false;
+    }
+
+    // Check for any additional meaningful information beyond required fields
     const hasAdditionalInfo = !!(
-      data.breed ||
+      data.breed?.trim() ||
       data.weightKg ||
       data.dob ||
-      data.microchipId ||
-      data.vetName ||
-      data.notes ||
+      data.microchipId?.trim() ||
+      data.color?.trim() ||
+      data.vetName?.trim() ||
+      data.vetPhone?.trim() ||
+      data.vetEmail?.trim() ||
+      data.clinicName?.trim() ||
+      data.notes?.trim() ||
       (data.allergies && data.allergies.length > 0) ||
-      (data.conditions && data.conditions.length > 0)
+      (data.conditions && data.conditions.length > 0) ||
+      data.photoUrl?.trim()
     );
 
     return hasBasicInfo && hasAdditionalInfo;
@@ -196,28 +207,48 @@ export class AnimalDataTransformer {
    *
    * Returns a percentage (0-100) indicating how complete the form data is,
    * useful for progress indicators or validation feedback.
+   * Fixed to properly evaluate field completeness
    */
   static calculateCompleteness(data: AnimalFormData): number {
+    // Define what constitutes a "completed" field for each type
     const fields = [
-      data.name?.trim(),
-      data.species?.trim(),
-      data.breed?.trim(),
-      data.sex,
-      data.weightKg,
-      data.dob,
-      data.microchipId?.trim(),
-      data.color?.trim(),
-      data.vetName?.trim(),
-      data.vetPhone?.trim(),
-      data.vetEmail?.trim(),
-      data.clinicName?.trim(),
-      data.notes?.trim(),
-      data.allergies && data.allergies.length > 0,
-      data.conditions && data.conditions.length > 0,
-      data.photoUrl?.trim(),
+      data.name?.trim(), // string field
+      data.species?.trim(), // string field
+      data.breed?.trim(), // optional string field
+      data.sex, // enum field
+      data.weightKg, // number field
+      data.dob, // date field
+      data.microchipId?.trim(), // optional string field
+      data.color?.trim(), // optional string field
+      data.vetName?.trim(), // optional string field
+      data.vetPhone?.trim(), // optional string field
+      data.vetEmail?.trim(), // optional string field
+      data.clinicName?.trim(), // optional string field
+      data.notes?.trim(), // optional string field
+      data.allergies && data.allergies.length > 0, // array field
+      data.conditions && data.conditions.length > 0, // array field
+      data.photoUrl?.trim(), // optional string field
     ];
 
-    const completedFields = fields.filter(Boolean).length;
+    // Filter out empty/falsy values and count non-empty fields
+    const completedFields = fields.filter((field) => {
+      if (typeof field === "string") {
+        return field.length > 0; // Non-empty string
+      }
+      if (typeof field === "number") {
+        return field > 0; // Positive number
+      }
+      if (field instanceof Date) {
+        return true; // Any valid date
+      }
+      if (typeof field === "boolean") {
+        return field; // True boolean values
+      }
+      return false; // Everything else is incomplete
+    }).length;
+
+    // Note: neutered and timezone are not counted as they have defaults
+    // neutered defaults to false, timezone has a default value
     return Math.round((completedFields / fields.length) * 100);
   }
 }

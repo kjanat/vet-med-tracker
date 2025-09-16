@@ -16,6 +16,7 @@
       "!.next",
       "!.git",
       "!node_modules",
+      "!mcp-shim.ts",
       "!playwright-report",
       "!sample-components",
       "!screenshots",

@@ -514,7 +514,7 @@ function generateInventoryAlerts(
       const displayName = animalName || "Unassigned";
       lowStock.push({
         id: item.id,
-        message: `${item.name}${` (${displayName})`} ~${daysLeft} days left`,
+        message: `${item.name} (${displayName}) ~${daysLeft} days left`,
         type: "low-stock",
       });
     }

@@ -25,7 +25,6 @@ inventory across multiple households with offline support.
 ### Prerequisites
 
 - Node.js 20+ (or 22 for latest features)
-- pnpm 10.14.0+
 - PostgreSQL database (or Neon account)
 
 ### Installation
@@ -36,18 +35,18 @@ git clone https://github.com/yourusername/vet-med-tracker.git
 cd vet-med-tracker
 
 # Install dependencies
-pnpm install
+bun install
 
 # Set up environment variables
 cp .env.example .env.local
 # Edit .env.local with your configuration
 
 # Set up database
-pnpm db:push
-pnpm db:seed
+bun db:push
+bun db:seed
 
 # Start development server
-pnpm dev
+bun dev
 ```
 
 Access the application at <http://localhost:3000>
@@ -57,7 +56,7 @@ Access the application at <http://localhost:3000>
 To access from other devices on your network:
 
 ```bash
-pnpm dev:host
+bun dev:host
 ```
 
 Then access at http://YOUR_IP:3000
@@ -107,44 +106,44 @@ vet-med-tracker/
 
 ```bash
 # Unit tests
-pnpm test:unit
+bun test:unit
 
 # Integration tests (requires PostgreSQL)
-pnpm test:integration
+bun test:integration
 
 # E2E tests
-pnpm test:e2e
+bun test:e2e
 
 # Coverage report
-pnpm test:coverage
+bun test:coverage
 
 # Visual regression tests
-pnpm test:visual
+bun test:visual
 ```
 
 ## 📦 Available Scripts
 
 ### Development
 
-- `pnpm dev` - Start development server
-- `pnpm dev:turbo` - Start with Turbopack (experimental)
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm preview` - Build and preview production
+- `bun dev` - Start development server
+- `bun dev:turbo` - Start with Turbopack (experimental)
+- `bun build` - Build for production
+- `bun start` - Start production server
+- `bun preview` - Build and preview production
 
 ### Database
 
-- `pnpm db:generate` - Generate Drizzle migrations
-- `pnpm db:push` - Push schema to database
-- `pnpm db:studio` - Open Drizzle Studio GUI
-- `pnpm db:seed` - Seed database with test data
+- `bun db:generate` - Generate Drizzle migrations
+- `bun db:push` - Push schema to database
+- `bun db:studio` - Open Drizzle Studio GUI
+- `bun db:seed` - Seed database with test data
 
 ### Code Quality
 
-- `pnpm typecheck` - Type check with TypeScript
-- `pnpm lint` - Run linting
-- `pnpm check` - Run Biome checks
-- `pnpm format` - Format code with Biome
+- `bun typecheck` - Type check with TypeScript
+- `bun lint` - Run linting
+- `bun check` - Run Biome checks
+- `bun format` - Format code with Biome
 
 ## 🚢 Deployment
 

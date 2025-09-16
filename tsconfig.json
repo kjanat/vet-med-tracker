@@ -48,5 +48,5 @@
     "**/*.js",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "logs"]
+  "exclude": ["node_modules", "logs", "mcp-shim.ts"]
 }
