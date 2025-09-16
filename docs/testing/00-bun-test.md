@@ -1,4 +1,5 @@
-Bun ships with a fast, built-in, Jest-compatible test runner. Tests are executed with the Bun runtime, and support the following features.
+Bun ships with a fast, built-in, Jest-compatible test runner. Tests are executed with the Bun runtime, and support the
+following features.
 
 - TypeScript and JSX
 - Lifecycle hooks
@@ -8,7 +9,8 @@ Bun ships with a fast, built-in, Jest-compatible test runner. Tests are executed
 - Script pre-loading with `--preload`
 
 {% callout %}
-Bun aims for compatibility with Jest, but not everything is implemented. To track compatibility, see [this tracking issue](https://github.com/oven-sh/bun/issues/1825).
+Bun aims for compatibility with Jest, but not everything is implemented. To track compatibility,
+see [this tracking issue](https://github.com/oven-sh/bun/issues/1825).
 {% /callout %}
 
 ## Run tests
@@ -17,7 +19,8 @@ Bun aims for compatibility with Jest, but not everything is implemented. To trac
 bun test
 ```
 
-Tests are written in JavaScript or TypeScript with a Jest-like API. Refer to [Writing tests](https://bun.com/docs/test/writing) for full documentation.
+Tests are written in JavaScript or TypeScript with a Jest-like API. Refer to [Writing tests](./01-writing-tests.md) for
+full documentation.
 
 ```ts#math.test.ts
 import { expect, test } from "bun:test";
@@ -34,7 +37,9 @@ The runner recursively searches the working directory for files that match the f
 - `*.spec.{js|jsx|ts|tsx}`
 - `*_spec.{js|jsx|ts|tsx}`
 
-You can filter the set of _test files_ to run by passing additional positional arguments to `bun test`. Any test file with a path that matches one of the filters will run. Commonly, these filters will be file or directory names; glob patterns are not yet supported.
+You can filter the set of _test files_ to run by passing additional positional arguments to `bun test`. Any test file
+with a path that matches one of the filters will run. Commonly, these filters will be file or directory names; glob
+patterns are not yet supported.
 
 ```bash
 bun test <filter> <filter> ...
@@ -47,13 +52,16 @@ To filter by _test name_, use the `-t`/`--test-name-pattern` flag.
 $ bun test --test-name-pattern addition
 ```
 
-To run a specific file in the test runner, make sure the path starts with `./` or `/` to distinguish it from a filter name.
+To run a specific file in the test runner, make sure the path starts with `./` or `/` to distinguish it from a filter
+name.
 
 ```bash
 bun test ./test/specific-file.test.ts
 ```
 
-The test runner runs all tests in a single process. It loads all `--preload` scripts (see [Lifecycle](https://bun.com/docs/test/lifecycle) for details), then runs all tests. If a test fails, the test runner will exit with a non-zero exit code.
+The test runner runs all tests in a single process. It loads all `--preload` scripts (
+see [Lifecycle](./03-lifecycle-hooks.md) for details), then runs all tests. If a test fails, the test runner
+will exit with a non-zero exit code.
 
 ## CI/CD integration
 
@@ -61,7 +69,8 @@ The test runner runs all tests in a single process. It loads all `--preload` scr
 
 ### GitHub Actions
 
-`bun test` automatically detects if it's running inside GitHub Actions and will emit GitHub Actions annotations to the console directly.
+`bun test` automatically detects if it's running inside GitHub Actions and will emit GitHub Actions annotations to the
+console directly.
 
 No configuration is needed, other than installing `bun` in the workflow and running `bun test`.
 
@@ -89,7 +98,8 @@ From there, you'll get GitHub Actions annotations.
 
 ### JUnit XML reports (GitLab, etc.)
 
-To use `bun test` with a JUnit XML reporter, you can use the `--reporter=junit` in combination with `--reporter-outfile`.
+To use `bun test` with a JUnit XML reporter, you can use the `--reporter=junit` in combination with
+`--reporter-outfile`.
 
 ```sh
 bun test --reporter=junit --reporter-outfile=./bun.xml
@@ -102,7 +112,8 @@ JUnit XML is a popular format for reporting test results in CI/CD pipelines.
 
 ## Timeouts
 
-Use the `--timeout` flag to specify a _per-test_ timeout in milliseconds. If a test times out, it will be marked as failed. The default value is `5000`.
+Use the `--timeout` flag to specify a _per-test_ timeout in milliseconds. If a test times out, it will be marked as
+failed. The default value is `5000`.
 
 ```bash
 # default value is 5000
@@ -111,7 +122,8 @@ $ bun test --timeout 20
 
 ## Rerun tests
 
-Use the `--rerun-each` flag to run each test multiple times. This is useful for detecting flaky or non-deterministic test failures.
+Use the `--rerun-each` flag to run each test multiple times. This is useful for detecting flaky or non-deterministic
+test failures.
 
 ```sh
 bun test --rerun-each 100
@@ -119,7 +131,9 @@ bun test --rerun-each 100
 
 ## Bail out with `--bail`
 
-Use the `--bail` flag to abort the test run early after a pre-determined number of test failures. By default Bun will run all tests and report all failures, but sometimes in CI environments it's preferable to terminate earlier to reduce CPU usage.
+Use the `--bail` flag to abort the test run early after a pre-determined number of test failures. By default Bun will
+run all tests and report all failures, but sometimes in CI environments it's preferable to terminate earlier to reduce
+CPU usage.
 
 ```sh
 # bail after 1 failure
@@ -142,7 +156,7 @@ bun test --watch
 Bun supports the following lifecycle hooks:
 
 | Hook         | Description                 |
-| ------------ | --------------------------- |
+|--------------|-----------------------------|
 | `beforeAll`  | Runs once before all tests. |
 | `beforeEach` | Runs before each test.      |
 | `afterEach`  | Runs after each test.       |
@@ -150,25 +164,26 @@ Bun supports the following lifecycle hooks:
 
 These hooks can be defined inside test files, or in a separate file that is preloaded with the `--preload` flag.
 
-```ts
+```sh
 bun test --preload ./setup.ts
 ```
 
-See [Test > Lifecycle](https://bun.com/docs/test/lifecycle) for complete documentation.
+See [Test > Lifecycle](./03-lifecycle-hooks.md) for complete documentation.
 
 ## Mocks
 
 Create mock functions with the `mock` function.
 
 ```ts
-import { test, expect, mock } from "bun:test";
+import {test, expect, mock} from "bun:test";
+
 const random = mock(() => Math.random());
 
 test("random", () => {
-  const val = random();
-  expect(val).toBeGreaterThan(0);
-  expect(random).toHaveBeenCalled();
-  expect(random).toHaveBeenCalledTimes(1);
+    const val = random();
+    expect(val).toBeGreaterThan(0);
+    expect(random).toHaveBeenCalled();
+    expect(random).toHaveBeenCalledTimes(1);
 });
 ```
 
@@ -182,7 +197,7 @@ Alternatively, you can use `jest.fn()`, it behaves identically.
 + const random = jest.fn(() => Math.random());
 ```
 
-See [Test > Mocks](https://bun.com/docs/test/mocks) for complete documentation.
+See [Test > Mocks](./04-mocks.md) for complete documentation.
 
 ## Snapshot testing
 
@@ -190,10 +205,10 @@ Snapshots are supported by `bun test`.
 
 ```ts
 // example usage of toMatchSnapshot
-import { test, expect } from "bun:test";
+import {test, expect} from "bun:test";
 
 test("snapshot", () => {
-  expect({ a: 1 }).toMatchSnapshot();
+    expect({a: 1}).toMatchSnapshot();
 });
 ```
 
@@ -203,7 +218,7 @@ To update snapshots, use the `--update-snapshots` flag.
 bun test --update-snapshots
 ```
 
-See [Test > Snapshots](https://bun.com/docs/test/snapshots) for complete documentation.
+See [Test > Snapshots](./05-snapshots.md) for complete documentation.
 
 ## UI & DOM testing
 
@@ -213,13 +228,13 @@ Bun is compatible with popular UI testing libraries:
 - [DOM Testing Library](https://testing-library.com/docs/dom-testing-library/intro/)
 - [React Testing Library](https://testing-library.com/docs/react-testing-library/intro)
 
-See [Test > DOM Testing](https://bun.com/docs/test/dom) for complete documentation.
+See [Test > DOM Testing](./12-dom-testing.md) for complete documentation.
 
 ## Performance
 
 Bun's test runner is fast.
 
-{% image src="/images/buntest.jpeg" caption="Running 266 React SSR tests faster than Jest can print its version number." /%}
+![Running 266 React SSR tests faster than Jest can print its version number.](https://bun.com/images/buntest.jpeg "Running 266 React SSR tests faster than Jest can print its version number.")
 
 <!--
 Consider the following directory structure:
@@ -250,7 +265,8 @@ Any test file in the directory with an _absolute path_ that contains one of the 
 
 ## AI Agent Integration
 
-When using Bun's test runner with AI coding assistants, you can enable quieter output to improve readability and reduce context noise. This feature minimizes test output verbosity while preserving essential failure information.
+When using Bun's test runner with AI coding assistants, you can enable quieter output to improve readability and reduce
+context noise. This feature minimizes test output verbosity while preserving essential failure information.
 
 ### Environment Variables
 
@@ -275,6 +291,66 @@ $ CLAUDECODE=1 bun test
 # Still shows failures and summary, but hides verbose passing test output
 ```
 
-This feature is particularly useful in AI-assisted development workflows where reduced output verbosity improves context efficiency while maintaining visibility into test failures.
+This feature is particularly useful in AI-assisted development workflows where reduced output verbosity improves context
+efficiency while maintaining visibility into test failures.
 
-{% bunCLIUsage command="test" /%}
+## bun CLI Usage
+
+```shell
+bun test <patterns>
+```
+
+### Flags
+
+#### Test Selection
+
+| Flag                              | Description                                              |
+|-----------------------------------|----------------------------------------------------------|
+| `--only`                          | Only run tests that are marked with "test.only()"        |
+| `--todo`                          | Include tests that are marked with "test.todo()"         |
+| `-t`, `--test-name-pattern=<val>` | Run only tests with a name that matches the given regex. |
+
+#### Execution Control
+
+| Flag                 | Description                                                                                      |
+|----------------------|--------------------------------------------------------------------------------------------------|
+| `--timeout=<val>`    | Set the per-test timeout in milliseconds, default is 5000.                                       |
+| `--rerun-each=<val>` | Re-run each test file `<NUMBER>` times, helps catch certain bugs                                 |
+| `--bail=<val>`       | Exit the test suite after `<NUMBER>` failures. If you do not specify a number, it defaults to 1. |
+
+#### Coverage Options
+
+| Flag                        | Description                                                  |
+|-----------------------------|--------------------------------------------------------------|
+| `--coverage`                | Generate a coverage profile                                  |
+| `--coverage-reporter=<val>` | Report coverage in 'text' and/or 'lcov'. Defaults to 'text'. |
+| `--coverage-dir=<val>`      | Directory for coverage files. Defaults to 'coverage'.        |
+
+#### Output & Reporting
+
+| Flag                       | Description                                                                           |
+|----------------------------|---------------------------------------------------------------------------------------|
+| `--reporter=<val>`         | Specify the test reporter. Currently `--reporter=junit` is the only supported format. |
+| `--reporter-outfile=<val>` | The output file used for the format from `--reporter`.                                |
+
+#### Snapshot Management
+
+| Flag                       | Description           |
+|----------------------------|-----------------------|
+| `-u`, `--update-snapshots` | Update snapshot files |
+
+#### Examples
+
+Run all test files
+
+`bun test`
+
+Run all test files with "foo" or "bar" in the file name
+
+`bun test foo bar`
+
+Run all test files, only including tests whose names includes "baz"
+
+`bun test --test-name-pattern baz`
+
+Full documentation is available at https://bun.sh/docs/cli/test

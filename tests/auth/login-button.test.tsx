@@ -1,50 +1,24 @@
 /**
  * @jest-environment jsdom
  */
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  mock,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock, test } from "bun:test";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import * as sinon from "sinon"; // Import sinon
-
-// Use actual lucide-react exports to avoid interfering with other test modules
+import * as sinon from "sinon";
 
 // Mock the auth provider
 const mockLogin = mock(() => {});
 const mockUseAuth = mock();
-type AuthState = {
-  login?: () => void;
-  isLoading: boolean;
-};
-let authState: AuthState;
 
-const actualAppProviderModule = await import(
-  "@/components/providers/app-provider-consolidated"
-);
-
-const setAuthState = (state: AuthState) => {
-  authState = state;
-  mockUseAuth.mockImplementation(() => authState);
-};
-
+// Set up module mock first - create a completely isolated mock
 mock.module("@/components/providers/app-provider-consolidated", () => ({
-  ...actualAppProviderModule,
   useAuth: mockUseAuth,
+  // Mock any other exports that might be needed
+  useApp: mock(() => ({})),
+  default: {},
 }));
 
-// Use actual button/icon implementations to better match production behavior
-
-let LoginButton: typeof import("@/components/auth/login-button").LoginButton;
-
-beforeAll(async () => {
-  ({ LoginButton } = await import("@/components/auth/login-button"));
-});
+// Import the component after mocking
+const { LoginButton } = await import("@/components/auth/login-button");
 
 let clock: sinon.SinonFakeTimers; // Declare clock here
 
@@ -53,11 +27,13 @@ describe("LoginButton", () => {
     cleanup();
     clock = sinon.useFakeTimers(); // Use sinon fake timers
     mockLogin.mockClear();
-    mockUseAuth.mockReset();
-    setAuthState({
+    mockUseAuth.mockClear();
+
+    // Set default auth state
+    mockUseAuth.mockImplementation(() => ({
       login: mockLogin,
       isLoading: false,
-    });
+    }));
   });
 
   afterEach(() => {
@@ -107,15 +83,19 @@ describe("LoginButton", () => {
 
   describe("User Interaction", () => {
     it("should call login function when button is clicked", async () => {
+      expect.assertions(1);
+
       render(<LoginButton />);
 
       const button = screen.getByRole("button");
       fireEvent.click(button);
 
       expect(mockLogin).toHaveBeenCalledTimes(1);
-    });
+    }, 1000);
 
     it("should handle multiple clicks correctly", async () => {
+      expect.assertions(1);
+
       render(<LoginButton />);
 
       const button = screen.getByRole("button");
@@ -123,15 +103,15 @@ describe("LoginButton", () => {
       fireEvent.click(button);
 
       expect(mockLogin).toHaveBeenCalledTimes(2);
-    });
+    }, 1000);
   });
 
   describe("Loading State", () => {
     it("should be disabled when loading", () => {
-      setAuthState({
+      mockUseAuth.mockImplementation(() => ({
         login: mockLogin,
         isLoading: true,
-      });
+      }));
 
       render(<LoginButton />);
 
@@ -140,10 +120,12 @@ describe("LoginButton", () => {
     });
 
     it("should not call login when disabled during loading", async () => {
-      setAuthState({
+      expect.assertions(1);
+
+      mockUseAuth.mockImplementation(() => ({
         login: mockLogin,
         isLoading: true,
-      });
+      }));
 
       render(<LoginButton />);
 
@@ -151,13 +133,13 @@ describe("LoginButton", () => {
       fireEvent.click(button);
 
       expect(mockLogin).not.toHaveBeenCalled();
-    });
+    }, 1000);
 
     it("should be enabled when not loading", () => {
-      setAuthState({
+      mockUseAuth.mockImplementation(() => ({
         login: mockLogin,
         isLoading: false,
-      });
+      }));
 
       render(<LoginButton />);
 
@@ -175,10 +157,10 @@ describe("LoginButton", () => {
     });
 
     it("should maintain accessibility when disabled", () => {
-      setAuthState({
+      mockUseAuth.mockImplementation(() => ({
         login: mockLogin,
         isLoading: true,
-      });
+      }));
 
       render(<LoginButton />);
 
@@ -190,10 +172,10 @@ describe("LoginButton", () => {
 
   describe("Integration with Auth Hook", () => {
     it("should handle auth hook unavailability gracefully", () => {
-      setAuthState({
+      mockUseAuth.mockImplementation(() => ({
         login: undefined,
         isLoading: false,
-      });
+      }));
 
       expect(() => render(<LoginButton />)).not.toThrow();
     });
@@ -207,10 +189,10 @@ describe("LoginButton", () => {
       );
 
       // Switch to loading
-      setAuthState({
+      mockUseAuth.mockImplementation(() => ({
         login: mockLogin,
         isLoading: true,
-      });
+      }));
 
       rerender(<LoginButton />);
       expect((screen.getByRole("button") as HTMLButtonElement).disabled).toBe(
@@ -221,14 +203,16 @@ describe("LoginButton", () => {
 
   describe("Error Handling", () => {
     it("should call login function even when it throws errors", async () => {
+      expect.assertions(5);
+
       const errorLogin = mock().mockImplementation(() => {
         throw new Error("Login failed");
       });
 
-      setAuthState({
+      mockUseAuth.mockImplementation(() => ({
         login: errorLogin,
         isLoading: false,
-      });
+      }));
 
       render(<LoginButton />);
 
@@ -243,29 +227,25 @@ describe("LoginButton", () => {
 
       // Verify the login function was called
       expect(errorLogin).toHaveBeenCalledTimes(1);
-    });
+    }, 2000);
   });
 
   describe("Component Variants", () => {
     const variants = ["default", "outline", "ghost"] as const;
     const sizes = ["default", "sm", "lg", "icon"] as const;
 
-    variants.forEach((variant) => {
-      it(`should render correctly with ${variant} variant`, () => {
-        render(<LoginButton variant={variant} />);
+    test.each(variants)("renders with '%s' variant", (variant) => {
+      render(<LoginButton variant={variant} />);
 
-        const button = screen.getByRole("button");
-        expect(button).toBeTruthy();
-      });
+      const button = screen.getByRole("button");
+      expect(button).toBeTruthy();
     });
 
-    sizes.forEach((size) => {
-      it(`should render correctly with ${size} size`, () => {
-        render(<LoginButton size={size} />);
+    test.each(sizes)("renders with '%s' size", (size) => {
+      render(<LoginButton size={size} />);
 
-        const button = screen.getByRole("button");
-        expect(button).toBeTruthy();
-      });
+      const button = screen.getByRole("button");
+      expect(button).toBeTruthy();
     });
   });
 });

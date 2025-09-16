@@ -1,6 +1,8 @@
 "use client";
 
 import { LogIn } from "lucide-react";
+import { useCallback } from "react";
+
 import { useAuth } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 
@@ -15,17 +17,28 @@ export function LoginButton({
   size = "default",
   className,
 }: LoginButtonProps) {
-  const { login, isLoading } = useAuth();
+  const auth = useAuth();
+  const loginFn = typeof auth?.login === "function" ? auth.login : undefined;
+  const isLoading = Boolean(auth?.isLoading);
+
+  const handleLogin = useCallback(() => {
+    if (isLoading || !loginFn) {
+      return;
+    }
+
+    return loginFn();
+  }, [isLoading, loginFn]);
 
   return (
     <Button
-      onClick={login}
+      type="button"
+      onClick={handleLogin}
       disabled={isLoading}
       variant={variant}
       size={size}
       className={className}
     >
-      <LogIn className="mr-2 h-4 w-4" />
+      <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
       Sign In
     </Button>
   );
