@@ -1,17 +1,21 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
+import {
+  afterAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
 import { act, renderHook } from "@testing-library/react";
+import * as AppProvider from "@/components/providers/app-provider-consolidated";
 import type { UseAnimalFormOptions } from "@/hooks/forms/useAnimalForm";
 import { useAnimalForm } from "@/hooks/forms/useAnimalForm";
+import { createTestAppContext } from "./auth/test-auth-helpers";
 
 // Mock dependencies with proper scoping
 const mockSelectedHousehold = { id: "household-1", name: "Test Household" };
-const mockUseApp = mock(() => ({
-  selectedHousehold: mockSelectedHousehold,
-}));
-
-mock.module("@/components/providers/app-provider-consolidated", () => ({
-  useApp: mockUseApp,
-}));
+const mockUseApp = spyOn(AppProvider, "useApp");
 
 mock.module("@/hooks/shared/use-toast", () => ({
   useToast: () => ({
@@ -111,10 +115,18 @@ mock.module("@/lib/services/animalFormValidator", () => ({
 describe("useAnimalForm", () => {
   beforeEach(() => {
     mockUseApp.mockClear();
-    // Reset mock implementation to ensure consistent state
-    mockUseApp.mockReturnValue({
-      selectedHousehold: mockSelectedHousehold,
-    });
+    mockUseApp.mockImplementation(() =>
+      createTestAppContext({
+        selectedHousehold: mockSelectedHousehold,
+        selectedHouseholdId: mockSelectedHousehold.id,
+        households: [mockSelectedHousehold],
+      }),
+    );
+  });
+
+  afterAll(() => {
+    mockUseApp.mockRestore();
+    mock.restore();
   });
 
   describe("basic hook functionality", () => {
@@ -300,9 +312,13 @@ describe("useAnimalCalculations", () => {
   beforeEach(() => {
     mockUseApp.mockClear();
     // Reset mock implementation to ensure consistent state
-    mockUseApp.mockReturnValue({
-      selectedHousehold: mockSelectedHousehold,
-    });
+    mockUseApp.mockImplementation(() =>
+      createTestAppContext({
+        selectedHousehold: mockSelectedHousehold,
+        selectedHouseholdId: mockSelectedHousehold.id,
+        households: [mockSelectedHousehold],
+      }),
+    );
   });
 
   it("should calculate form completeness", () => {

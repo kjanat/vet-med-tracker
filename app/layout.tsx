@@ -4,7 +4,6 @@ import type React from "react";
 import { stackServerApp } from "@/stack";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 // import { DebugHouseholdState } from "@/components/debug/debug-household-state";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
@@ -76,9 +75,6 @@ export default function RootLayout({
                 ]}
               />
               <TRPCProvider>{children}</TRPCProvider>
-              <PerformanceMonitor
-                debug={process.env.NODE_ENV === "development"}
-              />
               <Analytics />
             </ThemeProvider>
           </StackTheme>

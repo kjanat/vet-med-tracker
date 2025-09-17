@@ -462,25 +462,8 @@ function batchedUpdates() {
 
 ### Performance Monitoring
 
-```tsx
-// Add to components experiencing issues
-function PerformanceMonitor({ children, name }: { children: React.ReactNode; name: string }) {
-  useEffect(() => {
-    const observer = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry) => {
-        if (entry.name.includes(name)) {
-          console.log(`${name} performance:`, entry.duration);
-        }
-      });
-    });
-    
-    observer.observe({ entryTypes: ['measure'] });
-    return () => observer.disconnect();
-  }, [name]);
-  
-  return <>{children}</>;
-}
-```
+Use the built-in Web Vitals overlay (`NEXT_RUNTIME_DEVELOPER_OVERLAY=1`) or browser DevTools recording features instead
+of custom instrumentation. They provide richer diagnostics without shipping additional code to production.
 
 ## Migration Performance Comparison
 

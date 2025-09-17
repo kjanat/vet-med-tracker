@@ -20,7 +20,7 @@ import { trpc } from "@/server/trpc/client";
 // TYPES & INTERFACES
 // =============================================================================
 
-type User = typeof vetmedUsers.$inferSelect;
+export type User = typeof vetmedUsers.$inferSelect;
 
 // Stack user interface for conversion
 interface StackUserForConversion {
@@ -54,7 +54,7 @@ interface Household {
   timezone?: string;
 }
 
-interface UserProfile {
+export interface UserProfile {
   id: string;
   stackUserId: string | null;
   email: string | null;
@@ -507,10 +507,14 @@ interface AppContextType extends AppState {
 
 const AppContext = createContext<AppContextType | null>(null);
 
+// Export AppContext and AppContextType for testing purposes
+export { AppContext };
+export type { AppContextType };
+
 export function useApp() {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error("useApp must be used within AppProvider");
+    throw new Error("useApp must be used within ConsolidatedAppProvider");
   }
   return context;
 }
@@ -1148,10 +1152,13 @@ export function useAuth() {
   const context = useApp();
   return {
     user: context.userProfile,
-    households: context.households.map((h) => ({ id: h.id, name: h.name })),
+    households: (context.households || []).map((h) => ({
+      id: h.id,
+      name: h.name,
+    })),
     isAuthenticated: context.isAuthenticated,
-    isLoading: context.loading.user,
-    error: context.errors.user,
+    isLoading: context.loading?.user || false,
+    error: context.errors?.user || null,
     login: context.login,
     logout: context.logout,
     refreshAuth: context.refreshAuth,
@@ -1162,7 +1169,7 @@ export function useAuth() {
 export function useUserPreferencesContext() {
   const context = useApp();
   return {
-    isLoaded: !context.loading.user,
+    isLoaded: !context.loading?.user,
     vetMedPreferences: context.preferences,
     householdSettings: context.householdSettings,
     updateVetMedPreferences: context.updateVetMedPreferences,

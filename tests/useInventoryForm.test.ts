@@ -1,14 +1,20 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
+import {
+  afterAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
 import { act, renderHook } from "@testing-library/react";
+import * as AppProvider from "@/components/providers/app-provider-consolidated";
 import type { UseInventoryFormOptions } from "@/hooks/forms/useInventoryForm";
 import { useInventoryForm } from "@/hooks/forms/useInventoryForm";
+import { createTestAppContext } from "./auth/test-auth-helpers";
 
 // Mock dependencies
-mock.module("@/components/providers/app-provider-consolidated", () => ({
-  useApp: () => ({
-    selectedHousehold: { id: "household-1", name: "Test Household" },
-  }),
-}));
+const useAppMock = spyOn(AppProvider, "useApp");
 
 mock.module("@/hooks/shared/use-toast", () => ({
   useToast: () => ({
@@ -164,6 +170,19 @@ mock.module("@/lib/schemas/inventory", () => {
 describe("useInventoryForm", () => {
   beforeEach(() => {
     // Clear mocks individually
+    useAppMock.mockClear();
+    useAppMock.mockImplementation(() =>
+      createTestAppContext({
+        selectedHousehold: { id: "household-1", name: "Test Household" },
+        selectedHouseholdId: "household-1",
+        households: [{ id: "household-1", name: "Test Household" }],
+      }),
+    );
+  });
+
+  afterAll(() => {
+    useAppMock.mockRestore();
+    mock.restore();
   });
 
   describe("basic hook functionality", () => {

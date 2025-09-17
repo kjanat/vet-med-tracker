@@ -14,7 +14,7 @@ the project's successful simplification strategy.
 
 - **Goal**: Factory-based provider orchestration with dependency injection
 - **Implementation**: 46 files, ~17,551 lines of TypeScript
-- **Outcome**: Too complex for React context needs; current `AppProvider` is more effective
+- **Outcome**: Too complex for React context needs; current `ConsolidatedAppProvider` is more effective
 
 ### 2. Component Factory System
 
@@ -58,7 +58,7 @@ const importMappings: Record<string, string> = {
 
 ### Provider Consolidation Insights
 
-Led to the successful `AppProvider` consolidation:
+Led to the successful `ConsolidatedAppProvider` consolidation:
 
 - Single provider for household/animal state
 - React Query for server state
