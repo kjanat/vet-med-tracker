@@ -1,6 +1,6 @@
-// import bundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
+// import bundleAnalyzer from "@next/bundle-analyzer";
 // const withBundleAnalyzer = bundleAnalyzer({
 //   enabled: process.env.ANALYZE === "true",
 // });
@@ -18,7 +18,9 @@ const nextConfig: NextConfig = {
   compress: process.env.NODE_ENV === "production",
   experimental: {
     reactCompiler: true,
+    typedEnv: true,
     useCache: true,
+    ppr: "incremental",
     // webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB"],
   },
   generateEtags: true,

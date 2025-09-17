@@ -2,12 +2,15 @@ import { redirect } from "next/navigation";
 import { LandingPageContent } from "@/components/landing/landing-page-content";
 import { stackServerApp } from "@/stack";
 
+export const experimental_ppr = true;
+
 /**
  * Homepage - serves landing page directly or redirects authenticated users
  *
  * For authenticated users: redirects to dashboard
  * For unauthenticated users: renders landing page content
  */
+
 export default async function HomePage() {
   const user = await stackServerApp.getUser();
 

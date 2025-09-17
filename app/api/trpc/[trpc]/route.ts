@@ -4,7 +4,7 @@ import { appRouter } from "@/server/api/routers/_app";
 import { createTRPCContext } from "@/server/api/trpc";
 
 // Export methods for Next.js App Router
-export const runtime = "nodejs"; // Use Node.js runtime for Prisma
+// export const runtime = "nodejs"; // Use Node.js runtime for Prisma
 
 const handler = (req: NextRequest) =>
   fetchRequestHandler({

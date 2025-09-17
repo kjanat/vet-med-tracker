@@ -353,4 +353,4 @@ Run all test files, only including tests whose names includes "baz"
 
 `bun test --test-name-pattern baz`
 
-Full documentation is available at https://bun.sh/docs/cli/test
+Full documentation is available at [https://bun.sh/docs/cli/test](https://bun.sh/docs/cli/test)

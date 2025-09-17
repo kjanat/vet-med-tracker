@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "next build --turbopack",
     "build:stats": "next build && bunx @next/bundle-analyzer build",
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
@@ -20,6 +20,7 @@
     "preview": "next build && next start",
     "preview:dev": "vercel dev",
     "start": "next start",
+    "typegen": "next typegen",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --formatter-enabled=false --assist-enabled=false",
     "lint:fix": "biome check --write",
@@ -40,7 +41,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@neondatabase/serverless": "^1.0.1",
-    "@next/env": "^15.5.3",
+    "@next/env": "canary",
     "@radix-ui/react-accordion": "1.2.12",
     "@radix-ui/react-alert-dialog": "1.1.15",
     "@radix-ui/react-aspect-ratio": "1.1.7",
@@ -76,7 +77,7 @@
     "@trpc/react-query": "^11.5.1",
     "@trpc/server": "^11.5.1",
     "@types/node-cron": "^3.0.11",
-    "@types/uuid": "^10.0.0",
+    "@types/uuid": "^11.0.0",
     "@vercel/analytics": "^1.5.0",
     "autoprefixer": "^10.4.21",
     "bufferutil": "^4.0.9",
@@ -88,14 +89,14 @@
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.3",
     "embla-carousel-react": "8.6.0",
-    "eslint-config-next": "^15.5.3",
+    "eslint-config-next": "canary",
     "geist": "^1.5.1",
     "input-otp": "1.4.2",
     "ioredis": "^5.7.0",
     "isomorphic-dompurify": "^2.27.0",
     "lucide-react": "^0.544.0",
     "luxon": "^3.7.2",
-    "next": "^15.6.0-canary.9",
+    "next": "canary",
     "next-themes": "^0.4.6",
     "node-cron": "^4.2.1",
     "react": "^19.1.1",
@@ -114,13 +115,13 @@
     "vaul": "^1.1.2",
     "web-push": "^3.6.7",
     "ws": "^8.18.3",
-    "zod": "^4.1.8"
+    "zod": "^4.1.9"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@happy-dom/global-registrator": "^18.0.1",
     "@lhci/cli": "^0.15.1",
-    "@next/bundle-analyzer": "^15.5.3",
+    "@next/bundle-analyzer": "canary",
     "@percy/playwright": "^1.0.9",
     "@playwright/test": "^1.55.0",
     "@size-limit/preset-app": "^11.2.0",
@@ -131,7 +132,7 @@
     "@types/bun": "^1.2.22",
     "@types/jest-axe": "^3.5.9",
     "@types/luxon": "^3.7.1",
-    "@types/node": "^24.5.0",
+    "@types/node": "^24.5.1",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@types/sinon": "^17.0.4",
@@ -166,5 +167,6 @@
   "packageManager": "bun@1.2.22",
   "trustedDependencies": [
     "@tailwindcss/oxide"
-  ]
+  ],
+  "type": "module"
 }

@@ -1,12 +1,20 @@
+<div align="center">
+
 # VetMed Tracker 🐾
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.4.5-black)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)](https://tailwindcss.com)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+A Progressive Web App (PWA) for managing veterinary medications for pets and animals. Track medications, schedules,
+and inventory across multiple households with offline support.
 
-A Progressive Web App (PWA) for managing veterinary medications for pets and animals. Track medications, schedules, and
-inventory across multiple households with offline support.
+  <a href="https://vetmed-tracker.example.com" target="_blank" rel="noopener noreferrer">
+    <img src="public/web-app-manifest-512x512.png" alt="My Dog" width="300"/>
+  </a>
+
+[![Next.js](https://img.shields.io/badge/Next.js-15.6.0--canary-black)][nextjs]
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)][typescript]
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)][tailwind]
+<!-- [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) -->
+
+</div>
 
 ## ✨ Features
 
@@ -24,14 +32,14 @@ inventory across multiple households with offline support.
 
 ### Prerequisites
 
-- Node.js 20+ (or 22 for latest features)
+- Node.js 22+
 - PostgreSQL database (or Neon account)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/vet-med-tracker.git
+git clone https://github.com/kjanat/vet-med-tracker.git
 cd vet-med-tracker
 
 # Install dependencies
@@ -49,7 +57,7 @@ bun db:seed
 bun dev
 ```
 
-Access the application at <http://localhost:3000>
+Access the application at [http://localhost:3000][localhost]
 
 ### Network Access
 
@@ -59,13 +67,13 @@ To access from other devices on your network:
 bun dev:host
 ```
 
-Then access at http://YOUR_IP:3000
+Then access at [http://YOUR_IP:3000][localhost]
 
 ## 🛠️ Tech Stack
 
 ### Core
 
-- **Framework**: Next.js 15.4.5 with App Router
+- **Framework**: Next.js 15.6.0-canary with App Router
 - **Language**: TypeScript with strict mode
 - **Styling**: Tailwind CSS v4
 - **Database**: PostgreSQL with Drizzle ORM
@@ -84,41 +92,29 @@ Then access at http://YOUR_IP:3000
 
 ```tree
 vet-med-tracker/
-├── app/                    # Next.js App Router pages
+├── app/                   # Next.js App Router pages
 │   ├── (authed)/          # Protected routes
 │   ├── (public)/          # Public pages
 │   └── api/               # API routes
 ├── components/            # React components
-│   ├── ui/               # Reusable UI components
-│   └── layout/           # Layout components
+│   ├── ui/                # Reusable UI components
+│   └── layout/            # Layout components
 ├── server/                # Server-side code
-│   └── api/              # tRPC routers
+│   └── api/               # tRPC routers
 ├── db/                    # Database schema & config
 ├── lib/                   # Utilities and helpers
-│   ├── infrastructure/   # System-level code
-│   └── schemas/          # Zod validation schemas
+│   ├── infrastructure/    # System-level code
+│   └── schemas/           # Zod validation schemas
 ├── hooks/                 # Custom React hooks
 ├── tests/                 # Test files
-└── public/               # Static assets
+└── public/                # Static assets
 ```
 
 ## 🧪 Testing
 
 ```bash
 # Unit tests
-bun test:unit
-
-# Integration tests (requires PostgreSQL)
-bun test:integration
-
-# E2E tests
-bun test:e2e
-
-# Coverage report
-bun test:coverage
-
-# Visual regression tests
-bun test:visual
+bun test
 ```
 
 ## 📦 Available Scripts
@@ -173,8 +169,6 @@ REDIS_URL=
 SENTRY_DSN=
 ```
 
-See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
-
 ## 🔒 Security
 
 - All routes protected by authentication middleware
@@ -193,6 +187,8 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
 - Redis caching for frequently accessed data
 - Service Worker for offline support
 
+<!--
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) first.
@@ -207,18 +203,25 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+-->
+
 ## 🙏 Acknowledgments
 
-- [Next.js](https://nextjs.org) - The React Framework
-- [shadcn/ui](https://ui.shadcn.com) - Beautiful component library
-- [Drizzle ORM](https://orm.drizzle.team) - TypeScript ORM
-- [Stack Auth](https://stack-auth.com) - Authentication service
-- [Vercel](https://vercel.com) - Deployment platform
+- [Next.js][nextjs] - The React Framework
+- [shadcn/ui][shadcn] - Beautiful component library
+- [Drizzle ORM][drizzle] - TypeScript ORM
+- [Stack Auth][stack-auth] - Authentication service
+- [Vercel][vercel] - Deployment platform
 
 ## 📧 Support
 
 For support, please open an issue on GitHub or contact the maintainers.
 
----
-
-Built with ❤️ for pet health management
+[nextjs]: https://nextjs.org
+[shadcn]: https://ui.shadcn.com
+[drizzle]: https://orm.drizzle.team
+[stack-auth]: https://stack-auth.com
+[vercel]: https://vercel.com
+[localhost]: http://localhost:3000
+[typescript]: https://www.typescriptlang.org
+[tailwind]: https://tailwindcss.com

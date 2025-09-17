@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ESNext",
+    "baseUrl": ".",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -20,10 +21,17 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/db/*": ["./db/*"],
-      "@/trpc/*": ["./server/trpc/*"]
+      "@/app/*": ["app/*"],
+      "@/components/*": ["components/*"],
+      "@/hooks/*": ["hooks/*"],
+      "@/lib/*": ["lib/*"],
+      "@/utils/*": ["utils/*"],
+      "@/types/*": ["types/*"],
+      "@/db/*": ["db/*"],
+      "@/server/*": ["server/*"],
+      "@/server/trpc/*": ["server/trpc/*"],
+      "@/tests/*": ["tests/*"]
     },
-
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noFallthroughCasesInSwitch": true,

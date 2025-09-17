@@ -108,7 +108,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+# next-env.d.ts
 
 ### Node ###
 # Logs
@@ -326,3 +326,4 @@ scripts/*.sh
 scripts/migrate-*.ts
 scripts/standardize-*.ts
 scripts/finalize-*.sh
+/debug-button.mjs

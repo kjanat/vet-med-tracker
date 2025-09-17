@@ -1,4 +1,4 @@
-# pnpm test
-lint-staged
-bun format:md
-bun lint:fix
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+bunx lint-staged
