@@ -74,29 +74,33 @@ export function AddItemModal({
   // const { enqueue } = useOfflineQueue()
 
   const form = useForm<InventoryFormData>({
-    resolver: zodResolver(inventoryFormSchema),
     defaultValues: {
-      medicationId: undefined,
-      name: "",
-      isCustomMedication: false,
-      brand: undefined,
-      route: "",
-      form: "",
-      strength: undefined,
-      concentration: undefined,
-      quantityUnits: 1,
-      unitsRemaining: 1,
-      lot: undefined,
-      expiresOn: new Date(),
-      storage: "ROOM",
       assignedAnimalId: undefined,
       barcode: undefined,
+      brand: undefined,
+      concentration: undefined,
+      expiresOn: new Date(),
+      form: "",
+      isCustomMedication: false,
+      lot: undefined,
+      medicationId: undefined,
+      name: "",
+      quantityUnits: 1,
+      route: "",
       setInUse: false,
+      storage: "ROOM",
+      strength: undefined,
+      unitsRemaining: 1,
     },
+    resolver: zodResolver(inventoryFormSchema),
   });
 
   const { isScanning, hasPermission, videoRef, startScanning, stopScanning } =
     useBarcodeScanner({
+      onError: (error) => {
+        console.error("Barcode scan error:", error);
+        setScanError(error);
+      },
       onScan: (barcode) => {
         setScannedBarcode(barcode);
         form.setValue("barcode", barcode);
@@ -110,10 +114,6 @@ export function AddItemModal({
 
         // TODO: Call server to resolve catalog info
         console.log("Scanned barcode:", barcode);
-      },
-      onError: (error) => {
-        console.error("Barcode scan error:", error);
-        setScanError(error);
       },
     });
 
@@ -169,9 +169,9 @@ export function AddItemModal({
       window.dispatchEvent(
         new CustomEvent("inventory_add_manual", {
           detail: {
+            assigned: Boolean(data.assignedAnimalId),
+            hasBarcode: Boolean(data.barcode),
             name: data.name,
-            hasBarcode: !!data.barcode,
-            assigned: !!data.assignedAnimalId,
           },
         }),
       );
@@ -195,7 +195,7 @@ export function AddItemModal({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
+      <Dialog onOpenChange={handleOpenChange} open={open}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Inventory Item</DialogTitle>
@@ -205,18 +205,18 @@ export function AddItemModal({
           </DialogHeader>
 
           <Form {...form}>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs onValueChange={setActiveTab} value={activeTab}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="scan" className="gap-2">
+                <TabsTrigger className="gap-2" value="scan">
                   <Scan className="h-4 w-4" />
                   Scan
                 </TabsTrigger>
-                <TabsTrigger value="manual" className="gap-2">
+                <TabsTrigger className="gap-2" value="manual">
                   Manual
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="scan" className="space-y-4">
+              <TabsContent className="space-y-4" value="scan">
                 {hasPermission === false ? (
                   <Alert>
                     <Camera className="h-4 w-4" />
@@ -230,9 +230,9 @@ export function AddItemModal({
                     {!isScanning ? (
                       <div className="py-8 text-center">
                         <Button
+                          className="gap-2"
                           onClick={startScanning}
                           size="lg"
-                          className="gap-2"
                         >
                           <Camera className="h-5 w-5" />
                           Start Scanning
@@ -245,10 +245,10 @@ export function AddItemModal({
                       <div className="space-y-4">
                         <div className="relative">
                           <video
-                            ref={videoRef}
                             className="h-64 w-full rounded-lg bg-black object-cover"
-                            playsInline
                             muted
+                            playsInline
+                            ref={videoRef}
                           />
                           <div className="pointer-events-none absolute inset-0 rounded-lg border-2 border-primary">
                             <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-24 w-48 transform rounded-lg border-2 border-white"></div>
@@ -256,7 +256,7 @@ export function AddItemModal({
                         </div>
 
                         <div className="flex justify-center">
-                          <Button variant="outline" onClick={stopScanning}>
+                          <Button onClick={stopScanning} variant="outline">
                             Stop Scanning
                           </Button>
                         </div>
@@ -301,8 +301,8 @@ export function AddItemModal({
 
               <TabsContent value="manual">
                 <form
-                  onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-4"
+                  onSubmit={form.handleSubmit(onSubmit)}
                 >
                   {/* Medication Selection - Hybrid Input */}
                   <FormField
@@ -313,7 +313,7 @@ export function AddItemModal({
                         <FormLabel>Medication *</FormLabel>
                         <FormControl>
                           <HybridMedicationInput
-                            value={field.value}
+                            householdId={selectedHousehold?.id}
                             onChange={(
                               medicationName,
                               medicationId,
@@ -331,9 +331,9 @@ export function AddItemModal({
                                 medication,
                               );
                             }}
-                            required
-                            householdId={selectedHousehold?.id}
                             placeholder="Enter or search for medication..."
+                            required
+                            value={field.value}
                           />
                         </FormControl>
                         <FormMessage />
@@ -354,7 +354,7 @@ export function AddItemModal({
                         <FormItem>
                           <FormLabel>Medication Name</FormLabel>
                           <FormControl>
-                            <Input {...field} readOnly disabled />
+                            <Input {...field} disabled readOnly />
                           </FormControl>
                           <FormMessage />
                           <p className="text-muted-foreground text-xs">
@@ -489,8 +489,8 @@ export function AddItemModal({
                           <FormLabel>Total Quantity *</FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
                               min="1"
+                              type="number"
                               {...field}
                               onChange={(e) => {
                                 const value =
@@ -521,9 +521,9 @@ export function AddItemModal({
                           <FormLabel>Units Remaining *</FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
-                              min="0"
                               max={form.watch("quantityUnits")}
+                              min="0"
+                              type="number"
                               {...field}
                               onChange={(e) =>
                                 field.onChange(
@@ -561,14 +561,14 @@ export function AddItemModal({
                           <FormLabel>Expires On *</FormLabel>
                           <FormControl>
                             <DateInput
-                              id="expires"
-                              value={field.value}
-                              onChange={field.onChange}
-                              placeholder="Select expiry date"
                               fromDate={
                                 new Date(new Date().setHours(0, 0, 0, 0))
                               }
-                              toDate={new Date(2030, 11, 31)} // Allow dates up to end of 2030
+                              id="expires"
+                              onChange={field.onChange}
+                              placeholder="Select expiry date"
+                              toDate={new Date(2030, 11, 31)}
+                              value={field.value} // Allow dates up to end of 2030
                             />
                           </FormControl>
                           <FormMessage />
@@ -674,15 +674,15 @@ export function AddItemModal({
 
                   <div className="flex justify-end gap-2 pt-4">
                     <Button
+                      onClick={() => onOpenChange?.(false)}
                       type="button"
                       variant="outline"
-                      onClick={() => onOpenChange?.(false)}
                     >
                       Cancel
                     </Button>
                     <Button
-                      type="submit"
                       disabled={form.formState.isSubmitting}
+                      type="submit"
                     >
                       {form.formState.isSubmitting ? "Adding..." : "Add Item"}
                     </Button>
@@ -695,7 +695,10 @@ export function AddItemModal({
       </Dialog>
 
       {/* Error Dialog */}
-      <AlertDialog open={!!scanError} onOpenChange={() => setScanError(null)}>
+      <AlertDialog
+        onOpenChange={() => setScanError(null)}
+        open={Boolean(scanError)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Scanning Error</AlertDialogTitle>

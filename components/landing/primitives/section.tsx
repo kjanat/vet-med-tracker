@@ -11,8 +11,8 @@ interface SectionProps {
 
 const variantStyles = {
   default: "bg-background",
-  muted: "bg-muted/50",
   gradient: "bg-gradient-to-b from-transparent via-background/50 to-background",
+  muted: "bg-muted/50",
   transparent: "bg-transparent",
 };
 
@@ -31,7 +31,6 @@ export function Section({
 }: SectionProps) {
   return (
     <section
-      id={id}
       className={cn(
         "relative",
         variantStyles[variant],
@@ -39,6 +38,7 @@ export function Section({
         "scroll-mt-20", // Account for header height when scrolling to anchors
         className,
       )}
+      id={id}
     >
       <div className="container relative mx-auto max-w-6xl px-4">
         {children}

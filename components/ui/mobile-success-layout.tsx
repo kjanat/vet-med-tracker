@@ -59,16 +59,16 @@ export const MobileSuccessLayout = memo(function MobileSuccessLayout({
       {/* Quick Actions */}
       <div className="w-full max-w-sm space-y-3">
         <Button
-          onClick={onRecordAnother}
           className="h-12 w-full text-base"
+          onClick={onRecordAnother}
           variant="default"
         >
           Record Another
         </Button>
 
         <Button
-          onClick={onReturnHome}
           className="h-12 w-full text-base"
+          onClick={onReturnHome}
           variant="outline"
         >
           <Home className="mr-2 h-5 w-5" />
@@ -76,10 +76,10 @@ export const MobileSuccessLayout = memo(function MobileSuccessLayout({
         </Button>
 
         <Button
+          className="h-12 w-full text-base"
           onClick={() => {
             // TODO: Open reminder adjustment sheet
           }}
-          className="h-12 w-full text-base"
           variant="ghost"
         >
           <Bell className="mr-2 h-5 w-5" />

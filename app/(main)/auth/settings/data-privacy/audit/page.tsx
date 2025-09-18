@@ -47,13 +47,13 @@ function AuditLogContent() {
       action: filterAction === "all" ? undefined : filterAction,
       search: filterUser || undefined,
     },
-    { enabled: !!selectedHouseholdId },
+    { enabled: Boolean(selectedHouseholdId) },
   );
 
   // Fetch action types for filtering
   const { data: actionTypes } = trpc.audit.getActionTypes.useQuery(
     { householdId: selectedHouseholdId || "" },
-    { enabled: !!selectedHouseholdId },
+    { enabled: Boolean(selectedHouseholdId) },
   );
 
   // Format action types for select component
@@ -103,10 +103,10 @@ function AuditLogContent() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push("/auth/settings/data-privacy")}
             className="shrink-0"
+            onClick={() => router.push("/auth/settings/data-privacy")}
+            size="icon"
+            variant="ghost"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -134,10 +134,10 @@ function AuditLogContent() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push("/auth/settings/data-privacy")}
             className="shrink-0"
+            onClick={() => router.push("/auth/settings/data-privacy")}
+            size="icon"
+            variant="ghost"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -163,10 +163,10 @@ function AuditLogContent() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.push("/auth/settings/data-privacy")}
           className="shrink-0"
+          onClick={() => router.push("/auth/settings/data-privacy")}
+          size="icon"
+          variant="ghost"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -191,10 +191,10 @@ function AuditLogContent() {
               </CardDescription>
             </div>
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
               className="gap-2"
+              onClick={handleExport}
+              size="sm"
+              variant="outline"
             >
               <Download className="h-4 w-4" />
               Export
@@ -207,13 +207,13 @@ function AuditLogContent() {
             <div className="flex flex-1 items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Input
+                className="flex-1"
+                onChange={(e) => setFilterUser(e.target.value)}
                 placeholder="Filter by user..."
                 value={filterUser}
-                onChange={(e) => setFilterUser(e.target.value)}
-                className="flex-1"
               />
             </div>
-            <Select value={filterAction} onValueChange={setFilterAction}>
+            <Select onValueChange={setFilterAction} value={filterAction}>
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue />
               </SelectTrigger>
@@ -231,17 +231,17 @@ function AuditLogContent() {
           <div className="space-y-3">
             {auditEntries.map((entry) => (
               <div
-                key={entry.id}
                 className="flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
+                key={entry.id}
               >
                 <div className="flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{entry.userName}</span>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge className="text-xs" variant="outline">
                       {entry.action}
                     </Badge>
                     {entry.resourceType && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge className="text-xs" variant="secondary">
                         {entry.resourceType}
                       </Badge>
                     )}

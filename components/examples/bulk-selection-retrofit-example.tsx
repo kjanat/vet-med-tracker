@@ -55,7 +55,7 @@ function _ExistingTableOriginal({ data, onEdit }: ExistingTableProps) {
             <TableCell>{item.status}</TableCell>
             <TableCell>{item.createdAt.toLocaleDateString()}</TableCell>
             <TableCell>
-              <Button variant="outline" onClick={() => onEdit?.(item)}>
+              <Button onClick={() => onEdit?.(item)} variant="outline">
                 Edit
               </Button>
             </TableCell>
@@ -112,15 +112,15 @@ function ExistingTableWithBulkSelection({
               {/* NEW: Added selection checkbox */}
               <TableCell>
                 <BulkSelectionCheckbox
-                  id={item.id}
                   aria-label={`Select ${item.name}`}
+                  id={item.id}
                 />
               </TableCell>
               <TableCell>{item.name}</TableCell>
               <TableCell>{item.status}</TableCell>
               <TableCell>{item.createdAt.toLocaleDateString()}</TableCell>
               <TableCell>
-                <Button variant="outline" onClick={() => onEdit?.(item)}>
+                <Button onClick={() => onEdit?.(item)} variant="outline">
                   Edit
                 </Button>
               </TableCell>
@@ -131,8 +131,6 @@ function ExistingTableWithBulkSelection({
 
       {/* NEW: Added floating action bar */}
       <FloatingActionBar
-        onDelete={handleBulkDelete}
-        onExport={handleBulkExport}
         customActions={[
           {
             icon: ({ className }) => <Download className={className} />,
@@ -141,6 +139,8 @@ function ExistingTableWithBulkSelection({
             variant: "outline",
           },
         ]}
+        onDelete={handleBulkDelete}
+        onExport={handleBulkExport}
       />
     </div>
   );
@@ -159,24 +159,24 @@ export function RetrofittedTableExample(props: ExistingTableProps) {
 export function ExampleUsage() {
   const sampleData: ExampleItem[] = [
     {
+      createdAt: new Date(),
       id: "1",
       name: "Item 1",
       status: "active",
-      createdAt: new Date(),
     },
     {
+      createdAt: new Date(),
       id: "2",
       name: "Item 2",
       status: "inactive",
-      createdAt: new Date(),
     },
   ];
 
   return (
     <RetrofittedTableExample
       data={sampleData}
-      onEdit={(item) => console.log("Edit:", item)}
       onDelete={(ids) => console.log("Delete:", ids)}
+      onEdit={(item) => console.log("Edit:", item)}
       onExport={(ids) => console.log("Export:", ids)}
     />
   );

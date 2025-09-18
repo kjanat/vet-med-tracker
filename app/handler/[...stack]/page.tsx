@@ -8,5 +8,5 @@ export default async function Handler(props: {
   params: Promise<{ stack: string[] }>;
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  return <StackHandler fullPage app={stackServerApp} routeProps={props} />;
+  return <StackHandler app={stackServerApp} fullPage routeProps={props} />;
 }

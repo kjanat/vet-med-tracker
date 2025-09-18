@@ -55,7 +55,7 @@ export function CoSignerSelect({
   // Get household members who are eligible to co-sign (not VETREADONLY)
   const { data: householdMembers } = trpc.household.getMembers.useQuery(
     { householdId: selectedHousehold?.id || "" },
-    { enabled: !!selectedHousehold?.id },
+    { enabled: Boolean(selectedHousehold?.id) },
   );
 
   // Filter eligible co-signers (exclude VETREADONLY and current user)
@@ -73,10 +73,9 @@ export function CoSignerSelect({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
           aria-expanded={open}
           aria-label="Select co-signer"
           className={cn(
@@ -85,18 +84,19 @@ export function CoSignerSelect({
             className,
           )}
           disabled={disabled || eligibleMembers.length === 0}
+          variant="outline"
         >
           {selectedMember ? (
             <div className="flex items-center gap-3">
               <Avatar className="h-6 w-6">
                 {selectedMember.user?.image && (
                   <AvatarImage
-                    src={selectedMember.user.image}
                     alt={
                       selectedMember.user.name ||
                       selectedMember.user.email ||
                       "User"
                     }
+                    src={selectedMember.user.image}
                   />
                 )}
                 <AvatarFallback
@@ -137,8 +137,8 @@ export function CoSignerSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0"
         align="start"
+        className="w-[var(--radix-popover-trigger-width)] p-0"
       >
         <Command>
           <CommandList>
@@ -166,16 +166,16 @@ export function CoSignerSelect({
 
                   return (
                     <CommandItem
-                      key={member.userId}
-                      value={`${member.userId}-${displayName}`}
-                      onSelect={() => handleSelect(member.userId)}
                       className="flex cursor-pointer items-center gap-3 p-3"
+                      key={member.userId}
+                      onSelect={() => handleSelect(member.userId)}
+                      value={`${member.userId}-${displayName}`}
                     >
                       <Avatar className="h-8 w-8">
                         {member.user.image && (
                           <AvatarImage
-                            src={member.user.image}
                             alt={displayName}
+                            src={member.user.image}
                           />
                         )}
                         <AvatarFallback

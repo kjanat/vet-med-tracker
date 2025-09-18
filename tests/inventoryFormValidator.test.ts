@@ -3,28 +3,28 @@ import { InventoryFormValidator } from "@/lib/services/inventoryFormValidator";
 
 describe.skip("InventoryFormValidator", () => {
   const validFormData = {
-    medicationId: "med-123",
-    name: "Test Medication",
-    isCustomMedication: false,
-    brand: "Test Brand",
-    route: "oral",
-    form: "tablet",
-    strength: "10mg",
-    concentration: "",
-    quantityUnits: 10,
-    unitsRemaining: 8,
-    lot: "LOT123",
-    expiresOn: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
-    storage: "ROOM" as const,
     assignedAnimalId: "",
     barcode: "",
+    brand: "Test Brand",
+    concentration: "",
+    expiresOn: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+    form: "tablet",
+    isCustomMedication: false,
+    lot: "LOT123",
+    medicationId: "med-123",
+    name: "Test Medication",
+    quantityUnits: 10,
+    route: "oral",
     setInUse: false,
+    storage: "ROOM" as const,
+    strength: "10mg",
+    unitsRemaining: 8,
   };
 
   const validContext = {
+    allowPastExpiry: false,
     householdId: "household-123",
     validateQuantity: true,
-    allowPastExpiry: false,
   };
 
   describe("comprehensive validation", () => {
@@ -41,11 +41,11 @@ describe.skip("InventoryFormValidator", () => {
     it("should return validation errors for invalid data", () => {
       const invalidData = {
         ...validFormData,
+        expiresOn: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
         medicationId: "",
         name: "",
         quantityUnits: -1,
         unitsRemaining: 15, // More than total
-        expiresOn: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
       };
 
       const result = InventoryFormValidator.validate(invalidData, validContext);
@@ -315,8 +315,8 @@ describe.skip("InventoryFormValidator", () => {
     it("should warn about controlled substances without lot number", () => {
       const controlledData = {
         ...validFormData,
-        storage: "CONTROLLED" as const,
         lot: "",
+        storage: "CONTROLLED" as const,
       };
 
       const result = InventoryFormValidator.validate(
@@ -333,8 +333,8 @@ describe.skip("InventoryFormValidator", () => {
     it("should warn about liquid medications in freezer", () => {
       const freezerLiquidData = {
         ...validFormData,
-        storage: "FREEZER" as const,
         form: "liquid suspension",
+        storage: "FREEZER" as const,
       };
 
       const result = InventoryFormValidator.validate(
@@ -411,14 +411,14 @@ describe.skip("InventoryFormValidator", () => {
   describe("utility methods", () => {
     it("should get display message for validation errors", () => {
       const invalidResult = {
-        isValid: false,
         errors: [
           {
+            code: "TEST_ERROR",
             field: "medicationId" as const,
             message: "Test error",
-            code: "TEST_ERROR",
           },
         ],
+        isValid: false,
         warnings: [],
       };
 
@@ -429,8 +429,8 @@ describe.skip("InventoryFormValidator", () => {
 
     it("should return null for valid results", () => {
       const validResult = {
-        isValid: true,
         errors: [],
+        isValid: true,
         warnings: [],
       };
 
@@ -441,14 +441,14 @@ describe.skip("InventoryFormValidator", () => {
 
     it("should check for specific error codes", () => {
       const result = {
-        isValid: false,
         errors: [
           {
+            code: "MISSING_MEDICATION",
             field: "medicationId" as const,
             message: "Required",
-            code: "MISSING_MEDICATION",
           },
         ],
+        isValid: false,
         warnings: [],
       };
 
@@ -462,13 +462,13 @@ describe.skip("InventoryFormValidator", () => {
 
     it("should check for specific warning codes", () => {
       const result = {
-        isValid: true,
         errors: [],
+        isValid: true,
         warnings: [
           {
+            code: "LOW_STOCK",
             field: "unitsRemaining" as const,
             message: "Low stock",
-            code: "LOW_STOCK",
           },
         ],
       };

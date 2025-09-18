@@ -46,13 +46,13 @@ function UpcomingDosesWidgetContent({
       const dailyCount = baseDoses + (index % 2 === 0 ? variation : -variation);
 
       return {
+        count: Math.max(0, dailyCount),
         date: date.toISOString().split("T")[0],
         dayName: date.toLocaleDateString("en-US", { weekday: "short" }),
         fullDate: date.toLocaleDateString("en-US", {
-          month: "short",
           day: "numeric",
+          month: "short",
         }),
-        count: Math.max(0, dailyCount),
         isToday: index === 0,
       };
     });
@@ -81,7 +81,7 @@ function UpcomingDosesWidgetContent({
     );
 
     return Object.entries(types)
-      .map(([type, count]) => ({ type, count }))
+      .map(([type, count]) => ({ count, type }))
       .sort((a, b) => b.count - a.count);
   }, [upcomingData]);
 
@@ -141,12 +141,12 @@ function UpcomingDosesWidgetContent({
         <div className="space-y-2">
           {processedData.dailyDoses.map((day) => (
             <div
-              key={day.date}
               className={`flex items-center justify-between rounded-lg border p-2 ${
                 day.isToday
                   ? "border-blue-200 bg-blue-50 dark:bg-blue-950/20"
                   : ""
               }`}
+              key={day.date}
             >
               <div className="flex items-center gap-3">
                 <div className="text-center">
@@ -162,19 +162,19 @@ function UpcomingDosesWidgetContent({
 
                 <div className="flex-1">
                   <Progress
+                    className="h-2"
                     value={
                       processedData.maxDailyDoses > 0
                         ? (day.count / processedData.maxDailyDoses) * 100
                         : 0
                     }
-                    className="h-2"
                   />
                 </div>
               </div>
 
               <Badge
-                variant={day.isToday ? "default" : "secondary"}
                 className="text-xs"
+                variant={day.isToday ? "default" : "secondary"}
               >
                 {day.count}
               </Badge>
@@ -194,7 +194,7 @@ function UpcomingDosesWidgetContent({
           <div className="max-h-48 space-y-2 overflow-y-auto">
             {Object.entries(processedData.animalGroups).map(
               ([animalName, doses]) => (
-                <div key={animalName} className="rounded-lg border p-3">
+                <div className="rounded-lg border p-3" key={animalName}>
                   <div className="mb-2 flex items-center justify-between">
                     <h5 className="font-medium">{animalName}</h5>
                     <Badge variant="outline">
@@ -206,8 +206,8 @@ function UpcomingDosesWidgetContent({
                   <div className="space-y-1">
                     {doses.map((dose) => (
                       <div
-                        key={dose.regimenId}
                         className="flex items-center justify-between text-sm"
+                        key={dose.regimenId}
                       >
                         <span className="text-muted-foreground">
                           {dose.medicationName}
@@ -230,7 +230,7 @@ function UpcomingDosesWidgetContent({
             <span className="text-muted-foreground">Schedule Types</span>
             <div className="flex gap-2">
               {scheduleTypesStats.map((stat) => (
-                <Badge key={stat.type} variant="secondary" className="text-xs">
+                <Badge className="text-xs" key={stat.type} variant="secondary">
                   {stat.type}: {stat.count}
                 </Badge>
               ))}

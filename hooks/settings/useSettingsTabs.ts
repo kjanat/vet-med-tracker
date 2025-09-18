@@ -28,13 +28,15 @@ export function useSettingsTabs() {
   );
 
   // Memoize the parsed parameters to prevent re-parsing
-  const typedParams = useMemo(() => {
-    return getTypedSearchParams(
-      new URLSearchParams(searchParamsString),
-      "settings",
-      { tab: "data" },
-    ) as SettingsSearchParams;
-  }, [searchParamsString]);
+  const typedParams = useMemo(
+    () =>
+      getTypedSearchParams(
+        new URLSearchParams(searchParamsString),
+        "settings",
+        { tab: "data" },
+      ) as SettingsSearchParams,
+    [searchParamsString],
+  );
 
   // Memoize the active tab to prevent unnecessary re-renders
   const activeTab = useMemo(() => typedParams.tab || "data", [typedParams.tab]);

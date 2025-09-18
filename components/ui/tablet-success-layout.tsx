@@ -95,8 +95,8 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
           {/* Quick Actions */}
           <div className="mb-8 space-y-3">
             <Button
-              onClick={onRecordAnother}
               className="h-12 w-full justify-start text-base"
+              onClick={onRecordAnother}
               variant="default"
             >
               <RotateCcw className="mr-3 h-5 w-5" />
@@ -104,8 +104,8 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
             </Button>
 
             <Button
-              onClick={onReturnHome}
               className="h-12 w-full justify-start text-base"
+              onClick={onReturnHome}
               variant="outline"
             >
               <Home className="mr-3 h-5 w-5" />
@@ -113,10 +113,10 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
             </Button>
 
             <Button
+              className="h-12 w-full justify-start text-base"
               onClick={() => {
                 // TODO: Open reminder adjustment sheet
               }}
-              className="h-12 w-full justify-start text-base"
               variant="ghost"
             >
               <Bell className="mr-3 h-5 w-5" />
@@ -134,23 +134,23 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
               </CardHeader>
               <CardContent className="space-y-2 p-4 pt-0">
                 <Button
-                  variant="ghost"
-                  size="sm"
                   className="h-8 w-full justify-start text-sm"
                   onClick={() => {
                     // TODO: Navigate to history
                   }}
+                  size="sm"
+                  variant="ghost"
                 >
                   <Calendar className="mr-2 h-4 w-4" />
                   View History
                 </Button>
                 <Button
-                  variant="ghost"
-                  size="sm"
                   className="h-8 w-full justify-start text-sm"
                   onClick={() => {
                     // TODO: Navigate to insights
                   }}
+                  size="sm"
+                  variant="ghost"
                 >
                   📊 View Insights
                 </Button>

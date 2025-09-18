@@ -88,21 +88,6 @@ ensureTimerMethods(jestGlobal);
 
 // Ensure the jest object has the timer methods React Testing Library expects
 Object.assign(jestGlobal, {
-  useFakeTimers:
-    jestGlobal.useFakeTimers ||
-    (() => {
-      // Bun's timer mocking - placeholder for now
-    }),
-  useRealTimers:
-    jestGlobal.useRealTimers ||
-    (() => {
-      // Reset to real timers - placeholder for now
-    }),
-  setSystemTime:
-    jestGlobal.setSystemTime ||
-    ((_date?: Date | number) => {
-      // Bun's setSystemTime compatibility
-    }),
   advanceTimersByTime:
     jestGlobal.advanceTimersByTime ||
     ((ms: number) => {
@@ -113,24 +98,32 @@ Object.assign(jestGlobal, {
         `[Timer Compat] advanceTimersByTime(${ms}ms) - no-op in Bun`,
       );
     }),
+  fn:
+    jestGlobal.fn ||
+    ((impl?: (...args: unknown[]) => unknown) => createMockFn(impl)),
+  isMockFunction:
+    jestGlobal.isMockFunction || ((fn?: unknown) => isMockFunction(fn)),
+  now: jestGlobal.now || (() => Date.now()),
   runAllTimers:
     jestGlobal.runAllTimers ||
     (() => {
       // Jest's runAllTimers equivalent - no-op in Bun
       console.debug("[Timer Compat] runAllTimers() - no-op in Bun");
     }),
-  now: jestGlobal.now || (() => Date.now()),
-  isMockFunction:
-    jestGlobal.isMockFunction ||
-    ((fn?: unknown) => {
-      // Enhanced mock function detection for Bun
-      return isMockFunction(fn);
+  setSystemTime:
+    jestGlobal.setSystemTime ||
+    ((_date?: Date | number) => {
+      // Bun's setSystemTime compatibility
     }),
-  fn:
-    jestGlobal.fn ||
-    ((impl?: (...args: unknown[]) => unknown) => {
-      // Create a lightweight mock implementation compatible with RTL expectations
-      return createMockFn(impl);
+  useFakeTimers:
+    jestGlobal.useFakeTimers ||
+    (() => {
+      // Bun's timer mocking - placeholder for now
+    }),
+  useRealTimers:
+    jestGlobal.useRealTimers ||
+    (() => {
+      // Reset to real timers - placeholder for now
     }),
 });
 

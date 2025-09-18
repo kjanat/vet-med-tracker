@@ -39,16 +39,18 @@ export function useInsightsFilters() {
   );
 
   // Memoize parsed parameters to prevent re-parsing
-  const typedParams = useMemo(() => {
-    return getTypedSearchParams(
-      new URLSearchParams(searchParamsString),
-      "insights",
-      {
-        view: "summary",
-        metric: "all",
-      },
-    ) as InsightsSearchParams;
-  }, [searchParamsString]);
+  const typedParams = useMemo(
+    () =>
+      getTypedSearchParams(
+        new URLSearchParams(searchParamsString),
+        "insights",
+        {
+          metric: "all",
+          view: "summary",
+        },
+      ) as InsightsSearchParams,
+    [searchParamsString],
+  );
 
   // Memoize default date calculation to prevent recreation on every render
   const defaultDates = useMemo(() => {
@@ -63,15 +65,16 @@ export function useInsightsFilters() {
   }, []); // Empty dependency array since dates should be stable per session
 
   // Memoize the filters object to prevent unnecessary re-renders
-  const filters = useMemo((): InsightsFilters => {
-    return {
-      from: typedParams.from || defaultDates.from,
-      to: typedParams.to || defaultDates.to,
+  const filters = useMemo(
+    () => ({
       animalId: typedParams.animalId,
-      view: typedParams.view || "summary",
+      from: typedParams.from || defaultDates.from,
       metric: typedParams.metric || "all",
-    };
-  }, [typedParams, defaultDates]);
+      to: typedParams.to || defaultDates.to,
+      view: typedParams.view || "summary",
+    }),
+    [typedParams, defaultDates],
+  );
 
   /**
    * Updates a single filter parameter
@@ -114,8 +117,8 @@ export function useInsightsFilters() {
   const resetDefaults = useMemo(
     () => ({
       animalId: undefined,
-      view: "summary" as const,
       metric: "all" as const,
+      view: "summary" as const,
     }),
     [],
   ); // Stable defaults that never change
@@ -171,8 +174,8 @@ export function useInsightsFilters() {
 
   return {
     filters,
+    resetFilters,
     setFilter,
     setFilters,
-    resetFilters,
   };
 }

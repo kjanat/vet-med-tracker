@@ -20,24 +20,40 @@ import {
 } from "@/server/api/trpc";
 
 export const householdRouter = createTRPCRouter({
-  // List all households for the current user
-  list: protectedProcedure.query(async ({ ctx }) => {
-    // Get all households where the user is a member
-    const userMemberships = await ctx.db
-      .select({
-        household: households,
-        membership: memberships,
-      })
-      .from(memberships)
-      .innerJoin(households, eq(households.id, memberships.householdId))
-      .where(eq(memberships.userId, ctx.dbUser.id));
+  // Create a new household
+  create: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(100),
+        timezone: z.string().default("America/New_York"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Create household
+      const [household] = await ctx.db
+        .insert(households)
+        .values({
+          name: input.name,
+          timezone: input.timezone,
+        })
+        .returning();
 
-    return userMemberships.map(({ household, membership }) => ({
-      ...household,
-      role: membership.role,
-      joinedAt: membership.createdAt,
-    }));
-  }),
+      if (!household) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create household",
+        });
+      }
+
+      // Add creator as owner
+      await ctx.db.insert(memberships).values({
+        householdId: household.id,
+        role: "OWNER",
+        userId: ctx.dbUser.id,
+      });
+
+      return household;
+    }),
 
   // Get a specific household with animals
   get: householdProcedure
@@ -75,12 +91,12 @@ export const householdRouter = createTRPCRouter({
       // Get memberships with users
       const householdMemberships = await ctx.db
         .select({
-          id: memberships.id,
-          userId: memberships.userId,
-          householdId: memberships.householdId,
-          role: memberships.role,
           createdAt: memberships.createdAt,
+          householdId: memberships.householdId,
+          id: memberships.id,
+          role: memberships.role,
           updatedAt: memberships.updatedAt,
+          userId: memberships.userId,
         })
         .from(memberships)
         .where(eq(memberships.householdId, input.householdId));
@@ -90,71 +106,6 @@ export const householdRouter = createTRPCRouter({
         animals: householdAnimals,
         memberships: householdMemberships,
       };
-    }),
-
-  // Create a new household
-  create: protectedProcedure
-    .input(
-      z.object({
-        name: z.string().min(1).max(100),
-        timezone: z.string().default("America/New_York"),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Create household
-      const [household] = await ctx.db
-        .insert(households)
-        .values({
-          name: input.name,
-          timezone: input.timezone,
-        })
-        .returning();
-
-      if (!household) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create household",
-        });
-      }
-
-      // Add creator as owner
-      await ctx.db.insert(memberships).values({
-        userId: ctx.dbUser.id,
-        householdId: household.id,
-        role: "OWNER",
-      });
-
-      return household;
-    }),
-
-  // Get members of a household
-  getMembers: householdProcedure
-    .input(
-      z.object({
-        householdId: z.string(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const members = await ctx.db
-        .select({
-          id: memberships.id,
-          userId: memberships.userId,
-          householdId: memberships.householdId,
-          role: memberships.role,
-          createdAt: memberships.createdAt,
-          updatedAt: memberships.updatedAt,
-          user: {
-            id: users.id,
-            name: users.name,
-            email: users.email,
-            image: users.image,
-          },
-        })
-        .from(memberships)
-        .innerJoin(users, eq(memberships.userId, users.id))
-        .where(eq(memberships.householdId, input.householdId));
-
-      return members;
     }),
 
   // Get animals for a household
@@ -178,12 +129,42 @@ export const householdRouter = createTRPCRouter({
       return householdAnimals;
     }),
 
+  // Get members of a household
+  getMembers: householdProcedure
+    .input(
+      z.object({
+        householdId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const members = await ctx.db
+        .select({
+          createdAt: memberships.createdAt,
+          householdId: memberships.householdId,
+          id: memberships.id,
+          role: memberships.role,
+          updatedAt: memberships.updatedAt,
+          user: {
+            email: users.email,
+            id: users.id,
+            image: users.image,
+            name: users.name,
+          },
+          userId: memberships.userId,
+        })
+        .from(memberships)
+        .innerJoin(users, eq(memberships.userId, users.id))
+        .where(eq(memberships.householdId, input.householdId));
+
+      return members;
+    }),
+
   // Get pending medications count for household or specific animal
   getPendingMeds: householdProcedure
     .input(
       z.object({
-        householdId: z.string(),
         animalId: z.string().optional(),
+        householdId: z.string(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -198,15 +179,15 @@ export const householdRouter = createTRPCRouter({
           timeZone: timezone,
         }); // YYYY-MM-DD format
         const localTimeStr = date.toLocaleTimeString("en-GB", {
-          timeZone: timezone,
-          hour12: false,
           hour: "2-digit",
+          hour12: false,
           minute: "2-digit",
+          timeZone: timezone,
         }); // HH:MM format
         return {
           localDateStr,
-          localTimeStr,
           localMinutes: timeToMinutes(localTimeStr),
+          localTimeStr,
         };
       };
 
@@ -218,14 +199,11 @@ export const householdRouter = createTRPCRouter({
           timesLocal: string[] | null;
         },
         currentDateStr: string,
-      ): boolean => {
-        return (
-          regimen.scheduleType === "PRN" ||
-          (regimen.endDate && regimen.endDate < currentDateStr) ||
-          !regimen.timesLocal ||
-          regimen.timesLocal.length === 0
-        );
-      };
+      ) =>
+        regimen.scheduleType === "PRN" ||
+        (regimen.endDate && regimen.endDate < currentDateStr) ||
+        !regimen.timesLocal ||
+        regimen.timesLocal.length === 0;
 
       // Helper function to check if a dose is pending
       const isDosePending = (
@@ -254,7 +232,7 @@ export const householdRouter = createTRPCRouter({
         startOfDayUTC.setHours(0, 0, 0, 0);
         const endOfDayUTC = new Date(scheduledUTC);
         endOfDayUTC.setHours(23, 59, 59, 999);
-        return { startOfDayUTC, endOfDayUTC };
+        return { endOfDayUTC, startOfDayUTC };
       };
 
       // Helper function to check if administration exists for a time slot
@@ -341,9 +319,9 @@ export const householdRouter = createTRPCRouter({
       // Fetch active regimens
       const activeRegimens = await ctx.db
         .select({
-          regimen: regimens,
           animal: animals,
           medication: medicationCatalog,
+          regimen: regimens,
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
@@ -395,8 +373,8 @@ export const householdRouter = createTRPCRouter({
         return { pendingCount: totalPendingCount };
       } else {
         return {
-          pendingCount: totalPendingCount,
           byAnimal: Object.fromEntries(pendingByAnimal),
+          pendingCount: totalPendingCount,
         };
       }
     }),
@@ -405,10 +383,10 @@ export const householdRouter = createTRPCRouter({
   inviteMember: ownerProcedure
     .input(
       z.object({
-        householdId: z.string(),
         email: z.email(),
-        role: z.enum(["OWNER", "CAREGIVER", "VETREADONLY"]),
+        householdId: z.string(),
         message: z.string().optional(),
+        role: z.enum(["OWNER", "CAREGIVER", "VETREADONLY"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -443,41 +421,41 @@ export const householdRouter = createTRPCRouter({
 
         // User exists, add them directly to the household
         await ctx.db.insert(memberships).values({
-          userId: existingUser[0].id,
           householdId,
           role,
+          userId: existingUser[0].id,
         });
 
         // Log the action
         await ctx.db.insert(auditLog).values({
-          userId: ctx.dbUser.id,
-          householdId,
           action: "MEMBER_ADDED",
-          resourceType: "membership",
-          resourceId: existingUser[0].id,
-          newValues: { email, role },
           details: { message },
+          householdId,
+          newValues: { email, role },
+          resourceId: existingUser[0].id,
+          resourceType: "membership",
+          userId: ctx.dbUser.id,
         });
 
         // Queue notification to the new member
         await ctx.db.insert(notificationQueue).values({
-          userId: existingUser[0].id,
-          householdId,
-          type: "HOUSEHOLD_INVITATION_ACCEPTED",
-          title: "Added to Household",
           body: `You've been added to the household as a ${role.toLowerCase()}`,
-          scheduledFor: new Date().toISOString(),
           data: {
             householdId,
-            role,
             invitedBy: ctx.dbUser.name || ctx.dbUser.email,
+            role,
           },
+          householdId,
+          scheduledFor: new Date().toISOString(),
+          title: "Added to Household",
+          type: "HOUSEHOLD_INVITATION_ACCEPTED",
+          userId: existingUser[0].id,
         });
 
         return {
+          message: "User added to household successfully",
           success: true,
           userExists: true,
-          message: "User added to household successfully",
         };
       }
 
@@ -485,35 +463,337 @@ export const householdRouter = createTRPCRouter({
       // Note: For now, we'll queue a notification. In a full implementation,
       // you'd create a proper invitation system with tokens/links.
       await ctx.db.insert(notificationQueue).values({
-        userId: ctx.dbUser.id, // Temporarily assign to inviter for tracking
-        householdId,
-        type: "PENDING_INVITATION",
-        title: "Invitation Sent",
         body: `Invitation sent to ${email} as ${role.toLowerCase()}`,
-        scheduledFor: new Date().toISOString(),
         data: {
-          inviteeEmail: email,
-          role,
           invitedBy: ctx.dbUser.name || ctx.dbUser.email,
+          inviteeEmail: email,
           message,
+          role,
         },
+        householdId,
+        scheduledFor: new Date().toISOString(),
+        title: "Invitation Sent",
+        type: "PENDING_INVITATION",
+        userId: ctx.dbUser.id, // Temporarily assign to inviter for tracking
       });
 
       // Log the invitation
       await ctx.db.insert(auditLog).values({
-        userId: ctx.dbUser.id,
-        householdId,
         action: "INVITATION_SENT",
-        resourceType: "invitation",
-        newValues: { email, role },
         details: { message },
+        householdId,
+        newValues: { email, role },
+        resourceType: "invitation",
+        userId: ctx.dbUser.id,
       });
 
       return {
+        message: "Invitation sent successfully",
         success: true,
         userExists: false,
-        message: "Invitation sent successfully",
       };
+    }),
+
+  // Leave a household
+  leave: protectedProcedure
+    .input(
+      z.object({
+        householdId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { householdId } = input;
+
+      // Get current user's membership
+      const membership = await ctx.db
+        .select()
+        .from(memberships)
+        .where(
+          and(
+            eq(memberships.userId, ctx.dbUser.id),
+            eq(memberships.householdId, householdId),
+          ),
+        )
+        .limit(1);
+
+      if (!membership[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "You are not a member of this household",
+        });
+      }
+
+      // Check if user is the last owner
+      if (membership[0].role === "OWNER") {
+        const ownerCount = await ctx.db
+          .select({ count: count() })
+          .from(memberships)
+          .where(
+            and(
+              eq(memberships.householdId, householdId),
+              eq(memberships.role, "OWNER"),
+            ),
+          );
+
+        if (!ownerCount[0] || ownerCount[0].count <= 1) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Cannot leave as the last owner. Transfer ownership first or delete the household.",
+          });
+        }
+      }
+
+      // Remove the membership
+      await ctx.db
+        .delete(memberships)
+        .where(
+          and(
+            eq(memberships.userId, ctx.dbUser.id),
+            eq(memberships.householdId, householdId),
+          ),
+        );
+
+      // Log the action
+      await ctx.db.insert(auditLog).values({
+        action: "MEMBER_LEFT",
+        householdId,
+        oldValues: {
+          role: membership[0].role,
+          userId: ctx.dbUser.id,
+        },
+        resourceId: membership[0].id,
+        resourceType: "membership",
+        userId: ctx.dbUser.id,
+      });
+
+      return {
+        message: "Successfully left the household",
+        success: true,
+      };
+    }),
+  // List all households for the current user
+  list: protectedProcedure.query(async ({ ctx }) => {
+    // Get all households where the user is a member
+    const userMemberships = await ctx.db
+      .select({
+        household: households,
+        membership: memberships,
+      })
+      .from(memberships)
+      .innerJoin(households, eq(households.id, memberships.householdId))
+      .where(eq(memberships.userId, ctx.dbUser.id));
+
+    return userMemberships.map(({ household, membership }) => ({
+      ...household,
+      joinedAt: membership.createdAt,
+      role: membership.role,
+    }));
+  }),
+
+  // Remove a member from the household
+  removeMember: ownerProcedure
+    .input(
+      z.object({
+        householdId: z.string(),
+        membershipId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { householdId, membershipId } = input;
+
+      // Get the membership to remove
+      const membership = await ctx.db
+        .select({
+          membership: memberships,
+          user: users,
+        })
+        .from(memberships)
+        .innerJoin(users, eq(memberships.userId, users.id))
+        .where(
+          and(
+            eq(memberships.id, membershipId),
+            eq(memberships.householdId, householdId),
+          ),
+        )
+        .limit(1);
+
+      if (!membership[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Membership not found",
+        });
+      }
+
+      // Prevent removing the last owner
+      if (membership[0].membership.role === "OWNER") {
+        const ownerCount = await ctx.db
+          .select({ count: count() })
+          .from(memberships)
+          .where(
+            and(
+              eq(memberships.householdId, householdId),
+              eq(memberships.role, "OWNER"),
+            ),
+          );
+
+        if (!ownerCount[0] || ownerCount[0].count <= 1) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot remove the last owner from the household",
+          });
+        }
+      }
+
+      // Prevent users from removing themselves
+      if (membership[0].membership.userId === ctx.dbUser.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot remove yourself from the household",
+        });
+      }
+
+      // Remove the membership
+      await ctx.db.delete(memberships).where(eq(memberships.id, membershipId));
+
+      // Log the action
+      await ctx.db.insert(auditLog).values({
+        action: "MEMBER_REMOVED",
+        householdId,
+        oldValues: {
+          email: membership[0].user.email,
+          role: membership[0].membership.role,
+          userId: membership[0].membership.userId,
+        },
+        resourceId: membershipId,
+        resourceType: "membership",
+        userId: ctx.dbUser.id,
+      });
+
+      // Notify the removed user
+      await ctx.db.insert(notificationQueue).values({
+        body: "You have been removed from the household",
+        data: { removedBy: ctx.dbUser.name || ctx.dbUser.email },
+        householdId,
+        scheduledFor: new Date().toISOString(),
+        title: "Removed from Household",
+        type: "REMOVED_FROM_HOUSEHOLD",
+        userId: membership[0].membership.userId,
+      });
+
+      return {
+        message: "Member removed successfully",
+        success: true,
+      };
+    }),
+
+  // Resend invitation (placeholder - in a real implementation would resend email)
+  resendInvite: ownerProcedure
+    .input(
+      z.object({
+        householdId: z.string(),
+        inviteId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // For now, just log the action since we don't have a full invitation system
+      await ctx.db.insert(auditLog).values({
+        action: "INVITATION_RESENT",
+        householdId: input.householdId,
+        resourceId: input.inviteId,
+        resourceType: "invitation",
+        userId: ctx.dbUser.id,
+      });
+
+      return {
+        message: "Invitation resent successfully",
+        success: true,
+      };
+    }),
+
+  // Revoke invitation (placeholder - in a real implementation would cancel invitation)
+  revokeInvite: ownerProcedure
+    .input(
+      z.object({
+        householdId: z.string(),
+        inviteId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // For now, just log the action since we don't have a full invitation system
+      await ctx.db.insert(auditLog).values({
+        action: "INVITATION_REVOKED",
+        householdId: input.householdId,
+        resourceId: input.inviteId,
+        resourceType: "invitation",
+        userId: ctx.dbUser.id,
+      });
+
+      return {
+        message: "Invitation revoked successfully",
+        success: true,
+      };
+    }),
+
+  // Update household information
+  update: ownerProcedure
+    .input(
+      z.object({
+        householdId: z.string(),
+        name: z.string().min(1).max(100),
+        timezone: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { householdId, name, timezone } = input;
+
+      // Get current household data for audit log
+      const currentHousehold = await ctx.db
+        .select()
+        .from(households)
+        .where(eq(households.id, householdId))
+        .limit(1);
+
+      if (!currentHousehold[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Household not found",
+        });
+      }
+
+      // Update the household
+      const [updatedHousehold] = await ctx.db
+        .update(households)
+        .set({
+          name,
+          timezone,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(households.id, householdId))
+        .returning();
+
+      if (!updatedHousehold) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update household",
+        });
+      }
+
+      // Log the action
+      await ctx.db.insert(auditLog).values({
+        action: "HOUSEHOLD_UPDATED",
+        householdId,
+        newValues: { name, timezone },
+        oldValues: {
+          name: currentHousehold[0].name,
+          timezone: currentHousehold[0].timezone,
+        },
+        resourceId: householdId,
+        resourceType: "household",
+        userId: ctx.dbUser.id,
+      });
+
+      return updatedHousehold;
     }),
 
   // Update a member's role
@@ -584,317 +864,33 @@ export const householdRouter = createTRPCRouter({
 
       // Log the action
       await ctx.db.insert(auditLog).values({
-        userId: ctx.dbUser.id,
-        householdId,
         action: "MEMBER_ROLE_UPDATED",
-        resourceType: "membership",
-        resourceId: membershipId,
-        oldValues: { role: oldRole },
+        householdId,
         newValues: { role: newRole },
+        oldValues: { role: oldRole },
+        resourceId: membershipId,
+        resourceType: "membership",
+        userId: ctx.dbUser.id,
       });
 
       // Notify the affected user
       await ctx.db.insert(notificationQueue).values({
-        userId: membership[0].membership.userId,
-        householdId,
-        type: "ROLE_CHANGED",
-        title: "Role Updated",
         body: `Your role has been changed to ${newRole.toLowerCase()}`,
-        scheduledFor: new Date().toISOString(),
         data: {
-          oldRole,
-          newRole,
           changedBy: ctx.dbUser.name || ctx.dbUser.email,
+          newRole,
+          oldRole,
         },
-      });
-
-      return {
-        success: true,
-        message: "Member role updated successfully",
-      };
-    }),
-
-  // Remove a member from the household
-  removeMember: ownerProcedure
-    .input(
-      z.object({
-        householdId: z.string(),
-        membershipId: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { householdId, membershipId } = input;
-
-      // Get the membership to remove
-      const membership = await ctx.db
-        .select({
-          membership: memberships,
-          user: users,
-        })
-        .from(memberships)
-        .innerJoin(users, eq(memberships.userId, users.id))
-        .where(
-          and(
-            eq(memberships.id, membershipId),
-            eq(memberships.householdId, householdId),
-          ),
-        )
-        .limit(1);
-
-      if (!membership[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Membership not found",
-        });
-      }
-
-      // Prevent removing the last owner
-      if (membership[0].membership.role === "OWNER") {
-        const ownerCount = await ctx.db
-          .select({ count: count() })
-          .from(memberships)
-          .where(
-            and(
-              eq(memberships.householdId, householdId),
-              eq(memberships.role, "OWNER"),
-            ),
-          );
-
-        if (!ownerCount[0] || ownerCount[0].count <= 1) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cannot remove the last owner from the household",
-          });
-        }
-      }
-
-      // Prevent users from removing themselves
-      if (membership[0].membership.userId === ctx.dbUser.id) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You cannot remove yourself from the household",
-        });
-      }
-
-      // Remove the membership
-      await ctx.db.delete(memberships).where(eq(memberships.id, membershipId));
-
-      // Log the action
-      await ctx.db.insert(auditLog).values({
-        userId: ctx.dbUser.id,
         householdId,
-        action: "MEMBER_REMOVED",
-        resourceType: "membership",
-        resourceId: membershipId,
-        oldValues: {
-          userId: membership[0].membership.userId,
-          role: membership[0].membership.role,
-          email: membership[0].user.email,
-        },
-      });
-
-      // Notify the removed user
-      await ctx.db.insert(notificationQueue).values({
-        userId: membership[0].membership.userId,
-        householdId,
-        type: "REMOVED_FROM_HOUSEHOLD",
-        title: "Removed from Household",
-        body: "You have been removed from the household",
         scheduledFor: new Date().toISOString(),
-        data: { removedBy: ctx.dbUser.name || ctx.dbUser.email },
+        title: "Role Updated",
+        type: "ROLE_CHANGED",
+        userId: membership[0].membership.userId,
       });
 
       return {
+        message: "Member role updated successfully",
         success: true,
-        message: "Member removed successfully",
-      };
-    }),
-
-  // Resend invitation (placeholder - in a real implementation would resend email)
-  resendInvite: ownerProcedure
-    .input(
-      z.object({
-        householdId: z.string(),
-        inviteId: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // For now, just log the action since we don't have a full invitation system
-      await ctx.db.insert(auditLog).values({
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
-        action: "INVITATION_RESENT",
-        resourceType: "invitation",
-        resourceId: input.inviteId,
-      });
-
-      return {
-        success: true,
-        message: "Invitation resent successfully",
-      };
-    }),
-
-  // Revoke invitation (placeholder - in a real implementation would cancel invitation)
-  revokeInvite: ownerProcedure
-    .input(
-      z.object({
-        householdId: z.string(),
-        inviteId: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // For now, just log the action since we don't have a full invitation system
-      await ctx.db.insert(auditLog).values({
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
-        action: "INVITATION_REVOKED",
-        resourceType: "invitation",
-        resourceId: input.inviteId,
-      });
-
-      return {
-        success: true,
-        message: "Invitation revoked successfully",
-      };
-    }),
-
-  // Update household information
-  update: ownerProcedure
-    .input(
-      z.object({
-        householdId: z.string(),
-        name: z.string().min(1).max(100),
-        timezone: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { householdId, name, timezone } = input;
-
-      // Get current household data for audit log
-      const currentHousehold = await ctx.db
-        .select()
-        .from(households)
-        .where(eq(households.id, householdId))
-        .limit(1);
-
-      if (!currentHousehold[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Household not found",
-        });
-      }
-
-      // Update the household
-      const [updatedHousehold] = await ctx.db
-        .update(households)
-        .set({
-          name,
-          timezone,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(households.id, householdId))
-        .returning();
-
-      if (!updatedHousehold) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to update household",
-        });
-      }
-
-      // Log the action
-      await ctx.db.insert(auditLog).values({
-        userId: ctx.dbUser.id,
-        householdId,
-        action: "HOUSEHOLD_UPDATED",
-        resourceType: "household",
-        resourceId: householdId,
-        oldValues: {
-          name: currentHousehold[0].name,
-          timezone: currentHousehold[0].timezone,
-        },
-        newValues: { name, timezone },
-      });
-
-      return updatedHousehold;
-    }),
-
-  // Leave a household
-  leave: protectedProcedure
-    .input(
-      z.object({
-        householdId: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { householdId } = input;
-
-      // Get current user's membership
-      const membership = await ctx.db
-        .select()
-        .from(memberships)
-        .where(
-          and(
-            eq(memberships.userId, ctx.dbUser.id),
-            eq(memberships.householdId, householdId),
-          ),
-        )
-        .limit(1);
-
-      if (!membership[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "You are not a member of this household",
-        });
-      }
-
-      // Check if user is the last owner
-      if (membership[0].role === "OWNER") {
-        const ownerCount = await ctx.db
-          .select({ count: count() })
-          .from(memberships)
-          .where(
-            and(
-              eq(memberships.householdId, householdId),
-              eq(memberships.role, "OWNER"),
-            ),
-          );
-
-        if (!ownerCount[0] || ownerCount[0].count <= 1) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message:
-              "Cannot leave as the last owner. Transfer ownership first or delete the household.",
-          });
-        }
-      }
-
-      // Remove the membership
-      await ctx.db
-        .delete(memberships)
-        .where(
-          and(
-            eq(memberships.userId, ctx.dbUser.id),
-            eq(memberships.householdId, householdId),
-          ),
-        );
-
-      // Log the action
-      await ctx.db.insert(auditLog).values({
-        userId: ctx.dbUser.id,
-        householdId,
-        action: "MEMBER_LEFT",
-        resourceType: "membership",
-        resourceId: membership[0].id,
-        oldValues: {
-          userId: ctx.dbUser.id,
-          role: membership[0].role,
-        },
-      });
-
-      return {
-        success: true,
-        message: "Successfully left the household",
       };
     }),
 });

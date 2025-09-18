@@ -27,7 +27,7 @@ export function DashboardLayout({
   };
 
   return (
-    <SidebarLayout sidebarConfig={sidebarConfig} headerConfig={headerConfig}>
+    <SidebarLayout headerConfig={headerConfig} sidebarConfig={sidebarConfig}>
       <div
         className={`dashboard-content ${variant === "wide" ? "max-w-none" : "mx-auto max-w-7xl"}
           ${variant === "compact" ? "space-y-2" : "space-y-4"}

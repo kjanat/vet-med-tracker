@@ -23,11 +23,11 @@ export function UploadContent({
       <div className="space-y-2">
         <div className="relative mx-auto h-32 w-32">
           <Image
-            src={state.preview}
             alt="Preview"
-            fill
             className="rounded-md object-cover"
+            fill
             sizes="128px"
+            src={state.preview}
           />
         </div>
         {!isLoading && (
@@ -63,7 +63,7 @@ export function UploadContent({
       {/* Progress */}
       {showProgress && (
         <div className="mt-3">
-          <Progress value={state.progress} className="h-2" />
+          <Progress className="h-2" value={state.progress} />
           <p className="mt-1 text-muted-foreground text-xs">
             {state.progress}% complete
           </p>

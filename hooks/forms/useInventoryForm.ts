@@ -141,29 +141,40 @@ export function useInventoryForm(
 
   // Use focused form state management hook
   const formState = useInventoryFormState({
-    onOpen,
     onClose,
+    onOpen,
   });
 
   // Generate default values using data transformer
   const defaultValues = useMemo(
     () =>
       InventoryDataTransformer.setDefaultValues({
-        storage: defaultStorage,
         expiryDays: defaultExpiryDays,
+        storage: defaultStorage,
       }),
     [defaultStorage, defaultExpiryDays],
   );
 
   // Initialize form with validation
   const form = useForm({
-    resolver: zodResolver(inventoryFormSchema),
     defaultValues,
     mode: "onBlur",
+    resolver: zodResolver(inventoryFormSchema),
   });
 
   // tRPC mutations with focused error handling
   const createMutation = trpc.inventory.create.useMutation({
+    onError: (error) => {
+      console.error("Error creating inventory item:", error);
+      const errorMessage = "Failed to add inventory item. Please try again.";
+      formState.setError(errorMessage);
+      toast({
+        description: errorMessage,
+        title: "Error",
+        variant: "destructive",
+      });
+      onError?.(error, form.getValues());
+    },
     onSuccess: async (data) => {
       // Invalidate queries to refresh data
       await utils.inventory.list.invalidate();
@@ -171,39 +182,28 @@ export function useInventoryForm(
       if (showSuccessToast && data) {
         const message =
           successMessage?.(form.getValues()) || `Added medication to inventory`;
-        toast({ title: "Success", description: message });
+        toast({ description: message, title: "Success" });
       }
 
       if (data) {
         onSave?.(data.id, form.getValues());
       }
     },
-    onError: (error) => {
-      console.error("Error creating inventory item:", error);
-      const errorMessage = "Failed to add inventory item. Please try again.";
-      formState.setError(errorMessage);
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      onError?.(error, form.getValues());
-    },
   });
 
   const setInUseMutation = trpc.inventory.setInUse.useMutation({
-    onSuccess: async () => {
-      // Invalidate queries to refresh data
-      await utils.inventory.list.invalidate();
-    },
     onError: (error) => {
       console.error("Error setting inventory item in use:", error);
       toast({
-        title: "Warning",
         description:
           "Item was created but failed to set as in use. You can update this later.",
+        title: "Warning",
         variant: "destructive",
       });
+    },
+    onSuccess: async () => {
+      // Invalidate queries to refresh data
+      await utils.inventory.list.invalidate();
     },
   });
 
@@ -211,9 +211,9 @@ export function useInventoryForm(
   const validateFormData = useCallback(
     (data: InventoryFormData): boolean => {
       const validationResult = InventoryFormValidator.validate(data, {
+        allowPastExpiry: false,
         householdId: selectedHousehold?.id,
         validateQuantity,
-        allowPastExpiry: false,
       });
 
       if (!validationResult.isValid) {
@@ -222,8 +222,8 @@ export function useInventoryForm(
         if (errorMessage) {
           formState.setError(errorMessage);
           toast({
-            title: "Error",
             description: errorMessage,
+            title: "Error",
             variant: "destructive",
           });
         }
@@ -262,8 +262,8 @@ export function useInventoryForm(
 
     // Reset form with fresh default values
     const freshDefaults = InventoryDataTransformer.createFreshDefaults({
-      storage: defaultStorage,
       expiryDays: defaultExpiryDays,
+      storage: defaultStorage,
     });
 
     form.reset(freshDefaults);
@@ -276,8 +276,8 @@ export function useInventoryForm(
 
   const resetForm = useCallback(() => {
     const freshDefaults = InventoryDataTransformer.createFreshDefaults({
-      storage: defaultStorage,
       expiryDays: defaultExpiryDays,
+      storage: defaultStorage,
     });
 
     form.reset(freshDefaults);
@@ -310,8 +310,8 @@ export function useInventoryForm(
           selectedHousehold?.id
         ) {
           await setInUseMutation.mutateAsync({
-            id: result.id,
             householdId: selectedHousehold.id,
+            id: result.id,
             inUse: true,
           });
         }
@@ -365,25 +365,25 @@ export function useInventoryForm(
   }
 
   return {
-    // Core state (composed from focused services)
-    isOpen: formState.isOpen,
-    isLoading: createMutation.isPending || setInUseMutation.isPending,
+    clearErrorAction,
+    closeForm,
+
+    // Mutations (for backward compatibility)
+    createMutation,
     error: formState.error,
 
     // Form management
     form,
     isDirty: formState.isDirty || reactHookFormState.isDirty,
+    isLoading: createMutation.isPending || setInUseMutation.isPending,
+    // Core state (composed from focused services)
+    isOpen: formState.isOpen,
 
     // Actions (using composed services)
     openForm,
-    closeForm,
-    saveForm,
     resetForm,
+    saveForm,
     setDirty: setDirtyState,
-    clearErrorAction,
-
-    // Mutations (for backward compatibility)
-    createMutation,
     setInUseMutation,
   };
 }

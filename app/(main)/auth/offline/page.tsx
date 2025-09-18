@@ -39,9 +39,9 @@ export default function OfflinePage() {
           </Button>
 
           <Button
-            variant="outline"
             className="w-full bg-transparent"
             onClick={() => window.history.back()}
+            variant="outline"
           >
             Go Back
           </Button>

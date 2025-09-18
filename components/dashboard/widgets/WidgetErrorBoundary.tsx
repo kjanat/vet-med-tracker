@@ -41,8 +41,8 @@ class WidgetErrorBoundaryClass extends React.Component<
     error: Error,
   ): Partial<WidgetErrorBoundaryState> {
     return {
-      hasError: true,
       error,
+      hasError: true,
       // Don't reset retryCount here - it should preserve the existing count
     };
   }
@@ -59,11 +59,11 @@ class WidgetErrorBoundaryClass extends React.Component<
       window.dispatchEvent(
         new CustomEvent("dashboard:widget-error", {
           detail: {
-            widgetName: this.props.widgetName,
-            error: error.message,
-            stack: error.stack,
             componentStack: errorInfo.componentStack,
+            error: error.message,
             retryCount: this.state.retryCount,
+            stack: error.stack,
+            widgetName: this.props.widgetName,
           },
         }),
       );
@@ -78,8 +78,8 @@ class WidgetErrorBoundaryClass extends React.Component<
 
     if (retryCount < maxRetries) {
       this.setState({
-        hasError: false,
         error: undefined,
+        hasError: false,
         retryCount: retryCount + 1,
       });
 
@@ -102,11 +102,11 @@ class WidgetErrorBoundaryClass extends React.Component<
 
       return (
         <DefaultWidgetErrorFallback
-          widgetName={this.props.widgetName}
           error={this.state.error}
-          retryCount={this.state.retryCount}
           maxRetries={this.props.maxRetries || 3}
           onRetry={this.handleRetry}
+          retryCount={this.state.retryCount}
+          widgetName={this.props.widgetName}
         />
       );
     }
@@ -156,10 +156,10 @@ function DefaultWidgetErrorFallback({
         <div className="flex flex-col gap-2">
           {canRetry ? (
             <Button
-              variant="outline"
-              size="sm"
-              onClick={onRetry}
               className="w-full"
+              onClick={onRetry}
+              size="sm"
+              variant="outline"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Retry ({maxRetries - retryCount} attempts left)
@@ -186,10 +186,10 @@ export function WidgetErrorBoundary({
 }: WidgetErrorBoundaryProps) {
   return (
     <WidgetErrorBoundaryClass
-      widgetName={widgetName}
       fallback={fallback}
       maxRetries={maxRetries}
       onError={onError}
+      widgetName={widgetName}
     >
       {children}
     </WidgetErrorBoundaryClass>
@@ -205,10 +205,10 @@ export function useWidgetError() {
       window.dispatchEvent(
         new CustomEvent("dashboard:widget-error", {
           detail: {
-            widgetName,
             error: error.message,
-            stack: error.stack,
             source: "hook",
+            stack: error.stack,
+            widgetName,
           },
         }),
       );
@@ -229,9 +229,9 @@ export function withWidgetErrorBoundary<T extends Record<string, unknown>>(
 ) {
   const WrappedComponent = React.forwardRef<HTMLElement, T>((props, _ref) => (
     <WidgetErrorBoundary
-      widgetName={widgetName}
-      maxRetries={options?.maxRetries}
       fallback={options?.fallback}
+      maxRetries={options?.maxRetries}
+      widgetName={widgetName}
     >
       <Component {...(props as T)} />
     </WidgetErrorBoundary>

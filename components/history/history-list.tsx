@@ -61,20 +61,20 @@ export function HistoryList({
   // Enable keyboard navigation for the history list
   useKeyboardNavigation(listRef as React.RefObject<HTMLElement>, {
     direction: "vertical",
-    wrap: true,
     itemSelector: '[role="button"][aria-expanded]',
+    wrap: true,
   });
 
   if (groups.length === 0) {
     return (
       <output
-        className="py-12 text-center"
         aria-label="No medication administrations found"
+        className="py-12 text-center"
       >
         <div className="text-muted-foreground">
           <Clock
-            className="mx-auto mb-4 h-12 w-12 opacity-50"
             aria-hidden="true"
+            className="mx-auto mb-4 h-12 w-12 opacity-50"
           />
           <h3 className="mb-2 font-medium text-lg">No administrations found</h3>
           <p>No administrations in this range. Try widening your filters.</p>
@@ -85,10 +85,10 @@ export function HistoryList({
 
   return (
     <div
-      ref={listRef}
-      className="space-y-6"
-      role="log"
       aria-label="Medication administration history"
+      className="space-y-6"
+      ref={listRef}
+      role="log"
     >
       {groups.map((group, groupIndex) => {
         const dateLabel = isToday(group.date)
@@ -99,31 +99,31 @@ export function HistoryList({
 
         return (
           <section
-            key={group.date.toISOString()}
-            className="space-y-3"
             aria-labelledby={`date-heading-${groupIndex}`}
+            className="space-y-3"
+            key={group.date.toISOString()}
           >
             <div className="sticky top-20 bg-background/95 py-2 backdrop-blur-sm">
               <h2
-                id={`date-heading-${groupIndex}`}
                 className="font-semibold text-lg"
+                id={`date-heading-${groupIndex}`}
               >
                 {dateLabel}
               </h2>
             </div>
 
             <ul
-              className="list-none space-y-2"
               aria-label={`${dateLabel} administrations`}
+              className="list-none space-y-2"
             >
               {group.records.map((record) => (
                 <AdministrationRow
-                  key={record.id}
-                  record={record}
-                  onUndo={onUndo}
-                  onDelete={onDelete}
-                  onCosign={onCosign}
                   isOffline={false}
+                  key={record.id}
+                  onCosign={onCosign}
+                  onDelete={onDelete}
+                  onUndo={onUndo}
+                  record={record}
                 />
               ))}
             </ul>
@@ -132,14 +132,14 @@ export function HistoryList({
       })}
 
       {hasMore && (
-        <nav className="py-6 text-center" aria-label="Load more history">
+        <nav aria-label="Load more history" className="py-6 text-center">
           <Button
-            variant="outline"
+            aria-label="Load more medication administration records"
             onClick={() => {
               onLoadMore();
               window.dispatchEvent(new CustomEvent("history_pagination_next"));
             }}
-            aria-label="Load more medication administration records"
+            variant="outline"
           >
             Load More
           </Button>
@@ -150,35 +150,35 @@ export function HistoryList({
 }
 
 const STATUS_CONFIG = {
-  ON_TIME: {
-    icon: CheckCircle,
-    color: "text-green-600",
-    bg: "bg-green-100",
-    label: "On-time",
-  },
   LATE: {
-    icon: Clock,
-    color: "text-yellow-600",
     bg: "bg-yellow-100",
+    color: "text-yellow-600",
+    icon: Clock,
     label: "Late",
   },
-  VERY_LATE: {
-    icon: AlertTriangle,
-    color: "text-orange-600",
-    bg: "bg-orange-100",
-    label: "Very late",
-  },
   MISSED: {
-    icon: AlertTriangle,
-    color: "text-red-600",
     bg: "bg-red-100",
+    color: "text-red-600",
+    icon: AlertTriangle,
     label: "Missed",
   },
-  PRN: {
+  ON_TIME: {
+    bg: "bg-green-100",
+    color: "text-green-600",
     icon: CheckCircle,
-    color: "text-blue-600",
+    label: "On-time",
+  },
+  PRN: {
     bg: "bg-blue-100",
+    color: "text-blue-600",
+    icon: CheckCircle,
     label: "PRN",
+  },
+  VERY_LATE: {
+    bg: "bg-orange-100",
+    color: "text-orange-600",
+    icon: AlertTriangle,
+    label: "Very late",
   },
 } as const;
 
@@ -188,8 +188,8 @@ function AdministrationBadges({ record }: { record: AdministrationRecord }) {
     <>
       {record.cosignPending && (
         <Badge
-          variant="outline"
           className="hidden border-orange-200 text-orange-600 sm:inline-flex"
+          variant="outline"
         >
           Co-sign
         </Badge>
@@ -199,8 +199,8 @@ function AdministrationBadges({ record }: { record: AdministrationRecord }) {
           <Tooltip>
             <TooltipTrigger>
               <Badge
-                variant="secondary"
                 className="hidden text-xs sm:inline-flex"
+                variant="secondary"
               >
                 edited
               </Badge>
@@ -316,22 +316,22 @@ function AdministrationRow({
   return (
     <li className="list-none">
       <Card
-        className={record.isDeleted ? "opacity-50" : ""}
         aria-label={`Medication administration: ${record.animalName} - ${record.medicationName} ${record.strength}`}
+        className={record.isDeleted ? "opacity-50" : ""}
       >
-        <Collapsible open={isExpanded} onOpenChange={handleExpandToggle}>
+        <Collapsible onOpenChange={handleExpandToggle} open={isExpanded}>
           <CollapsibleTrigger asChild>
             <CardContent
-              className="cursor-pointer p-4 transition-colors hover:bg-accent/50"
-              aria-expanded={isExpanded}
               aria-controls={`administration-details-${record.id}`}
+              aria-expanded={isExpanded}
               aria-label={`${isExpanded ? "Hide" : "Show"} details for ${record.animalName} ${record.medicationName} administration`}
+              className="cursor-pointer p-4 transition-colors hover:bg-accent/50"
             >
               <AdministrationMainContent
-                record={record}
                 animal={animal}
-                status={status}
                 isExpanded={isExpanded}
+                record={record}
+                status={status}
               />
             </CardContent>
           </CollapsibleTrigger>
@@ -381,18 +381,18 @@ function AdministrationRow({
                     <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
                       {record.media.map((url, index) => (
                         <button
-                          key={`media-${record.id}-${index}`}
-                          type="button"
-                          className="group relative aspect-square overflow-hidden rounded-md border transition-transform hover:scale-105"
-                          onClick={() => window.open(url, "_blank")}
                           aria-label={`View photo evidence ${index + 1} of ${record.media?.length}`}
+                          className="group relative aspect-square overflow-hidden rounded-md border transition-transform hover:scale-105"
+                          key={`media-${record.id}-${index}`}
+                          onClick={() => window.open(url, "_blank")}
+                          type="button"
                         >
                           <Image
-                            src={url}
                             alt={`Evidence ${index + 1}`}
-                            fill
                             className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                            fill
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                            src={url}
                             unoptimized
                           />
                           <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
@@ -420,8 +420,7 @@ function AdministrationRow({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
-                            variant="outline"
-                            size="sm"
+                            disabled={isOffline}
                             onClick={() => {
                               announce(
                                 `Undoing medication administration for ${record.animalName} - ${record.medicationName}`,
@@ -434,7 +433,8 @@ function AdministrationRow({
                                 }),
                               );
                             }}
-                            disabled={isOffline}
+                            size="sm"
+                            variant="outline"
                           >
                             Undo
                           </Button>
@@ -450,8 +450,7 @@ function AdministrationRow({
 
                   {canDelete && (
                     <Button
-                      variant="outline"
-                      size="sm"
+                      disabled={isOffline}
                       onClick={() => {
                         announce(
                           `Deleting medication administration for ${record.animalName} - ${record.medicationName}`,
@@ -464,7 +463,8 @@ function AdministrationRow({
                           }),
                         );
                       }}
-                      disabled={isOffline}
+                      size="sm"
+                      variant="outline"
                     >
                       <Trash2 className="mr-1 h-4 w-4" />
                       Delete
@@ -473,8 +473,7 @@ function AdministrationRow({
 
                   {record.cosignPending && (
                     <Button
-                      variant="default"
-                      size="sm"
+                      disabled={isOffline}
                       onClick={() => {
                         announce(
                           `Co-signing medication administration for ${record.animalName} - ${record.medicationName}`,
@@ -487,7 +486,8 @@ function AdministrationRow({
                           }),
                         );
                       }}
-                      disabled={isOffline}
+                      size="sm"
+                      variant="default"
                     >
                       <UserCheck className="mr-1 h-4 w-4" />
                       Co-sign

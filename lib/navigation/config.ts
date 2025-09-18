@@ -25,169 +25,169 @@ import type { NavigationConfig, NavigationItem } from "./types";
  * This is the single source of truth for all navigation elements.
  */
 export const navigationConfig: NavigationConfig = {
+  dashboard: [
+    {
+      icon: Clock,
+      path: "/dashboard" as Route,
+      title: "Today's Doses",
+    },
+    {
+      icon: Bell,
+      path: "/dashboard?filter=overdue" as Route,
+      title: "Overdue",
+    },
+    {
+      icon: History,
+      path: "/dashboard/history" as Route,
+      title: "Recent History",
+    },
+  ],
   main: {
     dashboard: {
-      title: "Dashboard",
-      path: "/dashboard" as Route,
+      children: {
+        history: {
+          description: "View past medication administrations",
+          icon: History,
+          path: "/dashboard/history" as Route,
+          title: "Medication History",
+        },
+      },
       description: "Today's medication schedule and overview",
       icon: Home,
       isActive: true,
-      children: {
-        history: {
-          title: "Medication History",
-          path: "/dashboard/history" as Route,
-          description: "View past medication administrations",
-          icon: History,
-        },
-      },
-    },
-    manage: {
-      title: "Manage",
-      icon: Users,
-      description: "Manage your households, animals, and team members",
-      children: {
-        animals: {
-          title: "Animals",
-          path: "/manage/animals" as Route,
-          description: "Add, edit, and manage your animals' profiles",
-          icon: Dog,
-        },
-        households: {
-          title: "Households",
-          path: "/manage/households" as Route,
-          description: "Manage your households and their members",
-          icon: Building2,
-        },
-        users: {
-          title: "Users",
-          path: "/manage/users" as Route,
-          description: "Manage household members and their roles",
-          icon: Users,
-        },
-      },
-    },
-    medications: {
-      title: "Medications",
-      icon: Pill,
-      description: "Record doses and manage medications",
-      children: {
-        record: {
-          title: "Record Dose",
-          path: "/admin/record" as Route,
-          description: "Record a medication dose",
-          icon: Syringe,
-        },
-        inventory: {
-          title: "Inventory",
-          path: "/medications/inventory" as Route,
-          description: "Track your medication stock",
-          icon: Package,
-        },
-        regimens: {
-          title: "Regimens",
-          path: "/medications/regimens" as Route,
-          description: "Manage medication schedules",
-          icon: Clock,
-        },
-      },
+      path: "/dashboard" as Route,
+      title: "Dashboard",
     },
     insights: {
-      title: "Insights",
-      path: "/insights" as Route,
-      description: "Medication compliance and patterns",
-      icon: TrendingUp,
       children: {
         history: {
-          title: "History",
-          path: "/dashboard/history" as Route,
           description: "View medication history",
           icon: History,
+          path: "/dashboard/history" as Route,
+          title: "History",
         },
         reports: {
-          title: "Animal Reports",
-          path: "/reports" as Route,
           description: "Detailed compliance reports by animal",
           icon: FileText,
+          path: "/reports" as Route,
+          title: "Animal Reports",
         },
       },
+      description: "Medication compliance and patterns",
+      icon: TrendingUp,
+      path: "/insights" as Route,
+      title: "Insights",
+    },
+    manage: {
+      children: {
+        animals: {
+          description: "Add, edit, and manage your animals' profiles",
+          icon: Dog,
+          path: "/manage/animals" as Route,
+          title: "Animals",
+        },
+        households: {
+          description: "Manage your households and their members",
+          icon: Building2,
+          path: "/manage/households" as Route,
+          title: "Households",
+        },
+        users: {
+          description: "Manage household members and their roles",
+          icon: Users,
+          path: "/manage/users" as Route,
+          title: "Users",
+        },
+      },
+      description: "Manage your households, animals, and team members",
+      icon: Users,
+      title: "Manage",
+    },
+    medications: {
+      children: {
+        inventory: {
+          description: "Track your medication stock",
+          icon: Package,
+          path: "/medications/inventory" as Route,
+          title: "Inventory",
+        },
+        record: {
+          description: "Record a medication dose",
+          icon: Syringe,
+          path: "/admin/record" as Route,
+          title: "Record Dose",
+        },
+        regimens: {
+          description: "Manage medication schedules",
+          icon: Clock,
+          path: "/medications/regimens" as Route,
+          title: "Regimens",
+        },
+      },
+      description: "Record doses and manage medications",
+      icon: Pill,
+      title: "Medications",
     },
     settings: {
-      title: "Settings",
-      path: "/settings" as Route,
-      description: "Manage your account and application settings",
-      icon: Settings,
       children: {
-        preferences: {
-          title: "Preferences",
-          path: "/settings/preferences" as Route,
-          description: "Customize your app experience and display settings",
-          icon: Settings2,
-        },
-        notifications: {
-          title: "Notifications",
-          path: "/settings/notifications" as Route,
-          description: "Configure alerts and notification preferences",
-          icon: Bell,
-        },
         dataPrivacy: {
-          title: "Data & Privacy",
-          path: "/settings/data-privacy" as Route,
           description: "Export your data and manage privacy settings",
           icon: Database,
+          path: "/settings/data-privacy" as Route,
+          title: "Data & Privacy",
+        },
+        notifications: {
+          description: "Configure alerts and notification preferences",
+          icon: Bell,
+          path: "/settings/notifications" as Route,
+          title: "Notifications",
+        },
+        preferences: {
+          description: "Customize your app experience and display settings",
+          icon: Settings2,
+          path: "/settings/preferences" as Route,
+          title: "Preferences",
         },
       },
+      description: "Manage your account and application settings",
+      icon: Settings,
+      path: "/settings" as Route,
+      title: "Settings",
     },
   },
-  secondary: [
-    {
-      title: "Support",
-      path: "/help" as Route,
-      icon: HelpCircle,
-      description: "Get help and support",
-    },
-  ],
   mobile: [
     {
-      title: "Home",
-      path: "/" as Route,
       icon: Home,
+      path: "/" as Route,
+      title: "Home",
     },
     {
-      title: "History",
-      path: "/dashboard/history" as Route,
       icon: History,
+      path: "/dashboard/history" as Route,
+      title: "History",
     },
     {
-      title: "Inventory",
-      path: "/medications/inventory" as Route,
       icon: Package,
+      path: "/medications/inventory" as Route,
+      title: "Inventory",
     },
     {
-      title: "Insights",
-      path: "/insights" as Route,
       icon: BarChart3,
+      path: "/insights" as Route,
+      title: "Insights",
     },
     {
-      title: "Settings",
-      path: "/settings" as Route,
       icon: Settings,
+      path: "/settings" as Route,
+      title: "Settings",
     },
   ],
-  dashboard: [
+  secondary: [
     {
-      title: "Today's Doses",
-      path: "/dashboard" as Route,
-      icon: Clock,
-    },
-    {
-      title: "Overdue",
-      path: "/dashboard?filter=overdue" as Route,
-      icon: Bell,
-    },
-    {
-      title: "Recent History",
-      path: "/dashboard/history" as Route,
-      icon: History,
+      description: "Get help and support",
+      icon: HelpCircle,
+      path: "/help" as Route,
+      title: "Support",
     },
   ],
 };
@@ -197,73 +197,73 @@ export const navigationConfig: NavigationConfig = {
  * Maps route paths to their metadata
  */
 export const pageMetadata: Record<string, Partial<NavigationItem>> = {
+  "/admin/record": {
+    description: "Record a medication dose",
+    title: "Record Administration",
+  },
   "/dashboard": {
-    title: "Dashboard",
     description: "Today's medication schedule and overview",
+    title: "Dashboard",
   },
   "/dashboard/history": {
-    title: "Medication History",
     description: "View past medication administrations",
-  },
-  "/manage": {
-    title: "Manage",
-    description: "Manage your households, animals, and team members",
-  },
-  "/manage/animals": {
-    title: "Manage Animals",
-    description: "Add and manage your animals",
-  },
-  "/manage/animals/emergency": {
-    title: "Emergency Information",
-    description: "Critical care information for this animal",
-  },
-  "/manage/households": {
-    title: "Manage Households",
-    description: "Manage your households and their members",
-  },
-  "/manage/users": {
-    title: "Manage Users",
-    description: "Manage user roles and permissions",
-  },
-  "/medications/inventory": {
-    title: "Medication Inventory",
-    description: "Track your medication stock",
-  },
-  "/medications/regimens": {
-    title: "Medication Regimens",
-    description: "Manage medication schedules",
-  },
-  "/admin/record": {
-    title: "Record Administration",
-    description: "Record a medication dose",
-  },
-  "/reports": {
-    title: "Reports",
-    description: "Select an animal to view their medication compliance report",
+    title: "Medication History",
   },
   "/insights": {
-    title: "Insights",
     description: "Medication compliance and patterns",
+    title: "Insights",
+  },
+  "/manage": {
+    description: "Manage your households, animals, and team members",
+    title: "Manage",
+  },
+  "/manage/animals": {
+    description: "Add and manage your animals",
+    title: "Manage Animals",
+  },
+  "/manage/animals/emergency": {
+    description: "Critical care information for this animal",
+    title: "Emergency Information",
+  },
+  "/manage/households": {
+    description: "Manage your households and their members",
+    title: "Manage Households",
+  },
+  "/manage/users": {
+    description: "Manage user roles and permissions",
+    title: "Manage Users",
+  },
+  "/medications/inventory": {
+    description: "Track your medication stock",
+    title: "Medication Inventory",
+  },
+  "/medications/regimens": {
+    description: "Manage medication schedules",
+    title: "Medication Regimens",
+  },
+  "/reports": {
+    description: "Select an animal to view their medication compliance report",
+    title: "Reports",
   },
   "/settings": {
-    title: "Settings",
     description: "Manage your account and preferences",
+    title: "Settings",
   },
   "/settings/data-privacy": {
-    title: "Data & Privacy",
     description: "Export your data and manage privacy settings",
-  },
-  "/settings/preferences": {
-    title: "Preferences",
-    description: "Customize your app experience and display settings",
-  },
-  "/settings/notifications": {
-    title: "Notifications",
-    description: "Configure alerts and notification preferences",
+    title: "Data & Privacy",
   },
   "/settings/data-privacy/audit": {
-    title: "Audit Log",
     description: "View system activity and changes",
+    title: "Audit Log",
+  },
+  "/settings/notifications": {
+    description: "Configure alerts and notification preferences",
+    title: "Notifications",
+  },
+  "/settings/preferences": {
+    description: "Customize your app experience and display settings",
+    title: "Preferences",
   },
 };
 

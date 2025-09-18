@@ -1,4 +1,5 @@
 import { and, desc, eq, gte, lte, notInArray, sql } from "drizzle-orm";
+
 import { z } from "zod";
 import { timedOperations } from "@/db/drizzle";
 import {
@@ -52,13 +53,13 @@ const getSuggestionsSchema = z.object({
 });
 
 const getComplianceHeatmapSchema = z.object({
-  householdId: z.uuid(),
   animalId: z.uuid().optional(),
-  regimenId: z.uuid().optional(),
+  householdId: z.uuid(),
   range: z.object({
     from: z.iso.datetime(),
     to: z.iso.datetime(),
   }),
+  regimenId: z.uuid().optional(),
 });
 
 const dismissSuggestionSchema = z.object({
@@ -68,8 +69,8 @@ const dismissSuggestionSchema = z.object({
 
 const snoozeReminderSchema = z.object({
   householdId: z.uuid(),
-  suggestionId: z.string(),
   snoozeUntil: z.iso.datetime(),
+  suggestionId: z.string(),
 });
 
 const applySuggestionSchema = z.object({
@@ -169,19 +170,19 @@ async function generateReminderSuggestions(
       const timeStr = formatHourAs12Hour(hour);
 
       suggestions.push({
-        id: `add-reminder-${row.regimen_id}-${row.dow}-${row.hour}`,
-        type: "ADD_REMINDER",
-        summary: `Add reminder for ${row.animal_name}'s ${row.generic_name} on ${dayName}s`,
-        rationale: `Late/missed ≥${Math.round(problemRate)}% on ${dayName} ${timeStr} in last 30 days (${Number(row.late_doses) + Number(row.missed_doses)} of ${row.total_doses} doses)`,
         action: {
           animalId: String(row.animal_id),
-          regimenId: String(row.regimen_id),
           dow: Number(row.dow),
-          time: `${hour.toString().padStart(2, "0")}:00`,
           leadMinutes: 15,
+          regimenId: String(row.regimen_id),
+          time: `${hour.toString().padStart(2, "0")}:00`,
         },
-        priority: problemRate >= 40 ? "high" : "medium",
         estimatedImpact: `Could improve ${dayName} compliance by 20-30%`,
+        id: `add-reminder-${row.regimen_id}-${row.dow}-${row.hour}`,
+        priority: problemRate >= 40 ? "high" : "medium",
+        rationale: `Late/missed ≥${Math.round(problemRate)}% on ${dayName} ${timeStr} in last 30 days (${Number(row.late_doses) + Number(row.missed_doses)} of ${row.total_doses} doses)`,
+        summary: `Add reminder for ${row.animal_name}'s ${row.generic_name} on ${dayName}s`,
+        type: "ADD_REMINDER",
       });
     }
   }
@@ -198,14 +199,14 @@ async function generateLowInventorySuggestions(
 
   const lowInventoryQuery = db
     .select({
-      id: inventoryItems.id,
-      medicationId: inventoryItems.medicationId,
+      animalName: animals.name,
       assignedAnimalId: inventoryItems.assignedAnimalId,
-      unitsRemaining: inventoryItems.unitsRemaining,
-      quantityUnits: inventoryItems.quantityUnits,
       expiresOn: inventoryItems.expiresOn,
       genericName: medicationCatalog.genericName,
-      animalName: animals.name,
+      id: inventoryItems.id,
+      medicationId: inventoryItems.medicationId,
+      quantityUnits: inventoryItems.quantityUnits,
+      unitsRemaining: inventoryItems.unitsRemaining,
     })
     .from(inventoryItems)
     .leftJoin(
@@ -238,17 +239,17 @@ async function generateLowInventorySuggestions(
       : 0;
 
     suggestions.push({
-      id: `low-inventory-${item.id}`,
-      type: "LOW_INVENTORY",
-      summary: `${item.genericName} running low${item.animalName ? ` for ${item.animalName}` : ""}`,
-      rationale: `Only ${item.unitsRemaining || 0} units remaining (${remainingPct}% of original quantity)`,
       action: {
+        animalId: item.assignedAnimalId || undefined,
         inventoryItemId: item.id,
         medicationId: item.medicationId || undefined,
-        animalId: item.assignedAnimalId || undefined,
       },
-      priority: remainingPct <= 10 ? "high" : "medium",
       estimatedImpact: `Prevent medication stockout with ${Math.ceil((item.unitsRemaining || 0) / 2)} days estimated remaining`,
+      id: `low-inventory-${item.id}`,
+      priority: remainingPct <= 10 ? "high" : "medium",
+      rationale: `Only ${item.unitsRemaining || 0} units remaining (${remainingPct}% of original quantity)`,
+      summary: `${item.genericName} running low${item.animalName ? ` for ${item.animalName}` : ""}`,
+      type: "LOW_INVENTORY",
     });
   }
 
@@ -291,16 +292,16 @@ async function generateCoSignSuggestions(
 
   for (const row of overlapResults.rows.slice(0, 2)) {
     suggestions.push({
-      id: `enable-cosign-${row.regimen_id}`,
-      type: "ENABLE_COSIGN",
-      summary: `Enable co-sign for ${row.animal_name}'s ${row.generic_name}`,
-      rationale: `${row.overlap_count} overlapping administrations detected in last 14 days (risk of double-dosing)`,
       action: {
-        regimenId: String(row.regimen_id),
         highRisk: true,
+        regimenId: String(row.regimen_id),
       },
-      priority: "high",
       estimatedImpact: "Prevents accidental double-dosing of medication",
+      id: `enable-cosign-${row.regimen_id}`,
+      priority: "high",
+      rationale: `${row.overlap_count} overlapping administrations detected in last 14 days (risk of double-dosing)`,
+      summary: `Enable co-sign for ${row.animal_name}'s ${row.generic_name}`,
+      type: "ENABLE_COSIGN",
     });
   }
 
@@ -309,10 +310,10 @@ async function generateCoSignSuggestions(
 
 // Helper function to sort suggestions by priority
 function sortSuggestionsByPriority(suggestions: Suggestion[]): Suggestion[] {
-  const priorityOrder = { high: 3, medium: 2, low: 1 };
-  return suggestions.sort((a, b) => {
-    return priorityOrder[b.priority] - priorityOrder[a.priority];
-  });
+  const priorityOrder = { high: 3, low: 1, medium: 2 };
+  return suggestions.sort(
+    (a, b) => priorityOrder[b.priority] - priorityOrder[a.priority],
+  );
 }
 
 // Store generated suggestions in database (only if they don't already exist)
@@ -336,17 +337,17 @@ async function storeSuggestionInDb(
   if (existing.length === 0) {
     // Create new suggestion
     await db.insert(suggestions).values({
-      id: suggestion.id,
-      householdId,
-      type: suggestion.type,
-      summary: suggestion.summary,
-      rationale: suggestion.rationale,
-      priority: suggestion.priority,
-      estimatedImpact: suggestion.estimatedImpact,
       action: suggestion.action,
-      status: "pending",
+      estimatedImpact: suggestion.estimatedImpact,
       // Set expiry to 7 days from now
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      householdId,
+      id: suggestion.id,
+      priority: suggestion.priority,
+      rationale: suggestion.rationale,
+      status: "pending",
+      summary: suggestion.summary,
+      type: suggestion.type,
     });
   }
 }
@@ -373,13 +374,13 @@ async function getSuggestionsFromDb(
 
   // Convert database suggestions to the interface format
   return existingSuggestions.map((s) => ({
-    id: s.id,
-    type: s.type as Suggestion["type"],
-    summary: s.summary,
-    rationale: s.rationale,
-    priority: s.priority as Suggestion["priority"],
-    estimatedImpact: s.estimatedImpact || "",
     action: s.action as Suggestion["action"],
+    estimatedImpact: s.estimatedImpact || "",
+    id: s.id,
+    priority: s.priority as Suggestion["priority"],
+    rationale: s.rationale,
+    summary: s.summary,
+    type: s.type as Suggestion["type"],
   }));
 }
 
@@ -505,9 +506,9 @@ async function generateComplianceHeatmap(
     );
 
     buckets.push({
+      count: total,
       dow: Number(row.dow),
       hour: Number(row.hour),
-      count: total,
       latePct,
       missedPct,
     });
@@ -544,9 +545,9 @@ async function getSuggestionFromDb(
   }
 
   return {
+    action: sug.action as Suggestion["action"],
     id: sug.id,
     type: sug.type,
-    action: sug.action as Suggestion["action"],
   };
 }
 
@@ -562,10 +563,10 @@ async function getRegimenById(
 } | null> {
   const regimenResult = await db
     .select({
-      id: regimens.id,
-      timesLocal: regimens.timesLocal,
-      requiresCoSign: regimens.requiresCoSign,
       highRisk: regimens.highRisk,
+      id: regimens.id,
+      requiresCoSign: regimens.requiresCoSign,
+      timesLocal: regimens.timesLocal,
     })
     .from(regimens)
     .where(eq(regimens.id, regimenId))
@@ -577,10 +578,10 @@ async function getRegimenById(
 
   const regimen = regimenResult[0];
   return {
-    id: regimen.id,
-    timesLocal: regimen.timesLocal || [],
-    requiresCoSign: regimen.requiresCoSign,
     highRisk: regimen.highRisk,
+    id: regimen.id,
+    requiresCoSign: regimen.requiresCoSign,
+    timesLocal: regimen.timesLocal || [],
   };
 }
 
@@ -593,9 +594,9 @@ async function handleAddReminderSuggestion(
   }
 
   const originalValues = {
-    type: "reminder_added",
-    regimenId: action.regimenId,
     leadMinutes: action.leadMinutes,
+    regimenId: action.regimenId,
+    type: "reminder_added",
   };
 
   const changes = [
@@ -603,7 +604,7 @@ async function handleAddReminderSuggestion(
     "Scheduled weekly notification",
   ];
 
-  return { originalValues, changes };
+  return { changes, originalValues };
 }
 
 // Helper function to handle SHIFT_TIME suggestion type
@@ -621,9 +622,9 @@ async function handleShiftTimeSuggestion(
   }
 
   const originalValues = {
-    type: "time_shifted",
-    regimenId: action.regimenId,
     originalTimes: regimen.timesLocal,
+    regimenId: action.regimenId,
+    type: "time_shifted",
   };
 
   // Update regimen times (simplified - would need proper time parsing)
@@ -640,7 +641,7 @@ async function handleShiftTimeSuggestion(
     "Recalculated upcoming due times",
   ];
 
-  return { originalValues, changes };
+  return { changes, originalValues };
 }
 
 // Helper function to handle ENABLE_COSIGN suggestion type
@@ -658,24 +659,24 @@ async function handleEnableCoSignSuggestion(
   }
 
   const originalValues = {
-    type: "cosign_enabled",
-    regimenId: action.regimenId,
-    originalRequiresCoSign: regimen.requiresCoSign,
     originalHighRisk: regimen.highRisk,
+    originalRequiresCoSign: regimen.requiresCoSign,
+    regimenId: action.regimenId,
+    type: "cosign_enabled",
   };
 
   await db
     .update(regimens)
     .set({
-      requiresCoSign: true,
       highRisk: action.highRisk || regimen.highRisk,
+      requiresCoSign: true,
       updatedAt: new Date().toISOString(),
     })
     .where(eq(regimens.id, action.regimenId));
 
   const changes = ["Enabled co-sign requirement", "Updated high-risk flag"];
 
-  return { originalValues, changes };
+  return { changes, originalValues };
 }
 
 // Helper function to update suggestion status
@@ -688,10 +689,10 @@ async function updateSuggestionStatus(
   await db
     .update(suggestions)
     .set({
-      status: "applied",
       appliedAt: new Date().toISOString(),
       appliedByUserId: userId,
       originalValues,
+      status: "applied",
       updatedAt: new Date().toISOString(),
     })
     .where(eq(suggestions.id, suggestionId));
@@ -727,7 +728,7 @@ async function applySuggestion(
     // Update suggestion status
     await updateSuggestionStatus(db, suggestionId, userId, originalValues);
 
-    return { success: true, changes };
+    return { changes, success: true };
   } catch (error) {
     console.error("Failed to apply suggestion:", error);
     throw new Error("Failed to apply suggestion");
@@ -792,8 +793,8 @@ async function revertSuggestion(
       await db
         .update(regimens)
         .set({
-          requiresCoSign: originalValues.originalRequiresCoSign as boolean,
           highRisk: originalValues.originalHighRisk as boolean,
+          requiresCoSign: originalValues.originalRequiresCoSign as boolean,
           updatedAt: new Date().toISOString(),
         })
         .where(eq(regimens.id, originalValues.regimenId as string));
@@ -810,14 +811,14 @@ async function revertSuggestion(
     await db
       .update(suggestions)
       .set({
-        status: "reverted",
         revertedAt: new Date().toISOString(),
         revertedByUserId: userId,
+        status: "reverted",
         updatedAt: new Date().toISOString(),
       })
       .where(eq(suggestions.id, suggestionId));
 
-    return { success: true, changes };
+    return { changes, success: true };
   } catch (error) {
     console.error("Failed to revert suggestion:", error);
     throw new Error("Failed to revert suggestion");
@@ -825,38 +826,11 @@ async function revertSuggestion(
 }
 
 export const insightsRouter = createTRPCRouter({
-  // Get actionable suggestions for a household
-  getSuggestions: householdProcedure
-    .input(getSuggestionsSchema)
-    .query(async ({ ctx, input }) => {
-      return timedOperations.analytics(
-        () => generateSuggestions(ctx.db, input.householdId, input.limit),
-        "insights-suggestions-generation",
-      );
-    }),
-
-  // Get compliance heatmap data
-  getComplianceHeatmap: householdProcedure
-    .input(getComplianceHeatmapSchema)
-    .query(async ({ ctx, input }) => {
-      return timedOperations.analytics(
-        () =>
-          generateComplianceHeatmap(
-            ctx.db,
-            input.householdId,
-            input.animalId,
-            input.regimenId,
-            input.range,
-          ),
-        "insights-heatmap-generation",
-      );
-    }),
-
   // Apply a suggestion
   applySuggestion: householdProcedure
     .input(applySuggestionSchema)
-    .mutation(async ({ ctx, input }) => {
-      return timedOperations.analytics(
+    .mutation(async ({ ctx, input }) =>
+      timedOperations.analytics(
         () =>
           applySuggestion(
             ctx.db,
@@ -865,24 +839,8 @@ export const insightsRouter = createTRPCRouter({
             ctx.dbUser.id,
           ),
         "apply-suggestion",
-      );
-    }),
-
-  // Revert a suggestion
-  revertSuggestion: householdProcedure
-    .input(revertSuggestionSchema)
-    .mutation(async ({ ctx, input }) => {
-      return timedOperations.analytics(
-        () =>
-          revertSuggestion(
-            ctx.db,
-            input.householdId,
-            input.suggestionId,
-            ctx.dbUser.id,
-          ),
-        "revert-suggestion",
-      );
-    }),
+      ),
+    ),
 
   // Dismiss a suggestion
   dismissSuggestion: householdProcedure
@@ -892,9 +850,9 @@ export const insightsRouter = createTRPCRouter({
       await ctx.db
         .update(suggestions)
         .set({
-          status: "dismissed",
           dismissedAt: new Date().toISOString(),
           dismissedByUserId: ctx.dbUser.id,
+          status: "dismissed",
           updatedAt: new Date().toISOString(),
         })
         .where(
@@ -904,28 +862,56 @@ export const insightsRouter = createTRPCRouter({
           ),
         );
 
-      return { success: true, dismissedAt: new Date().toISOString() };
+      return { dismissedAt: new Date().toISOString(), success: true };
     }),
+
+  // Get compliance heatmap data
+  getComplianceHeatmap: householdProcedure
+    .input(getComplianceHeatmapSchema)
+    .query(async ({ ctx, input }) =>
+      timedOperations.analytics(
+        () =>
+          generateComplianceHeatmap(
+            ctx.db,
+            input.householdId,
+            input.animalId,
+            input.regimenId,
+            input.range,
+          ),
+        "insights-heatmap-generation",
+      ),
+    ),
+  // Get actionable suggestions for a household
+  getSuggestions: householdProcedure
+    .input(getSuggestionsSchema)
+    .query(async ({ ctx, input }) =>
+      timedOperations.analytics(
+        () => generateSuggestions(ctx.db, input.householdId, input.limit),
+        "insights-suggestions-generation",
+      ),
+    ),
+
+  // Revert a suggestion
+  revertSuggestion: householdProcedure
+    .input(revertSuggestionSchema)
+    .mutation(async ({ ctx, input }) =>
+      timedOperations.analytics(
+        () =>
+          revertSuggestion(
+            ctx.db,
+            input.householdId,
+            input.suggestionId,
+            ctx.dbUser.id,
+          ),
+        "revert-suggestion",
+      ),
+    ),
 
   // Snooze a reminder suggestion (placeholder)
   snoozeReminder: householdProcedure
     .input(snoozeReminderSchema)
-    .mutation(async ({ ctx: _ctx, input }) => {
-      // For now, just return success
-      // In a real implementation, you'd store the snooze in a table
-      // or update the notification queue
-
-      // TODO: Update notification queue with snooze time
-      // await ctx.db.update(notificationQueue)
-      //   .set({ snoozedUntil: input.snoozeUntil })
-      //   .where(and(
-      //     eq(notificationQueue.data->>'suggestionId', input.suggestionId),
-      //     eq(notificationQueue.householdId, input.householdId)
-      //   ));
-
-      return {
-        success: true,
-        snoozedUntil: input.snoozeUntil,
-      };
-    }),
+    .mutation(async ({ ctx: _ctx, input }) => ({
+      snoozedUntil: input.snoozeUntil,
+      success: true,
+    })),
 });

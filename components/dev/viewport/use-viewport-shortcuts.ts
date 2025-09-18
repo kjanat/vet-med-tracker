@@ -13,12 +13,9 @@ export function useViewportShortcuts({
 }: UseViewportShortcutsProps) {
   useEffect(() => {
     // Helper function to check if user is typing
-    const isUserTyping = (target: EventTarget | null): boolean => {
-      return (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement
-      );
-    };
+    const isUserTyping = (target: EventTarget | null) =>
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement;
 
     // Handler for 'r' key (rotate/reset)
     const handleRKey = (e: KeyboardEvent) => {

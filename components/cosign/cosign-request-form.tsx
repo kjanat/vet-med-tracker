@@ -62,30 +62,30 @@ export function CoSignRequestForm({
   const { toast } = useToast();
 
   const form = useForm<CoSignRequestForm>({
-    resolver: zodResolver(cosignRequestSchema),
-    mode: "onChange",
     defaultValues: {
       cosignerId: "",
     },
+    mode: "onChange",
+    resolver: zodResolver(cosignRequestSchema),
   });
 
   // Create co-sign request mutation
   const createRequestMutation = trpc.cosigner.createRequest.useMutation({
+    onError: (error) => {
+      toast({
+        description: error.message,
+        title: "Error sending request",
+        variant: "destructive",
+      });
+    },
     onSuccess: () => {
       toast({
-        title: "Co-sign request sent",
         description: "The co-sign request has been sent successfully.",
+        title: "Co-sign request sent",
       });
       form.reset();
       setOpen(false);
       onSuccess?.();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error sending request",
-        description: error.message,
-        variant: "destructive",
-      });
     },
   });
 
@@ -93,9 +93,9 @@ export function CoSignRequestForm({
     if (!selectedHousehold) return;
 
     createRequestMutation.mutate({
-      householdId: selectedHousehold.id,
       administrationId,
       cosignerId: data.cosignerId,
+      householdId: selectedHousehold.id,
     });
   };
 
@@ -111,12 +111,12 @@ export function CoSignRequestForm({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
         <Button
-          variant="outline"
-          disabled={disabled}
           className={cn("flex items-center gap-2", className)}
+          disabled={disabled}
+          variant="outline"
         >
           <FileSignature className="h-4 w-4" />
           Request Co-signature
@@ -164,8 +164,8 @@ export function CoSignRequestForm({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
           >
             <FormField
               control={form.control}
@@ -175,9 +175,9 @@ export function CoSignRequestForm({
                   <FormLabel>Co-signer</FormLabel>
                   <FormControl>
                     <CoSignerSelect
-                      value={field.value}
-                      onValueChange={field.onChange}
                       disabled={createRequestMutation.isPending}
+                      onValueChange={field.onChange}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormDescription>
@@ -199,20 +199,20 @@ export function CoSignRequestForm({
 
             <div className="flex gap-2 pt-2">
               <Button
+                className="flex-1"
+                disabled={createRequestMutation.isPending}
+                onClick={() => setOpen(false)}
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={createRequestMutation.isPending}
-                className="flex-1"
               >
                 Cancel
               </Button>
               <Button
-                type="submit"
+                className="flex-1"
                 disabled={
                   !form.formState.isValid || createRequestMutation.isPending
                 }
-                className="flex-1"
+                type="submit"
               >
                 {createRequestMutation.isPending ? (
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />

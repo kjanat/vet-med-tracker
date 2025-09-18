@@ -4,7 +4,7 @@ import { ChevronRight, type LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import * as React from "react";
+import React from "react";
 import {
   SidebarMenuItem,
   SidebarMenuSub,
@@ -72,16 +72,16 @@ export function NavMainItem({ item }: NavMainItemProps) {
       <SidebarMenuItem>
         <SidebarMenuButton
           asChild
-          isActive={isActive}
           className={cn(
             "group/button relative overflow-hidden transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
             isClicking && "animate-pulse bg-sidebar-accent opacity-70",
           )}
+          isActive={isActive}
         >
           <Link
-            href={item.url as Route}
             aria-label={`Navigate to ${item.title}`}
             className="flex items-center gap-2"
+            href={item.url as Route}
             onClick={() => setIsClicking(true)}
           >
             <item.icon
@@ -106,16 +106,16 @@ export function NavMainItem({ item }: NavMainItemProps) {
         <div className="group/parent flex items-center">
           <SidebarMenuButton
             asChild
-            isActive={isItemActive}
             className={cn(
               "flex-1 transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               isClicking && "bg-sidebar-accent opacity-70",
             )}
+            isActive={isItemActive}
           >
             <Link
-              href={item.url as Route}
               aria-label={`Navigate to ${item.title}`}
               className="flex items-center gap-2"
+              href={item.url as Route}
               onClick={() => setIsClicking(true)}
             >
               <item.icon
@@ -126,11 +126,11 @@ export function NavMainItem({ item }: NavMainItemProps) {
             </Link>
           </SidebarMenuButton>
           <button
-            type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md transition-all duration-200 hover:bg-sidebar-accent"
-            aria-label={`Toggle ${item.title} submenu`}
             aria-expanded={isExpanded}
+            aria-label={`Toggle ${item.title} submenu`}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md transition-all duration-200 hover:bg-sidebar-accent"
+            onClick={() => setIsExpanded(!isExpanded)}
+            type="button"
           >
             <ChevronRight
               className={cn(
@@ -143,11 +143,11 @@ export function NavMainItem({ item }: NavMainItemProps) {
       ) : (
         // Parent has no URL - only collapsible (like Manage, Medications)
         <button
-          type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="group/toggle flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          aria-label={`Toggle ${item.title} submenu`}
           aria-expanded={isExpanded}
+          aria-label={`Toggle ${item.title} submenu`}
+          className="group/toggle flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          onClick={() => setIsExpanded(!isExpanded)}
+          type="button"
         >
           <item.icon
             aria-hidden="true"
@@ -184,19 +184,19 @@ export function NavMainItem({ item }: NavMainItemProps) {
                   <SidebarMenuSubItem key={subItem.title}>
                     <SidebarMenuSubButton
                       asChild
-                      isActive={isSubActive}
                       className={cn(
                         "group/subitem relative overflow-hidden transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         isClicking &&
                           "animate-pulse bg-sidebar-accent opacity-70",
                       )}
+                      isActive={isSubActive}
                     >
                       {subItem.onClick ? (
                         <button
-                          type="button"
-                          onClick={subItem.onClick}
-                          className="flex w-full items-center text-left transition-all duration-200"
                           aria-label={`${subItem.title} action`}
+                          className="flex w-full items-center text-left transition-all duration-200"
+                          onClick={subItem.onClick}
+                          type="button"
                         >
                           <span className="transition-transform duration-200 group-hover/subitem:translate-x-1">
                             {subItem.title}
@@ -206,9 +206,9 @@ export function NavMainItem({ item }: NavMainItemProps) {
                         </button>
                       ) : (
                         <Link
-                          href={(subItem.url || "#") as Route}
-                          className="flex items-center transition-all duration-200"
                           aria-label={`Navigate to ${subItem.title}`}
+                          className="flex items-center transition-all duration-200"
+                          href={(subItem.url || "#") as Route}
                           onClick={() => setIsClicking(true)}
                         >
                           <span className="transition-transform duration-200 group-hover/subitem:translate-x-1">

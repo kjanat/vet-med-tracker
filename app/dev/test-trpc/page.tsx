@@ -128,9 +128,9 @@ function HouseholdsList({
           <div className="space-y-2">
             {households.map((household) => (
               <HouseholdItem
-                key={household.id}
                 household={household}
                 isSelected={selectedId === household.id}
+                key={household.id}
                 onClick={() => onSelect(household.id)}
               />
             ))}
@@ -157,11 +157,11 @@ function HouseholdItem({
 }) {
   return (
     <button
-      type="button"
       className={`w-full cursor-pointer rounded-lg border p-4 text-left transition-colors ${
         isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/50"
       }`}
       onClick={onClick}
+      type="button"
     >
       <div className="flex items-center justify-between">
         <div>
@@ -218,18 +218,18 @@ function HouseholdDetails({
       <CardContent>
         <div className="space-y-4">
           <DetailSection
-            title={`Animals (${details.animals?.length || 0})`}
+            emptyMessage="No animals yet"
             items={details.animals}
             renderItem={(animal) => `${animal.name} (${animal.species})`}
-            emptyMessage="No animals yet"
+            title={`Animals (${details.animals?.length || 0})`}
           />
           <DetailSection
-            title={`Members (${details.memberships?.length || 0})`}
+            emptyMessage="No members"
             items={details.memberships}
             renderItem={(membership) =>
               `${membership.user?.name || membership.user?.email} - ${membership.role}`
             }
-            emptyMessage="No members"
+            title={`Members (${details.memberships?.length || 0})`}
           />
         </div>
       </CardContent>
@@ -255,7 +255,7 @@ function DetailSection<T extends { id?: string }>({
       {items && items.length > 0 ? (
         <ul className="space-y-1">
           {items.map((item, index) => (
-            <li key={item.id || index} className="text-sm">
+            <li className="text-sm" key={item.id || index}>
               • {renderItem(item)}
             </li>
           ))}
@@ -300,21 +300,21 @@ function CreateHouseholdForm({ onSuccess }: { onSuccess: () => void }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Label htmlFor="household-name">Household Name</Label>
             <Input
+              disabled={createHouseholdMutation.isPending}
               id="household-name"
-              value={newHouseholdName}
               onChange={(e) => setNewHouseholdName(e.target.value)}
               placeholder="Enter household name"
-              disabled={createHouseholdMutation.isPending}
+              value={newHouseholdName}
             />
           </div>
           <Button
-            type="submit"
-            disabled={!newHouseholdName || createHouseholdMutation.isPending}
             className="w-full"
+            disabled={!newHouseholdName || createHouseholdMutation.isPending}
+            type="submit"
           >
             {createHouseholdMutation.isPending
               ? "Creating..."
@@ -356,7 +356,7 @@ export default function TestTRPCPage() {
   const { data: householdDetails, isLoading: detailsLoading } =
     trpc.household.get.useQuery(
       { householdId: selectedHouseholdId || "" },
-      { enabled: !!selectedHouseholdId },
+      { enabled: Boolean(selectedHouseholdId) },
     );
 
   return (
@@ -376,11 +376,11 @@ export default function TestTRPCPage() {
 
       {/* Households List */}
       <HouseholdsList
+        error={householdsError}
         households={households}
         isLoading={householdsLoading}
-        error={householdsError}
-        selectedId={selectedHouseholdId}
         onSelect={setSelectedHouseholdId}
+        selectedId={selectedHouseholdId}
       />
 
       {/* Household Details */}

@@ -138,7 +138,7 @@ function useRecordData(
       includeUpcoming: true,
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
       refetchInterval: 60000, // Refresh every minute
     },
   );
@@ -179,7 +179,8 @@ function useRecordData(
         includeExpired: state.allowOverride,
       },
       {
-        enabled: !!state.selectedRegimen && !!selectedHousehold?.id,
+        enabled:
+          Boolean(state.selectedRegimen) && Boolean(selectedHousehold?.id),
       },
     );
 
@@ -243,7 +244,7 @@ function SelectionStep({
             : "Select a medication to record"}
         </p>
         {searchParams.get("from") === "home" && (
-          <Button variant="ghost" onClick={() => router.push("/")}>
+          <Button onClick={() => router.push("/")} variant="ghost">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
@@ -289,8 +290,8 @@ function SelectionStep({
         </Alert>
       ) : (
         <MedicationSections
-          groupedRegimens={groupedRegimens}
           dueRegimens={dueRegimens}
+          groupedRegimens={groupedRegimens}
           handleRegimenSelect={handleRegimenSelect}
         />
       )}
@@ -325,8 +326,8 @@ function MedicationSections({
             {groupedRegimens.due.map((regimen) => (
               <RegimenCard
                 key={regimen.id}
-                regimen={regimen}
                 onSelect={handleRegimenSelect}
+                regimen={regimen}
               />
             ))}
           </CardContent>
@@ -348,8 +349,8 @@ function MedicationSections({
             {groupedRegimens.later.map((regimen) => (
               <RegimenCard
                 key={regimen.id}
-                regimen={regimen}
                 onSelect={handleRegimenSelect}
+                regimen={regimen}
               />
             ))}
           </CardContent>
@@ -371,8 +372,8 @@ function MedicationSections({
             {groupedRegimens.prn.map((regimen) => (
               <RegimenCard
                 key={regimen.id}
-                regimen={regimen}
                 onSelect={handleRegimenSelect}
+                regimen={regimen}
               />
             ))}
           </CardContent>
@@ -520,19 +521,19 @@ function RecordContent() {
   if (isMobile) {
     return (
       <RenderMobileLayout
-        state={state}
         animals={animals}
         dueRegimens={dueRegimens}
-        regimensLoading={regimensLoading}
-        regimensError={regimensError}
-        isOnline={isOnline}
-        inventorySources={inventorySources || []}
-        inventoryLoading={inventoryLoading}
-        isSubmitting={isSubmitting}
-        handleRegimenSelect={handleRegimenSelect}
         handleConfirm={handleConfirm}
-        router={router}
+        handleRegimenSelect={handleRegimenSelect}
+        inventoryLoading={inventoryLoading}
+        inventorySources={inventorySources || []}
+        isOnline={isOnline}
+        isSubmitting={isSubmitting}
+        regimensError={regimensError}
+        regimensLoading={regimensLoading}
         resetRecordState={resetRecordState}
+        router={router}
+        state={state}
       />
     );
   }
@@ -541,19 +542,19 @@ function RecordContent() {
   if (isTablet) {
     return (
       <RenderTabletLayout
-        state={state}
         animals={animals}
         dueRegimens={dueRegimens}
-        regimensLoading={regimensLoading}
-        regimensError={regimensError}
-        isOnline={isOnline}
-        inventorySources={inventorySources || []}
-        inventoryLoading={inventoryLoading}
-        isSubmitting={isSubmitting}
-        handleRegimenSelect={handleRegimenSelect}
         handleConfirm={handleConfirm}
-        router={router}
+        handleRegimenSelect={handleRegimenSelect}
+        inventoryLoading={inventoryLoading}
+        inventorySources={inventorySources || []}
+        isOnline={isOnline}
+        isSubmitting={isSubmitting}
+        regimensError={regimensError}
+        regimensLoading={regimensLoading}
         resetRecordState={resetRecordState}
+        router={router}
+        state={state}
       />
     );
   }
@@ -568,28 +569,28 @@ function RecordContent() {
   if (state.step === "confirm" && state.selectedRegimen) {
     return (
       <ConfirmStep
-        state={state}
         animals={animals}
-        inventorySources={inventorySources || []}
-        inventoryLoading={inventoryLoading}
         handleConfirm={handleConfirm}
+        inventoryLoading={inventoryLoading}
+        inventorySources={inventorySources || []}
         isSubmitting={isSubmitting}
+        state={state}
       />
     );
   }
 
   return (
     <SelectionStep
-      state={state}
-      dueRegimens={dueRegimens}
-      regimensLoading={regimensLoading}
-      regimensError={regimensError}
-      selectedHousehold={selectedHousehold}
       animals={animals}
-      isOnline={isOnline}
-      searchParams={searchParams}
-      router={router}
+      dueRegimens={dueRegimens}
       handleRegimenSelect={handleRegimenSelect}
+      isOnline={isOnline}
+      regimensError={regimensError}
+      regimensLoading={regimensLoading}
+      router={router}
+      searchParams={searchParams}
+      selectedHousehold={selectedHousehold}
+      state={state}
     />
   );
 }
@@ -619,9 +620,9 @@ function RegimenCard({
 
   return (
     <button
-      type="button"
       className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-4 text-left transition-colors hover:bg-accent"
       onClick={() => onSelect(regimen)}
+      type="button"
     >
       <div className="flex items-center gap-3">
         <AnimalAvatar animal={animal} size="md" />
@@ -733,12 +734,12 @@ function SuccessStep({
 
       <div className="space-y-3">
         <Button
-          variant="outline"
           className="w-full bg-transparent"
           onClick={() => {
             // TODO: Open reminder adjustment sheet
             console.log("Adjust reminder");
           }}
+          variant="outline"
         >
           Adjust Reminder
         </Button>
@@ -793,9 +794,9 @@ function ConfirmStep({
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center gap-4">
         <Button
-          variant="ghost"
-          size="icon"
           onClick={() => state.setStep("select")}
+          size="icon"
+          variant="ghost"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -824,11 +825,11 @@ function ConfirmStep({
               <Skeleton className="h-10 w-full" />
             ) : (
               <InventorySourceSelect
-                sources={relevantSources}
-                selectedId={state.inventorySourceId ?? undefined}
-                onSelect={state.setInventorySourceId}
                 allowOverride={true}
                 onOverrideChange={state.setAllowOverride}
+                onSelect={state.setInventorySourceId}
+                selectedId={state.inventorySourceId ?? undefined}
+                sources={relevantSources}
               />
             )}
           </div>
@@ -838,19 +839,19 @@ function ConfirmStep({
               <Label htmlFor="site">Site/Side (Optional)</Label>
               <Input
                 id="site"
+                onChange={(e) => state.setSite(e.target.value)}
                 placeholder="Left ear, right leg..."
                 value={state.site}
-                onChange={(e) => state.setSite(e.target.value)}
               />
             </div>
             <div>
               <Label>Photo Evidence</Label>
               <PhotoEvidenceUploader
+                animalId={state.selectedAnimalId || ""}
+                householdId={selectedHousehold?.id || ""}
                 photoUrls={state.photoUrls}
                 setPhotoUrls={state.setPhotoUrls}
-                householdId={selectedHousehold?.id || ""}
                 userId={user?.id || ""}
-                animalId={state.selectedAnimalId || ""}
               />
             </div>
           </div>
@@ -859,9 +860,9 @@ function ConfirmStep({
             <Label htmlFor="notes">Notes (Optional)</Label>
             <Textarea
               id="notes"
+              onChange={(e) => state.setNotes(e.target.value)}
               placeholder="Any observations or notes..."
               value={state.notes}
-              onChange={(e) => state.setNotes(e.target.value)}
             />
           </div>
 
@@ -873,13 +874,13 @@ function ConfirmStep({
           {state.selectedRegimen?.isHighRisk && (
             <div className="flex items-center space-x-2 rounded-lg border border-orange-200 bg-orange-50 p-4">
               <Checkbox
-                id="cosign"
                 checked={state.requiresCoSign}
+                id="cosign"
                 onCheckedChange={(checked) =>
                   state.setRequiresCoSign(checked === true)
                 }
               />
-              <Label htmlFor="cosign" className="text-sm">
+              <Label className="text-sm" htmlFor="cosign">
                 Requires co-sign (high-risk medication)
               </Label>
             </div>
@@ -888,10 +889,10 @@ function ConfirmStep({
           <Separator />
 
           <MedConfirmButton
-            onConfirm={handleConfirm}
-            disabled={isDisabled}
-            requiresCoSign={state.requiresCoSign}
             className="w-full"
+            disabled={isDisabled}
+            onConfirm={handleConfirm}
+            requiresCoSign={state.requiresCoSign}
           >
             {isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
           </MedConfirmButton>
@@ -918,8 +919,6 @@ function ConditionTagSelector({
         {tags.map((tag) => (
           <Button
             key={tag}
-            variant={conditionTags.includes(tag) ? "default" : "outline"}
-            size="sm"
             onClick={() => {
               setConditionTags((prev) =>
                 prev.includes(tag)
@@ -927,6 +926,8 @@ function ConditionTagSelector({
                   : [...prev, tag],
               );
             }}
+            size="sm"
+            variant={conditionTags.includes(tag) ? "default" : "outline"}
           >
             <Tag className="mr-1 h-3 w-3" />
             {tag}
@@ -975,50 +976,50 @@ function RenderMobileLayout({
 }) {
   return (
     <MobileRecordLayout
-      step={state.step}
-      selectedRegimen={state.selectedRegimen}
       dueRegimens={dueRegimens}
-      regimensLoading={regimensLoading}
-      regimensError={regimensError}
       isOnline={isOnline}
-      onRegimenSelect={handleRegimenSelect}
       onBack={() => {
         if (state.step === "confirm") {
           state.setStep("select");
         }
       }}
       onCancel={() => router.push("/")}
+      onRegimenSelect={handleRegimenSelect}
+      regimensError={regimensError}
+      regimensLoading={regimensLoading}
+      selectedRegimen={state.selectedRegimen}
+      step={state.step}
     >
       {state.step === "success" && (
         <MobileSuccessLayout
-          isOnline={isOnline}
-          onReturnHome={() => router.push("/")}
-          onRecordAnother={() => resetRecordState(state)}
-          recordedAt={new Date().toISOString()}
           animalName={state.selectedRegimen?.animalName}
+          isOnline={isOnline}
           medicationName={state.selectedRegimen?.medicationName}
+          onRecordAnother={() => resetRecordState(state)}
+          onReturnHome={() => router.push("/")}
+          recordedAt={new Date().toISOString()}
         />
       )}
       {state.step === "confirm" && state.selectedRegimen && (
         <MobileConfirmLayout
-          selectedRegimen={state.selectedRegimen}
-          animals={animals}
-          inventorySources={inventorySources}
-          inventoryLoading={inventoryLoading}
-          isSubmitting={isSubmitting}
-          inventorySourceId={state.inventorySourceId}
           allowOverride={state.allowOverride}
-          requiresCoSign={state.requiresCoSign}
-          notes={state.notes}
-          site={state.site}
+          animals={animals}
           conditionTags={state.conditionTags}
-          setInventorySourceId={state.setInventorySourceId}
-          setAllowOverride={state.setAllowOverride}
-          setRequiresCoSign={state.setRequiresCoSign}
-          setNotes={state.setNotes}
-          setSite={state.setSite}
-          setConditionTags={state.setConditionTags}
+          inventoryLoading={inventoryLoading}
+          inventorySourceId={state.inventorySourceId}
+          inventorySources={inventorySources}
+          isSubmitting={isSubmitting}
+          notes={state.notes}
           onConfirm={handleConfirm}
+          requiresCoSign={state.requiresCoSign}
+          selectedRegimen={state.selectedRegimen}
+          setAllowOverride={state.setAllowOverride}
+          setConditionTags={state.setConditionTags}
+          setInventorySourceId={state.setInventorySourceId}
+          setNotes={state.setNotes}
+          setRequiresCoSign={state.setRequiresCoSign}
+          setSite={state.setSite}
+          site={state.site}
         />
       )}
     </MobileRecordLayout>
@@ -1063,50 +1064,50 @@ function RenderTabletLayout({
 }) {
   return (
     <TabletRecordLayout
-      step={state.step}
-      selectedRegimen={state.selectedRegimen}
       dueRegimens={dueRegimens}
-      regimensLoading={regimensLoading}
-      regimensError={regimensError}
       isOnline={isOnline}
-      onRegimenSelect={handleRegimenSelect}
       onBack={() => {
         if (state.step === "confirm") {
           state.setStep("select");
         }
       }}
       onCancel={() => router.push("/")}
+      onRegimenSelect={handleRegimenSelect}
+      regimensError={regimensError}
+      regimensLoading={regimensLoading}
+      selectedRegimen={state.selectedRegimen}
+      step={state.step}
     >
       {state.step === "success" && (
         <TabletSuccessLayout
-          isOnline={isOnline}
-          onReturnHome={() => router.push("/")}
-          onRecordAnother={() => resetRecordState(state)}
-          recordedAt={new Date().toISOString()}
           animalName={state.selectedRegimen?.animalName}
+          isOnline={isOnline}
           medicationName={state.selectedRegimen?.medicationName}
+          onRecordAnother={() => resetRecordState(state)}
+          onReturnHome={() => router.push("/")}
+          recordedAt={new Date().toISOString()}
         />
       )}
       {state.step === "confirm" && state.selectedRegimen && (
         <TabletConfirmLayout
-          selectedRegimen={state.selectedRegimen}
-          animals={animals}
-          inventorySources={inventorySources}
-          inventoryLoading={inventoryLoading}
-          isSubmitting={isSubmitting}
-          inventorySourceId={state.inventorySourceId}
           allowOverride={state.allowOverride}
-          requiresCoSign={state.requiresCoSign}
-          notes={state.notes}
-          site={state.site}
+          animals={animals}
           conditionTags={state.conditionTags}
-          setInventorySourceId={state.setInventorySourceId}
-          setAllowOverride={state.setAllowOverride}
-          setRequiresCoSign={state.setRequiresCoSign}
-          setNotes={state.setNotes}
-          setSite={state.setSite}
-          setConditionTags={state.setConditionTags}
+          inventoryLoading={inventoryLoading}
+          inventorySourceId={state.inventorySourceId}
+          inventorySources={inventorySources}
+          isSubmitting={isSubmitting}
+          notes={state.notes}
           onConfirm={handleConfirm}
+          requiresCoSign={state.requiresCoSign}
+          selectedRegimen={state.selectedRegimen}
+          setAllowOverride={state.setAllowOverride}
+          setConditionTags={state.setConditionTags}
+          setInventorySourceId={state.setInventorySourceId}
+          setNotes={state.setNotes}
+          setRequiresCoSign={state.setRequiresCoSign}
+          setSite={state.setSite}
+          site={state.site}
         />
       )}
     </TabletRecordLayout>
@@ -1161,20 +1162,20 @@ function PhotoEvidenceUploader({
       {photoUrls.length > 0 && (
         <div className="grid grid-cols-2 gap-2">
           {photoUrls.map((url, index) => (
-            <div key={url} className="relative">
+            <div className="relative" key={url}>
               <Image
-                src={url}
                 alt={`Evidence ${index + 1}`}
-                width={80}
-                height={80}
                 className="h-20 w-full rounded-md border object-cover"
+                height={80}
+                src={url}
+                width={80}
               />
               <Button
-                type="button"
-                variant="destructive"
-                size="sm"
                 className="-top-2 -right-2 absolute h-6 w-6 rounded-full p-0"
                 onClick={() => handleRemovePhoto(index)}
+                size="sm"
+                type="button"
+                variant="destructive"
               >
                 ×
               </Button>
@@ -1186,10 +1187,10 @@ function PhotoEvidenceUploader({
       {/* Show uploader for new photos (limit to 4 photos) */}
       {photoUrls.length < 4 && !currentUpload && (
         <Button
-          type="button"
-          variant="outline"
           className="w-full bg-transparent"
           onClick={handleStartUpload}
+          type="button"
+          variant="outline"
         >
           <Camera className="mr-2 h-4 w-4" />
           {photoUrls.length === 0 ? "Add Photo Evidence" : "Add Another Photo"}
@@ -1200,25 +1201,25 @@ function PhotoEvidenceUploader({
       {currentUpload && (
         <div className="space-y-2">
           <PhotoUploader
-            onUpload={handlePhotoUpload}
+            animalId={animalId}
+            className="min-h-[120px]"
+            householdId={householdId}
+            maxSizeKB={2000}
             onError={(error) => {
               console.error("Photo upload error:", error);
               toast.error("Failed to upload photo");
               setCurrentUpload(null);
             }}
-            householdId={householdId}
-            userId={userId}
-            animalId={animalId}
-            maxSizeKB={2000}
+            onUpload={handlePhotoUpload}
             placeholder="Drag and drop photo or click to select"
-            className="min-h-[120px]"
+            userId={userId}
           />
           <Button
+            className="w-full"
+            onClick={() => setCurrentUpload(null)}
+            size="sm"
             type="button"
             variant="ghost"
-            size="sm"
-            onClick={() => setCurrentUpload(null)}
-            className="w-full"
           >
             Cancel Upload
           </Button>

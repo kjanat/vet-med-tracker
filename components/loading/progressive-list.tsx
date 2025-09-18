@@ -58,7 +58,7 @@ export function ProgressiveList<T>({
           }, 300);
         }
       },
-      { threshold: 0.1, rootMargin },
+      { rootMargin, threshold: 0.1 },
     );
 
     const el = loaderRef.current;
@@ -98,7 +98,7 @@ export function ProgressiveList<T>({
 
       {/* Load more trigger */}
       {displayCount < items.length && (
-        <div ref={loaderRef} className="flex justify-center py-4">
+        <div className="flex justify-center py-4" ref={loaderRef}>
           {isLoading ? (
             (loadingComponent ?? (
               <div className="w-full space-y-2">
@@ -113,10 +113,10 @@ export function ProgressiveList<T>({
               </div>
               {/* Hidden button for keyboard/screen reader users */}
               <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLoadMore}
                 className="sr-only focus:not-sr-only"
+                onClick={handleLoadMore}
+                size="sm"
+                variant="ghost"
               >
                 Load more items
               </Button>
@@ -165,19 +165,19 @@ export function VirtualList<T>({
 
   return (
     <div
-      ref={scrollElementRef}
       className={`overflow-auto ${className}`}
-      style={{ height: containerHeight }}
       onScroll={handleScroll}
+      ref={scrollElementRef}
+      style={{ height: containerHeight }}
     >
       <div style={{ height: totalHeight, position: "relative" }}>
         <div
           style={{
-            transform: `translateY(${offsetY}px)`,
-            position: "absolute",
-            top: 0,
             left: 0,
+            position: "absolute",
             right: 0,
+            top: 0,
+            transform: `translateY(${offsetY}px)`,
           }}
         >
           {visibleItems.map((item, index) => {
@@ -238,12 +238,12 @@ export function StaggeredList<T>({
     <div className={className}>
       {items.map((item, index) => (
         <div
-          key={keyExtractorAction?.(item, index) ?? index}
           className={`transition-all duration-300 ${
             visibleIndexes.has(index)
               ? "translate-y-0 opacity-100"
               : "translate-y-2 opacity-0"
           }`}
+          key={keyExtractorAction?.(item, index) ?? index}
         >
           {renderItemAction(item, index)}
         </div>

@@ -113,9 +113,7 @@ export function useTypedSearchParams<
    * Checks if a parameter has a specific value
    */
   const hasParamValue = useCallback(
-    (key: keyof T, value: string) => {
-      return searchParams.get(key as string) === value;
-    },
+    (key: keyof T, value: string) => searchParams.get(key as string) === value,
     [searchParams],
   );
 
@@ -162,16 +160,16 @@ export function useTypedSearchParams<
   );
 
   return {
+    createUrlWithParams,
+    getParamWithFallback,
+    hasParamValue,
     params,
+    removeParams,
+    replaceParams,
+    replaceWithParams,
+    resetParams,
     setParam,
     setParams,
-    replaceParams,
-    removeParams,
-    resetParams,
-    hasParamValue,
-    getParamWithFallback,
-    createUrlWithParams,
-    replaceWithParams,
   };
 }
 
@@ -199,8 +197,8 @@ export function useTypedSettingsParams() {
  */
 export function useTypedInsightsParams() {
   return useTypedSearchParams("insights", {
-    view: "summary" as const,
     metric: "all" as const,
+    view: "summary" as const,
   });
 }
 

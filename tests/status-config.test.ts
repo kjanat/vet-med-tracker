@@ -7,14 +7,14 @@ import {
 
 describe("status configuration", () => {
   test("exposes strongly typed design tokens", () => {
+    expect.assertions(2);
+
+    const expectedConfigs = ["high", "normal", "prn", "success", "urgent"];
+
     expect(getStatusConfig("urgent")).toEqual(STATUS_CONFIGS.urgent);
-    expect(Object.keys(STATUS_CONFIGS)).toEqual([
-      "urgent",
-      "high",
-      "normal",
-      "success",
-      "prn",
-    ]);
+    expect(Object.keys(STATUS_CONFIGS)).toEqual(
+      expect.arrayContaining(expectedConfigs),
+    );
   });
 
   test("maps regimen traits onto display intent", () => {
@@ -27,8 +27,8 @@ describe("status configuration", () => {
 
     expect(
       getMedicationStatus({
-        isPRN: false,
         isOverdue: true,
+        isPRN: false,
         section: "due",
       }),
     ).toBe("urgent");

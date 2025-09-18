@@ -6,22 +6,22 @@ import {
 } from "../lib/calculators/dosage";
 
 const baseMedication: Medication = {
-  id: "med-amoxicillin",
-  genericName: "Amoxicillin",
   category: "antibiotic",
-  formulation: "tablet",
-  dosageMinMgKg: 10,
-  dosageMaxMgKg: 20,
-  dosageTypicalMgKg: 15,
-  maxDailyDoseMg: 800,
   concentrationMgMl: 50,
-  unitsPerTablet: 125,
-  frequencyPerDay: 2,
+  dosageMaxMgKg: 20,
+  dosageMinMgKg: 10,
+  dosageTypicalMgKg: 15,
   duration: "7 days",
+  formulation: "tablet",
+  frequencyPerDay: 2,
+  genericName: "Amoxicillin",
+  id: "med-amoxicillin",
+  isControlledSubstance: false,
+  maxDailyDoseMg: 800,
+  prescriptionRequired: true,
   route: "oral",
   species: ["dog", "cat"],
-  isControlledSubstance: false,
-  prescriptionRequired: true,
+  unitsPerTablet: 125,
 };
 
 const caninePatient: Animal = {
@@ -55,10 +55,10 @@ describe("DosageCalculator edge cases", () => {
 
   test("handles geriatric animal", () => {
     const oldCat: Animal = {
+      ageYears: 14,
       species: "cat",
       weight: 5,
       weightUnit: "kg",
-      ageYears: 14,
     };
     const result = DosageCalculator.calculate({
       animal: oldCat,
@@ -161,8 +161,8 @@ describe("DosageCalculator edge cases", () => {
   test("handles medication with no min/max dosage", () => {
     const noMinMaxMed: Medication = {
       ...baseMedication,
-      dosageMinMgKg: null,
       dosageMaxMgKg: null,
+      dosageMinMgKg: null,
     };
     const result = DosageCalculator.calculate({
       animal: caninePatient,
@@ -203,8 +203,8 @@ describe("DosageCalculator edge cases", () => {
 
   test("determines calculation method for breed adjustment", () => {
     const greyhound: Animal = {
-      species: "dog",
       breed: "Greyhound",
+      species: "dog",
       weight: 30,
       weightUnit: "kg",
     };
@@ -217,10 +217,10 @@ describe("DosageCalculator edge cases", () => {
 
   test("determines calculation method for age adjustment", () => {
     const neonatalPup: Animal = {
+      age: { unit: "weeks", value: 6 },
       species: "dog",
       weight: 3,
       weightUnit: "kg",
-      age: { value: 6, unit: "weeks" },
     };
     const result = DosageCalculator.calculate({
       animal: neonatalPup,

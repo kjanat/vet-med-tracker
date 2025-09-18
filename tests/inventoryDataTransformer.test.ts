@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import type {
-  FormOptions,
-  Household,
-  InventoryFormData,
+import {
+  type FormOptions,
+  type Household,
+  InventoryDataTransformer,
+  type InventoryFormData,
 } from "@/lib/services/inventoryDataTransformer";
-import { InventoryDataTransformer } from "@/lib/services/inventoryDataTransformer";
 
 describe("InventoryDataTransformer", () => {
   const validHousehold: Household = {
@@ -13,22 +13,22 @@ describe("InventoryDataTransformer", () => {
   };
 
   const validFormData: InventoryFormData = {
-    medicationId: "med-123",
-    name: "Test Medication",
-    isCustomMedication: false,
-    brand: "Test Brand",
-    route: "oral",
-    form: "tablet",
-    strength: "10mg",
-    concentration: "",
-    quantityUnits: 30,
-    unitsRemaining: 25,
-    lot: "LOT123",
-    expiresOn: new Date("2025-12-31"),
-    storage: "ROOM",
     assignedAnimalId: "",
     barcode: "",
+    brand: "Test Brand",
+    concentration: "",
+    expiresOn: new Date("2025-12-31"),
+    form: "tablet",
+    isCustomMedication: false,
+    lot: "LOT123",
+    medicationId: "med-123",
+    name: "Test Medication",
+    quantityUnits: 30,
+    route: "oral",
     setInUse: false,
+    storage: "ROOM",
+    strength: "10mg",
+    unitsRemaining: 25,
   };
 
   describe("toApiPayload", () => {
@@ -53,9 +53,9 @@ describe("InventoryDataTransformer", () => {
     it("should handle empty optional fields", () => {
       const dataWithEmptyFields = {
         ...validFormData,
+        assignedAnimalId: "",
         brand: "",
         lot: "",
-        assignedAnimalId: "",
       };
 
       const result = InventoryDataTransformer.toApiPayload(
@@ -131,9 +131,9 @@ describe("InventoryDataTransformer", () => {
 
     it("should use provided options", () => {
       const options: FormOptions = {
-        storage: "FRIDGE",
         expiryDays: 365,
         quantityUnits: 10,
+        storage: "FRIDGE",
       };
 
       const result = InventoryDataTransformer.setDefaultValues(options);
@@ -157,10 +157,10 @@ describe("InventoryDataTransformer", () => {
     it("should calculate derived fields correctly", () => {
       const testData = {
         ...validFormData,
-        quantityUnits: 100,
-        unitsRemaining: 80,
         expiresOn: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days from now
+        quantityUnits: 100,
         storage: "FRIDGE" as const,
+        unitsRemaining: 80,
       };
 
       const result = InventoryDataTransformer.calculateDerivedFields(testData);
@@ -263,9 +263,9 @@ describe("InventoryDataTransformer", () => {
 
     it("should use provided options for fresh defaults", () => {
       const options: FormOptions = {
-        storage: "FREEZER",
         expiryDays: 180,
         quantityUnits: 5,
+        storage: "FREEZER",
       };
 
       const result = InventoryDataTransformer.createFreshDefaults(options);
@@ -332,10 +332,10 @@ describe("InventoryDataTransformer", () => {
     it("should trim string fields", () => {
       const dataWithWhitespace = {
         ...validFormData,
-        medicationId: "  med-123  ",
-        name: " Test Med ",
         brand: "  Brand  ",
         lot: "\tLOT123\n",
+        medicationId: "  med-123  ",
+        name: " Test Med ",
       };
 
       const result =
@@ -350,10 +350,10 @@ describe("InventoryDataTransformer", () => {
     it("should handle empty strings", () => {
       const dataWithEmptyStrings = {
         ...validFormData,
-        medicationId: "",
-        name: "",
         brand: null as unknown as string,
         lot: undefined as unknown as string,
+        medicationId: "",
+        name: "",
       };
 
       const result =
@@ -425,8 +425,8 @@ describe("InventoryDataTransformer", () => {
     it("should handle custom medication", () => {
       const customMedData = {
         ...validFormData,
-        isCustomMedication: true,
         barcode: "123456789",
+        isCustomMedication: true,
         lot: "",
       };
 
@@ -444,9 +444,9 @@ describe("InventoryDataTransformer", () => {
       const result = InventoryDataTransformer.getStorageOption("FRIDGE");
 
       expect(result).toEqual({
-        value: "FRIDGE",
-        label: "Refrigerated",
         description: "Store at 2-8°C",
+        label: "Refrigerated",
+        value: "FRIDGE",
       });
     });
 
@@ -488,9 +488,9 @@ describe("InventoryDataTransformer", () => {
     it("should calculate comprehensive inventory metrics", () => {
       const testData = {
         ...validFormData,
+        expiresOn: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days
         quantityUnits: 100,
         unitsRemaining: 75,
-        expiresOn: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days
       };
 
       const result =

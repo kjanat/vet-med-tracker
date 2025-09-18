@@ -30,7 +30,7 @@ export function NavMain({
       </SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
-          <NavMainItem key={item.title} item={item} />
+          <NavMainItem item={item} key={item.title} />
         ))}
       </SidebarMenu>
     </SidebarGroup>

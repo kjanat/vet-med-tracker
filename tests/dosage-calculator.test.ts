@@ -6,22 +6,22 @@ import {
 } from "../lib/calculators/dosage";
 
 const baseMedication: Medication = {
-  id: "med-amoxicillin",
-  genericName: "Amoxicillin",
   category: "antibiotic",
-  formulation: "tablet",
-  dosageMinMgKg: 10,
-  dosageMaxMgKg: 20,
-  dosageTypicalMgKg: 15,
-  maxDailyDoseMg: 800,
   concentrationMgMl: 50,
-  unitsPerTablet: 125,
-  frequencyPerDay: 2,
+  dosageMaxMgKg: 20,
+  dosageMinMgKg: 10,
+  dosageTypicalMgKg: 15,
   duration: "7 days",
+  formulation: "tablet",
+  frequencyPerDay: 2,
+  genericName: "Amoxicillin",
+  id: "med-amoxicillin",
+  isControlledSubstance: false,
+  maxDailyDoseMg: 800,
+  prescriptionRequired: true,
   route: "oral",
   species: ["dog", "cat"],
-  isControlledSubstance: false,
-  prescriptionRequired: true,
+  unitsPerTablet: 125,
 };
 
 const caninePatient: Animal = {
@@ -45,8 +45,8 @@ describe("DosageCalculator.calculate", () => {
     expect(result.appliedAdjustments).toHaveLength(0);
     expect(result.safetyLevel).toBe("safe");
     expect(result.alternativeFormats).toEqual([
-      { dose: 6, unit: "mL", description: "Liquid volume" },
-      { dose: 2.4, unit: "tablets", description: "Number of tablets" },
+      { description: "Liquid volume", dose: 6, unit: "mL" },
+      { description: "Number of tablets", dose: 2.4, unit: "tablets" },
     ]);
   });
 
@@ -83,15 +83,15 @@ describe("DosageCalculator.calculate", () => {
   test("reduces dosage for sighthounds and surfaces dosing warnings", () => {
     const regulationHeavyMedication: Medication = {
       ...baseMedication,
-      maxDailyDoseMg: 100,
-      warnings: "Use with caution for MDR1 variants",
       isControlledSubstance: true,
+      maxDailyDoseMg: 100,
       pregnancyCategory: "D",
+      warnings: "Use with caution for MDR1 variants",
     };
 
     const greyhound: Animal = {
-      species: "dog",
       breed: "Greyhound",
+      species: "dog",
       weight: 30,
       weightUnit: "kg",
     };
@@ -117,10 +117,10 @@ describe("DosageCalculator.calculate", () => {
 
   test("applies pediatric adjustment when age is supplied in different units", () => {
     const neonatalPup: Animal = {
+      age: { unit: "weeks", value: 6 },
       species: "dog",
       weight: 3,
       weightUnit: "kg",
-      age: { value: 6, unit: "weeks" },
     };
 
     const result = DosageCalculator.calculate({
@@ -250,8 +250,8 @@ describe("DosageCalculator species adjustments", () => {
 describe("DosageCalculator breed and age adjustments", () => {
   test("applies giant breed adjustment", () => {
     const greatDane: Animal = {
-      species: "dog",
       breed: "Great Dane",
+      species: "dog",
       weight: 70,
       weightUnit: "kg",
     };
@@ -265,8 +265,8 @@ describe("DosageCalculator breed and age adjustments", () => {
 
   test("applies toy breed adjustment", () => {
     const chihuahua: Animal = {
-      species: "dog",
       breed: "Chihuahua",
+      species: "dog",
       weight: 2,
       weightUnit: "kg",
     };
@@ -282,10 +282,10 @@ describe("DosageCalculator breed and age adjustments", () => {
 
   test("applies geriatric adjustment", () => {
     const oldDog: Animal = {
+      ageYears: 12,
       species: "dog",
       weight: 20,
       weightUnit: "kg",
-      ageYears: 12,
     };
     const result = DosageCalculator.calculate({
       animal: oldDog,

@@ -15,20 +15,20 @@ interface DeviceIconProps {
 
 // Map device types to appropriate Lucide icons
 const deviceTypeIcons: Record<string, LucideIcon> = {
-  phone: Smartphone,
-  mobile: Smartphone,
-  tablet: Tablet,
-  desktop: Monitor,
-  laptop: Laptop,
-  touch: Tablet,
   // Brand-specific mappings still use appropriate device icons
   apple: Smartphone,
-  samsung: Smartphone,
-  huawei: Smartphone,
-  lenovo: Smartphone,
+  desktop: Monitor,
   google: Smartphone,
+  huawei: Smartphone,
+  laptop: Laptop,
+  lenovo: Smartphone,
   lg: Smartphone,
+  mobile: Smartphone,
   oneplus: Smartphone,
+  phone: Smartphone,
+  samsung: Smartphone,
+  tablet: Tablet,
+  touch: Tablet,
   xiaomi: Smartphone,
 };
 

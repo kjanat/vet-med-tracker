@@ -10,22 +10,22 @@ interface FeatureHighlight {
 
 const features: FeatureHighlight[] = [
   {
+    bgColor: "bg-green-500/20",
+    color: "text-green-600",
     icon: CheckCircle,
     label: "3-Tap Recording",
-    color: "text-green-600",
-    bgColor: "bg-green-500/20",
   },
   {
+    bgColor: "bg-blue-500/20",
+    color: "text-blue-600",
     icon: Smartphone,
     label: "Works Offline",
-    color: "text-blue-600",
-    bgColor: "bg-blue-500/20",
   },
   {
+    bgColor: "bg-purple-500/20",
+    color: "text-purple-600",
     icon: Pill,
     label: "Smart Reminders",
-    color: "text-purple-600",
-    bgColor: "bg-purple-500/20",
   },
 ];
 
@@ -43,8 +43,8 @@ export function FeatureHighlights({ className }: FeatureHighlightsProps) {
     >
       {features.map((feature) => (
         <div
-          key={`highlight-${feature.label.toLowerCase().replace(/\s+/g, "-")}`}
           className="flex items-center gap-3 transition-transform duration-300 hover:scale-105"
+          key={`highlight-${feature.label.toLowerCase().replace(/\s+/g, "-")}`}
         >
           <div
             className={cn(

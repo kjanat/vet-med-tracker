@@ -47,22 +47,22 @@ interface DatabaseSuggestion {
 
 const suggestionIcons = {
   ADD_REMINDER: Clock,
-  SHIFT_TIME: ArrowRight,
   ENABLE_COSIGN: Shield,
   LOW_INVENTORY: Package,
   REFILL_NEEDED: RefreshCw,
+  SHIFT_TIME: ArrowRight,
 };
 
 const suggestionColors = {
   ADD_REMINDER:
     "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950",
-  SHIFT_TIME:
-    "border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950",
   ENABLE_COSIGN: "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950",
   LOW_INVENTORY:
     "border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950",
   REFILL_NEEDED:
     "border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950",
+  SHIFT_TIME:
+    "border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950",
 };
 
 export function ActionableSuggestions() {
@@ -82,7 +82,7 @@ export function ActionableSuggestions() {
         limit: 10,
       },
       {
-        enabled: !!selectedHousehold?.id,
+        enabled: Boolean(selectedHousehold?.id),
       },
     );
 
@@ -229,8 +229,8 @@ export function ActionableSuggestions() {
 
           return (
             <Card
-              key={suggestion.id}
               className={`${suggestionColors[suggestion.type as keyof typeof suggestionColors] || suggestionColors.ADD_REMINDER} ${isApplied ? "ring-2 ring-green-500" : ""}`}
+              key={suggestion.id}
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
@@ -244,10 +244,10 @@ export function ActionableSuggestions() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
+                      <Badge className="text-xs" variant="outline">
                         {suggestion.type.replace("_", " ").toLowerCase()}
                       </Badge>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge className="text-xs" variant="secondary">
                         {suggestion.priority}
                       </Badge>
                     </div>
@@ -260,13 +260,13 @@ export function ActionableSuggestions() {
                             Applied successfully!
                           </span>
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            className="gap-1"
+                            disabled={revertSuggestionMutation.isPending}
                             onClick={() =>
                               handleRevertSuggestion(suggestion.id)
                             }
-                            className="gap-1"
-                            disabled={revertSuggestionMutation.isPending}
+                            size="sm"
+                            variant="ghost"
                           >
                             <Undo2 className="h-3 w-3" />
                             {revertSuggestionMutation.isPending
@@ -277,10 +277,10 @@ export function ActionableSuggestions() {
                       </Alert>
                     ) : (
                       <Button
-                        onClick={() => handleApplySuggestion(suggestion)}
-                        size="sm"
                         className="w-full"
                         disabled={applySuggestionMutation.isPending}
+                        onClick={() => handleApplySuggestion(suggestion)}
+                        size="sm"
                       >
                         {applySuggestionMutation.isPending
                           ? "Applying..."

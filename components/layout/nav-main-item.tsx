@@ -82,27 +82,27 @@ const NavSubItem = React.memo(function NavSubItem({
     <SidebarMenuSubItem>
       <SidebarMenuSubButton
         asChild
-        isActive={isSubActive}
         className={cn(isSubNavigating && "opacity-70")}
+        isActive={isSubActive}
       >
         {subItem.onClick ? (
           <button
-            type="button"
+            aria-label={`${subItem.title} action`}
+            className="w-full cursor-pointer text-left transition-colors"
             onClick={(e) => {
               handleSubNavigation(e);
               subItem.onClick?.();
             }}
-            className="w-full cursor-pointer text-left transition-colors"
-            aria-label={`${subItem.title} action`}
+            type="button"
           >
             <span>{subItem.title}</span>
             {(isSubNavigating || isPending) && <LoadingIndicator />}
           </button>
         ) : (
           <Link
-            href={(subItem.url || "#") as Route}
-            className="cursor-pointer transition-colors"
             aria-label={`Navigate to ${subItem.title}`}
+            className="cursor-pointer transition-colors"
+            href={(subItem.url || "#") as Route}
             onClick={handleSubNavigation}
           >
             <span>{subItem.title}</span>
@@ -174,16 +174,16 @@ export const NavMainItem = React.memo(function NavMainItem({
       <SidebarMenuItem>
         <SidebarMenuButton
           asChild
-          tooltip={item.title}
-          isActive={isActive}
           className={cn(
             "cursor-pointer transition-colors",
             isNavigating && "opacity-70",
           )}
+          isActive={isActive}
+          tooltip={item.title}
         >
           <Link
-            href={item.url as Route}
             aria-label={`Navigate to ${item.title}`}
+            href={item.url as Route}
             onClick={handleNavigation}
           >
             <item.icon aria-hidden="true" />
@@ -197,23 +197,23 @@ export const NavMainItem = React.memo(function NavMainItem({
 
   // Parent item with sub-items
   return (
-    <Collapsible asChild open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible asChild onOpenChange={setIsOpen} open={isOpen}>
       <SidebarMenuItem>
         {item.url ? (
           // Parent has URL - make it clickable AND collapsible
           <div className="flex items-center">
             <SidebarMenuButton
               asChild
-              tooltip={item.title}
-              isActive={isActive}
               className={cn(
                 "flex-1 cursor-pointer transition-colors",
                 isNavigating && "opacity-70",
               )}
+              isActive={isActive}
+              tooltip={item.title}
             >
               <Link
-                href={item.url as Route}
                 aria-label={`Navigate to ${item.title}`}
+                href={item.url as Route}
                 onClick={handleNavigation}
               >
                 <item.icon aria-hidden="true" />
@@ -223,9 +223,9 @@ export const NavMainItem = React.memo(function NavMainItem({
             </SidebarMenuButton>
             <CollapsibleTrigger asChild>
               <SidebarMenuButton
-                size="sm"
-                className="ml-auto h-8 w-8 p-0"
                 aria-label={`${isOpen ? "Collapse" : "Expand"} ${item.title} menu`}
+                className="ml-auto h-8 w-8 p-0"
+                size="sm"
               >
                 <ChevronRight
                   className={cn(
@@ -240,12 +240,12 @@ export const NavMainItem = React.memo(function NavMainItem({
           // Parent has no URL - only collapsible
           <CollapsibleTrigger asChild>
             <SidebarMenuButton
-              tooltip={item.title}
-              isActive={isActive}
-              className="cursor-pointer"
-              aria-expanded={isOpen}
               aria-controls={`submenu-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+              aria-expanded={isOpen}
               aria-label={`${item.title} menu`}
+              className="cursor-pointer"
+              isActive={isActive}
+              tooltip={item.title}
             >
               <item.icon aria-hidden="true" />
               <span>{item.title}</span>
@@ -266,11 +266,11 @@ export const NavMainItem = React.memo(function NavMainItem({
           <SidebarMenuSub aria-label={`${item.title} submenu`}>
             {item.items?.map((subItem) => (
               <NavSubItem
-                key={subItem.title}
-                subItem={subItem}
-                segment={segment}
                 isMobile={isMobile}
+                key={subItem.title}
+                segment={segment}
                 setOpenMobile={setOpenMobile}
+                subItem={subItem}
               />
             ))}
           </SidebarMenuSub>

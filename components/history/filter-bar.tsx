@@ -34,8 +34,8 @@ export function FilterBar() {
   const clearFilters = () => {
     setFilters({
       animalId: undefined,
-      regimenId: undefined,
       caregiverId: undefined,
+      regimenId: undefined,
       type: "all",
     });
   };
@@ -49,8 +49,6 @@ export function FilterBar() {
             {/* View Toggle */}
             <div className="flex rounded-lg border p-1 md:w-auto">
               <Button
-                variant={filters.view === "list" ? "default" : "ghost"}
-                size="sm"
                 className="px-3 md:px-4"
                 onClick={() => {
                   setFilter("view", "list");
@@ -60,12 +58,12 @@ export function FilterBar() {
                     }),
                   );
                 }}
+                size="sm"
+                variant={filters.view === "list" ? "default" : "ghost"}
               >
                 List
               </Button>
               <Button
-                variant={filters.view === "calendar" ? "default" : "ghost"}
-                size="sm"
                 className="px-3 md:px-4"
                 onClick={() => {
                   setFilter("view", "calendar");
@@ -75,6 +73,8 @@ export function FilterBar() {
                     }),
                   );
                 }}
+                size="sm"
+                variant={filters.view === "calendar" ? "default" : "ghost"}
               >
                 Calendar
               </Button>
@@ -84,11 +84,11 @@ export function FilterBar() {
             <div className="flex-1 md:flex-none">
               <DateRangePicker
                 from={filters.from ? new Date(filters.from) : undefined}
-                to={filters.to ? new Date(filters.to) : undefined}
                 onSelect={(from, to) => {
                   if (from) setFilter("from", from.toISOString().split("T")[0]);
                   if (to) setFilter("to", to.toISOString().split("T")[0]);
                 }}
+                to={filters.to ? new Date(filters.to) : undefined}
               />
             </div>
           </div>
@@ -97,10 +97,10 @@ export function FilterBar() {
           <div className="flex gap-2 md:flex-row md:flex-wrap md:items-center md:gap-3">
             {/* Animal Filter */}
             <Select
-              value={filters.animalId || "all"}
               onValueChange={(value) =>
                 setFilter("animalId", value === "all" ? undefined : value)
               }
+              value={filters.animalId || "all"}
             >
               <SelectTrigger className="flex-1 md:w-[180px]">
                 <SelectValue placeholder="All Animals" />
@@ -117,8 +117,8 @@ export function FilterBar() {
 
             {/* Type Filter */}
             <Select
-              value={filters.type}
               onValueChange={(value) => setFilter("type", value)}
+              value={filters.type}
             >
               <SelectTrigger className="flex-1 md:w-[140px]">
                 <SelectValue />
@@ -133,15 +133,15 @@ export function FilterBar() {
             {/* Active Filters Badge */}
             {activeFilterCount > 0 && (
               <div className="flex w-full items-center gap-2 md:w-auto">
-                <Badge variant="secondary" className="gap-1">
+                <Badge className="gap-1" variant="secondary">
                   <Filter className="h-3 w-3" />
                   {activeFilterCount} active
                 </Badge>
                 <Button
-                  variant="ghost"
-                  size="sm"
                   className="h-9 px-2"
                   onClick={clearFilters}
+                  size="sm"
+                  variant="ghost"
                 >
                   <X className="h-4 w-4" />
                   <span className="ml-1">Clear</span>
@@ -181,13 +181,13 @@ function FilterPill({
   onRemove: () => void;
 }) {
   return (
-    <Badge variant="secondary" className="gap-1">
+    <Badge className="gap-1" variant="secondary">
       {label}
       <Button
-        variant="ghost"
-        size="sm"
         className="h-4 w-4 p-0"
         onClick={onRemove}
+        size="sm"
+        variant="ghost"
       >
         <X className="h-3 w-3" />
       </Button>
@@ -208,9 +208,9 @@ function DateRangePicker({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          size="sm"
           className="h-11 w-full justify-start gap-2 bg-transparent text-left font-normal md:w-auto"
+          size="sm"
+          variant="outline"
         >
           <Calendar className="h-4 w-4 shrink-0" />
           <span className="truncate text-xs md:text-sm">
@@ -220,17 +220,17 @@ function DateRangePicker({
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
+      <PopoverContent align="start" className="w-auto p-0" sideOffset={4}>
         {/* Mobile: Single range calendar */}
         <div className="p-3 md:hidden">
           <CalendarComponent
+            autoFocus
             mode="range"
-            selected={{ from, to }}
+            numberOfMonths={1}
             onSelect={(range) => {
               onSelect(range?.from, range?.to);
             }}
-            numberOfMonths={1}
-            autoFocus
+            selected={{ from, to }}
           />
         </div>
 
@@ -240,10 +240,10 @@ function DateRangePicker({
             <div className="space-y-2">
               <p className="font-medium text-sm">From</p>
               <CalendarComponent
-                mode="single"
-                selected={from}
-                onSelect={(date) => onSelect(date, to)}
                 autoFocus
+                mode="single"
+                onSelect={(date) => onSelect(date, to)}
+                selected={from}
               />
             </div>
           </div>
@@ -252,8 +252,8 @@ function DateRangePicker({
               <p className="font-medium text-sm">To</p>
               <CalendarComponent
                 mode="single"
-                selected={to}
                 onSelect={(date) => onSelect(from, date)}
+                selected={to}
               />
             </div>
           </div>

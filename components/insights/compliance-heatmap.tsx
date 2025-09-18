@@ -58,22 +58,22 @@ interface ComplianceHeatmapProps {
 const mockHeatmapData: HeatmapData = {
   buckets: [
     // Morning doses (8 AM)
-    { dow: 1, hour: 8, count: 12, latePct: 8, missedPct: 0 },
-    { dow: 2, hour: 8, count: 11, latePct: 18, missedPct: 9 },
-    { dow: 3, hour: 8, count: 10, latePct: 10, missedPct: 0 },
-    { dow: 4, hour: 8, count: 12, latePct: 25, missedPct: 8 },
-    { dow: 5, hour: 8, count: 9, latePct: 33, missedPct: 11 },
-    { dow: 6, hour: 8, count: 8, latePct: 50, missedPct: 25 }, // Weekend struggles
-    { dow: 0, hour: 8, count: 7, latePct: 43, missedPct: 14 },
+    { count: 12, dow: 1, hour: 8, latePct: 8, missedPct: 0 },
+    { count: 11, dow: 2, hour: 8, latePct: 18, missedPct: 9 },
+    { count: 10, dow: 3, hour: 8, latePct: 10, missedPct: 0 },
+    { count: 12, dow: 4, hour: 8, latePct: 25, missedPct: 8 },
+    { count: 9, dow: 5, hour: 8, latePct: 33, missedPct: 11 },
+    { count: 8, dow: 6, hour: 8, latePct: 50, missedPct: 25 }, // Weekend struggles
+    { count: 7, dow: 0, hour: 8, latePct: 43, missedPct: 14 },
 
     // Evening doses (6 PM)
-    { dow: 1, hour: 18, count: 12, latePct: 0, missedPct: 0 },
-    { dow: 2, hour: 18, count: 11, latePct: 9, missedPct: 0 },
-    { dow: 3, hour: 18, count: 12, latePct: 8, missedPct: 0 },
-    { dow: 4, hour: 18, count: 10, latePct: 20, missedPct: 10 },
-    { dow: 5, hour: 18, count: 11, latePct: 18, missedPct: 9 },
-    { dow: 6, hour: 18, count: 9, latePct: 22, missedPct: 11 },
-    { dow: 0, hour: 18, count: 8, latePct: 25, missedPct: 12 },
+    { count: 12, dow: 1, hour: 18, latePct: 0, missedPct: 0 },
+    { count: 11, dow: 2, hour: 18, latePct: 9, missedPct: 0 },
+    { count: 12, dow: 3, hour: 18, latePct: 8, missedPct: 0 },
+    { count: 10, dow: 4, hour: 18, latePct: 20, missedPct: 10 },
+    { count: 11, dow: 5, hour: 18, latePct: 18, missedPct: 9 },
+    { count: 9, dow: 6, hour: 18, latePct: 22, missedPct: 11 },
+    { count: 8, dow: 0, hour: 18, latePct: 25, missedPct: 12 },
   ],
 };
 
@@ -112,11 +112,8 @@ export function ComplianceHeatmap({
     setHeatmapData(mockHeatmapData);
   }, []);
 
-  const getBucketData = (dow: number, hour: number): HeatmapBucket | null => {
-    return (
-      heatmapData.buckets.find((b) => b.dow === dow && b.hour === hour) || null
-    );
-  };
+  const getBucketData = (dow: number, hour: number) =>
+    heatmapData.buckets.find((b) => b.dow === dow && b.hour === hour) || null;
 
   const getCellColor = (bucket: HeatmapBucket | null): string => {
     if (!bucket || bucket.count === 0) return "bg-gray-100";
@@ -170,8 +167,8 @@ export function ComplianceHeatmap({
           {/* Filters */}
           <div className="flex flex-col flex-wrap items-start gap-3 sm:flex-row sm:items-center">
             <Select
-              value={selectedAnimalId}
               onValueChange={setSelectedAnimalId}
+              value={selectedAnimalId}
             >
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue />
@@ -187,8 +184,8 @@ export function ComplianceHeatmap({
             </Select>
 
             <Select
-              value={selectedRegimenId}
               onValueChange={setSelectedRegimenId}
+              value={selectedRegimenId}
             >
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue />
@@ -203,34 +200,34 @@ export function ComplianceHeatmap({
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
                   className="w-full gap-2 bg-transparent sm:w-auto"
+                  variant="outline"
                 >
                   <Calendar className="h-4 w-4" />
                   {format(range.from, "MMM d")} - {format(range.to, "MMM d")}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent align="start" className="w-auto p-0">
                 <div className="space-y-4 p-4">
                   <div className="space-y-2">
                     <p className="font-medium text-sm">From</p>
                     <CalendarComponent
+                      autoFocus
                       mode="single"
-                      selected={range.from}
                       onSelect={(date) =>
                         date && onRangeChange({ ...range, from: date })
                       }
-                      autoFocus
+                      selected={range.from}
                     />
                   </div>
                   <div className="space-y-2">
                     <p className="font-medium text-sm">To</p>
                     <CalendarComponent
                       mode="single"
-                      selected={range.to}
                       onSelect={(date) =>
                         date && onRangeChange({ ...range, to: date })
                       }
+                      selected={range.to}
                     />
                   </div>
                 </div>
@@ -246,7 +243,7 @@ export function ComplianceHeatmap({
                 <div></div>
                 {/* Empty corner */}
                 {hours.map((hour) => (
-                  <div key={hour} className="text-center text-muted-foreground">
+                  <div className="text-center text-muted-foreground" key={hour}>
                     {hour === 0
                       ? "12a"
                       : hour <= 12
@@ -259,8 +256,8 @@ export function ComplianceHeatmap({
               {/* Day rows */}
               {dayNames.map((day, dow) => (
                 <div
-                  key={`day-${day}`}
                   className="grid grid-cols-[40px_repeat(24,_1fr)] gap-1"
+                  key={`day-${day}`}
                 >
                   <div className="py-1 font-medium text-muted-foreground text-xs">
                     {day}
@@ -269,8 +266,6 @@ export function ComplianceHeatmap({
                     const bucket = getBucketData(dow, hour);
                     return (
                       <button
-                        type="button"
-                        key={hour}
                         className={cn(
                           "aspect-square w-full cursor-pointer rounded transition-all hover:scale-110 hover:shadow-md",
                           getCellColor(bucket),
@@ -278,6 +273,8 @@ export function ComplianceHeatmap({
                             ? "hover:ring-2 hover:ring-primary"
                             : "",
                         )}
+                        disabled={!bucket || bucket.count === 0}
+                        key={hour}
                         onClick={() =>
                           bucket && bucket.count > 0 && handleCellClick(bucket)
                         }
@@ -286,7 +283,7 @@ export function ComplianceHeatmap({
                             ? `${day} ${hour}:00 - ${bucket.count} doses, ${bucket.latePct}% late, ${bucket.missedPct}% missed`
                             : "No doses scheduled"
                         }
-                        disabled={!bucket || bucket.count === 0}
+                        type="button"
                       />
                     );
                   })}
@@ -321,7 +318,7 @@ export function ComplianceHeatmap({
       </Card>
 
       {/* Drill-in Sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+      <Sheet onOpenChange={setSheetOpen} open={sheetOpen}>
         <SheetContent>
           <SheetHeader>
             <SheetTitle>
@@ -365,7 +362,7 @@ export function ComplianceHeatmap({
                     <div className="text-muted-foreground text-sm">
                       Recorded at 8:15 AM • 15 min late
                     </div>
-                    <Badge variant="secondary" className="mt-1">
+                    <Badge className="mt-1" variant="secondary">
                       Late
                     </Badge>
                   </div>
@@ -376,14 +373,14 @@ export function ComplianceHeatmap({
                     <div className="text-muted-foreground text-sm">
                       Recorded at 8:02 AM • On time
                     </div>
-                    <Badge variant="default" className="mt-1">
+                    <Badge className="mt-1" variant="default">
                       On time
                     </Badge>
                   </div>
                 </div>
               </div>
 
-              <Button onClick={handleOpenInHistory} className="w-full">
+              <Button className="w-full" onClick={handleOpenInHistory}>
                 <Filter className="mr-2 h-4 w-4" />
                 Open in History
               </Button>

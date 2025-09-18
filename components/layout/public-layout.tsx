@@ -27,9 +27,9 @@ export function PublicLayout({
       {showHeader && <PublicHeader />}
 
       <main
-        id="main-content"
-        className="relative flex-1"
         aria-label="Main content"
+        className="relative flex-1"
+        id="main-content"
       >
         {/* Conditional animated background */}
         {backgroundVariant !== "none" && (

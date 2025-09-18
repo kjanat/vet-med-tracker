@@ -46,7 +46,7 @@ export function generateBreadcrumbs(pathname: string): Array<{
   const breadcrumbs: Array<{ title: string; href?: Route }> = [];
 
   // Add home
-  breadcrumbs.push({ title: "Home", href: "/" as Route });
+  breadcrumbs.push({ href: "/" as Route, title: "Home" });
 
   // Build breadcrumbs from segments
   let currentPath = "";
@@ -56,14 +56,14 @@ export function generateBreadcrumbs(pathname: string): Array<{
 
     if (metadata?.title) {
       breadcrumbs.push({
-        title: metadata.title,
         href: currentPath as Route,
+        title: metadata.title,
       });
     } else {
       // Fallback to capitalizing the segment
       breadcrumbs.push({
-        title: segment.charAt(0).toUpperCase() + segment.slice(1),
         href: currentPath as Route,
+        title: segment.charAt(0).toUpperCase() + segment.slice(1),
       });
     }
   }
@@ -78,9 +78,8 @@ export function findNavigationItemByPath(
   path: string,
 ): NavigationItem | undefined {
   // Helper function to check a single navigation array
-  const findInArray = (items: NavigationItem[]): NavigationItem | undefined => {
-    return items.find((item) => item.path === path);
-  };
+  const findInArray = (items: NavigationItem[]) =>
+    items.find((item) => item.path === path);
 
   // Helper function to check main navigation sections
   const findInMainSection = (): NavigationItem | undefined => {

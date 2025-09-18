@@ -85,11 +85,11 @@ const MobileResponsiveTester: React.FC = () => {
 
   // Keyboard shortcuts
   useViewportShortcuts({
-    onRotate: rotate,
-    onReset: handleFullReset,
     onOpenDeviceSelector: isMobile
       ? () => setShowMobileDeviceSelector(true)
       : undefined,
+    onReset: handleFullReset,
+    onRotate: rotate,
   });
 
   // Loading state
@@ -116,9 +116,9 @@ const MobileResponsiveTester: React.FC = () => {
           <h2 className="mb-2 font-semibold text-lg">Failed to Load Devices</h2>
           <p className="mb-4 text-muted-foreground text-sm">{error}</p>
           <Button
+            className="flex items-center gap-2"
             onClick={retry}
             variant="outline"
-            className="flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
             Try Again
@@ -146,12 +146,12 @@ const MobileResponsiveTester: React.FC = () => {
       <>
         <div className="fixed inset-0 flex flex-col bg-background">
           <MobileToolbar
-            state={state}
             deviceCount={filteredDevices.length}
-            onRotate={rotate}
             onColorSchemeChange={handleColorSchemeChange}
             onOpenDeviceSelector={() => setShowMobileDeviceSelector(true)}
             onOpenInNewTab={handleOpenInNewTab}
+            onRotate={rotate}
+            state={state}
           />
 
           {/* Mobile Preview - use remaining height */}
@@ -164,9 +164,9 @@ const MobileResponsiveTester: React.FC = () => {
         {showMobileDeviceSelector && (
           <MobileDeviceSelector
             devices={filteredDevices}
-            selectedDevice={currentDevice || null}
-            onSelectDevice={setDevice}
             onClose={() => setShowMobileDeviceSelector(false)}
+            onSelectDevice={setDevice}
+            selectedDevice={currentDevice || null}
           />
         )}
       </>
@@ -177,25 +177,25 @@ const MobileResponsiveTester: React.FC = () => {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Toolbar */}
       <ViewportToolbar
-        brands={brands}
-        deviceTypes={deviceTypes}
         availableDeviceTypes={availableDeviceTypes}
         brandFilter={brandFilter}
-        deviceTypeFilter={deviceTypeFilter}
+        brands={brands}
         colorScheme={state.scheme}
-        urlInput={urlInput}
         deviceCount={filteredDevices.length}
-        totalDevices={devices.length}
+        deviceTypeFilter={deviceTypeFilter}
+        deviceTypes={deviceTypes}
         layoutMode={layoutMode}
-        onBrandFilterChange={setBrandFilter}
-        onDeviceTypeFilterChange={setDeviceTypeFilter}
-        onColorSchemeChange={handleColorSchemeChange}
-        onUrlInputChange={setUrlInput}
         onApplyUrl={applyUrl}
-        onRotate={rotate}
+        onBrandFilterChange={setBrandFilter}
+        onColorSchemeChange={handleColorSchemeChange}
+        onDeviceTypeFilterChange={setDeviceTypeFilter}
+        onLayoutModeChange={setLayoutMode}
         onReset={handleFullReset}
         onResetFilters={resetFilters}
-        onLayoutModeChange={setLayoutMode}
+        onRotate={rotate}
+        onUrlInputChange={setUrlInput}
+        totalDevices={devices.length}
+        urlInput={urlInput}
       />
 
       {/* Main content */}
@@ -203,17 +203,17 @@ const MobileResponsiveTester: React.FC = () => {
         {useSidebar ? (
           <>
             {/* Sidebar layout */}
-            <div ref={sidebarRef} className="flex w-96 flex-col border-r">
-              <ScrollArea style={scrollAreaStyle} className="flex-1">
+            <div className="flex w-96 flex-col border-r" ref={sidebarRef}>
+              <ScrollArea className="flex-1" style={scrollAreaStyle}>
                 <div className="grid gap-2 p-4">
                   {filteredDevices.map((device) => (
                     <MemoizedDeviceCard
-                      key={device.id}
                       device={device}
                       isSelected={
                         device.labels.primary === state.name &&
                         (device.properties.brand || "Unknown") === state.brand
                       }
+                      key={device.id}
                       onClick={() => setDevice(device)}
                     />
                   ))}
@@ -246,11 +246,11 @@ const MobileResponsiveTester: React.FC = () => {
                   >
                     {filteredDevices.map((device) => (
                       <div
+                        className="flex-shrink-0"
                         key={device.id}
                         style={{
                           width: `${VIEWPORT_CONFIG.deviceGrid.cardWidth}px`,
                         }}
-                        className="flex-shrink-0"
                       >
                         <MemoizedDeviceCard
                           device={device}
@@ -273,8 +273,8 @@ const MobileResponsiveTester: React.FC = () => {
             <div className="flex justify-center bg-muted/5 px-8">
               <div
                 style={{
-                  maxWidth: `${VIEWPORT_CONFIG.preview.maxWidthPercent}vw`,
                   maxHeight: `calc(100vh - ${VIEWPORT_CONFIG.preview.topbarMaxHeight}px)`,
+                  maxWidth: `${VIEWPORT_CONFIG.preview.maxWidthPercent}vw`,
                 }}
               >
                 <ViewportPreview src={iframeSrc} state={state} />

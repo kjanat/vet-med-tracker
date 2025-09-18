@@ -51,18 +51,8 @@ mock.module("@/hooks/shared/useResponsive", () => ({
 
 // Mock useSidebar hook
 mock.module("@/components/ui/sidebar", () => ({
-  useSidebar: () => ({
-    isMobile: false, // Default to desktop
-    state: "expanded",
-    openMobile: false,
-    setOpenMobile: () => {},
-    toggleSidebar: () => {},
-  }),
   SidebarMenu: ({ children }: { children: ReactNode }) => (
     <div data-testid="sidebar-menu">{children}</div>
-  ),
-  SidebarMenuItem: ({ children }: { children: ReactNode }) => (
-    <div data-testid="sidebar-menu-item">{children}</div>
   ),
   SidebarMenuButton: ({
     children,
@@ -70,6 +60,16 @@ mock.module("@/components/ui/sidebar", () => ({
   }: ComponentPropsWithoutRef<"button">) => (
     <button {...props}>{children}</button>
   ),
+  SidebarMenuItem: ({ children }: { children: ReactNode }) => (
+    <div data-testid="sidebar-menu-item">{children}</div>
+  ),
+  useSidebar: () => ({
+    isMobile: false, // Default to desktop
+    openMobile: false,
+    setOpenMobile: () => {},
+    state: "expanded",
+    toggleSidebar: () => {},
+  }),
 }));
 
 // Create a test auth context value that provides what the UserMenu needs
@@ -82,92 +82,92 @@ function createTestAppContextValue(
     overrides.userProfile || (user ? createTestUserProfile(user) : null);
 
   return {
-    // Minimal AppState properties needed for auth
-    selectedHouseholdId: null,
-    selectedAnimalId: null,
-    households: [],
+    accessibility: {
+      announcements: { assertive: "", polite: "" },
+      fontSize: "medium" as const,
+      highContrast: false,
+      reducedMotion: false,
+    },
     animals: [],
-    user: user,
-    userProfile,
-    isAuthenticated: Boolean(user),
+    announce: () => {},
     authStatus:
       overrides.authStatus || (user ? "authenticated" : "unauthenticated"),
-    preferences: {
-      defaultTimezone: "UTC",
-      preferredPhoneNumber: "",
-      emergencyContactName: "",
-      emergencyContactPhone: "",
-      notificationPreferences: {
-        emailReminders: true,
-        smsReminders: false,
-        pushNotifications: true,
-        reminderLeadTime: 30,
-      },
-      displayPreferences: {
-        use24HourTime: false,
-        temperatureUnit: "celsius" as const,
-        weightUnit: "kg" as const,
-      },
+    errors: {
+      animals: null,
+      households: null,
+      pendingMeds: null,
+      user: null,
     },
+    formatTemperature: () => "",
+    formatTime: () => "",
+    formatWeight: () => "",
+    getUserTimezone: () => "UTC",
     householdSettings: {
-      primaryHouseholdName: "",
       defaultLocation: {
         address: "",
         city: "",
         state: "",
-        zipCode: "",
         timezone: "UTC",
+        zipCode: "",
       },
       householdRoles: [],
-      preferredVeterinarian: {
-        name: "",
-        phone: "",
-        address: "",
-      },
       inventoryPreferences: {
-        lowStockThreshold: 10,
         autoReorderEnabled: false,
         expirationWarningDays: 7,
+        lowStockThreshold: 10,
       },
+      preferredVeterinarian: {
+        address: "",
+        name: "",
+        phone: "",
+      },
+      primaryHouseholdName: "",
     },
+    households: [],
+    isAuthenticated: Boolean(user),
     isFirstTimeUser: false,
-    accessibility: {
-      announcements: { polite: "", assertive: "" },
-      reducedMotion: false,
-      highContrast: false,
-      fontSize: "medium" as const,
-    },
     isOffline: false,
-    pendingSyncCount: 0,
     loading: {
-      user: Boolean(overrides.loading?.user),
-      households: false,
       animals: false,
+      households: false,
       pendingMeds: false,
+      user: Boolean(overrides.loading?.user),
     },
-    errors: {
-      user: null,
-      households: null,
-      animals: null,
-      pendingMeds: null,
-    },
-    // Action functions
-    setSelectedHousehold: () => {},
-    setSelectedAnimal: () => {},
-    refreshPendingMeds: () => {},
     login: () => {},
     logout: mockLogoutFn,
-    refreshAuth: async () => {},
-    updateVetMedPreferences: async () => {},
-    updateHouseholdSettings: async () => {},
     markOnboardingComplete: async () => {},
-    announce: () => {},
-    formatTime: () => "",
-    formatWeight: () => "",
-    formatTemperature: () => "",
-    getUserTimezone: () => "UTC",
-    selectedHousehold: null,
+    pendingSyncCount: 0,
+    preferences: {
+      defaultTimezone: "UTC",
+      displayPreferences: {
+        temperatureUnit: "celsius" as const,
+        use24HourTime: false,
+        weightUnit: "kg" as const,
+      },
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      notificationPreferences: {
+        emailReminders: true,
+        pushNotifications: true,
+        reminderLeadTime: 30,
+        smsReminders: false,
+      },
+      preferredPhoneNumber: "",
+    },
+    refreshAuth: async () => {},
+    refreshPendingMeds: () => {},
     selectedAnimal: null,
+    selectedAnimalId: null,
+    selectedHousehold: null,
+    // Minimal AppState properties needed for auth
+    selectedHouseholdId: null,
+    setSelectedAnimal: () => {},
+    // Action functions
+    setSelectedHousehold: () => {},
+    updateHouseholdSettings: async () => {},
+    updateVetMedPreferences: async () => {},
+    user: user,
+    userProfile,
     // Apply any overrides
     ...overrides,
   };
@@ -203,7 +203,7 @@ mock.module("next/link", () => ({
 // Mock UI components
 mock.module("@/components/ui/avatar", () => ({
   Avatar: ({ children, className }: DivMockProps) => (
-    <div data-testid="avatar" className={className}>
+    <div className={className} data-testid="avatar">
       {children}
     </div>
   ),
@@ -211,7 +211,7 @@ mock.module("@/components/ui/avatar", () => ({
     <div data-testid="avatar-fallback">{children}</div>
   ),
   AvatarImage: ({ src, alt }: AvatarImageProps) => (
-    <span data-testid="avatar-image" data-src={src} data-alt={alt} role="img" />
+    <span data-alt={alt} data-src={src} data-testid="avatar-image" role="img" />
   ),
 }));
 
@@ -229,11 +229,11 @@ mock.module("@/components/ui/dropdown-menu", () => ({
     sideOffset,
   }: DropdownContentProps) => (
     <div
-      data-testid="dropdown-content"
       className={className}
       data-align={align}
       data-side={side}
       data-side-offset={sideOffset}
+      data-testid="dropdown-content"
     >
       {children}
     </div>
@@ -248,23 +248,23 @@ mock.module("@/components/ui/dropdown-menu", () => ({
       children
     ) : (
       <div
+        className={className}
         data-testid="dropdown-item"
         onClick={onClick}
-        className={className}
-        role="menuitem"
-        tabIndex={0}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             onClick?.(event as unknown as ReactMouseEvent<HTMLDivElement>);
           }
         }}
+        role="menuitem"
+        tabIndex={0}
       >
         {children}
       </div>
     ),
   DropdownMenuLabel: ({ children, className }: DivMockProps) => (
-    <div data-testid="dropdown-label" className={className}>
+    <div className={className} data-testid="dropdown-label">
       {children}
     </div>
   ),
@@ -304,8 +304,8 @@ describe("UserMenu", () => {
           <UserMenu />
         </TestAuthProvider>,
       ),
-      mockLogout: contextValue.logout,
       contextValue,
+      mockLogout: contextValue.logout,
     };
   }
 
@@ -363,7 +363,7 @@ describe("UserMenu", () => {
       const dropdown = screen.getByTestId("dropdown-menu");
       const trigger = within(dropdown).getByRole("button");
       const content = within(dropdown).getByTestId("dropdown-content");
-      return { dropdown, trigger, content };
+      return { content, dropdown, trigger };
     };
 
     it("should render user avatar button when authenticated", () => {
@@ -410,9 +410,9 @@ describe("UserMenu", () => {
 
     it("should use 'U' as ultimate fallback for initials", () => {
       const noInfoUser = createTestUser({
+        email: "test@example.com",
         id: "user-123",
         name: null,
-        email: "test@example.com",
       });
       renderWithAuth({ user: noInfoUser });
       const dropdown = screen.getByTestId("dropdown-menu");
@@ -454,7 +454,7 @@ describe("UserMenu", () => {
       renderWithAuth({ user: userOverrides });
       const dropdown = screen.getByTestId("dropdown-menu");
       const content = within(dropdown).getByTestId("dropdown-content");
-      return { dropdown, content };
+      return { content, dropdown };
     };
 
     it("should display user information in dropdown label", () => {
@@ -537,11 +537,11 @@ describe("UserMenu", () => {
         : mockUser;
       const testUser = createTestUser(userOverrides);
 
-      renderWithAuth({ user: testUser, logout: mockLogout });
+      renderWithAuth({ logout: mockLogout, user: testUser });
       const dropdown = screen.getByTestId("dropdown-menu");
       const trigger = within(dropdown).getByRole("button") as HTMLButtonElement;
       const content = within(dropdown).getByTestId("dropdown-content");
-      return { dropdown, trigger, content };
+      return { content, dropdown, trigger };
     };
 
     it("should call logout when logout option is clicked", async () => {
@@ -562,13 +562,13 @@ describe("UserMenu", () => {
 
     it("should disable avatar button when loading", () => {
       renderWithAuth({
-        user: mockUser,
         loading: {
-          user: true,
-          households: false,
           animals: false,
+          households: false,
           pendingMeds: false,
+          user: true,
         },
+        user: mockUser,
       });
       const dropdown = screen.getByTestId("dropdown-menu");
       const avatarButton = within(dropdown).getByRole(
@@ -606,19 +606,19 @@ describe("UserMenu", () => {
     it("should handle loading state in mobile mode", () => {
       mockUseIsMobile.mockReturnValue(true);
       const testUser = createTestUser({
+        email: "test@example.com",
         id: "123",
         name: "Test",
-        email: "test@example.com",
       });
 
       renderWithAuth({
-        user: testUser,
         loading: {
-          user: true,
-          households: false,
           animals: false,
+          households: false,
           pendingMeds: false,
+          user: true,
         },
+        user: testUser,
       });
 
       const dropdown = screen.getByTestId("dropdown-menu");
@@ -637,12 +637,12 @@ describe("UserMenu", () => {
 
       mockUseIsMobile.mockReturnValue(true);
       const testUser = createTestUser({
+        email: "test@example.com",
         id: "123",
         name: "Test",
-        email: "test@example.com",
       });
 
-      renderWithAuth({ user: testUser, logout: errorLogout });
+      renderWithAuth({ logout: errorLogout, user: testUser });
 
       const content = within(screen.getByTestId("dropdown-menu")).getByTestId(
         "dropdown-content",

@@ -8,49 +8,49 @@ type NavigationDirection = "horizontal" | "vertical" | "grid";
 // Navigation key mappings with improved type safety
 const navigationKeys = Object.freeze({
   ArrowDown: {
-    directions: ["vertical", "grid"] as NavigationDirection[],
     delta: 1,
-  },
-  ArrowUp: {
     directions: ["vertical", "grid"] as NavigationDirection[],
-    delta: -1,
-  },
-  ArrowRight: {
-    directions: ["horizontal", "grid"] as NavigationDirection[],
-    delta: 1,
   },
   ArrowLeft: {
-    directions: ["horizontal", "grid"] as NavigationDirection[],
     delta: -1,
+    directions: ["horizontal", "grid"] as NavigationDirection[],
   },
-  Home: { absolute: 0 },
+  ArrowRight: {
+    delta: 1,
+    directions: ["horizontal", "grid"] as NavigationDirection[],
+  },
+  ArrowUp: {
+    delta: -1,
+    directions: ["vertical", "grid"] as NavigationDirection[],
+  },
   End: { absolute: -1 }, // Will be resolved to items.length - 1
+  Home: { absolute: 0 },
 } as const);
 
 /**
  * Global keyboard shortcuts for the VetMed Tracker application
  */
 export const KEYBOARD_SHORTCUTS = {
-  // Navigation shortcuts
-  "Ctrl+R": "Record medication",
-  "Ctrl+I": "Go to inventory",
+  "?": "Show keyboard shortcuts (alternative)",
+  "Alt+M": "Open main menu",
+  "Ctrl+/": "Show keyboard shortcuts",
   "Ctrl+H": "View history",
-  "Ctrl+N": "Add new animal",
-  "Ctrl+S": "Go to settings",
+  "Ctrl+I": "Go to inventory",
 
   // Search and utility
   "Ctrl+K": "Search everywhere",
-  "Ctrl+/": "Show keyboard shortcuts",
-  "?": "Show keyboard shortcuts (alternative)",
-
-  // Modal and navigation
-  Escape: "Close modal/Cancel action",
-  "Alt+M": "Open main menu",
+  "Ctrl+N": "Add new animal",
+  // Navigation shortcuts
+  "Ctrl+R": "Record medication",
+  "Ctrl+S": "Go to settings",
 
   // Quick actions
   "Ctrl+Shift+A": "Add new administration",
   "Ctrl+Shift+I": "Add inventory item",
   "Ctrl+Shift+R": "Create new regimen",
+
+  // Modal and navigation
+  Escape: "Close modal/Cancel action",
 } as const;
 
 export type ShortcutKey = keyof typeof KEYBOARD_SHORTCUTS;
@@ -64,8 +64,8 @@ export function matchesShortcut(
 ): boolean {
   const keys = shortcut.split("+");
   const keyChecks = {
-    Ctrl: event.ctrlKey || event.metaKey, // Support both Ctrl and Cmd
     Alt: event.altKey,
+    Ctrl: event.ctrlKey || event.metaKey, // Support both Ctrl and Cmd
     Shift: event.shiftKey,
   };
 
@@ -176,11 +176,13 @@ export function useFocusManagement(
   const { trapFocus = false, returnFocus = false, initialFocus } = options;
 
   // Store the element that had focus before this container
-  const previouslyFocusedElement = useCallback(() => {
-    return typeof document !== "undefined"
-      ? (document.activeElement as HTMLElement)
-      : null;
-  }, []);
+  const previouslyFocusedElement = useCallback(
+    () =>
+      typeof document !== "undefined"
+        ? (document.activeElement as HTMLElement)
+        : null,
+    [],
+  );
 
   // Get all focusable elements within the container
   const getFocusableElements = useCallback(() => {
@@ -296,8 +298,8 @@ export function useFocusManagement(
   ]);
 
   return {
-    setInitialFocus,
     getFocusableElements,
+    setInitialFocus,
   };
 }
 

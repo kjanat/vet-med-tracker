@@ -231,86 +231,86 @@ type AppAction =
 // =============================================================================
 
 const defaultVetMedPreferences: VetMedPreferences = {
+  defaultAnimalId: undefined,
+  defaultHouseholdId: undefined,
   defaultTimezone: "America/New_York",
-  preferredPhoneNumber: "",
+  displayPreferences: {
+    temperatureUnit: "fahrenheit",
+    theme: "system",
+    use24HourTime: false,
+    weekStartsOn: 0,
+    weightUnit: "lbs",
+  },
   emergencyContactName: "",
   emergencyContactPhone: "",
   notificationPreferences: {
     emailReminders: true,
-    smsReminders: false,
     pushNotifications: true,
     reminderLeadTime: 15,
+    smsReminders: false,
   },
-  displayPreferences: {
-    use24HourTime: false,
-    temperatureUnit: "fahrenheit",
-    weightUnit: "lbs",
-    weekStartsOn: 0,
-    theme: "system",
-  },
-  defaultHouseholdId: undefined,
-  defaultAnimalId: undefined,
+  preferredPhoneNumber: "",
 };
 
 const defaultHouseholdSettings: HouseholdSettings = {
-  primaryHouseholdName: "",
   defaultLocation: {
     address: "",
     city: "",
     state: "",
-    zipCode: "",
     timezone: "America/New_York",
+    zipCode: "",
   },
   householdRoles: ["Owner", "Primary Caregiver"],
-  preferredVeterinarian: {
-    name: "",
-    phone: "",
-    address: "",
-  },
   inventoryPreferences: {
-    lowStockThreshold: 7,
     autoReorderEnabled: false,
     expirationWarningDays: 30,
+    lowStockThreshold: 7,
   },
+  preferredVeterinarian: {
+    address: "",
+    name: "",
+    phone: "",
+  },
+  primaryHouseholdName: "",
 };
 
 const defaultAccessibilityState: AccessibilityState = {
   announcements: {
-    polite: "",
     assertive: "",
+    polite: "",
   },
-  reducedMotion: false,
-  highContrast: false,
   fontSize: "medium",
+  highContrast: false,
+  reducedMotion: false,
 };
 
 const initialState: AppState = {
-  selectedHouseholdId: null,
-  selectedAnimalId: null,
-  households: [],
+  accessibility: defaultAccessibilityState,
   animals: [],
+  authStatus: "loading",
+  errors: {
+    animals: null,
+    households: null,
+    pendingMeds: null,
+    user: null,
+  },
+  householdSettings: defaultHouseholdSettings,
+  households: [],
+  isAuthenticated: false,
+  isFirstTimeUser: false,
+  isOffline: false,
+  loading: {
+    animals: false,
+    households: false,
+    pendingMeds: false,
+    user: true,
+  },
+  pendingSyncCount: 0,
+  preferences: defaultVetMedPreferences,
+  selectedAnimalId: null,
+  selectedHouseholdId: null,
   user: null,
   userProfile: null,
-  isAuthenticated: false,
-  authStatus: "loading",
-  preferences: defaultVetMedPreferences,
-  householdSettings: defaultHouseholdSettings,
-  isFirstTimeUser: false,
-  accessibility: defaultAccessibilityState,
-  isOffline: false,
-  pendingSyncCount: 0,
-  loading: {
-    user: true,
-    households: false,
-    animals: false,
-    pendingMeds: false,
-  },
-  errors: {
-    user: null,
-    households: null,
-    animals: null,
-    pendingMeds: null,
-  },
 };
 
 // =============================================================================
@@ -354,8 +354,8 @@ function handleHouseholdChange(
     }
     return {
       ...state,
-      selectedHouseholdId: householdId,
       selectedAnimalId: null,
+      selectedHouseholdId: householdId,
     };
   }
 
@@ -391,9 +391,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case "SET_USER":
       return {
         ...state,
-        user: action.payload,
-        isAuthenticated: !!action.payload,
         authStatus: action.payload ? "authenticated" : "unauthenticated",
+        isAuthenticated: Boolean(action.payload),
+        user: action.payload,
       };
 
     case "SET_USER_PROFILE":
@@ -554,49 +554,49 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // Convert Stack user to internal user format
   const convertStackUser = useCallback(
     (stackUser: StackUserForConversion): User => ({
-      id: stackUser.id,
-      name: stackUser.displayName || stackUser.primaryEmail || "Unknown",
-      firstName: null, // Let users set this themselves
-      lastName: null, // Let users set this themselves
-      email: stackUser.primaryEmail || "",
-      image: stackUser.profileImageUrl || null,
-      emailVerified: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      stackUserId: stackUser.id,
       // New flexible profile fields (all optional, defaults)
       bio: null,
-      pronouns: null,
-      location: null,
-      website: null,
-      socialLinks: {},
-      profileData: {},
-      profileVisibility: {
-        name: true,
-        email: false,
-        bio: true,
-        location: true,
-      },
-      profileCompletedAt: null,
-      preferredTimezone: null,
-      preferredPhoneNumber: null,
-      use24HourTime: null,
-      temperatureUnit: null,
-      weightUnit: null,
+      createdAt: new Date().toISOString(),
+      defaultAnimalId: null,
+      defaultHouseholdId: null,
+      email: stackUser.primaryEmail || "",
       emailReminders: null,
-      smsReminders: null,
-      pushNotifications: null,
-      reminderLeadTimeMinutes: null,
+      emailVerified: null,
       emergencyContactName: null,
       emergencyContactPhone: null,
+      firstName: null, // Let users set this themselves
+      id: stackUser.id,
+      image: stackUser.profileImageUrl || null,
+      lastName: null, // Let users set this themselves
+      location: null,
+      name: stackUser.displayName || stackUser.primaryEmail || "Unknown",
       onboardingComplete: null,
       onboardingCompletedAt: null,
       preferencesBackup: null,
+      preferredPhoneNumber: null,
+      preferredTimezone: null,
+      profileCompletedAt: null,
+      profileData: {},
+      profileVisibility: {
+        bio: true,
+        email: false,
+        location: true,
+        name: true,
+      },
+      pronouns: null,
+      pushNotifications: null,
+      reminderLeadTimeMinutes: null,
+      smsReminders: null,
+      socialLinks: {},
+      stackUserId: stackUser.id,
+      temperatureUnit: null,
+      theme: null,
+      updatedAt: new Date().toISOString(),
+      use24HourTime: null,
+      website: null,
       // Add missing fields to match schema
       weekStartsOn: null,
-      defaultHouseholdId: null,
-      defaultAnimalId: null,
-      theme: null,
+      weightUnit: null,
     }),
     [],
   );
@@ -607,23 +607,23 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     if (isLoaded) {
       if (stackUser) {
         const user = convertStackUser(stackUser);
-        dispatch({ type: "SET_USER", payload: user });
-        dispatch({ type: "SET_AUTH_STATUS", payload: "authenticated" });
+        dispatch({ payload: user, type: "SET_USER" });
+        dispatch({ payload: "authenticated", type: "SET_AUTH_STATUS" });
       } else {
-        dispatch({ type: "SET_USER", payload: null });
-        dispatch({ type: "SET_AUTH_STATUS", payload: "unauthenticated" });
+        dispatch({ payload: null, type: "SET_USER" });
+        dispatch({ payload: "unauthenticated", type: "SET_AUTH_STATUS" });
       }
-      dispatch({ type: "SET_LOADING", payload: { key: "user", value: false } });
+      dispatch({ payload: { key: "user", value: false }, type: "SET_LOADING" });
     }
   }, [stackUser, convertStackUser]);
 
   // Get user profile data from tRPC
   const { data: userProfile, refetch: refetchProfile } =
-    trpc.user.getProfile.useQuery(undefined, { enabled: !!stackUser });
+    trpc.user.getProfile.useQuery(undefined, { enabled: Boolean(stackUser) });
 
   useEffect(() => {
     if (userProfile) {
-      dispatch({ type: "SET_USER_PROFILE", payload: userProfile });
+      dispatch({ payload: userProfile, type: "SET_USER_PROFILE" });
     }
   }, [userProfile]);
 
@@ -641,15 +641,15 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 
       if (vetMedPrefs) {
         dispatch({
-          type: "SET_PREFERENCES",
           payload: { ...defaultVetMedPreferences, ...vetMedPrefs },
+          type: "SET_PREFERENCES",
         });
       }
 
       if (householdSettings) {
         dispatch({
-          type: "SET_HOUSEHOLD_SETTINGS",
           payload: { ...defaultHouseholdSettings, ...householdSettings },
+          type: "SET_HOUSEHOLD_SETTINGS",
         });
       }
 
@@ -658,8 +658,8 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
       const hasCompletedOnboarding =
         stackUser.clientMetadata?.onboardingComplete;
       dispatch({
-        type: "SET_FIRST_TIME_USER",
         payload: !hasPreferences && !hasCompletedOnboarding,
+        type: "SET_FIRST_TIME_USER",
       });
     }
   }, [stackUser]);
@@ -670,19 +670,18 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 
   // Fetch household details from API
   const { data: householdData } = trpc.household.list.useQuery(undefined, {
-    enabled: !!stackUser,
+    enabled: Boolean(stackUser),
   });
 
   // Helper function to format household data
   const formatHouseholdData = useCallback(
-    (data: HouseholdListItem[]): Household[] => {
-      return data.map((h) => ({
+    (data: HouseholdListItem[]) =>
+      data.map((h) => ({
+        avatar: undefined, // TODO: Add avatar support
         id: h.id,
         name: h.name,
-        avatar: undefined, // TODO: Add avatar support
         timezone: h.timezone,
-      }));
-    },
+      })),
     [],
   );
 
@@ -703,10 +702,10 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
       const savedHousehold = restoreHouseholdFromStorage(households);
 
       if (savedHousehold) {
-        dispatch({ type: "SET_HOUSEHOLD", payload: savedHousehold });
+        dispatch({ payload: savedHousehold, type: "SET_HOUSEHOLD" });
       } else if (households.length > 0) {
         // Fallback to first household
-        dispatch({ type: "SET_HOUSEHOLD", payload: households[0] || null });
+        dispatch({ payload: households[0] || null, type: "SET_HOUSEHOLD" });
       }
     },
     [restoreHouseholdFromStorage],
@@ -717,7 +716,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     if (!householdData || householdData.length === 0) return;
 
     const formattedHouseholds = formatHouseholdData(householdData);
-    dispatch({ type: "SET_HOUSEHOLDS", payload: formattedHouseholds });
+    dispatch({ payload: formattedHouseholds, type: "SET_HOUSEHOLDS" });
 
     // Auto-select household if none selected
     if (!state.selectedHouseholdId) {
@@ -733,14 +732,14 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // Fetch animals for selected household
   const { data: animalData } = trpc.household.getAnimals.useQuery(
     { householdId: state.selectedHouseholdId || "" },
-    { enabled: !!state.selectedHouseholdId },
+    { enabled: Boolean(state.selectedHouseholdId) },
   );
 
   // Fetch pending medications count
   const { data: pendingMedsData } = trpc.household.getPendingMeds.useQuery(
     { householdId: state.selectedHouseholdId || "" },
     {
-      enabled: !!state.selectedHouseholdId,
+      enabled: Boolean(state.selectedHouseholdId),
       refetchInterval: 60000, // Refresh every minute
     },
   );
@@ -750,16 +749,15 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     (
       data: AnimalFromDatabase[],
       pendingByAnimal: Record<string, number> = {},
-    ): Animal[] => {
-      return data.map((animal) => ({
+    ) =>
+      data.map((animal) => ({
+        avatar: undefined, // TODO: Add avatar support
         id: animal.id,
         name: animal.name,
-        species: animal.species,
-        avatar: undefined, // TODO: Add avatar support
         pendingMeds: pendingByAnimal[animal.id] || 0,
+        species: animal.species,
         timezone: animal.timezone,
-      }));
-    },
+      })),
     [],
   );
 
@@ -783,13 +781,13 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
           (a) => a.id === state.selectedAnimalId,
         );
         if (!stillExists) {
-          dispatch({ type: "SET_ANIMAL", payload: null });
+          dispatch({ payload: null, type: "SET_ANIMAL" });
         }
       } else {
         // Try to restore from localStorage
         const savedAnimal = restoreAnimalFromStorage(animals);
         if (savedAnimal) {
-          dispatch({ type: "SET_ANIMAL", payload: savedAnimal });
+          dispatch({ payload: savedAnimal, type: "SET_ANIMAL" });
         }
       }
     },
@@ -803,7 +801,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     const pendingByAnimal = pendingMedsData?.byAnimal || {};
     const formattedAnimals = formatAnimalData(animalData, pendingByAnimal);
 
-    dispatch({ type: "SET_ANIMALS", payload: formattedAnimals });
+    dispatch({ payload: formattedAnimals, type: "SET_ANIMALS" });
     validateSelectedAnimal(formattedAnimals);
   }, [animalData, pendingMedsData, formatAnimalData, validateSelectedAnimal]);
 
@@ -814,14 +812,14 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () =>
-      dispatch({ type: "SET_OFFLINE_STATUS", payload: false });
+      dispatch({ payload: false, type: "SET_OFFLINE_STATUS" });
     const handleOffline = () =>
-      dispatch({ type: "SET_OFFLINE_STATUS", payload: true });
+      dispatch({ payload: true, type: "SET_OFFLINE_STATUS" });
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    dispatch({ type: "SET_OFFLINE_STATUS", payload: !navigator.onLine });
+    dispatch({ payload: !navigator.onLine, type: "SET_OFFLINE_STATUS" });
 
     return () => {
       window.removeEventListener("online", handleOnline);
@@ -831,7 +829,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 
   // Simplified: No offline queue, no pending sync count
   const updatePendingSyncCount = useCallback(async () => {
-    dispatch({ type: "SET_PENDING_SYNC_COUNT", payload: 0 });
+    dispatch({ payload: 0, type: "SET_PENDING_SYNC_COUNT" });
   }, []);
 
   useEffect(() => {
@@ -851,8 +849,8 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     if (polite) {
       const timeoutId = window.setTimeout(() => {
         dispatch({
-          type: "ANNOUNCE",
           payload: { message: "", priority: "polite" },
+          type: "ANNOUNCE",
         });
       }, 1000);
       timeoutRefs.current.set("polite", timeoutId);
@@ -861,8 +859,8 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     if (assertive) {
       const timeoutId = window.setTimeout(() => {
         dispatch({
-          type: "ANNOUNCE",
           payload: { message: "", priority: "assertive" },
+          type: "ANNOUNCE",
         });
       }, 1000);
       timeoutRefs.current.set("assertive", timeoutId);
@@ -882,11 +880,11 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // =============================================================================
 
   const setSelectedHousehold = useCallback((household: Household | null) => {
-    dispatch({ type: "SET_HOUSEHOLD", payload: household });
+    dispatch({ payload: household, type: "SET_HOUSEHOLD" });
   }, []);
 
   const setSelectedAnimal = useCallback((animal: Animal | null) => {
-    dispatch({ type: "SET_ANIMAL", payload: animal });
+    dispatch({ payload: animal, type: "SET_ANIMAL" });
   }, []);
 
   const refreshPendingMeds = useCallback(() => {
@@ -926,14 +924,14 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
         },
       });
 
-      dispatch({ type: "SET_PREFERENCES", payload: updates });
+      dispatch({ payload: updates, type: "SET_PREFERENCES" });
 
       // Sync to backend
       try {
         await fetch("/api/user/metadata", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ vetMedPreferences: newPreferences }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
         });
       } catch (error) {
         console.warn("Failed to sync preferences to backend:", error);
@@ -955,14 +953,14 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
         },
       });
 
-      dispatch({ type: "SET_HOUSEHOLD_SETTINGS", payload: updates });
+      dispatch({ payload: updates, type: "SET_HOUSEHOLD_SETTINGS" });
 
       // Sync to backend
       try {
         await fetch("/api/user/metadata", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ householdSettings: newSettings }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
         });
       } catch (error) {
         console.warn("Failed to sync settings to backend:", error);
@@ -982,7 +980,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
           onboardingCompletedAt: new Date().toISOString(),
         },
       });
-      dispatch({ type: "SET_FIRST_TIME_USER", payload: false });
+      dispatch({ payload: false, type: "SET_FIRST_TIME_USER" });
     } catch (error) {
       console.error("Error marking onboarding complete:", error);
     }
@@ -990,7 +988,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 
   const announce = useCallback(
     (message: string, priority: "polite" | "assertive" = "polite") => {
-      dispatch({ type: "ANNOUNCE", payload: { message, priority } });
+      dispatch({ payload: { message, priority }, type: "ANNOUNCE" });
     },
     [],
   );
@@ -1000,19 +998,18 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // =============================================================================
 
   const formatTime = useCallback(
-    (date: Date) => {
-      return state.preferences.displayPreferences.use24HourTime
+    (date: Date) =>
+      state.preferences.displayPreferences.use24HourTime
         ? date.toLocaleTimeString("en-US", {
-            hour12: false,
             hour: "2-digit",
+            hour12: false,
             minute: "2-digit",
           })
         : date.toLocaleTimeString("en-US", {
-            hour12: true,
             hour: "numeric",
+            hour12: true,
             minute: "2-digit",
-          });
-    },
+          }),
     [state.preferences.displayPreferences.use24HourTime],
   );
 
@@ -1038,16 +1035,16 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     [state.preferences.displayPreferences.temperatureUnit],
   );
 
-  const getUserTimezone = useCallback(() => {
-    return (
+  const getUserTimezone = useCallback(
+    () =>
       state.preferences.defaultTimezone ||
       state.householdSettings.defaultLocation.timezone ||
-      "America/New_York"
-    );
-  }, [
-    state.preferences.defaultTimezone,
-    state.householdSettings.defaultLocation.timezone,
-  ]);
+      "America/New_York",
+    [
+      state.preferences.defaultTimezone,
+      state.householdSettings.defaultLocation.timezone,
+    ],
+  );
 
   // =============================================================================
   // CONTEXT VALUE
@@ -1057,26 +1054,26 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     () => ({
       // State
       ...state,
-      selectedHousehold,
-      selectedAnimal,
-
-      // Actions
-      setSelectedHousehold,
-      setSelectedAnimal,
-      refreshPendingMeds,
-      login,
-      logout,
-      refreshAuth,
-      updateVetMedPreferences,
-      updateHouseholdSettings,
-      markOnboardingComplete,
       announce,
+      formatTemperature,
 
       // Utilities
       formatTime,
       formatWeight,
-      formatTemperature,
       getUserTimezone,
+      login,
+      logout,
+      markOnboardingComplete,
+      refreshAuth,
+      refreshPendingMeds,
+      selectedAnimal,
+      selectedHousehold,
+      setSelectedAnimal,
+
+      // Actions
+      setSelectedHousehold,
+      updateHouseholdSettings,
+      updateVetMedPreferences,
     }),
     [
       state,
@@ -1105,19 +1102,19 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
         {children}
         {/* Global accessibility live regions */}
         <output
-          id="global-announcer-polite"
-          aria-live="polite"
           aria-atomic="true"
+          aria-live="polite"
           className="sr-only"
+          id="global-announcer-polite"
         >
           {state.accessibility.announcements.polite}
         </output>
         <div
+          aria-atomic="true"
+          aria-live="assertive"
+          className="sr-only"
           id="global-announcer-assertive"
           role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-          className="sr-only"
         >
           {state.accessibility.announcements.assertive}
         </div>
@@ -1134,16 +1131,16 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
 export function useAppLegacy() {
   const context = useApp();
   return {
-    user: context.user,
-    selectedHousehold: context.selectedHousehold,
-    setSelectedHousehold: context.setSelectedHousehold,
-    selectedAnimal: context.selectedAnimal,
-    setSelectedAnimal: context.setSelectedAnimal,
     animals: context.animals,
     households: context.households,
     isOffline: context.isOffline,
     pendingSyncCount: context.pendingSyncCount,
     refreshPendingMeds: context.refreshPendingMeds,
+    selectedAnimal: context.selectedAnimal,
+    selectedHousehold: context.selectedHousehold,
+    setSelectedAnimal: context.setSelectedAnimal,
+    setSelectedHousehold: context.setSelectedHousehold,
+    user: context.user,
   };
 }
 
@@ -1151,17 +1148,17 @@ export function useAppLegacy() {
 export function useAuth() {
   const context = useApp();
   return {
-    user: context.userProfile,
+    error: context.errors?.user || null,
     households: (context.households || []).map((h) => ({
       id: h.id,
       name: h.name,
     })),
     isAuthenticated: context.isAuthenticated,
     isLoading: context.loading?.user || false,
-    error: context.errors?.user || null,
     login: context.login,
     logout: context.logout,
     refreshAuth: context.refreshAuth,
+    user: context.userProfile,
   };
 }
 
@@ -1169,17 +1166,17 @@ export function useAuth() {
 export function useUserPreferencesContext() {
   const context = useApp();
   return {
-    isLoaded: !context.loading?.user,
-    vetMedPreferences: context.preferences,
-    householdSettings: context.householdSettings,
-    updateVetMedPreferences: context.updateVetMedPreferences,
-    updateHouseholdSettings: context.updateHouseholdSettings,
+    formatTemperature: context.formatTemperature,
     formatTime: context.formatTime,
     formatWeight: context.formatWeight,
-    formatTemperature: context.formatTemperature,
     getUserTimezone: context.getUserTimezone,
+    householdSettings: context.householdSettings,
     isFirstTimeUser: context.isFirstTimeUser,
+    isLoaded: !context.loading?.user,
     markOnboardingComplete: context.markOnboardingComplete,
+    updateHouseholdSettings: context.updateHouseholdSettings,
+    updateVetMedPreferences: context.updateVetMedPreferences,
+    vetMedPreferences: context.preferences,
   };
 }
 
@@ -1202,21 +1199,18 @@ export function useDateTimeFormatting() {
   const { formatTime, preferences } = useApp();
 
   const formatDate = useCallback(
-    (date: Date) => {
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
+    (date: Date) =>
+      date.toLocaleDateString("en-US", {
         day: "numeric",
+        month: "short",
         timeZone: preferences.defaultTimezone,
-      });
-    },
+        year: "numeric",
+      }),
     [preferences.defaultTimezone],
   );
 
   const formatDateTime = useCallback(
-    (date: Date) => {
-      return `${formatDate(date)} ${formatTime(date)}`;
-    },
+    (date: Date) => `${formatDate(date)} ${formatTime(date)}`,
     [formatDate, formatTime],
   );
 
@@ -1225,14 +1219,14 @@ export function useDateTimeFormatting() {
       const tz = timezone || preferences.defaultTimezone;
       return preferences.displayPreferences.use24HourTime
         ? date.toLocaleTimeString("en-US", {
-            hour12: false,
             hour: "2-digit",
+            hour12: false,
             minute: "2-digit",
             timeZone: tz,
           })
         : date.toLocaleTimeString("en-US", {
-            hour12: true,
             hour: "numeric",
+            hour12: true,
             minute: "2-digit",
             timeZone: tz,
           });
@@ -1241,9 +1235,9 @@ export function useDateTimeFormatting() {
   );
 
   return {
-    formatTime,
     formatDate,
     formatDateTime,
+    formatTime,
     formatTimeInTimezone,
   };
 }
@@ -1257,10 +1251,10 @@ export function useHouseholdInfo() {
   const { householdSettings } = useApp();
   return {
     householdName: householdSettings.primaryHouseholdName,
-    location: householdSettings.defaultLocation,
-    veterinarian: householdSettings.preferredVeterinarian,
-    roles: householdSettings.householdRoles,
     inventoryPreferences: householdSettings.inventoryPreferences,
+    location: householdSettings.defaultLocation,
+    roles: householdSettings.householdRoles,
+    veterinarian: householdSettings.preferredVeterinarian,
   };
 }
 

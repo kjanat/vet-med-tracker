@@ -17,70 +17,70 @@ import { Switch } from "@/components/ui/switch";
 // Mock photo data for demonstration
 const DEMO_PHOTOS: Photo[] = [
   {
+    caption: "Bella playing in the park",
+    dimensions: { height: 600, width: 800 },
     id: "1",
-    url: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=800&fit=crop",
+    isPrimary: true,
+    size: 1024000,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop",
-    caption: "Bella playing in the park",
-    isPrimary: true,
     uploadedAt: new Date().toISOString(),
-    size: 1024000,
-    dimensions: { width: 800, height: 600 },
+    url: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=800&fit=crop",
   },
   {
+    caption: "Max during his morning walk",
+    dimensions: { height: 800, width: 800 },
     id: "2",
-    url: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&h=800&fit=crop",
+    isPrimary: false,
+    size: 856000,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop",
-    caption: "Max during his morning walk",
-    isPrimary: false,
     uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-    size: 856000,
-    dimensions: { width: 800, height: 800 },
+    url: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&h=800&fit=crop",
   },
   {
+    caption: "Luna at the vet checkup",
+    dimensions: { height: 800, width: 600 },
     id: "3",
-    url: "https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=800&h=800&fit=crop",
+    isPrimary: false,
+    size: 765000,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=400&h=400&fit=crop",
-    caption: "Luna at the vet checkup",
-    isPrimary: false,
     uploadedAt: new Date(Date.now() - 172800000).toISOString(),
-    size: 765000,
-    dimensions: { width: 600, height: 800 },
+    url: "https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=800&h=800&fit=crop",
   },
   {
+    caption: "Charlie sleeping peacefully",
+    dimensions: { height: 600, width: 800 },
     id: "4",
-    url: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800&h=800&fit=crop",
+    isPrimary: false,
+    size: 634000,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400&h=400&fit=crop",
-    caption: "Charlie sleeping peacefully",
-    isPrimary: false,
     uploadedAt: new Date(Date.now() - 259200000).toISOString(),
-    size: 634000,
-    dimensions: { width: 800, height: 600 },
+    url: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800&h=800&fit=crop",
   },
   {
+    caption: "Oscar with his favorite toy",
+    dimensions: { height: 800, width: 800 },
     id: "5",
-    url: "https://images.unsplash.com/photo-1544568100-847a948585b9?w=800&h=800&fit=crop",
+    isPrimary: false,
+    size: 892000,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1544568100-847a948585b9?w=400&h=400&fit=crop",
-    caption: "Oscar with his favorite toy",
-    isPrimary: false,
     uploadedAt: new Date(Date.now() - 345600000).toISOString(),
-    size: 892000,
-    dimensions: { width: 800, height: 800 },
+    url: "https://images.unsplash.com/photo-1544568100-847a948585b9?w=800&h=800&fit=crop",
   },
   {
+    caption: "Ruby enjoying the sunshine",
+    dimensions: { height: 800, width: 600 },
     id: "6",
-    url: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&h=800&fit=crop",
+    isPrimary: false,
+    size: 723000,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop",
-    caption: "Ruby enjoying the sunshine",
-    isPrimary: false,
     uploadedAt: new Date(Date.now() - 432000000).toISOString(),
-    size: 723000,
-    dimensions: { width: 600, height: 800 },
+    url: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&h=800&fit=crop",
   },
 ];
 
@@ -95,13 +95,13 @@ export function PhotoGalleryDemo() {
 
   // Demo configuration state
   const [config, setConfig] = useState({
-    maxColumns: 4,
-    showCaptions: true,
+    allowDelete: true,
+    allowReorder: false,
+    allowSetPrimary: true,
     enableLazyLoading: true,
     enableSwipeGestures: true,
-    allowDelete: true,
-    allowSetPrimary: true,
-    allowReorder: false,
+    maxColumns: 4,
+    showCaptions: true,
   });
 
   /**
@@ -280,25 +280,25 @@ export function PhotoGalleryDemo() {
                   Max Columns: {config.maxColumns}
                 </Label>
                 <input
+                  className="w-full"
                   id="maxColumns"
-                  type="range"
-                  min="1"
                   max="5"
-                  value={config.maxColumns}
+                  min="1"
                   onChange={(e) =>
                     setConfig((prev) => ({
                       ...prev,
                       maxColumns: parseInt(e.target.value, 10),
                     }))
                   }
-                  className="w-full"
+                  type="range"
+                  value={config.maxColumns}
                 />
               </div>
 
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="showCaptions"
                   checked={config.showCaptions}
+                  id="showCaptions"
                   onCheckedChange={(checked) =>
                     setConfig((prev) => ({ ...prev, showCaptions: checked }))
                   }
@@ -313,8 +313,8 @@ export function PhotoGalleryDemo() {
 
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="enableLazyLoading"
                   checked={config.enableLazyLoading}
+                  id="enableLazyLoading"
                   onCheckedChange={(checked) =>
                     setConfig((prev) => ({
                       ...prev,
@@ -327,8 +327,8 @@ export function PhotoGalleryDemo() {
 
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="enableSwipeGestures"
                   checked={config.enableSwipeGestures}
+                  id="enableSwipeGestures"
                   onCheckedChange={(checked) =>
                     setConfig((prev) => ({
                       ...prev,
@@ -346,8 +346,8 @@ export function PhotoGalleryDemo() {
 
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="allowDelete"
                   checked={config.allowDelete}
+                  id="allowDelete"
                   onCheckedChange={(checked) =>
                     setConfig((prev) => ({ ...prev, allowDelete: checked }))
                   }
@@ -357,8 +357,8 @@ export function PhotoGalleryDemo() {
 
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="allowSetPrimary"
                   checked={config.allowSetPrimary}
+                  id="allowSetPrimary"
                   onCheckedChange={(checked) =>
                     setConfig((prev) => ({ ...prev, allowSetPrimary: checked }))
                   }
@@ -372,13 +372,13 @@ export function PhotoGalleryDemo() {
           <div className="border-t pt-4">
             <h4 className="mb-3 font-semibold">Demo Controls</h4>
             <div className="flex flex-wrap gap-2">
-              <Button onClick={resetDemoData} variant="outline" size="sm">
+              <Button onClick={resetDemoData} size="sm" variant="outline">
                 Reset Demo Data
               </Button>
-              <Button onClick={simulateLoading} variant="outline" size="sm">
+              <Button onClick={simulateLoading} size="sm" variant="outline">
                 Simulate Loading
               </Button>
-              <Button onClick={clearPhotos} variant="outline" size="sm">
+              <Button onClick={clearPhotos} size="sm" variant="outline">
                 Clear Photos (Empty State)
               </Button>
               <Badge variant="secondary">
@@ -409,7 +409,7 @@ export function PhotoGalleryDemo() {
                   • <strong>Arrow keys</strong> to navigate photos
                 </li>
                 <li>
-                  • <strong>+/-</strong> keys to zoom in/out
+                  • <strong>Number(/-)</strong> keys to zoom in/out
                 </li>
                 <li>
                   • <strong>0</strong> key to reset zoom
@@ -461,7 +461,13 @@ export function PhotoGalleryDemo() {
         </CardHeader>
         <CardContent>
           <PhotoGallery
-            photos={photos}
+            allowDelete={config.allowDelete}
+            allowReorder={config.allowReorder}
+            allowSetPrimary={config.allowSetPrimary}
+            enableLazyLoading={config.enableLazyLoading}
+            enableSwipeGestures={config.enableSwipeGestures}
+            isLoading={isLoading}
+            maxColumns={config.maxColumns}
             onPhotoDelete={config.allowDelete ? handlePhotoDelete : undefined}
             onPhotoPrimary={
               config.allowSetPrimary ? handlePhotoPrimary : undefined
@@ -469,14 +475,8 @@ export function PhotoGalleryDemo() {
             onPhotoReorder={
               config.allowReorder ? handlePhotoReorder : undefined
             }
-            isLoading={isLoading}
-            maxColumns={config.maxColumns}
+            photos={photos}
             showCaptions={config.showCaptions}
-            enableLazyLoading={config.enableLazyLoading}
-            enableSwipeGestures={config.enableSwipeGestures}
-            allowDelete={config.allowDelete}
-            allowSetPrimary={config.allowSetPrimary}
-            allowReorder={config.allowReorder}
           />
         </CardContent>
       </Card>

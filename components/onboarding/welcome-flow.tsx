@@ -30,13 +30,13 @@ interface OnboardingData {
 }
 
 const initialData: OnboardingData = {
+  emailReminders: true,
   householdName: "",
-  timezone: BROWSER_ZONE || "America/New_York",
   preferredPhoneNumber: "",
+  pushNotifications: true,
+  timezone: BROWSER_ZONE || "America/New_York",
   veterinarianName: "",
   veterinarianPhone: "",
-  emailReminders: true,
-  pushNotifications: true,
 };
 
 export function WelcomeFlow() {
@@ -83,41 +83,41 @@ export function WelcomeFlow() {
       // Update VetMed preferences
       await updateVetMedPreferences({
         defaultTimezone: data.timezone,
-        preferredPhoneNumber: data.preferredPhoneNumber,
-        notificationPreferences: {
-          emailReminders: data.emailReminders,
-          smsReminders: false,
-          pushNotifications: data.pushNotifications,
-          reminderLeadTime: 15,
-        },
         displayPreferences: {
-          use24HourTime: false,
           temperatureUnit: "fahrenheit",
+          use24HourTime: false,
           weightUnit: "lbs",
         },
+        notificationPreferences: {
+          emailReminders: data.emailReminders,
+          pushNotifications: data.pushNotifications,
+          reminderLeadTime: 15,
+          smsReminders: false,
+        },
+        preferredPhoneNumber: data.preferredPhoneNumber,
       });
 
       // Update household settings
       await updateHouseholdSettings({
-        primaryHouseholdName: data.householdName,
         defaultLocation: {
           address: "",
           city: "",
           state: "",
-          zipCode: "",
           timezone: data.timezone,
+          zipCode: "",
         },
         householdRoles: ["Owner", "Primary Caregiver"],
-        preferredVeterinarian: {
-          name: data.veterinarianName,
-          phone: data.veterinarianPhone,
-          address: "",
-        },
         inventoryPreferences: {
-          lowStockThreshold: 7,
           autoReorderEnabled: false,
           expirationWarningDays: 30,
+          lowStockThreshold: 7,
         },
+        preferredVeterinarian: {
+          address: "",
+          name: data.veterinarianName,
+          phone: data.veterinarianPhone,
+        },
+        primaryHouseholdName: data.householdName,
       });
 
       // Mark onboarding as complete
@@ -156,11 +156,11 @@ export function WelcomeFlow() {
                 </Label>
                 <Input
                   id="household-name"
-                  placeholder="The Smith Family"
-                  value={data.householdName}
                   onChange={(e) =>
                     updateData({ householdName: e.target.value })
                   }
+                  placeholder="The Smith Family"
+                  value={data.householdName}
                 />
                 <p className="text-muted-foreground text-sm">
                   This helps us personalize your experience and organize your
@@ -178,7 +178,7 @@ export function WelcomeFlow() {
               <div className="mb-4 flex justify-center">
                 <Clock className="h-12 w-12 text-blue-600 dark:text-blue-400" />
               </div>
-              <CardTitle>Time & Location</CardTitle>
+              <CardTitle>Time &amp; Location</CardTitle>
               <CardDescription>
                 Set your timezone to ensure accurate medication schedules.
               </CardDescription>
@@ -187,10 +187,10 @@ export function WelcomeFlow() {
               <div className="space-y-2">
                 <Label htmlFor="timezone">Your Timezone</Label>
                 <TimezoneCombobox
-                  value={data.timezone}
                   onChange={(value) => updateData({ timezone: value })}
                   placeholder="Select your timezone"
                   required
+                  value={data.timezone}
                 />
               </div>
 
@@ -198,12 +198,12 @@ export function WelcomeFlow() {
                 <Label htmlFor="phone">Phone Number (Optional)</Label>
                 <Input
                   id="phone"
-                  type="tel"
-                  placeholder="+1 (555) 123-4567"
-                  value={data.preferredPhoneNumber}
                   onChange={(e) =>
                     updateData({ preferredPhoneNumber: e.target.value })
                   }
+                  placeholder="+1 (555) 123-4567"
+                  type="tel"
+                  value={data.preferredPhoneNumber}
                 />
                 <p className="text-muted-foreground text-sm">
                   We'll use this for SMS reminders if you enable them later.
@@ -232,11 +232,11 @@ export function WelcomeFlow() {
                 </Label>
                 <Input
                   id="vet-name"
-                  placeholder="Dr. Johnson's Animal Hospital"
-                  value={data.veterinarianName}
                   onChange={(e) =>
                     updateData({ veterinarianName: e.target.value })
                   }
+                  placeholder="Dr. Johnson's Animal Hospital"
+                  value={data.veterinarianName}
                 />
               </div>
 
@@ -244,12 +244,12 @@ export function WelcomeFlow() {
                 <Label htmlFor="vet-phone">Veterinarian Phone (Optional)</Label>
                 <Input
                   id="vet-phone"
-                  type="tel"
-                  placeholder="+1 (555) 987-6543"
-                  value={data.veterinarianPhone}
                   onChange={(e) =>
                     updateData({ veterinarianPhone: e.target.value })
                   }
+                  placeholder="+1 (555) 987-6543"
+                  type="tel"
+                  value={data.veterinarianPhone}
                 />
               </div>
 
@@ -306,7 +306,7 @@ export function WelcomeFlow() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="space-y-2">
-          <Progress value={progress} className="w-full" />
+          <Progress className="w-full" value={progress} />
           <p className="text-center text-muted-foreground text-sm">
             Step {currentStep} of {totalSteps}
           </p>
@@ -316,22 +316,22 @@ export function WelcomeFlow() {
 
         <div className="flex justify-between">
           <Button
-            variant="outline"
-            onClick={prevStep}
             disabled={currentStep === 1}
+            onClick={prevStep}
+            variant="outline"
           >
             Previous
           </Button>
 
           {currentStep < totalSteps ? (
             <Button
-              onClick={nextStep}
               disabled={currentStep === 1 && !data.householdName.trim()}
+              onClick={nextStep}
             >
               Next
             </Button>
           ) : (
-            <Button onClick={completeOnboarding} disabled={isLoading}>
+            <Button disabled={isLoading} onClick={completeOnboarding}>
               {isLoading ? "Setting up..." : "Complete Setup"}
             </Button>
           )}

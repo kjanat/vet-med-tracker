@@ -39,9 +39,9 @@ export function SidebarLayout({
       <SidebarInset>
         <PageHeaderEnhanced />
         <main
-          id="main-content"
-          className="flex flex-1 flex-col gap-4 p-4 pt-6"
           aria-label="Main content"
+          className="flex flex-1 flex-col gap-4 p-4 pt-6"
+          id="main-content"
         >
           {children}
         </main>

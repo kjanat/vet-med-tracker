@@ -42,16 +42,16 @@ export default function GlobalError({
             {/* Actions */}
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <button
-                type="button"
-                onClick={reset}
                 className="flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                onClick={reset}
+                type="button"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Try Again
               </button>
               <Link
-                href="/"
                 className="flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+                href="/"
               >
                 <Home className="mr-2 h-4 w-4" />
                 Go Home

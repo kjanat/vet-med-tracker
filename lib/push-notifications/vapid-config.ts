@@ -30,8 +30,8 @@ export function getVAPIDConfig(): VAPIDConfig | null {
   }
 
   return {
-    publicKey,
     privateKey,
+    publicKey,
     subject,
   };
 }

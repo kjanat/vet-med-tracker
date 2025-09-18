@@ -12,14 +12,6 @@ import { stackServerApp } from "./stack/server";
 
 // Security headers configuration
 const securityHeaders = {
-  // Frame protection
-  "X-Frame-Options": "DENY",
-  // Content type protection
-  "X-Content-Type-Options": "nosniff",
-  // XSS Protection (legacy browsers)
-  "X-XSS-Protection": "1; mode=block",
-  // Referrer policy
-  "Referrer-Policy": "strict-origin-when-cross-origin",
   // Content Security Policy
   "Content-Security-Policy": [
     "default-src 'self'",
@@ -35,6 +27,14 @@ const securityHeaders = {
     "form-action 'self'",
     "upgrade-insecure-requests",
   ].join("; "),
+  // Referrer policy
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  // Content type protection
+  "X-Content-Type-Options": "nosniff",
+  // Frame protection
+  "X-Frame-Options": "DENY",
+  // XSS Protection (legacy browsers)
+  "X-XSS-Protection": "1; mode=block",
   // HSTS (only in production)
   ...(process.env.NODE_ENV === "production"
     ? {

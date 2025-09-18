@@ -29,49 +29,49 @@ function transformMedicationRow(
   row: MedicationCatalogRow,
 ): import("@/lib/calculators/dosage").Medication {
   return {
-    id: row.id,
-    genericName: row.genericName,
     brandName: row.brandName,
     category: "medication", // Default category since not in database
-    formulation: row.form, // Use form from database
-    form: row.form, // Legacy compatibility
-
-    // Core dosage information (required for calculations)
-    dosageMinMgKg: row.dosageMinMgKg ? Number(row.dosageMinMgKg) : null,
-    dosageMaxMgKg: row.dosageMaxMgKg ? Number(row.dosageMaxMgKg) : null,
-    dosageTypicalMgKg: row.dosageTypicalMgKg
-      ? Number(row.dosageTypicalMgKg)
-      : null,
-    maxDailyDoseMg: row.maxDailyDoseMg ? Number(row.maxDailyDoseMg) : null,
 
     // Concentration and unit information (not in current schema, use defaults)
     concentrationMgMl: null,
-    unitsPerTablet: null,
-    unitType: row.unitType || "mg",
+    contraindications: row.contraindications,
+    dosageMaxMgKg: row.dosageMaxMgKg ? Number(row.dosageMaxMgKg) : null,
+
+    // Core dosage information (required for calculations)
+    dosageMinMgKg: row.dosageMinMgKg ? Number(row.dosageMinMgKg) : null,
+    dosageTypicalMgKg: row.dosageTypicalMgKg
+      ? Number(row.dosageTypicalMgKg)
+      : null,
+    duration: "as needed", // Default since not in database
+    form: row.form, // Legacy compatibility
+    formulation: row.form, // Use form from database
 
     // Administration details
     frequencyPerDay: 1, // Default since not in database
-    duration: "as needed", // Default since not in database
+    genericName: row.genericName,
+    id: row.id,
+
+    // Regulatory information
+    isControlledSubstance: row.controlledSubstance || false,
+    maxDailyDoseMg: row.maxDailyDoseMg ? Number(row.maxDailyDoseMg) : null,
+    pregnancyCategory: null, // Not in database
+    prescriptionRequired: true, // Default since not in database
     route: row.route || "oral",
+    routeAdjustments: row.routeAdjustments as Record<string, unknown> as
+      | Record<string, number>
+      | undefined,
+    sideEffects: null, // Not in database schema
 
     // Species and safety information
     species: [], // Default empty array since not array in database
-    warnings: row.warnings,
-    sideEffects: null, // Not in database schema
-    contraindications: row.contraindications,
 
     // Advanced adjustments from database JSON fields
     speciesAdjustments: row.speciesAdjustments as Record<string, unknown> as
       | Record<string, number>
       | undefined,
-    routeAdjustments: row.routeAdjustments as Record<string, unknown> as
-      | Record<string, number>
-      | undefined,
-
-    // Regulatory information
-    isControlledSubstance: row.controlledSubstance || false,
-    prescriptionRequired: true, // Default since not in database
-    pregnancyCategory: null, // Not in database
+    unitsPerTablet: null,
+    unitType: row.unitType || "mg",
+    warnings: row.warnings,
   };
 }
 
@@ -116,20 +116,20 @@ function transformMedicationInput(
 
 function getBasicMedicationInfo(input: MedicationInputData) {
   return {
-    id: input.id,
-    genericName: input.genericName,
     brandName: input.brandName || null,
     category: "custom" as const, // Default for user-provided medications
-    formulation: input.form || "UNKNOWN",
     form: input.form,
+    formulation: input.form || "UNKNOWN",
+    genericName: input.genericName,
+    id: input.id,
     unitType: input.unitType || "mg",
   };
 }
 
 function getDosageInformation(input: MedicationInputData) {
   return {
-    dosageMinMgKg: input.dosageMinMgKg || null,
     dosageMaxMgKg: input.dosageMaxMgKg || null,
+    dosageMinMgKg: input.dosageMinMgKg || null,
     dosageTypicalMgKg: input.dosageTypicalMgKg || null,
     maxDailyDoseMg: input.maxDailyDoseMg || null,
   };
@@ -144,34 +144,34 @@ function getConcentrationInfo(input: MedicationInputData) {
 
 function getAdministrationDetails(input: MedicationInputData) {
   return {
-    frequencyPerDay: 1, // Default
     duration: "as needed", // Default
+    frequencyPerDay: 1, // Default
     route: input.route || "oral",
   };
 }
 
 function getSpeciesAndSafetyInfo(input: MedicationInputData) {
   return {
+    contraindications: input.contraindications || null,
+    sideEffects: null,
     species: [], // Default
     warnings: input.warnings || null,
-    sideEffects: null,
-    contraindications: input.contraindications || null,
   };
 }
 
 function getAdvancedAdjustments(input: MedicationInputData) {
   return {
-    speciesAdjustments: (input.speciesAdjustments || undefined) as
-      | Record<string, number>
-      | undefined,
-    routeAdjustments: (input.routeAdjustments || undefined) as
-      | Record<string, number>
-      | undefined,
     ageAdjustments: (input.ageAdjustments || undefined) as
       | Record<string, number>
       | undefined,
     breedConsiderations: (input.breedConsiderations || undefined) as
       | Record<string, string | number>
+      | undefined,
+    routeAdjustments: (input.routeAdjustments || undefined) as
+      | Record<string, number>
+      | undefined,
+    speciesAdjustments: (input.speciesAdjustments || undefined) as
+      | Record<string, number>
       | undefined,
   };
 }
@@ -179,8 +179,8 @@ function getAdvancedAdjustments(input: MedicationInputData) {
 function getRegulatoryInformation() {
   return {
     isControlledSubstance: false, // Default for user input
-    prescriptionRequired: true, // Default
     pregnancyCategory: null,
+    prescriptionRequired: true, // Default
   };
 }
 
@@ -248,17 +248,17 @@ function _getDosageBreakdown(
       weight: animal.weight,
       weightUnit: animal.weightUnit,
     },
-    medication: {
-      id: medication.id,
-      name: medication.genericName,
-      brandName: medication.brandName,
-    },
     dosage: {
-      recommended: recommendedResult.dose,
-      min: recommendedResult.minDose,
       max: recommendedResult.maxDose,
+      min: recommendedResult.minDose,
+      recommended: recommendedResult.dose,
       typical: recommendedResult.dose,
       unit: "mg",
+    },
+    medication: {
+      brandName: medication.brandName,
+      id: medication.id,
+      name: medication.genericName,
     },
   };
 }
@@ -361,10 +361,10 @@ export const dosageRouter = createTRPCRouter({
           } catch (error) {
             results.push({
               ...calculation,
-              result: null,
-              success: false,
               error:
                 error instanceof Error ? error.message : "Calculation failed",
+              result: null,
+              success: false,
             });
           }
         }
@@ -380,113 +380,24 @@ export const dosageRouter = createTRPCRouter({
     }),
 
   /**
-   * Validate dosage safety for a given calculation
+   * Convert dosage between units
    */
-  validate: protectedProcedure
-    .input(dosageValidationInputSchema)
-    .output(dosageValidationResultSchema)
-    .query(async ({ input }) => {
-      try {
-        const calculationInput = {
-          ...input,
-          medication: transformMedicationInput(input.medication),
-        };
-        const result = DosageCalculator.calculate(calculationInput);
-
-        // Enhanced safety validation
-        const safetyChecks = {
-          withinRange: result.safetyLevel !== "danger",
-          noMajorWarnings: !result.warnings.some((w) =>
-            w.toLowerCase().includes("danger"),
-          ),
-          speciesAppropriate: result.warnings.length === 0,
-          doseReasonable: result.dose > 0 && result.dose < 10000, // Reasonable dose range
-        };
-
-        const overallSafety =
-          Object.values(safetyChecks).filter(Boolean).length /
-          Object.values(safetyChecks).length;
-
-        return {
-          isValid: overallSafety >= 0.75,
-          safetyLevel: result.safetyLevel,
-          warnings: result.warnings,
-          recommendations:
-            result.warnings.length > 0
-              ? ["Follow veterinarian guidance", "Monitor for side effects"]
-              : [],
-          suggestedDoseRange: {
-            min: result.minDose,
-            max: result.maxDose,
-            typical: result.dose,
-            unit: result.unit,
-          },
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: error instanceof Error ? error.message : "Validation failed",
-        });
-      }
-    }),
-
-  /**
-   * Get dosage recommendations with detailed breakdown
-   */
-  getRecommendations: protectedProcedure
-    .input(
-      z.object({
-        medicationId: z.uuid(),
-        animalId: z.uuid(),
-        route: z.string().optional(),
-        targetUnit: z.enum(["mg", "ml", "tablets"]).default("mg"),
-      }),
-    )
-    .query(async ({ input }) => {
-      try {
-        // This would fetch medication and animal data from database
-        // For now, return a structured response showing the expected format
-
-        return {
-          success: true,
-          medicationId: input.medicationId,
-          animalId: input.animalId,
-          recommendations: [],
-          safetyProfile: {
-            overallSafety: "safe",
-            warnings: [],
-            contraindications: [],
-          },
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Failed to get recommendations",
-        });
-      }
-    }),
-
-  /**
-   * Convert weight between units
-   */
-  convertWeight: protectedProcedure
-    .input(convertWeightInputSchema)
+  convertDosage: protectedProcedure
+    .input(convertDosageInputSchema)
     .output(conversionResultSchema)
     .query(async ({ input }) => {
       try {
-        return VetUnitConversions.Weight.convert(
+        return VetUnitConversions.Dosage.convert(
           input.value,
           input.fromUnit,
           input.toUnit,
+          input.concentrationMgMl,
         );
       } catch (error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
-            error instanceof Error ? error.message : "Weight conversion failed",
+            error instanceof Error ? error.message : "Dosage conversion failed",
         });
       }
     }),
@@ -514,24 +425,155 @@ export const dosageRouter = createTRPCRouter({
     }),
 
   /**
-   * Convert dosage between units
+   * Convert weight between units
    */
-  convertDosage: protectedProcedure
-    .input(convertDosageInputSchema)
+  convertWeight: protectedProcedure
+    .input(convertWeightInputSchema)
     .output(conversionResultSchema)
     .query(async ({ input }) => {
       try {
-        return VetUnitConversions.Dosage.convert(
+        return VetUnitConversions.Weight.convert(
           input.value,
           input.fromUnit,
           input.toUnit,
-          input.concentrationMgMl,
         );
       } catch (error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
-            error instanceof Error ? error.message : "Dosage conversion failed",
+            error instanceof Error ? error.message : "Weight conversion failed",
+        });
+      }
+    }),
+
+  /**
+   * Get common dosage calculations for a medication
+   */
+  getCommonDosages: protectedProcedure
+    .input(
+      z.object({
+        medicationId: z.uuid(),
+        species: z.string(),
+        weightRanges: z
+          .array(
+            z.object({
+              max: z.number().positive(),
+              min: z.number().positive(),
+              unit: z.enum(["kg", "lbs"]),
+            }),
+          )
+          .max(10), // Limit weight ranges
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const { medicationId, species, weightRanges } = input;
+
+        // Fetch medication
+        const medicationRows = await ctx.db
+          .select()
+          .from(medicationCatalog)
+          .where(eq(medicationCatalog.id, medicationId))
+          .limit(1);
+
+        if (medicationRows.length === 0) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Medication not found",
+          });
+        }
+
+        const medicationRow = medicationRows[0] as MedicationCatalogRow;
+        const medication = transformMedicationRow(medicationRow);
+
+        const results = [];
+
+        for (const weightRange of weightRanges) {
+          const midWeight = (weightRange.min + weightRange.max) / 2;
+
+          try {
+            const result = DosageCalculator.calculate({
+              animal: {
+                species,
+                weight: midWeight,
+                weightUnit: weightRange.unit,
+              },
+              medication,
+              targetUnit: "mg",
+            });
+
+            results.push({
+              dosage: result.dose,
+              maxDose: result.maxDose,
+              minDose: result.minDose,
+              safetyLevel: result.safetyLevel,
+              unit: result.unit,
+              warnings: result.warnings,
+              weightRange: `${weightRange.min}-${weightRange.max} ${weightRange.unit}`,
+            });
+          } catch (error) {
+            results.push({
+              error:
+                error instanceof Error ? error.message : "Calculation failed",
+              weightRange: `${weightRange.min}-${weightRange.max} ${weightRange.unit}`,
+            });
+          }
+        }
+
+        return {
+          dosageCalculations: results,
+          medication: {
+            brandName: medication.brandName,
+            genericName: medication.genericName,
+            id: medication.id,
+          },
+          species,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to calculate common dosages",
+        });
+      }
+    }),
+
+  /**
+   * Get dosage recommendations with detailed breakdown
+   */
+  getRecommendations: protectedProcedure
+    .input(
+      z.object({
+        animalId: z.uuid(),
+        medicationId: z.uuid(),
+        route: z.string().optional(),
+        targetUnit: z.enum(["mg", "ml", "tablets"]).default("mg"),
+      }),
+    )
+    .query(async ({ input }) => {
+      try {
+        // This would fetch medication and animal data from database
+        // For now, return a structured response showing the expected format
+
+        return {
+          animalId: input.animalId,
+          medicationId: input.medicationId,
+          recommendations: [],
+          safetyProfile: {
+            contraindications: [],
+            overallSafety: "safe",
+            warnings: [],
+          },
+          success: true,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to get recommendations",
         });
       }
     }),
@@ -613,94 +655,52 @@ export const dosageRouter = createTRPCRouter({
     }),
 
   /**
-   * Get common dosage calculations for a medication
+   * Validate dosage safety for a given calculation
    */
-  getCommonDosages: protectedProcedure
-    .input(
-      z.object({
-        medicationId: z.uuid(),
-        species: z.string(),
-        weightRanges: z
-          .array(
-            z.object({
-              min: z.number().positive(),
-              max: z.number().positive(),
-              unit: z.enum(["kg", "lbs"]),
-            }),
-          )
-          .max(10), // Limit weight ranges
-      }),
-    )
-    .query(async ({ ctx, input }) => {
+  validate: protectedProcedure
+    .input(dosageValidationInputSchema)
+    .output(dosageValidationResultSchema)
+    .query(async ({ input }) => {
       try {
-        const { medicationId, species, weightRanges } = input;
+        const calculationInput = {
+          ...input,
+          medication: transformMedicationInput(input.medication),
+        };
+        const result = DosageCalculator.calculate(calculationInput);
 
-        // Fetch medication
-        const medicationRows = await ctx.db
-          .select()
-          .from(medicationCatalog)
-          .where(eq(medicationCatalog.id, medicationId))
-          .limit(1);
+        // Enhanced safety validation
+        const safetyChecks = {
+          doseReasonable: result.dose > 0 && result.dose < 10000, // Reasonable dose range
+          noMajorWarnings: !result.warnings.some((w) =>
+            w.toLowerCase().includes("danger"),
+          ),
+          speciesAppropriate: result.warnings.length === 0,
+          withinRange: result.safetyLevel !== "danger",
+        };
 
-        if (medicationRows.length === 0) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Medication not found",
-          });
-        }
-
-        const medicationRow = medicationRows[0] as MedicationCatalogRow;
-        const medication = transformMedicationRow(medicationRow);
-
-        const results = [];
-
-        for (const weightRange of weightRanges) {
-          const midWeight = (weightRange.min + weightRange.max) / 2;
-
-          try {
-            const result = DosageCalculator.calculate({
-              animal: {
-                species,
-                weight: midWeight,
-                weightUnit: weightRange.unit,
-              },
-              medication,
-              targetUnit: "mg",
-            });
-
-            results.push({
-              weightRange: `${weightRange.min}-${weightRange.max} ${weightRange.unit}`,
-              dosage: result.dose,
-              unit: result.unit,
-              minDose: result.minDose,
-              maxDose: result.maxDose,
-              safetyLevel: result.safetyLevel,
-              warnings: result.warnings,
-            });
-          } catch (error) {
-            results.push({
-              weightRange: `${weightRange.min}-${weightRange.max} ${weightRange.unit}`,
-              error:
-                error instanceof Error ? error.message : "Calculation failed",
-            });
-          }
-        }
+        const overallSafety =
+          Object.values(safetyChecks).filter(Boolean).length /
+          Object.values(safetyChecks).length;
 
         return {
-          medication: {
-            id: medication.id,
-            genericName: medication.genericName,
-            brandName: medication.brandName,
+          isValid: overallSafety >= 0.75,
+          recommendations:
+            result.warnings.length > 0
+              ? ["Follow veterinarian guidance", "Monitor for side effects"]
+              : [],
+          safetyLevel: result.safetyLevel,
+          suggestedDoseRange: {
+            max: result.maxDose,
+            min: result.minDose,
+            typical: result.dose,
+            unit: result.unit,
           },
-          species,
-          dosageCalculations: results,
+          warnings: result.warnings,
         };
       } catch (error) {
-        if (error instanceof TRPCError) throw error;
-
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to calculate common dosages",
+          code: "BAD_REQUEST",
+          message: error instanceof Error ? error.message : "Validation failed",
         });
       }
     }),

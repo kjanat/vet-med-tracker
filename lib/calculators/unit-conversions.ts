@@ -78,11 +78,11 @@ export namespace VetUnitConversions {
       }
 
       return {
-        value: Number(convertedValue.toFixed(targetUnit === "g" ? 1 : 2)),
-        unit: targetUnit,
-        originalValue: value,
         originalUnit: "kg",
+        originalValue: value,
         precision: targetUnit === "g" ? 1 : 2,
+        unit: targetUnit,
+        value: Number(convertedValue.toFixed(targetUnit === "g" ? 1 : 2)),
       };
     }
 
@@ -99,8 +99,8 @@ export namespace VetUnitConversions {
 
       return {
         ...result,
-        originalValue: value,
         originalUnit: fromUnit,
+        originalValue: value,
       };
     }
   }
@@ -172,11 +172,11 @@ export namespace VetUnitConversions {
       }
 
       return {
-        value: Number(convertedValue.toFixed(targetUnit === "L" ? 3 : 2)),
-        unit: targetUnit,
-        originalValue: value,
         originalUnit: "ml",
+        originalValue: value,
         precision: targetUnit === "L" ? 3 : 2,
+        unit: targetUnit,
+        value: Number(convertedValue.toFixed(targetUnit === "L" ? 3 : 2)),
       };
     }
 
@@ -193,8 +193,8 @@ export namespace VetUnitConversions {
 
       return {
         ...result,
-        originalValue: value,
         originalUnit: fromUnit,
+        originalValue: value,
       };
     }
   }
@@ -272,11 +272,11 @@ export namespace VetUnitConversions {
       }
 
       return {
-        value: Number(convertedValue.toFixed(targetUnit === "mcg" ? 0 : 3)),
-        unit: targetUnit,
-        originalValue: value,
         originalUnit: "mg",
+        originalValue: value,
         precision: targetUnit === "mcg" ? 0 : 3,
+        unit: targetUnit,
+        value: Number(convertedValue.toFixed(targetUnit === "mcg" ? 0 : 3)),
       };
     }
 
@@ -294,8 +294,8 @@ export namespace VetUnitConversions {
 
       return {
         ...result,
-        originalValue: value,
         originalUnit: fromUnit,
+        originalValue: value,
       };
     }
   }

@@ -1,4 +1,4 @@
-import { pgTable, index, foreignKey, uuid, text, boolean, date, numeric, timestamp, jsonb, unique, integer, time, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, index, foreignKey, uuid, text, boolean, date, numeric, timestamp, jsonb, unique, integer, time, pgEnum } from "drizzle-orm/pg-core";
 // import { sql } from "drizzle-orm"
 
 export const temperatureUnit = pgEnum("temperature_unit", ['celsius', 'fahrenheit'])

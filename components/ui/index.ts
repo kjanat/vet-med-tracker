@@ -287,11 +287,11 @@ export function migrateToFactory<T = unknown>(
 export const _migrationGuide =
   process.env.NODE_ENV === "development"
     ? {
-        primitives:
-          "Import from @/components/primitives/ui/* or use createUI()",
         business:
           "Import from @/components/business/*/ or use createBusiness()",
         factory: "Use buildComponent() for complex configurations",
+        primitives:
+          "Import from @/components/primitives/ui/* or use createUI()",
       }
     : undefined;
 

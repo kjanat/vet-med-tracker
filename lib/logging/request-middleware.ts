@@ -19,10 +19,6 @@ export interface RequestLoggingConfig {
  * Default request logging configuration
  */
 const DEFAULT_REQUEST_CONFIG: RequestLoggingConfig = {
-  logRequests: true,
-  logResponses: true,
-  logHeaders: false, // Can contain sensitive data
-  logUserAgent: true,
   excludePaths: [
     "/_next/static",
     "/_next/image",
@@ -33,6 +29,10 @@ const DEFAULT_REQUEST_CONFIG: RequestLoggingConfig = {
     "/sw.js",
   ],
   excludeStaticAssets: true,
+  logHeaders: false, // Can contain sensitive data
+  logRequests: true,
+  logResponses: true,
+  logUserAgent: true,
   maxBodySize: 1000,
   sensitiveHeaders: [
     "authorization",
@@ -162,16 +162,16 @@ class RequestLogHelper {
    */
   parseUserAgent(userAgent: string): Record<string, unknown> {
     return {
-      userAgent,
+      isBot:
+        /bot|crawl|spider|scraper|facebookexternalhit|twitterbot|linkedinbot|embedly/i.test(
+          userAgent,
+        ),
       // Add basic parsing - you could use a library like 'ua-parser-js' for more detail
       isMobile:
         /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
           userAgent,
         ),
-      isBot:
-        /bot|crawl|spider|scraper|facebookexternalhit|twitterbot|linkedinbot|embedly/i.test(
-          userAgent,
-        ),
+      userAgent,
     };
   }
 
@@ -216,11 +216,11 @@ export function createRequestLoggingMiddleware(
     request: NextRequest,
   ): Promise<Record<string, unknown>> {
     const requestMetadata: Record<string, unknown> = {
+      ip: logHelper.getClientIP(request),
       method: request.method,
-      url: request.url,
       pathname: request.nextUrl.pathname,
       search: request.nextUrl.search,
-      ip: logHelper.getClientIP(request),
+      url: request.url,
     };
 
     // Add geolocation if available
@@ -257,11 +257,11 @@ export function createRequestLoggingMiddleware(
     performance: { duration: number; memoryUsage?: NodeJS.MemoryUsage },
   ): Record<string, unknown> {
     const responseMetadata: Record<string, unknown> = {
-      status: response.status,
-      statusText: response.statusText,
       duration: performance.duration,
       method: request.method,
       pathname: request.nextUrl.pathname,
+      status: response.status,
+      statusText: response.statusText,
     };
 
     // Add response headers if configured
@@ -272,8 +272,8 @@ export function createRequestLoggingMiddleware(
     // Add performance metrics
     if (performance.memoryUsage) {
       responseMetadata.memory = {
-        used: Math.round(performance.memoryUsage.heapUsed / 1024 / 1024), // MB
         total: Math.round(performance.memoryUsage.heapTotal / 1024 / 1024), // MB
+        used: Math.round(performance.memoryUsage.heapUsed / 1024 / 1024), // MB
       };
     }
 
@@ -324,10 +324,10 @@ export function createRequestLoggingMiddleware(
 
     // Create logging context
     const _loggingContext = await logger.createContext("http.request", {
-      url: request.url,
+      correlationId,
       method: request.method,
       path: request.nextUrl.pathname,
-      correlationId,
+      url: request.url,
     });
 
     // Start performance tracking
@@ -379,11 +379,11 @@ export function createRequestLoggingMiddleware(
         `Request failed: ${request.method} ${request.nextUrl.pathname}`,
         error instanceof Error ? error : new Error(String(error)),
         {
-          method: request.method,
-          url: request.url,
-          pathname: request.nextUrl.pathname,
           duration: performance.duration,
           ip: logHelper.getClientIP(request),
+          method: request.method,
+          pathname: request.nextUrl.pathname,
+          url: request.url,
         },
         correlationId,
       );
@@ -413,10 +413,10 @@ export async function getRequestLoggingContext(
     request.headers.get("x-correlation-id") || Logger.generateCorrelationId();
 
   return await logger.createContext(operation || "http.request", {
-    url: request.url,
+    correlationId,
     method: request.method,
     path: request.nextUrl.pathname,
-    correlationId,
+    url: request.url,
   });
 }
 

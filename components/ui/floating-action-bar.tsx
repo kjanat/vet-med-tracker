@@ -54,11 +54,11 @@ export function FloatingActionBar({
         {/* Custom Actions */}
         {customActions.map((action, index) => (
           <Button
+            className="gap-1"
             key={`action-${action.label}-${index}`}
+            onClick={() => action.onClick(selectedIdsArray)}
             size="sm"
             variant={action.variant || "outline"}
-            onClick={() => action.onClick(selectedIdsArray)}
-            className="gap-1"
           >
             <action.icon className="h-4 w-4" />
             <span className="hidden sm:inline">{action.label}</span>
@@ -68,10 +68,10 @@ export function FloatingActionBar({
         {/* Export Action */}
         {onExport && (
           <Button
+            className="gap-1"
+            onClick={() => onExport(selectedIdsArray)}
             size="sm"
             variant="outline"
-            onClick={() => onExport(selectedIdsArray)}
-            className="gap-1"
           >
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">Export</span>
@@ -81,10 +81,10 @@ export function FloatingActionBar({
         {/* Delete Action */}
         {onDelete && (
           <Button
+            className="gap-1"
+            onClick={() => onDelete(selectedIdsArray)}
             size="sm"
             variant="destructive"
-            onClick={() => onDelete(selectedIdsArray)}
-            className="gap-1"
           >
             <Trash2 className="h-4 w-4" />
             <span className="hidden sm:inline">Delete</span>
@@ -93,11 +93,11 @@ export function FloatingActionBar({
 
         {/* Clear Selection */}
         <Button
+          aria-label="Clear selection"
+          className="gap-1"
+          onClick={clearSelection}
           size="sm"
           variant="ghost"
-          onClick={clearSelection}
-          className="gap-1"
-          aria-label="Clear selection"
         >
           <X className="h-4 w-4" />
         </Button>

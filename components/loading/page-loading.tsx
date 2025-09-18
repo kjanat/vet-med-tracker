@@ -82,7 +82,7 @@ export function HistoryPageLoading() {
       <div className="space-y-2">
         {["history-1", "history-2", "history-3", "history-4", "history-5"].map(
           (key) => (
-            <div key={key} className="rounded-lg border p-4">
+            <div className="rounded-lg border p-4" key={key}>
               <ListSkeleton count={1} />
             </div>
           ),
@@ -195,7 +195,7 @@ export function SettingsPageLoading() {
       {/* Settings sections */}
       <div className="space-y-8">
         {["setting-1", "setting-2", "setting-3"].map((key) => (
-          <div key={key} className="space-y-4 rounded-lg border p-6">
+          <div className="space-y-4 rounded-lg border p-6" key={key}>
             <Skeleton className="h-6 w-32" />
             <FormSkeleton fields={2} />
           </div>

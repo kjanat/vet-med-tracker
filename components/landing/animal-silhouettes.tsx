@@ -31,7 +31,7 @@ function seededRandom(seed: number): () => number {
 export function AnimalSilhouettes() {
   const [allImages, setAllImages] = useState<string[]>([]);
   const [isReady, setIsReady] = useState(false);
-  const [visibleRange, setVisibleRange] = useState({ start: -1, end: 20 });
+  const [visibleRange, setVisibleRange] = useState({ end: 20, start: -1 });
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
@@ -91,7 +91,7 @@ export function AnimalSilhouettes() {
         Math.abs(prev.start - startIndex) > 1 ||
         Math.abs(prev.end - endIndex) > 1
       ) {
-        return { start: startIndex, end: endIndex };
+        return { end: endIndex, start: startIndex };
       }
       return prev;
     });
@@ -237,39 +237,39 @@ export function AnimalSilhouettes() {
 
   return (
     <div
-      ref={containerRef}
-      className="-mx-4 mask-alpha relative mt-8 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8rem,black_calc(100%-8rem),transparent)]"
       aria-hidden="true"
-      role="presentation"
+      className="-mx-4 mask-alpha relative mt-8 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8rem,black_calc(100%-8rem),transparent)]"
       onMouseDown={handleDragStart}
       onTouchStart={handleDragStart}
+      ref={containerRef}
+      role="presentation"
       style={{
         cursor: isDraggingRef.current ? "grabbing" : "grab",
         height: "96px", // Fixed height
       }}
     >
       <div
-        ref={scrollerRef}
         className="relative opacity-5 will-change-transform"
+        ref={scrollerRef}
         style={{
           height: "96px",
         }}
       >
         {visibleImages.map((item) => (
           <Image
-            key={`img-${item.index}`}
-            src={`/silhouettes/${item.src}`}
             alt=""
-            width={96}
-            height={96}
+            aria-hidden="true"
             className="absolute h-24 w-24 dark:invert"
+            height={96}
+            key={`img-${item.index}`}
+            priority={false}
+            src={`/silhouettes/${item.src}`}
             style={{
               left: `${item.x}px`,
               top: 0,
             }}
-            aria-hidden="true"
-            priority={false}
             unoptimized
+            width={96}
           />
         ))}
       </div>

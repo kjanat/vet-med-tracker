@@ -24,41 +24,41 @@ mock.module("@/hooks/shared/use-toast", () => ({
 
 mock.module("@/server/trpc/client", () => ({
   trpc: {
+    inventory: {
+      create: {
+        useMutation: mock(() => ({
+          isPending: false,
+          mutateAsync: mock(),
+          onError: mock(),
+          onSuccess: mock(),
+        })),
+      },
+      setInUse: {
+        useMutation: mock(() => ({
+          isPending: false,
+          mutateAsync: mock(),
+          onError: mock(),
+          onSuccess: mock(),
+        })),
+      },
+    },
     useUtils: () => ({
       inventory: {
         list: { invalidate: mock() },
       },
     }),
-    inventory: {
-      create: {
-        useMutation: mock(() => ({
-          mutateAsync: mock(),
-          isPending: false,
-          onSuccess: mock(),
-          onError: mock(),
-        })),
-      },
-      setInUse: {
-        useMutation: mock(() => ({
-          mutateAsync: mock(),
-          isPending: false,
-          onSuccess: mock(),
-          onError: mock(),
-        })),
-      },
-    },
   },
 }));
 
 const mockFormState = {
-  isOpen: false,
-  isDirty: false,
-  error: null,
-  setError: mock(),
-  setDirty: mock(),
   clearError: mock(),
-  openForm: mock(),
   closeForm: mock(),
+  error: null,
+  isDirty: false,
+  isOpen: false,
+  openForm: mock(),
+  setDirty: mock(),
+  setError: mock(),
 };
 
 mock.module("@/hooks/forms/useInventoryFormState", () => ({
@@ -67,79 +67,79 @@ mock.module("@/hooks/forms/useInventoryFormState", () => ({
 
 mock.module("@/lib/services/inventoryDataTransformer", () => ({
   InventoryDataTransformer: {
-    setDefaultValues: mock(() => ({
-      medicationId: "",
-      name: "",
-      isCustomMedication: false,
-      brand: "",
-      route: "oral",
-      form: "tablet",
-      strength: "",
-      concentration: "",
-      quantityUnits: 1,
-      unitsRemaining: 1,
-      lot: "",
-      expiresOn: new Date(),
-      storage: "ROOM",
-      assignedAnimalId: "",
-      barcode: "",
-      setInUse: false,
+    calculateDerivedFields: mock(() => ({
+      daysUntilExpiry: 365,
+      isExpiringSoon: false,
+      percentRemaining: 100,
+      storageDescription: "Room Temperature",
     })),
     createFreshDefaults: mock(() => ({
-      medicationId: "",
-      name: "",
-      isCustomMedication: false,
-      brand: "",
-      route: "oral",
-      form: "tablet",
-      strength: "",
-      concentration: "",
-      quantityUnits: 1,
-      unitsRemaining: 1,
-      lot: "",
-      expiresOn: new Date(),
-      storage: "ROOM",
       assignedAnimalId: "",
       barcode: "",
+      brand: "",
+      concentration: "",
+      expiresOn: new Date(),
+      form: "tablet",
+      isCustomMedication: false,
+      lot: "",
+      medicationId: "",
+      name: "",
+      quantityUnits: 1,
+      route: "oral",
       setInUse: false,
-    })),
-    toApiPayload: mock(() => ({
-      householdId: "household-1",
-      medicationId: "med-1",
-      quantityUnits: 10,
-      unitsRemaining: 10,
       storage: "ROOM",
+      strength: "",
+      unitsRemaining: 1,
     })),
     createInstrumentationData: mock(() => ({
       medicationId: "test-med",
       quantity: 10,
     })),
+    getStorageOptions: () => [
+      { label: "Room Temperature", value: "ROOM" },
+      { label: "Refrigerated", value: "FRIDGE" },
+      { label: "Frozen", value: "FREEZER" },
+      { label: "Controlled Substance", value: "CONTROLLED" },
+    ],
+    setDefaultValues: mock(() => ({
+      assignedAnimalId: "",
+      barcode: "",
+      brand: "",
+      concentration: "",
+      expiresOn: new Date(),
+      form: "tablet",
+      isCustomMedication: false,
+      lot: "",
+      medicationId: "",
+      name: "",
+      quantityUnits: 1,
+      route: "oral",
+      setInUse: false,
+      storage: "ROOM",
+      strength: "",
+      unitsRemaining: 1,
+    })),
     syncRemainingUnits: mock((_data, quantity) => ({
       unitsRemaining: quantity,
     })),
-    calculateDerivedFields: mock(() => ({
-      percentRemaining: 100,
-      isExpiringSoon: false,
-      storageDescription: "Room Temperature",
-      daysUntilExpiry: 365,
+    toApiPayload: mock(() => ({
+      householdId: "household-1",
+      medicationId: "med-1",
+      quantityUnits: 10,
+      storage: "ROOM",
+      unitsRemaining: 10,
     })),
-    getStorageOptions: () => [
-      { value: "ROOM", label: "Room Temperature" },
-      { value: "FRIDGE", label: "Refrigerated" },
-      { value: "FREEZER", label: "Frozen" },
-      { value: "CONTROLLED", label: "Controlled Substance" },
-    ],
   },
 }));
 
 mock.module("@/lib/services/inventoryFormValidator", () => ({
   InventoryFormValidator: {
+    getDisplayMessage: mock(() => null),
     validate: mock(() => ({
-      isValid: true,
       errors: [],
+      isValid: true,
       warnings: [],
     })),
-    getDisplayMessage: mock(() => null),
   },
 }));
 
@@ -147,22 +147,22 @@ mock.module("@/lib/schemas/inventory", () => {
   const { z } = require("zod");
   return {
     inventoryFormSchema: z.object({
-      medicationId: z.string().optional(),
-      name: z.string().min(1, "Medication name is required"),
-      isCustomMedication: z.boolean(),
-      brand: z.string().optional(),
-      route: z.string().min(1, "Route is required"),
-      form: z.string().min(1, "Form is required"),
-      strength: z.string().optional(),
-      concentration: z.string().optional(),
-      quantityUnits: z.number().int().positive(),
-      unitsRemaining: z.number().int().min(0),
-      lot: z.string().optional(),
-      expiresOn: z.date(),
-      storage: z.enum(["ROOM", "FRIDGE", "FREEZER", "CONTROLLED"]),
       assignedAnimalId: z.string().optional(),
       barcode: z.string().optional(),
+      brand: z.string().optional(),
+      concentration: z.string().optional(),
+      expiresOn: z.date(),
+      form: z.string().min(1, "Form is required"),
+      isCustomMedication: z.boolean(),
+      lot: z.string().optional(),
+      medicationId: z.string().optional(),
+      name: z.string().min(1, "Medication name is required"),
+      quantityUnits: z.number().int().positive(),
+      route: z.string().min(1, "Route is required"),
       setInUse: z.boolean(),
+      storage: z.enum(["ROOM", "FRIDGE", "FREEZER", "CONTROLLED"]),
+      strength: z.string().optional(),
+      unitsRemaining: z.number().int().min(0),
     }),
   };
 });
@@ -173,9 +173,9 @@ describe("useInventoryForm", () => {
     useAppMock.mockClear();
     useAppMock.mockImplementation(() =>
       createTestAppContext({
+        households: [{ id: "household-1", name: "Test Household" }],
         selectedHousehold: { id: "household-1", name: "Test Household" },
         selectedHouseholdId: "household-1",
-        households: [{ id: "household-1", name: "Test Household" }],
       }),
     );
   });
@@ -304,22 +304,22 @@ describe("useInventoryForm", () => {
       const { result } = renderHook(() => useInventoryForm(options));
 
       const testData = {
-        medicationId: "med-1",
-        name: "Test Medication",
-        isCustomMedication: false,
-        brand: "",
-        route: "oral",
-        form: "tablet",
-        strength: "",
-        concentration: "",
-        quantityUnits: 10,
-        unitsRemaining: 10,
-        lot: "",
-        expiresOn: new Date(),
-        storage: "ROOM" as const,
         assignedAnimalId: "",
         barcode: "",
+        brand: "",
+        concentration: "",
+        expiresOn: new Date(),
+        form: "tablet",
+        isCustomMedication: false,
+        lot: "",
+        medicationId: "med-1",
+        name: "Test Medication",
+        quantityUnits: 10,
+        route: "oral",
         setInUse: false,
+        storage: "ROOM" as const,
+        strength: "",
+        unitsRemaining: 10,
       };
 
       await act(async () => {
@@ -331,9 +331,9 @@ describe("useInventoryForm", () => {
       expect(InventoryFormValidator.validate).toHaveBeenCalledWith(
         testData,
         expect.objectContaining({
+          allowPastExpiry: false,
           householdId: "household-1",
           validateQuantity: true,
-          allowPastExpiry: false,
         }),
       );
     });
@@ -342,10 +342,10 @@ describe("useInventoryForm", () => {
       const InventoryFormValidator =
         require("@/lib/services/inventoryFormValidator").InventoryFormValidator;
       spyOn(InventoryFormValidator, "validate").mockReturnValue({
-        isValid: false,
         errors: [
-          { field: "medicationId", message: "Required", code: "REQUIRED" },
+          { code: "REQUIRED", field: "medicationId", message: "Required" },
         ],
+        isValid: false,
         warnings: [],
       });
       spyOn(InventoryFormValidator, "getDisplayMessage").mockReturnValue(
@@ -355,22 +355,22 @@ describe("useInventoryForm", () => {
       const { result } = renderHook(() => useInventoryForm());
 
       const testData = {
-        medicationId: "",
-        name: "",
-        isCustomMedication: false,
-        brand: "",
-        route: "",
-        form: "",
-        strength: "",
-        concentration: "",
-        quantityUnits: 0,
-        unitsRemaining: 0,
-        lot: "",
-        expiresOn: new Date(),
-        storage: "ROOM" as const,
         assignedAnimalId: "",
         barcode: "",
+        brand: "",
+        concentration: "",
+        expiresOn: new Date(),
+        form: "",
+        isCustomMedication: false,
+        lot: "",
+        medicationId: "",
+        name: "",
+        quantityUnits: 0,
+        route: "",
         setInUse: false,
+        storage: "ROOM" as const,
+        strength: "",
+        unitsRemaining: 0,
       };
 
       await act(async () => {
@@ -394,7 +394,7 @@ describe("useInventoryForm", () => {
   describe("save workflow", () => {
     it("should prepare save workflow correctly", async () => {
       const onSave = mock();
-      const options: UseInventoryFormOptions = { onSave, autoClose: true };
+      const options: UseInventoryFormOptions = { autoClose: true, onSave };
 
       const { result } = renderHook(() => useInventoryForm(options));
 
@@ -446,10 +446,10 @@ describe("useInventoryCalculations", () => {
   it("should calculate derived fields using data transformer", () => {
     const mockForm = {
       getValues: mock(() => ({
-        quantityUnits: 10,
-        unitsRemaining: 8,
         expiresOn: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        quantityUnits: 10,
         storage: "ROOM",
+        unitsRemaining: 8,
       })),
     };
 

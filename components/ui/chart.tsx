@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
-import * as RechartsPrimitive from "recharts";
+import React from "react";
+import RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils/general";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
-const THEMES = { light: "", dark: ".dark" } as const;
+const THEMES = { dark: ".dark", light: "" } as const;
 
 export type ChartConfig = {
   [k in string]: {
@@ -49,15 +49,15 @@ const ChartContainer = React.forwardRef<
   return (
     <ChartContext.Provider value={{ config }}>
       <div
-        data-chart={chartId}
-        ref={ref}
         className={cn(
           "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-hidden [&_.recharts-surface]:outline-hidden",
           className,
         )}
+        data-chart={chartId}
+        ref={ref}
         {...props}
       >
-        <ChartStyle id={chartId} config={config} />
+        <ChartStyle config={config} id={chartId} />
         <RechartsPrimitive.ResponsiveContainer>
           {children}
         </RechartsPrimitive.ResponsiveContainer>
@@ -204,25 +204,25 @@ const ChartTooltipContent = React.forwardRef<
 
     return (
       <div
-        ref={ref}
         className={cn(
           "grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
           className,
         )}
+        ref={ref}
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
           {payload.map((item, index) => (
             <TooltipItem
-              key={item.dataKey}
-              item={item}
-              index={index}
-              config={config}
-              nameKey={nameKey}
               color={color}
-              indicator={indicator}
-              hideIndicator={hideIndicator}
+              config={config}
               formatter={formatter}
+              hideIndicator={hideIndicator}
+              index={index}
+              indicator={indicator}
+              item={item}
+              key={item.dataKey}
+              nameKey={nameKey}
               nestLabel={nestLabel}
               tooltipLabel={tooltipLabel}
             />
@@ -265,12 +265,12 @@ const ChartLegendContent = React.forwardRef<
 
     return (
       <div
-        ref={ref}
         className={cn(
           "flex items-center justify-center gap-4",
           verticalAlign === "top" ? "pb-3" : "pt-3",
           className,
         )}
+        ref={ref}
       >
         {payload.map((item) => {
           const key = `${nameKey || item.dataKey || "value"}`;
@@ -278,10 +278,10 @@ const ChartLegendContent = React.forwardRef<
 
           return (
             <div
-              key={item.value}
               className={cn(
                 "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
               )}
+              key={item.value}
             >
               {itemConfig?.icon && !hideIcon ? (
                 <itemConfig.icon />
@@ -390,10 +390,10 @@ function TooltipItem({
       ) : (
         <>
           <TooltipItemIcon
-            itemConfig={itemConfig}
             hideIndicator={hideIndicator}
             indicator={indicator}
             indicatorColor={indicatorColor}
+            itemConfig={itemConfig}
             nestLabel={nestLabel}
           />
           <TooltipItemContent
@@ -433,10 +433,10 @@ function TooltipItemIcon({
     <div
       className={cn("shrink-0 rounded-[2px] border-border bg-(--color-bg)", {
         "h-2.5 w-2.5": indicator === "dot",
-        "w-1": indicator === "line",
+        "my-0.5": nestLabel && indicator === "dashed",
         "w-0 border-[1.5px] border-dashed bg-transparent":
           indicator === "dashed",
-        "my-0.5": nestLabel && indicator === "dashed",
+        "w-1": indicator === "line",
       })}
       style={
         {

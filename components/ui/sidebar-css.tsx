@@ -2,7 +2,7 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import * as React from "react";
+import React from "react";
 import { cn } from "@/lib/utils/general";
 
 const sidebarMenuButtonVariants = cva(
@@ -34,21 +34,21 @@ const sidebarMenuButtonVariants = cva(
     "hover:[&>svg]:scale-110",
   ),
   {
+    defaultVariants: {
+      size: "default",
+      variant: "default",
+    },
     variants: {
+      size: {
+        default: "h-8 text-sm",
+        lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
+        sm: "h-7 text-xs",
+      },
       variant: {
         default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         outline:
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
-      size: {
-        default: "h-8 text-sm",
-        sm: "h-7 text-xs",
-        lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
     },
   },
 );
@@ -75,11 +75,11 @@ export const SidebarMenuButton = React.forwardRef<
 
     return (
       <Comp
-        ref={ref}
+        className={cn(sidebarMenuButtonVariants({ size, variant }), className)}
+        data-active={isActive}
         data-sidebar="menu-button"
         data-size={size}
-        data-active={isActive}
-        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        ref={ref}
         {...props}
       />
     );

@@ -35,17 +35,17 @@ export const createAuditLog = async (
 ) => {
   try {
     await db.insert(auditLog).values({
-      userId,
-      householdId,
       action,
-      resourceType: resourceType || tableName || "unknown",
-      resourceId: resourceId || recordId || null,
-      oldValues: oldValues || null,
-      newValues: newValues || null,
       details: details || null,
+      householdId,
       ipAddress: ipAddress || null,
-      userAgent: userAgent || null,
+      newValues: newValues || null,
+      oldValues: oldValues || null,
+      resourceId: resourceId || recordId || null,
+      resourceType: resourceType || tableName || "unknown",
       sessionId: sessionId || null,
+      userAgent: userAgent || null,
+      userId,
     });
   } catch (error) {
     console.error("Failed to create audit log:", error);

@@ -16,41 +16,41 @@ import { createAuditLog } from "@/server/utils/audit-log";
 
 // Input validation schema for recording administration
 const recordAdministrationSchema = z.object({
-  householdId: z.uuid(),
-  animalId: z.uuid(),
-  regimenId: z.uuid(),
   administeredAt: z.iso.datetime().optional(), // ISO datetime, defaults to now
-  inventorySourceId: z.uuid().optional(),
-  notes: z.string().optional(),
-  site: z.string().optional(),
-  conditionTags: z.array(z.string()).optional(),
-  requiresCoSign: z.boolean().default(false),
   allowOverride: z.boolean().default(false),
-  idempotencyKey: z.string(),
+  animalId: z.uuid(),
+  conditionTags: z.array(z.string()).optional(),
   // Optional fields for offline sync
   dose: z.string().optional(), // Actual dose given if different from regimen
-  status: z.enum(["ON_TIME", "LATE", "VERY_LATE", "PRN"]).optional(),
+  householdId: z.uuid(),
+  idempotencyKey: z.string(),
+  inventorySourceId: z.uuid().optional(),
   // Photo evidence URLs
   mediaUrls: z.array(z.url()).optional(), // Photo evidence URLs
+  notes: z.string().optional(),
+  regimenId: z.uuid(),
+  requiresCoSign: z.boolean().default(false),
+  site: z.string().optional(),
+  status: z.enum(["ON_TIME", "LATE", "VERY_LATE", "PRN"]).optional(),
 });
 
 // Input validation schema for bulk recording administration
 const recordBulkAdministrationSchema = z.object({
-  householdId: z.uuid(),
-  animalIds: z.array(z.uuid()).min(1).max(50), // Limit to reasonable batch size
-  regimenId: z.uuid(),
   administeredAt: z.iso.datetime().optional(), // ISO datetime, defaults to now
-  inventorySourceId: z.uuid().optional(),
-  notes: z.string().optional(),
-  site: z.string().optional(),
-  conditionTags: z.array(z.string()).optional(),
   allowOverride: z.boolean().default(false),
-  idempotencyKey: z.string(), // Base key, will be suffixed per animal
+  animalIds: z.array(z.uuid()).min(1).max(50), // Limit to reasonable batch size
+  conditionTags: z.array(z.string()).optional(),
   // Optional fields for offline sync
   dose: z.string().optional(), // Actual dose given if different from regimen
-  status: z.enum(["ON_TIME", "LATE", "VERY_LATE", "PRN"]).optional(),
+  householdId: z.uuid(),
+  idempotencyKey: z.string(), // Base key, will be suffixed per animal
+  inventorySourceId: z.uuid().optional(),
   // Photo evidence URLs
   mediaUrls: z.array(z.url()).optional(), // Photo evidence URLs
+  notes: z.string().optional(),
+  regimenId: z.uuid(),
+  site: z.string().optional(),
+  status: z.enum(["ON_TIME", "LATE", "VERY_LATE", "PRN"]).optional(),
 });
 
 // Helper function to calculate administration status
@@ -95,7 +95,7 @@ function findClosestScheduledTime(
     }
   }
 
-  return closestTime ? { time: closestTime, minutes: closestMinutes } : null;
+  return closestTime ? { minutes: closestMinutes, time: closestTime } : null;
 }
 
 // Helper function to calculate scheduled time and status
@@ -117,14 +117,14 @@ function calculateScheduledTimeAndStatus(
   // Use provided status if given (for offline sync)
   if (providedStatus) {
     return {
-      status: providedStatus as (typeof adminStatusEnum.enumValues)[number],
       scheduledFor: null,
+      status: providedStatus as (typeof adminStatusEnum.enumValues)[number],
     };
   }
 
   // PRN regimens
   if (regimen.scheduleType === "PRN") {
-    return { status: "PRN", scheduledFor: null };
+    return { scheduledFor: null, status: "PRN" };
   }
 
   // Fixed schedule regimens
@@ -139,7 +139,7 @@ function calculateScheduledTimeAndStatus(
     const closest = findClosestScheduledTime(adminMinutes, regimen.timesLocal);
 
     if (!closest) {
-      return { status: "ON_TIME", scheduledFor: null };
+      return { scheduledFor: null, status: "ON_TIME" };
     }
 
     const [hours, minutes] = closest.time.split(":").map(Number);
@@ -152,10 +152,10 @@ function calculateScheduledTimeAndStatus(
       regimen.cutoffMinutes,
     );
 
-    return { status, scheduledFor };
+    return { scheduledFor, status };
   }
 
-  return { status: "ON_TIME", scheduledFor: null };
+  return { scheduledFor: null, status: "ON_TIME" };
 }
 
 // Helper function to verify animal ownership
@@ -287,9 +287,9 @@ async function createAdministrationRecord(
 
   const { status, scheduledFor } = calculateScheduledTimeAndStatus(
     {
+      cutoffMinutes: regimen.cutoffMinutes,
       scheduleType: regimen.scheduleType,
       timesLocal: regimen.timesLocal,
-      cutoffMinutes: regimen.cutoffMinutes,
     },
     animal,
     administeredAt,
@@ -297,20 +297,20 @@ async function createAdministrationRecord(
   );
 
   const newAdmin: NewAdministration = {
-    regimenId: input.regimenId,
-    animalId: input.animalId,
-    householdId: input.householdId,
-    caregiverId: userId,
-    scheduledFor: scheduledFor?.toISOString() || null,
-    recordedAt: administeredAt.toISOString(),
-    status,
-    sourceItemId: input.inventorySourceId || null,
-    site: input.site || null,
-    dose: input.dose || regimen.dose || null,
-    notes: input.notes || null,
-    mediaUrls: input.mediaUrls || null,
     adverseEvent: false,
+    animalId: input.animalId,
+    caregiverId: userId,
+    dose: input.dose || regimen.dose || null,
+    householdId: input.householdId,
     idempotencyKey: input.idempotencyKey,
+    mediaUrls: input.mediaUrls || null,
+    notes: input.notes || null,
+    recordedAt: administeredAt.toISOString(),
+    regimenId: input.regimenId,
+    scheduledFor: scheduledFor?.toISOString() || null,
+    site: input.site || null,
+    sourceItemId: input.inventorySourceId || null,
+    status,
   };
 
   const result = await db.insert(administrations).values(newAdmin).returning();
@@ -379,9 +379,9 @@ async function processAnimalAdministration(
 
   const { status, scheduledFor } = calculateScheduledTimeAndStatus(
     {
+      cutoffMinutes: animalRegimen[0].cutoffMinutes,
       scheduleType: animalRegimen[0].scheduleType,
       timesLocal: animalRegimen[0].timesLocal,
-      cutoffMinutes: animalRegimen[0].cutoffMinutes,
     },
     { timezone: animal.timezone || "UTC" },
     administeredAt,
@@ -389,20 +389,20 @@ async function processAnimalAdministration(
   );
 
   const newAdmin: NewAdministration = {
-    regimenId: input.regimenId,
-    animalId: animal.id,
-    householdId: input.householdId,
-    caregiverId,
-    scheduledFor: scheduledFor?.toISOString() || null,
-    recordedAt: administeredAt.toISOString(),
-    status,
-    sourceItemId: input.inventorySourceId || null,
-    site: input.site || null,
-    dose: input.dose || animalRegimen[0].dose || null,
-    notes: input.notes || null,
-    mediaUrls: input.mediaUrls || null,
     adverseEvent: false,
+    animalId: animal.id,
+    caregiverId,
+    dose: input.dose || animalRegimen[0].dose || null,
+    householdId: input.householdId,
     idempotencyKey: animalIdempotencyKey,
+    mediaUrls: input.mediaUrls || null,
+    notes: input.notes || null,
+    recordedAt: administeredAt.toISOString(),
+    regimenId: input.regimenId,
+    scheduledFor: scheduledFor?.toISOString() || null,
+    site: input.site || null,
+    sourceItemId: input.inventorySourceId || null,
+    status,
   };
 
   const result = await db.insert(administrations).values(newAdmin).returning();
@@ -420,8 +420,8 @@ export const adminRouter = createTRPCRouter({
     .input(
       z.object({
         householdId: z.uuid(),
-        recordId: z.uuid(),
         notes: z.string().optional(),
+        recordId: z.uuid(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -482,9 +482,9 @@ export const adminRouter = createTRPCRouter({
       const result = await ctx.db
         .update(administrations)
         .set({
-          coSignUserId: ctx.dbUser.id,
           coSignedAt: new Date().toISOString(),
           coSignNotes: input.notes || null,
+          coSignUserId: ctx.dbUser.id,
           updatedAt: new Date().toISOString(),
         })
         .where(eq(administrations.id, input.recordId))
@@ -500,16 +500,16 @@ export const adminRouter = createTRPCRouter({
 
       // Create audit log
       await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
         action: "COSIGN",
-        tableName: "administrations",
-        recordId: input.recordId,
+        householdId: input.householdId,
         newValues: result[0],
         oldValues: existing[0].administration,
+        recordId: input.recordId,
+        tableName: "administrations",
+        userId: ctx.dbUser.id,
       });
 
-      return { success: true, cosignedRecord: result[0] };
+      return { cosignedRecord: result[0], success: true };
     }),
 
   // List administrations for an animal or household with proper joins
@@ -559,12 +559,12 @@ export const adminRouter = createTRPCRouter({
 
       // Create audit log
       await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
         action: "CREATE",
-        tableName: "administrations",
-        recordId: result.id,
+        householdId: input.householdId,
         newValues: result,
+        recordId: result.id,
+        tableName: "administrations",
+        userId: ctx.dbUser.id,
       });
 
       // TODO: Handle inventory update and co-sign requirement
@@ -618,26 +618,26 @@ export const adminRouter = createTRPCRouter({
 
       // Create audit log
       await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
         action: "DELETE",
-        tableName: "administrations",
-        recordId: input.recordId,
+        householdId: input.householdId,
         oldValues: existing[0],
+        recordId: input.recordId,
+        tableName: "administrations",
+        userId: ctx.dbUser.id,
       });
 
-      return { success: true, deletedRecord: result[0] };
+      return { deletedRecord: result[0], success: true };
     }),
 
   // Undo an administration record (if recorded recently)
   list: householdProcedure
     .input(
       z.object({
-        householdId: z.uuid(),
         animalId: z.uuid().optional(),
-        startDate: z.iso.datetime().optional(),
         endDate: z.iso.datetime().optional(),
+        householdId: z.uuid(),
         limit: z.number().min(1).max(100).default(50),
+        startDate: z.iso.datetime().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -667,43 +667,43 @@ export const adminRouter = createTRPCRouter({
 
       return await ctx.db
         .select({
-          // Administration fields
-          id: administrations.id,
-          regimenId: administrations.regimenId,
-          animalId: administrations.animalId,
-          householdId: administrations.householdId,
-          caregiverId: administrations.caregiverId,
-          scheduledFor: administrations.scheduledFor,
-          recordedAt: administrations.recordedAt,
-          status: administrations.status,
-          sourceItemId: administrations.sourceItemId,
-          site: administrations.site,
-          dose: administrations.dose,
-          notes: administrations.notes,
-          mediaUrls: administrations.mediaUrls,
-          coSignUserId: administrations.coSignUserId,
-          coSignedAt: administrations.coSignedAt,
-          coSignNotes: administrations.coSignNotes,
           adverseEvent: administrations.adverseEvent,
           adverseEventDescription: administrations.adverseEventDescription,
-          idempotencyKey: administrations.idempotencyKey,
-          createdAt: administrations.createdAt,
-          updatedAt: administrations.updatedAt,
+          animalId: administrations.animalId,
           // Joined fields
           animalName: animals.name,
-          caregiverName: users.name,
           caregiverEmail: users.email,
-          medicationGenericName: medicationCatalog.genericName,
-          medicationBrandName: medicationCatalog.brandName,
-          medicationStrength: medicationCatalog.strength,
-          medicationRoute: medicationCatalog.route,
-          medicationForm: medicationCatalog.form,
+          caregiverId: administrations.caregiverId,
+          caregiverName: users.name,
+          coSignedAt: administrations.coSignedAt,
+          coSignNotes: administrations.coSignNotes,
+          coSignUserId: administrations.coSignUserId,
           // Co-signer details
           coSignUserName: users.name,
+          createdAt: administrations.createdAt,
+          dose: administrations.dose,
+          householdId: administrations.householdId,
+          // Administration fields
+          id: administrations.id,
+          idempotencyKey: administrations.idempotencyKey,
           // Inventory item details
           inventoryBrandOverride: inventoryItems.brandOverride,
-          inventoryLot: inventoryItems.lot,
           inventoryExpiresOn: inventoryItems.expiresOn,
+          inventoryLot: inventoryItems.lot,
+          mediaUrls: administrations.mediaUrls,
+          medicationBrandName: medicationCatalog.brandName,
+          medicationForm: medicationCatalog.form,
+          medicationGenericName: medicationCatalog.genericName,
+          medicationRoute: medicationCatalog.route,
+          medicationStrength: medicationCatalog.strength,
+          notes: administrations.notes,
+          recordedAt: administrations.recordedAt,
+          regimenId: administrations.regimenId,
+          scheduledFor: administrations.scheduledFor,
+          site: administrations.site,
+          sourceItemId: administrations.sourceItemId,
+          status: administrations.status,
+          updatedAt: administrations.updatedAt,
         })
         .from(administrations)
         .innerJoin(animals, eq(administrations.animalId, animals.id))
@@ -738,10 +738,10 @@ export const adminRouter = createTRPCRouter({
       // Validate all animals belong to the household first
       const animalData = await ctx.db
         .select({
+          householdId: animals.householdId,
           id: animals.id,
           name: animals.name,
           timezone: animals.timezone,
-          householdId: animals.householdId,
         })
         .from(animals)
         .where(
@@ -806,45 +806,45 @@ export const adminRouter = createTRPCRouter({
               tx,
               animal,
               {
-                regimenId: input.regimenId,
+                administeredAt: input.administeredAt,
+                dose: input.dose,
                 householdId: input.householdId,
                 idempotencyKey: input.idempotencyKey,
-                administeredAt: input.administeredAt,
-                status: input.status,
                 inventorySourceId: input.inventorySourceId,
-                site: input.site,
-                dose: input.dose,
-                notes: input.notes,
                 mediaUrls: input.mediaUrls,
+                notes: input.notes,
+                regimenId: input.regimenId,
+                site: input.site,
+                status: input.status,
               },
               ctx.dbUser.id,
             );
 
             // Create audit log
             await createAuditLog(ctx.db, {
-              userId: ctx.dbUser.id,
-              householdId: input.householdId,
               action: "CREATE",
-              tableName: "administrations",
-              recordId: result.id,
+              householdId: input.householdId,
               newValues: result,
+              recordId: result.id,
+              tableName: "administrations",
+              userId: ctx.dbUser.id,
             });
 
             results.push({
+              administration: result,
               animalId: animal.id,
               animalName: animal.name,
               success: true,
-              administration: result,
             });
           } catch (error) {
             results.push({
               animalId: animal.id,
               animalName: animal.name,
-              success: false,
               error:
                 error instanceof Error
                   ? error.message
                   : "Unknown error occurred",
+              success: false,
             });
             // Continue processing other animals instead of failing entire transaction
           }
@@ -857,9 +857,9 @@ export const adminRouter = createTRPCRouter({
       return {
         results,
         summary: {
-          total: results.length,
-          successful: successCount,
           failed: failureCount,
+          successful: successCount,
+          total: results.length,
         },
       };
     }),
@@ -931,12 +931,12 @@ export const adminRouter = createTRPCRouter({
 
       // Create audit log
       await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
         action: "UNDO",
-        tableName: "administrations",
-        recordId: input.recordId,
+        householdId: input.householdId,
         oldValues: existing[0],
+        recordId: input.recordId,
+        tableName: "administrations",
+        userId: ctx.dbUser.id,
       });
 
       return { success: true, undoneRecord: result[0] };

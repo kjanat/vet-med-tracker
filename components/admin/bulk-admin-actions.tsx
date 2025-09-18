@@ -29,7 +29,7 @@ export function BulkAdminActions({ className }: BulkAdminActionsProps) {
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium text-sm">
-                  <Badge variant="secondary" className="mr-2">
+                  <Badge className="mr-2" variant="secondary">
                     {selectionCount}
                   </Badge>
                   animal{selectionCount !== 1 ? "s" : ""} selected
@@ -38,19 +38,19 @@ export function BulkAdminActions({ className }: BulkAdminActionsProps) {
 
               <div className="flex items-center gap-2">
                 <Button
-                  size="sm"
-                  onClick={() => setShowRecordingForm(true)}
                   className="gap-2"
+                  onClick={() => setShowRecordingForm(true)}
+                  size="sm"
                 >
                   <Plus className="h-4 w-4" />
                   Record Administration
                 </Button>
 
                 <Button
+                  className="gap-1"
+                  onClick={clearSelection}
                   size="sm"
                   variant="outline"
-                  onClick={clearSelection}
-                  className="gap-1"
                 >
                   <X className="h-4 w-4" />
                   Clear
@@ -62,8 +62,8 @@ export function BulkAdminActions({ className }: BulkAdminActionsProps) {
       </div>
 
       <BulkRecordingForm
-        open={showRecordingForm}
         onOpenChange={setShowRecordingForm}
+        open={showRecordingForm}
       />
     </>
   );

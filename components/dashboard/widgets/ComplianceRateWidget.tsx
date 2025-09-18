@@ -30,12 +30,12 @@ interface ComplianceRateWidgetProps {
 
 const chartConfig = {
   complianceRate: {
-    label: "Compliance Rate",
     color: "hsl(var(--chart-1))",
+    label: "Compliance Rate",
   },
   onTimeRate: {
-    label: "On-Time Rate",
     color: "hsl(var(--chart-2))",
+    label: "On-Time Rate",
   },
 } satisfies ChartConfig;
 
@@ -78,8 +78,8 @@ function ComplianceRateWidgetContent({
       );
 
       sampleData.push({
-        date: date.toISOString().split("T")[0],
         complianceRate: Math.round(complianceRate),
+        date: date.toISOString().split("T")[0],
         onTimeRate: Math.round(onTimeRate),
       });
     }
@@ -142,48 +142,48 @@ function ComplianceRateWidgetContent({
       {/* Trend Chart */}
       <div className={isFullscreen ? "h-96" : "h-64"}>
         <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer height="100%" width="100%">
             <LineChart
               data={trendData}
-              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              margin={{ bottom: 5, left: 5, right: 5, top: 5 }}
             >
               <XAxis
+                axisLine={false}
                 dataKey="date"
+                fontSize={12}
                 tickFormatter={(value) => {
                   const date = new Date(value);
                   return date.toLocaleDateString("en-US", {
-                    month: "short",
                     day: "numeric",
+                    month: "short",
                   });
                 }}
-                fontSize={12}
                 tickLine={false}
-                axisLine={false}
               />
               <YAxis
+                axisLine={false}
                 domain={[0, 100]}
                 fontSize={12}
-                tickLine={false}
-                axisLine={false}
                 tickFormatter={(value) => `${value}%`}
+                tickLine={false}
               />
               <Tooltip content={<ChartTooltipContent />} />
               <Line
-                type="monotone"
+                connectNulls
                 dataKey="complianceRate"
+                dot={{ r: 3 }}
                 stroke="var(--color-complianceRate)"
                 strokeWidth={2}
-                dot={{ r: 3 }}
-                connectNulls
+                type="monotone"
               />
               <Line
-                type="monotone"
-                dataKey="onTimeRate"
-                stroke="var(--color-onTimeRate)"
-                strokeWidth={2}
-                dot={{ r: 3 }}
                 connectNulls
+                dataKey="onTimeRate"
+                dot={{ r: 3 }}
+                stroke="var(--color-onTimeRate)"
                 strokeDasharray="5 5"
+                strokeWidth={2}
+                type="monotone"
               />
             </LineChart>
           </ResponsiveContainer>

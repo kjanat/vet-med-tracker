@@ -44,12 +44,12 @@ function useCoSignRequests(householdId: string | undefined) {
 
   const pendingQuery = trpc.cosigner.listPending.useQuery(
     { householdId: householdId || "" },
-    { enabled: !!householdId },
+    { enabled: Boolean(householdId) },
   );
 
   const allQuery = trpc.cosigner.listAll.useQuery(
     { householdId: householdId || "" },
-    { enabled: !!householdId },
+    { enabled: Boolean(householdId) },
   );
 
   const refetchAll = () => {
@@ -229,33 +229,33 @@ export default function CoSignPage() {
 
       <CoSignTabs
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        formatUserName={formatUserName}
+        loadingAll={loadingAll}
+        loadingPending={loadingPending}
+        onApprove={openApprovalDialog}
+        onReject={openRejectionDialog}
         pendingCount={pendingCount}
         pendingRequests={pendingRequests}
         recentRequests={recentRequests}
-        loadingPending={loadingPending}
-        loadingAll={loadingAll}
-        onApprove={openApprovalDialog}
-        onReject={openRejectionDialog}
-        formatUserName={formatUserName}
+        setActiveTab={setActiveTab}
       />
 
       <ApprovalDialog
-        open={showApprovalDialog}
-        onOpenChange={setShowApprovalDialog}
-        signature={signature}
-        onSignatureChange={setSignature}
-        onConfirm={handleConfirmApproval}
         isPending={approveMutation.isPending}
+        onConfirm={handleConfirmApproval}
+        onOpenChange={setShowApprovalDialog}
+        onSignatureChange={setSignature}
+        open={showApprovalDialog}
+        signature={signature}
       />
 
       <RejectionDialog
-        open={showRejectionDialog}
-        onOpenChange={setShowRejectionDialog}
-        rejectionReason={rejectionReason}
-        onReasonChange={setRejectionReason}
-        onConfirm={handleConfirmRejection}
         isPending={rejectMutation.isPending}
+        onConfirm={handleConfirmRejection}
+        onOpenChange={setShowRejectionDialog}
+        onReasonChange={setRejectionReason}
+        open={showRejectionDialog}
+        rejectionReason={rejectionReason}
       />
     </div>
   );
@@ -288,38 +288,38 @@ function CoSignTabs({
   ) => string;
 }) {
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs className="w-full" onValueChange={setActiveTab} value={activeTab}>
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="pending" className="flex items-center gap-2">
+        <TabsTrigger className="flex items-center gap-2" value="pending">
           <Clock className="h-4 w-4" />
           Pending
           {pendingCount > 0 && (
-            <Badge variant="default" className="ml-1 h-5 min-w-5 text-xs">
+            <Badge className="ml-1 h-5 min-w-5 text-xs" variant="default">
               {pendingCount}
             </Badge>
           )}
         </TabsTrigger>
-        <TabsTrigger value="history" className="flex items-center gap-2">
+        <TabsTrigger className="flex items-center gap-2" value="history">
           <FileSignature className="h-4 w-4" />
           History
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="pending" className="space-y-4">
+      <TabsContent className="space-y-4" value="pending">
         <PendingRequestsContent
+          formatUserName={formatUserName}
           loading={loadingPending}
-          requests={pendingRequests}
           onApprove={onApprove}
           onReject={onReject}
-          formatUserName={formatUserName}
+          requests={pendingRequests}
         />
       </TabsContent>
 
-      <TabsContent value="history" className="space-y-4">
+      <TabsContent className="space-y-4" value="history">
         <HistoryRequestsContent
+          formatUserName={formatUserName}
           loading={loadingAll}
           requests={recentRequests}
-          formatUserName={formatUserName}
         />
       </TabsContent>
     </Tabs>
@@ -355,11 +355,11 @@ function PendingRequestsContent({
       <div className="space-y-4">
         {requests.map((item) => (
           <PendingRequestCard
-            key={item.request.id}
+            formatUserName={formatUserName}
             item={item}
+            key={item.request.id}
             onApprove={() => onApprove(item.request.id)}
             onReject={() => onReject(item.request.id)}
-            formatUserName={formatUserName}
           />
         ))}
       </div>
@@ -404,9 +404,9 @@ function HistoryRequestsContent({
       <div className="space-y-4">
         {requests.map((item) => (
           <HistoryRequestCard
-            key={item.request.id}
-            item={item}
             formatUserName={formatUserName}
+            item={item}
+            key={item.request.id}
           />
         ))}
       </div>
@@ -443,7 +443,7 @@ function ApprovalDialog({
   isPending: boolean;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Approve Co-sign Request</DialogTitle>
@@ -455,24 +455,24 @@ function ApprovalDialog({
 
         <div className="space-y-4">
           <SignaturePad
+            height={150}
             onSignatureChange={onSignatureChange}
             width={400}
-            height={150}
           />
 
           <div className="flex gap-2">
             <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isPending}
               className="flex-1"
+              disabled={isPending}
+              onClick={() => onOpenChange(false)}
+              variant="outline"
             >
               Cancel
             </Button>
             <Button
-              onClick={onConfirm}
-              disabled={!signature || isPending}
               className="flex-1"
+              disabled={!signature || isPending}
+              onClick={onConfirm}
             >
               {isPending ? (
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
@@ -505,7 +505,7 @@ function RejectionDialog({
   isPending: boolean;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Reject Co-sign Request</DialogTitle>
@@ -516,26 +516,26 @@ function RejectionDialog({
 
         <div className="space-y-4">
           <Textarea
+            disabled={isPending}
+            onChange={(e) => onReasonChange(e.target.value)}
             placeholder="Enter rejection reason..."
             value={rejectionReason}
-            onChange={(e) => onReasonChange(e.target.value)}
-            disabled={isPending}
           />
 
           <div className="flex gap-2">
             <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isPending}
               className="flex-1"
+              disabled={isPending}
+              onClick={() => onOpenChange(false)}
+              variant="outline"
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
-              onClick={onConfirm}
-              disabled={!rejectionReason.trim() || isPending}
               className="flex-1"
+              disabled={!rejectionReason.trim() || isPending}
+              onClick={onConfirm}
+              variant="destructive"
             >
               {isPending ? (
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
@@ -717,15 +717,15 @@ function PendingRequestCard({
 
         <div className="flex gap-2">
           <Button
-            variant="outline"
-            onClick={onReject}
-            disabled={isExpired}
             className="flex-1"
+            disabled={isExpired}
+            onClick={onReject}
+            variant="outline"
           >
             <X className="mr-2 h-4 w-4" />
             Reject
           </Button>
-          <Button onClick={onApprove} disabled={isExpired} className="flex-1">
+          <Button className="flex-1" disabled={isExpired} onClick={onApprove}>
             <CheckCircle className="mr-2 h-4 w-4" />
             Approve
           </Button>
@@ -833,12 +833,12 @@ function HistoryRequestCard({ item, formatUserName }: RequestCardProps) {
               <p className="font-medium text-sm">Digital Signature:</p>
               <div className="rounded-md border bg-white p-2">
                 <Image
-                  src={item.request.signature}
                   alt="Digital signature"
                   className="h-auto max-w-full"
+                  height={60}
+                  src={item.request.signature}
                   style={{ maxHeight: "60px" }}
                   width={200}
-                  height={60}
                 />
               </div>
             </div>

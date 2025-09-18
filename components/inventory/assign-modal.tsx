@@ -59,7 +59,7 @@ export function AssignModal({
   if (!item) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Assign Medication</DialogTitle>
@@ -68,11 +68,11 @@ export function AssignModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Select
-              value={selectedAnimalId || item.assignedAnimalId || "unassigned"}
               onValueChange={setSelectedAnimalId}
+              value={selectedAnimalId || item.assignedAnimalId || "unassigned"}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -100,13 +100,13 @@ export function AssignModal({
 
           <div className="flex justify-end gap-2">
             <Button
+              onClick={() => onOpenChange(false)}
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button disabled={isSubmitting} type="submit">
               {isSubmitting ? "Assigning..." : "Assign"}
             </Button>
           </div>

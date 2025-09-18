@@ -6,14 +6,14 @@ import * as schema from "./schema";
 
 // Timeout configurations for different operation types
 export const TIMEOUT_CONFIG = {
+  ANALYTICS: 10000, // 10 seconds
+  BATCH: 15000, // 15 seconds
+  HEALTH_CHECK: 2000, // 2 seconds
+  // Special operations
+  MIGRATION: 30000, // 30 seconds
   // Standard CRUD operations
   READ: 3000, // 3 seconds
   WRITE: 5000, // 5 seconds
-  // Special operations
-  MIGRATION: 30000, // 30 seconds
-  BATCH: 15000, // 15 seconds
-  HEALTH_CHECK: 2000, // 2 seconds
-  ANALYTICS: 10000, // 10 seconds
 } as const;
 
 // Create timeout error class
@@ -129,8 +129,8 @@ const sql = neon(DATABASE_URL, neonConfig);
 
 // Drizzle instance with monitoring integration using pooled connection
 export const db = drizzle(sql, {
-  schema,
   logger: process.env.NODE_ENV === "development",
+  schema,
 });
 
 // Unpooled connection for migrations, batch operations, and long-running queries
@@ -145,8 +145,8 @@ const sqlUnpooled = neon(DATABASE_URL_UNPOOLED, {
   }),
 });
 export const dbUnpooled = drizzle(sqlUnpooled, {
-  schema,
   logger: process.env.NODE_ENV === "development",
+  schema,
 });
 
 // Connection pool for Node.js runtime environments (not Edge Runtime)
@@ -160,22 +160,22 @@ if (
 ) {
   try {
     _pool = new Pool({
+      allowExitOnIdle: true, // Allow process to exit when idle
       connectionString: DATABASE_URL,
+      connectionTimeoutMillis: 10000, // 10 seconds connection timeout
+      idleTimeoutMillis: 30000, // 30 seconds idle timeout
       // Optimized for Neon's connection limits and serverless patterns
       max: 5, // Max connections (conservative for Neon free tier)
-      min: 0, // No minimum connections (serverless-friendly)
-      idleTimeoutMillis: 30000, // 30 seconds idle timeout
-      connectionTimeoutMillis: 10000, // 10 seconds connection timeout
       maxUses: 7500, // Recycle connections after this many queries
-      allowExitOnIdle: true, // Allow process to exit when idle
+      min: 0, // No minimum connections (serverless-friendly)
+      query_timeout: TIMEOUT_CONFIG.WRITE, // 5 seconds query timeout
       // Add statement timeout for pooled connections
       statement_timeout: TIMEOUT_CONFIG.READ, // 3 seconds default statement timeout
-      query_timeout: TIMEOUT_CONFIG.WRITE, // 5 seconds query timeout
     });
 
     _pooledDb = drizzleServerless(_pool, {
-      schema,
       logger: process.env.NODE_ENV === "development",
+      schema,
     });
   } catch (error) {
     console.warn(
@@ -191,9 +191,9 @@ export const dbPooled = (_pooledDb || db) as typeof db;
 
 // Global monitoring instance for external access (lazy loaded)
 export const dbMonitor = {
+  checkHealth: () => Promise.resolve({ isHealthy: true }),
   startMonitoring: () => {},
   stopMonitoring: () => {},
-  checkHealth: () => Promise.resolve({ isHealthy: true }),
 };
 
 // Connection lifecycle management
@@ -276,7 +276,7 @@ export async function executeWithTimeout<T>(
   operationType: keyof typeof TIMEOUT_CONFIG,
   operationName?: string,
 ): Promise<T> {
-  return withDatabaseTimeout(operation, { operationType, operationName });
+  return withDatabaseTimeout(operation, { operationName, operationType });
 }
 
 /**
@@ -286,43 +286,19 @@ export function createTimedDatabaseOperation<TArgs extends unknown[], TResult>(
   operationType: keyof typeof TIMEOUT_CONFIG,
   operationName: string,
 ) {
-  return (
-    operation: (...args: TArgs) => Promise<TResult>,
-  ): ((...args: TArgs) => Promise<TResult>) => {
-    return async (...args: TArgs): Promise<TResult> => {
-      return executeWithTimeout(
+  return (operation: (...args: TArgs) => Promise<TResult>) =>
+    async (...args: TArgs) =>
+      executeWithTimeout(
         () => operation(...args),
         operationType,
         operationName,
       );
-    };
-  };
 }
 
 /**
  * Utility functions for common database operations with appropriate timeouts
  */
 export const timedOperations = {
-  /**
-   * Execute a read operation with read timeout
-   */
-  read: <T>(operation: () => Promise<T>, operationName?: string): Promise<T> =>
-    executeWithTimeout(operation, "READ", operationName),
-
-  /**
-   * Execute a write operation with write timeout
-   */
-  write: <T>(operation: () => Promise<T>, operationName?: string): Promise<T> =>
-    executeWithTimeout(operation, "WRITE", operationName),
-
-  /**
-   * Execute a health check with health check timeout
-   */
-  healthCheck: <T>(
-    operation: () => Promise<T>,
-    operationName?: string,
-  ): Promise<T> => executeWithTimeout(operation, "HEALTH_CHECK", operationName),
-
   /**
    * Execute analytics operation with analytics timeout
    */
@@ -336,6 +312,25 @@ export const timedOperations = {
    */
   batch: <T>(operation: () => Promise<T>, operationName?: string): Promise<T> =>
     executeWithTimeout(operation, "BATCH", operationName),
+
+  /**
+   * Execute a health check with health check timeout
+   */
+  healthCheck: <T>(
+    operation: () => Promise<T>,
+    operationName?: string,
+  ): Promise<T> => executeWithTimeout(operation, "HEALTH_CHECK", operationName),
+  /**
+   * Execute a read operation with read timeout
+   */
+  read: <T>(operation: () => Promise<T>, operationName?: string): Promise<T> =>
+    executeWithTimeout(operation, "READ", operationName),
+
+  /**
+   * Execute a write operation with write timeout
+   */
+  write: <T>(operation: () => Promise<T>, operationName?: string): Promise<T> =>
+    executeWithTimeout(operation, "WRITE", operationName),
 };
 
 // Initialize monitoring in production - only in Node.js runtime, not Edge Runtime

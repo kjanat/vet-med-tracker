@@ -35,19 +35,19 @@ function AnimalActivityWidgetContent({
       .sort((a, b) => b.complianceRate - a.complianceRate) // Sort by compliance rate descending
       .map((animal, index) => ({
         ...animal,
-        rank: index + 1,
-        complianceColor:
-          animal.complianceRate >= 90
-            ? "text-green-600"
-            : animal.complianceRate >= 80
-              ? "text-orange-600"
-              : "text-red-600",
         complianceBadgeVariant:
           animal.complianceRate >= 90
             ? ("default" as const)
             : animal.complianceRate >= 80
               ? ("secondary" as const)
               : ("destructive" as const),
+        complianceColor:
+          animal.complianceRate >= 90
+            ? "text-green-600"
+            : animal.complianceRate >= 80
+              ? "text-orange-600"
+              : "text-red-600",
+        rank: index + 1,
       }));
   }, [animalData]);
 
@@ -79,11 +79,11 @@ function AnimalActivityWidgetContent({
     ).length;
 
     return {
-      totalScheduled,
-      totalCompleted,
       averageCompliance,
       highPerformers,
       needsAttention,
+      totalCompleted,
+      totalScheduled,
     };
   }, [animalData]);
 
@@ -140,8 +140,8 @@ function AnimalActivityWidgetContent({
       >
         {rankedAnimals.map((animal) => (
           <div
-            key={animal.id}
             className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-accent"
+            key={animal.id}
           >
             {/* Ranking */}
             <div className="flex flex-col items-center gap-1">
@@ -163,11 +163,11 @@ function AnimalActivityWidgetContent({
             {/* Avatar */}
             <AnimalAvatar
               animal={{
+                avatar: animal.avatar,
                 id: animal.id,
                 name: animal.name,
-                species: animal.species,
-                avatar: animal.avatar,
                 pendingMeds: 0, // Not used in this context
+                species: animal.species,
               }}
               size="sm"
             />
@@ -187,8 +187,8 @@ function AnimalActivityWidgetContent({
                 </p>
                 {animal.scheduled > 0 && (
                   <Progress
-                    value={animal.complianceRate}
                     className="h-2 flex-1"
+                    value={animal.complianceRate}
                   />
                 )}
               </div>
@@ -209,11 +209,11 @@ function AnimalActivityWidgetContent({
           </div>
           {summaryStats.totalScheduled > 0 && (
             <Progress
+              className="mt-2 h-2"
               value={
                 (summaryStats.totalCompleted / summaryStats.totalScheduled) *
                 100
               }
-              className="mt-2 h-2"
             />
           )}
         </div>

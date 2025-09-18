@@ -31,8 +31,8 @@ export async function compressImageIfNeeded(
     }));
 
     toast({
-      title: "Image compressed",
       description: `Reduced from ${formatFileSize(result.originalSize)} to ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressionRatio) * 100)}% reduction)`,
+      title: "Image compressed",
     });
 
     return result.file;

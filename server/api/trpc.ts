@@ -4,10 +4,12 @@ import { eq } from "drizzle-orm";
 import SuperJSON from "superjson";
 import { ZodError, z } from "zod";
 import { dbPooled as db } from "@/db/drizzle";
-import type { households, memberships, users } from "@/db/schema";
 import {
+  type households,
   households as householdsTable,
+  type memberships,
   memberships as membershipsTable,
+  type users,
   users as usersTable,
 } from "@/db/schema";
 // Connection middleware functionality removed during simplification
@@ -45,26 +47,26 @@ async function syncStackUserToDatabase(
     const [dbUser] = await db
       .insert(usersTable)
       .values({
-        id: crypto.randomUUID(),
-        stackUserId: stackUser.id,
+        createdAt: new Date().toISOString(),
         email: stackUser.primaryEmail || "",
-        name: stackUser.displayName || null,
         // Don't auto-populate firstName/lastName - let users choose
         firstName: null,
-        lastName: null,
+        id: crypto.randomUUID(),
         image: stackUser.profileImageUrl || null,
-        createdAt: new Date().toISOString(),
+        lastName: null,
+        name: stackUser.displayName || null,
+        stackUserId: stackUser.id,
         updatedAt: new Date().toISOString(),
       })
       .onConflictDoUpdate({
-        target: usersTable.stackUserId,
         set: {
           email: stackUser.primaryEmail || "",
-          name: stackUser.displayName || null,
           // Don't overwrite existing firstName/lastName if the user has set them
           image: stackUser.profileImageUrl || null,
+          name: stackUser.displayName || null,
           updatedAt: new Date().toISOString(),
         },
+        target: usersTable.stackUserId,
       })
       .returning();
 
@@ -107,14 +109,14 @@ export const createTRPCContext = async (
 
   // Initialize empty context
   const baseContext = {
+    availableHouseholds: [] as Context["availableHouseholds"],
+    currentHouseholdId: null as string | null,
+    currentMembership: null as typeof memberships.$inferSelect | null,
     db,
+    dbUser: null as typeof users.$inferSelect | null,
     headers: opts.req.headers,
     requestedHouseholdId,
     stackUser,
-    dbUser: null as typeof users.$inferSelect | null,
-    currentHouseholdId: null as string | null,
-    currentMembership: null as typeof memberships.$inferSelect | null,
-    availableHouseholds: [] as Context["availableHouseholds"],
   };
 
   // If the user is not authenticated, return base context
@@ -161,10 +163,10 @@ export const createTRPCContext = async (
 
     return {
       ...baseContext,
-      dbUser,
       availableHouseholds,
       currentHouseholdId,
       currentMembership,
+      dbUser,
     };
   } catch (error) {
     console.error("Error setting up user context:", error);
@@ -177,13 +179,12 @@ export const createTRPCContext = async (
 
 // Initialize tRPC with Stack context and enhanced error handling
 const t = initTRPC.context<Context>().create({
-  transformer: SuperJSON,
   errorFormatter({ shape, error, path }) {
     // Simplified error handling
     console.error("tRPC Error:", {
-      path,
-      error: error.message,
       cause: error.cause,
+      error: error.message,
+      path,
     });
 
     return {
@@ -195,6 +196,7 @@ const t = initTRPC.context<Context>().create({
       },
     };
   },
+  transformer: SuperJSON,
 });
 
 // Export router and procedure helpers
@@ -234,9 +236,9 @@ export const protectedProcedure = t.procedure
     return next({
       ctx: {
         ...ctx,
+        dbUser: ctx.dbUser,
         // TypeScript now knows these are non-null
         stackUser: ctx.stackUser,
-        dbUser: ctx.dbUser,
       },
     });
   });

@@ -125,7 +125,7 @@ export function TabletConfirmLayout({
                       </div>
                     </div>
                     {selectedRegimen.isHighRisk && (
-                      <Badge variant="destructive" className="shrink-0">
+                      <Badge className="shrink-0" variant="destructive">
                         High Risk
                       </Badge>
                     )}
@@ -147,11 +147,11 @@ export function TabletConfirmLayout({
                         <Skeleton className="h-12 w-full" />
                       ) : (
                         <InventorySourceSelect
-                          sources={relevantSources}
-                          selectedId={inventorySourceId ?? undefined}
-                          onSelect={setInventorySourceId}
                           allowOverride={true}
                           onOverrideChange={setAllowOverride}
+                          onSelect={setInventorySourceId}
+                          selectedId={inventorySourceId ?? undefined}
+                          sources={relevantSources}
                         />
                       )}
                     </div>
@@ -161,17 +161,17 @@ export function TabletConfirmLayout({
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <Label
-                        htmlFor="tablet-site"
                         className="font-medium text-base"
+                        htmlFor="tablet-site"
                       >
                         Site/Side (Optional)
                       </Label>
                       <Input
+                        className="mt-2 h-11"
                         id="tablet-site"
+                        onChange={(e) => setSite(e.target.value)}
                         placeholder="Left ear, right leg..."
                         value={site}
-                        onChange={(e) => setSite(e.target.value)}
-                        className="mt-2 h-11"
                       />
                     </div>
                     <div>
@@ -179,9 +179,9 @@ export function TabletConfirmLayout({
                         Photo/Video
                       </Label>
                       <Button
-                        variant="outline"
                         className="mt-2 h-11 w-full bg-transparent"
                         type="button"
+                        variant="outline"
                       >
                         <Camera className="mr-2 h-4 w-4" />
                         Add Media
@@ -192,17 +192,17 @@ export function TabletConfirmLayout({
                   {/* Notes */}
                   <div>
                     <Label
-                      htmlFor="tablet-notes"
                       className="font-medium text-base"
+                      htmlFor="tablet-notes"
                     >
                       Notes (Optional)
                     </Label>
                     <Textarea
+                      className="mt-2 min-h-[100px]"
                       id="tablet-notes"
+                      onChange={(e) => setNotes(e.target.value)}
                       placeholder="Any observations or notes..."
                       value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      className="mt-2 min-h-[100px]"
                     />
                   </div>
                 </div>
@@ -222,17 +222,17 @@ export function TabletConfirmLayout({
                         <div className="space-y-3">
                           <div className="flex items-start space-x-3">
                             <Checkbox
-                              id="tablet-cosign"
                               checked={requiresCoSign}
+                              className="mt-0.5"
+                              id="tablet-cosign"
                               onCheckedChange={(checked) =>
                                 setRequiresCoSign(checked === true)
                               }
-                              className="mt-0.5"
                             />
                             <div className="space-y-1">
                               <Label
-                                htmlFor="tablet-cosign"
                                 className="font-medium text-sm"
+                                htmlFor="tablet-cosign"
                               >
                                 Requires co-sign (high-risk medication)
                               </Label>
@@ -287,10 +287,10 @@ export function TabletConfirmLayout({
           <div className="flex-1" />
 
           <MedConfirmButton
-            onConfirm={onConfirm}
-            disabled={isDisabled}
-            requiresCoSign={requiresCoSign}
             className="h-14 w-full text-base"
+            disabled={isDisabled}
+            onConfirm={onConfirm}
+            requiresCoSign={requiresCoSign}
           >
             {isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
           </MedConfirmButton>
@@ -315,10 +315,8 @@ function TabletConditionTagSelector({
       <div className="mt-3 grid grid-cols-2 gap-2">
         {tags.map((tag) => (
           <Button
-            key={tag}
-            variant={conditionTags.includes(tag) ? "default" : "outline"}
-            size="sm"
             className="h-10 justify-start px-3"
+            key={tag}
             onClick={() => {
               setConditionTags((prev) =>
                 prev.includes(tag)
@@ -326,7 +324,9 @@ function TabletConditionTagSelector({
                   : [...prev, tag],
               );
             }}
+            size="sm"
             type="button"
+            variant={conditionTags.includes(tag) ? "default" : "outline"}
           >
             <Tag className="mr-2 h-3 w-3" />
             {tag}

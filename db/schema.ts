@@ -74,33 +74,33 @@ export const weightUnit = pgEnum("weight_unit", ["kg", "lbs"]);
 export const vetmedAnimals = pgTable(
   "vetmed_animals",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    householdId: uuid("household_id").notNull(),
-    name: text().notNull(),
-    species: text().notNull(),
+    allergies: text().array(),
     breed: text(),
-    sex: text(),
-    neutered: boolean().default(false).notNull(),
-    dob: date(),
-    weightKg: numeric("weight_kg", { precision: 5, scale: 2 }),
-    microchipId: text("microchip_id"),
+    clinicName: text("clinic_name"),
     color: text(),
+    conditions: text().array(),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { mode: "string", withTimezone: true }),
+    dob: date(),
+    householdId: uuid("household_id").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    microchipId: text("microchip_id"),
+    name: text().notNull(),
+    neutered: boolean().default(false).notNull(),
+    notes: text(),
     photoUrl: text("photo_url"),
+    sex: text(),
+    species: text().notNull(),
     timezone: text().default("America/New_York").notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    vetEmail: text("vet_email"),
     vetName: text("vet_name"),
     vetPhone: text("vet_phone"),
-    vetEmail: text("vet_email"),
-    clinicName: text("clinic_name"),
-    allergies: text().array(),
-    conditions: text().array(),
-    notes: text(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
+    weightKg: numeric("weight_kg", { precision: 5, scale: 2 }),
   },
   (table) => [
     index("animal_deleted_at_idx").using(
@@ -122,16 +122,16 @@ export const vetmedAnimals = pgTable(
 export const vetmedMemberships = pgTable(
   "vetmed_memberships",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    userId: uuid("user_id").notNull(),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
     householdId: uuid("household_id").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
     role: vetmedRole().default("CAREGIVER").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    userId: uuid("user_id").notNull(),
   },
   (table) => [
     index("membership_household_id_idx").using(
@@ -162,40 +162,39 @@ export const vetmedMemberships = pgTable(
 export const vetmedInventoryItems = pgTable(
   "vetmed_inventory_items",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
+    // Existing fields
+    assignedAnimalId: uuid("assigned_animal_id"),
+    barcode: text(),
+    brandOverride: text("brand_override"),
+    concentration: text(),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { mode: "string", withTimezone: true }),
+    expiresOn: date("expires_on").notNull(),
     householdId: uuid("household_id").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    inUse: boolean("in_use").default(false).notNull(),
+    isCustomMedication: boolean("is_custom_medication")
+      .default(false)
+      .notNull(), // Track custom vs catalog
+    lot: text(),
     medicationId: uuid("medication_id"), // Made optional for hybrid approach
 
     // Hybrid medication fields - fallback when not using catalog
     medicationName: text("medication_name"), // Free-text medication name (primary display)
-    isCustomMedication: boolean("is_custom_medication")
-      .default(false)
-      .notNull(), // Track custom vs catalog
-
-    // Existing fields
-    assignedAnimalId: uuid("assigned_animal_id"),
-    brandOverride: text("brand_override"),
-    concentration: text(),
-    lot: text(),
-    expiresOn: date("expires_on").notNull(),
-    storage: vetmedStorage().default("ROOM").notNull(),
-    quantityUnits: integer("quantity_units"),
-    unitsRemaining: integer("units_remaining"),
-    unitType: text("unit_type"),
+    notes: text(),
     openedOn: date("opened_on"),
-    inUse: boolean("in_use").default(false).notNull(),
-    barcode: text(),
     purchaseDate: date("purchase_date"),
     purchasePrice: numeric("purchase_price", { precision: 10, scale: 2 }),
+    quantityUnits: integer("quantity_units"),
+    storage: vetmedStorage().default("ROOM").notNull(),
     supplier: text(),
-    notes: text(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    unitsRemaining: integer("units_remaining"),
+    unitType: text("unit_type"),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
   },
   (table) => [
     index("inventory_animal_id_idx").using(
@@ -239,33 +238,33 @@ export const vetmedInventoryItems = pgTable(
 export const vetmedNotificationQueue = pgTable(
   "vetmed_notification_queue",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    userId: uuid("user_id").notNull(),
-    householdId: uuid("household_id").notNull(),
-    type: text().notNull(),
-    title: text().notNull(),
-    body: text().notNull(),
-    data: jsonb(),
-    scheduledFor: timestamp("scheduled_for", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    sentAt: timestamp("sent_at", { withTimezone: true, mode: "string" }),
-    failedAt: timestamp("failed_at", { withTimezone: true, mode: "string" }),
-    error: text(),
     attempts: integer().default(0).notNull(),
-    readAt: timestamp("read_at", { withTimezone: true, mode: "string" }),
-    dismissedAt: timestamp("dismissed_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    snoozedUntil: timestamp("snoozed_until", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    body: text().notNull(),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
+    data: jsonb(),
+    dismissedAt: timestamp("dismissed_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    error: text(),
+    failedAt: timestamp("failed_at", { mode: "string", withTimezone: true }),
+    householdId: uuid("household_id").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    readAt: timestamp("read_at", { mode: "string", withTimezone: true }),
+    scheduledFor: timestamp("scheduled_for", {
+      mode: "string",
+      withTimezone: true,
+    }).notNull(),
+    sentAt: timestamp("sent_at", { mode: "string", withTimezone: true }),
+    snoozedUntil: timestamp("snoozed_until", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    title: text().notNull(),
+    type: text().notNull(),
+    userId: uuid("user_id").notNull(),
   },
   (table) => [
     index("notification_scheduled_for_idx").using(
@@ -296,64 +295,63 @@ export const vetmedNotificationQueue = pgTable(
 export const vetmedMedicationCatalog = pgTable(
   "vetmed_medication_catalog",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    genericName: text("generic_name").notNull(),
-    brandName: text("brand_name"),
-    strength: text(),
-    route: vetmedRoute().notNull(),
-    form: vetmedForm().notNull(),
-    controlledSubstance: boolean("controlled_substance")
-      .default(false)
-      .notNull(),
-    commonDosing: text("common_dosing"),
-    warnings: text(),
-
-    // Dosage calculation fields
-    dosageMinMgKg: numeric("dosage_min_mg_kg", { precision: 10, scale: 4 }), // Minimum dose per kg
-    dosageMaxMgKg: numeric("dosage_max_mg_kg", { precision: 10, scale: 4 }), // Maximum dose per kg
-    dosageTypicalMgKg: numeric("dosage_typical_mg_kg", {
-      precision: 10,
-      scale: 4,
-    }), // Typical/recommended dose per kg
-    maxDailyDoseMg: numeric("max_daily_dose_mg", { precision: 10, scale: 2 }), // Maximum daily dose total
-
-    // Species-specific adjustments stored as JSON
-    // Format: { "dog": { "multiplier": 1.0 }, "cat": { "multiplier": 0.8 }, "bird": { "multiplier": 1.2, "maxDailyDose": 50 } }
-    speciesAdjustments: jsonb("species_adjustments"),
-
-    // Route-specific adjustments
-    // Format: { "ORAL": { "multiplier": 1.0 }, "IV": { "multiplier": 0.5, "additionalWarnings": ["Monitor for reactions"] } }
-    routeAdjustments: jsonb("route_adjustments"),
-
-    // Contraindications and special considerations
-    contraindications: text().array(), // Array of conditions/scenarios to avoid
-
     // Age-specific modifications
     // Format: { "pediatric": { "multiplier": 0.8, "minAgeMonths": 2 }, "geriatric": { "multiplier": 0.9, "minAgeYears": 7 } }
     ageAdjustments: jsonb("age_adjustments"),
+    brandName: text("brand_name"),
 
     // Breed-specific considerations (e.g., MDR1 gene in collies)
     // Format: { "collie": { "contraindicatedRoutes": ["IV"], "maxReduction": 0.5 }, "greyhound": { "multiplier": 0.9 } }
     breedConsiderations: jsonb("breed_considerations"),
+    commonDosing: text("common_dosing"),
 
     // Units and concentration information
     concentrationMgMl: numeric("concentration_mg_ml", {
       precision: 10,
       scale: 4,
     }), // For liquid medications
-    unitsPerTablet: numeric("units_per_tablet", { precision: 10, scale: 4 }), // For solid medications
-    unitType: text("unit_type").default("mg"), // mg, mcg, IU, etc.
+
+    // Contraindications and special considerations
+    contraindications: text().array(), // Array of conditions/scenarios to avoid
+    controlledSubstance: boolean("controlled_substance")
+      .default(false)
+      .notNull(),
+
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    dosageMaxMgKg: numeric("dosage_max_mg_kg", { precision: 10, scale: 4 }), // Maximum dose per kg
+
+    // Dosage calculation fields
+    dosageMinMgKg: numeric("dosage_min_mg_kg", { precision: 10, scale: 4 }), // Minimum dose per kg
+    dosageTypicalMgKg: numeric("dosage_typical_mg_kg", {
+      precision: 10,
+      scale: 4,
+    }), // Typical/recommended dose per kg
+    form: vetmedForm().notNull(),
+    genericName: text("generic_name").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    maxDailyDoseMg: numeric("max_daily_dose_mg", { precision: 10, scale: 2 }), // Maximum daily dose total
+    maxFrequencyPerDay: integer("max_frequency_per_day"), // Maximum doses per day
+    route: vetmedRoute().notNull(),
+
+    // Route-specific adjustments
+    // Format: { "ORAL": { "multiplier": 1.0 }, "IV": { "multiplier": 0.5, "additionalWarnings": ["Monitor for reactions"] } }
+    routeAdjustments: jsonb("route_adjustments"),
+
+    // Species-specific adjustments stored as JSON
+    // Format: { "dog": { "multiplier": 1.0 }, "cat": { "multiplier": 0.8 }, "bird": { "multiplier": 1.2, "maxDailyDose": 50 } }
+    speciesAdjustments: jsonb("species_adjustments"),
+    strength: text(),
 
     // Frequency information
     typicalFrequencyHours: integer("typical_frequency_hours"), // How often medication is typically given
-    maxFrequencyPerDay: integer("max_frequency_per_day"), // Maximum doses per day
-
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    unitsPerTablet: numeric("units_per_tablet", { precision: 10, scale: 4 }), // For solid medications
+    unitType: text("unit_type").default("mg"), // mg, mcg, IU, etc.
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    warnings: text(),
   },
   (table) => [
     index("med_catalog_brand_name_idx").using(
@@ -373,13 +371,13 @@ export const vetmedMedicationCatalog = pgTable(
 );
 
 export const vetmedHouseholds = pgTable("vetmed_households", {
+  createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    .defaultNow()
+    .notNull(),
   id: uuid().defaultRandom().primaryKey().notNull(),
   name: text().notNull(),
   timezone: text().default("America/New_York").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+  updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
     .defaultNow()
     .notNull(),
 });
@@ -387,21 +385,21 @@ export const vetmedHouseholds = pgTable("vetmed_households", {
 export const vetmedAuditLog = pgTable(
   "vetmed_audit_log",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    userId: uuid("user_id").notNull(),
-    householdId: uuid("household_id").notNull(),
     action: text().notNull(),
-    resourceType: text("resource_type").notNull(),
-    resourceId: uuid("resource_id"),
-    oldValues: jsonb("old_values"),
-    newValues: jsonb("new_values"),
     details: jsonb(),
+    householdId: uuid("household_id").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
     ipAddress: text("ip_address"),
-    userAgent: text("user_agent"),
+    newValues: jsonb("new_values"),
+    oldValues: jsonb("old_values"),
+    resourceId: uuid("resource_id"),
+    resourceType: text("resource_type").notNull(),
     sessionId: text("session_id"),
-    timestamp: timestamp({ withTimezone: true, mode: "string" })
+    timestamp: timestamp({ mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
+    userAgent: text("user_agent"),
+    userId: uuid("user_id").notNull(),
   },
   (table) => [
     index("audit_household_id_idx").using(
@@ -437,41 +435,41 @@ export const vetmedAuditLog = pgTable(
 export const vetmedRegimens = pgTable(
   "vetmed_regimens",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
+    active: boolean().default(true).notNull(),
     animalId: uuid("animal_id").notNull(),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    cutoffMinutes: integer("cutoff_minutes").default(240).notNull(),
+    deletedAt: timestamp("deleted_at", { mode: "string", withTimezone: true }),
+    dose: text(),
+    endDate: date("end_date"),
+    highRisk: boolean("high_risk").default(false).notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    instructions: text(),
+    intervalHours: integer("interval_hours"),
+    isCustomMedication: boolean("is_custom_medication")
+      .default(false)
+      .notNull(), // Track custom vs catalog
+    maxDailyDoses: integer("max_daily_doses"),
     medicationId: uuid("medication_id"), // Made optional for hybrid approach
 
     // Hybrid medication fields - fallback when not using catalog
     medicationName: text("medication_name"), // Free-text medication name (primary display)
-    isCustomMedication: boolean("is_custom_medication")
-      .default(false)
-      .notNull(), // Track custom vs catalog
 
     // Existing fields
     name: text(),
-    instructions: text(),
-    scheduleType: vetmedScheduleType("schedule_type").notNull(),
-    timesLocal: time("times_local").array(),
-    intervalHours: integer("interval_hours"),
-    startDate: date("start_date").notNull(),
-    endDate: date("end_date"),
-    prnReason: text("prn_reason"),
-    maxDailyDoses: integer("max_daily_doses"),
-    cutoffMinutes: integer("cutoff_minutes").default(240).notNull(),
-    highRisk: boolean("high_risk").default(false).notNull(),
-    requiresCoSign: boolean("requires_co_sign").default(false).notNull(),
-    active: boolean().default(true).notNull(),
-    pausedAt: timestamp("paused_at", { withTimezone: true, mode: "string" }),
+    pausedAt: timestamp("paused_at", { mode: "string", withTimezone: true }),
     pauseReason: text("pause_reason"),
-    dose: text(),
+    prnReason: text("prn_reason"),
+    requiresCoSign: boolean("requires_co_sign").default(false).notNull(),
     route: text(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    scheduleType: vetmedScheduleType("schedule_type").notNull(),
+    startDate: date("start_date").notNull(),
+    timesLocal: time("times_local").array(),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
   },
   (table) => [
     index("regimen_active_idx").using(
@@ -506,38 +504,38 @@ export const vetmedRegimens = pgTable(
 export const vetmedAdministrations = pgTable(
   "vetmed_administrations",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    regimenId: uuid("regimen_id").notNull(),
-    animalId: uuid("animal_id").notNull(),
-    householdId: uuid("household_id").notNull(),
-    caregiverId: uuid("caregiver_id").notNull(),
-    scheduledFor: timestamp("scheduled_for", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    recordedAt: timestamp("recorded_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    status: vetmedAdminStatus().notNull(),
-    sourceItemId: uuid("source_item_id"),
-    site: text(),
-    dose: text(),
-    notes: text(),
-    mediaUrls: text("media_urls").array(),
-    coSignUserId: uuid("co_sign_user_id"),
-    coSignedAt: timestamp("co_signed_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    coSignNotes: text("co_sign_notes"),
     adverseEvent: boolean("adverse_event").default(false).notNull(),
     adverseEventDescription: text("adverse_event_description"),
-    idempotencyKey: text("idempotency_key").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    animalId: uuid("animal_id").notNull(),
+    caregiverId: uuid("caregiver_id").notNull(),
+    coSignedAt: timestamp("co_signed_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    coSignNotes: text("co_sign_notes"),
+    coSignUserId: uuid("co_sign_user_id"),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+    dose: text(),
+    householdId: uuid("household_id").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    mediaUrls: text("media_urls").array(),
+    notes: text(),
+    recordedAt: timestamp("recorded_at", {
+      mode: "string",
+      withTimezone: true,
+    }).notNull(),
+    regimenId: uuid("regimen_id").notNull(),
+    scheduledFor: timestamp("scheduled_for", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    site: text(),
+    sourceItemId: uuid("source_item_id"),
+    status: vetmedAdminStatus().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -609,25 +607,25 @@ export const vetmedAdministrations = pgTable(
 export const vetmedNotifications = pgTable(
   "vetmed_notifications",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    userId: uuid("user_id").notNull(),
+    actionUrl: text("action_url"), // Optional URL for click action
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    data: jsonb(), // Additional metadata (animalId, regimenId, etc.)
+    dismissed: boolean().default(false).notNull(),
+    dismissedAt: timestamp("dismissed_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
     householdId: uuid("household_id").notNull(),
-    type: text().notNull(), // "medication", "inventory", "system", "due", "overdue", "reminder"
-    title: text().notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
     message: text().notNull(),
     priority: text().default("medium").notNull(), // "low", "medium", "high", "critical"
     read: boolean().default(false).notNull(),
-    dismissed: boolean().default(false).notNull(),
-    actionUrl: text("action_url"), // Optional URL for click action
-    data: jsonb(), // Additional metadata (animalId, regimenId, etc.)
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    readAt: timestamp("read_at", { withTimezone: true, mode: "string" }),
-    dismissedAt: timestamp("dismissed_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
+    readAt: timestamp("read_at", { mode: "string", withTimezone: true }),
+    title: text().notNull(),
+    type: text().notNull(), // "medication", "inventory", "system", "due", "overdue", "reminder"
+    userId: uuid("user_id").notNull(),
   },
   (table) => [
     index("notification_user_read_idx").using(
@@ -677,33 +675,33 @@ export const vetmedSuggestionStatus = pgEnum("vetmed_suggestion_status", [
 export const vetmedSuggestions = pgTable(
   "vetmed_suggestions",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    householdId: uuid("household_id").notNull(),
-    type: text().notNull(), // "ADD_REMINDER", "SHIFT_TIME", "ENABLE_COSIGN", etc.
-    summary: text().notNull(),
-    rationale: text().notNull(),
-    priority: text().default("medium").notNull(), // "low", "medium", "high"
-    estimatedImpact: text("estimated_impact"),
-    status: vetmedSuggestionStatus().default("pending").notNull(),
     action: jsonb().notNull(), // Store action parameters as JSON
-    originalValues: jsonb("original_values"), // Store original state for revert
-    appliedAt: timestamp("applied_at", { withTimezone: true, mode: "string" }),
+    appliedAt: timestamp("applied_at", { mode: "string", withTimezone: true }),
     appliedByUserId: uuid("applied_by_user_id"),
-    revertedAt: timestamp("reverted_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    revertedByUserId: uuid("reverted_by_user_id"),
-    dismissedAt: timestamp("dismissed_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    dismissedByUserId: uuid("dismissed_by_user_id"),
-    expiresAt: timestamp("expires_at", { withTimezone: true, mode: "string" }),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+    dismissedAt: timestamp("dismissed_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    dismissedByUserId: uuid("dismissed_by_user_id"),
+    estimatedImpact: text("estimated_impact"),
+    expiresAt: timestamp("expires_at", { mode: "string", withTimezone: true }),
+    householdId: uuid("household_id").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    originalValues: jsonb("original_values"), // Store original state for revert
+    priority: text().default("medium").notNull(), // "low", "medium", "high"
+    rationale: text().notNull(),
+    revertedAt: timestamp("reverted_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    revertedByUserId: uuid("reverted_by_user_id"),
+    status: vetmedSuggestionStatus().default("pending").notNull(),
+    summary: text().notNull(),
+    type: text().notNull(), // "ADD_REMINDER", "SHIFT_TIME", "ENABLE_COSIGN", etc.
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -750,23 +748,23 @@ export const vetmedSuggestions = pgTable(
 export const vetmedCosignRequests = pgTable(
   "vetmed_cosign_requests",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
     administrationId: uuid("administration_id").notNull(),
-    requesterId: uuid("requester_id").notNull(),
     cosignerId: uuid("cosigner_id").notNull(),
-    householdId: uuid("household_id").notNull(),
-    status: vetmedCosignStatus().default("pending").notNull(),
-    signature: text(), // Base64 encoded signature
-    rejectionReason: text("rejection_reason"),
-    signedAt: timestamp("signed_at", { withTimezone: true, mode: "string" }),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
     expiresAt: timestamp("expires_at", {
-      withTimezone: true,
       mode: "string",
+      withTimezone: true,
     }).notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+    householdId: uuid("household_id").notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    rejectionReason: text("rejection_reason"),
+    requesterId: uuid("requester_id").notNull(),
+    signature: text(), // Base64 encoded signature
+    signedAt: timestamp("signed_at", { mode: "string", withTimezone: true }),
+    status: vetmedCosignStatus().default("pending").notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -824,23 +822,23 @@ export const vetmedCosignRequests = pgTable(
 export const vetmedPushSubscriptions = pgTable(
   "vetmed_push_subscriptions",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    userId: uuid("user_id").notNull(),
-    endpoint: text().notNull(),
-    p256dhKey: text("p256dh_key").notNull(),
     authKey: text("auth_key").notNull(),
-    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
     deviceName: text("device_name"),
+    endpoint: text().notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
     isActive: boolean("is_active").default(true).notNull(),
-    lastUsed: timestamp("last_used", { withTimezone: true, mode: "string" })
+    lastUsed: timestamp("last_used", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    p256dhKey: text("p256dh_key").notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    userAgent: text("user_agent"),
+    userId: uuid("user_id").notNull(),
   },
   (table) => [
     index("push_subscription_user_idx").using(
@@ -867,61 +865,60 @@ export const vetmedPushSubscriptions = pgTable(
 export const vetmedUsers = pgTable(
   "vetmed_users",
   {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    email: text().notNull(),
-    name: text(),
-    firstName: text("first_name"),
-    lastName: text("last_name"),
-    image: text(),
-    emailVerified: timestamp("email_verified", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    stackUserId: text("stack_user_id"), // renamed from clerk_user_id
-
     // Flexible profile fields (all optional)
     bio: text(),
-    pronouns: text(),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    defaultAnimalId: uuid("default_animal_id"),
+    defaultHouseholdId: uuid("default_household_id"),
+    email: text().notNull(),
+    emailReminders: boolean("email_reminders").default(true),
+    emailVerified: timestamp("email_verified", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    emergencyContactName: text("emergency_contact_name"),
+    emergencyContactPhone: text("emergency_contact_phone"),
+    firstName: text("first_name"),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    image: text(),
+    lastName: text("last_name"),
     location: text(),
-    website: text(),
-    socialLinks: jsonb("social_links").default(sql`'{}'::jsonb`),
+    name: text(),
+    onboardingComplete: boolean("onboarding_complete").default(false),
+    onboardingCompletedAt: timestamp("onboarding_completed_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    preferencesBackup: jsonb("preferences_backup"),
+    preferredPhoneNumber: text("preferred_phone_number"),
+
+    // Preferences
+    preferredTimezone: text("preferred_timezone").default("America/New_York"),
+    profileCompletedAt: timestamp("profile_completed_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
     profileData: jsonb("profile_data").default(sql`'{}'::jsonb`), // Extensible custom fields
     profileVisibility: jsonb("profile_visibility").default(
       sql`'{"name": true, "email": false, "bio": true, "location": true}'::jsonb`,
     ),
-    profileCompletedAt: timestamp("profile_completed_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
-
-    // Preferences
-    preferredTimezone: text("preferred_timezone").default("America/New_York"),
-    preferredPhoneNumber: text("preferred_phone_number"),
-    use24HourTime: boolean("use_24_hour_time").default(false),
-    temperatureUnit: temperatureUnit("temperature_unit").default("fahrenheit"),
-    weightUnit: weightUnit("weight_unit").default("lbs"),
-    emailReminders: boolean("email_reminders").default(true),
-    smsReminders: boolean("sms_reminders").default(false),
+    pronouns: text(),
     pushNotifications: boolean("push_notifications").default(true),
     reminderLeadTimeMinutes: text("reminder_lead_time_minutes").default("15"),
-    emergencyContactName: text("emergency_contact_name"),
-    emergencyContactPhone: text("emergency_contact_phone"),
-    onboardingComplete: boolean("onboarding_complete").default(false),
-    onboardingCompletedAt: timestamp("onboarding_completed_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    weekStartsOn: integer("week_starts_on").default(0), // 0 = Sunday, 1 = Monday
-    defaultHouseholdId: uuid("default_household_id"),
-    defaultAnimalId: uuid("default_animal_id"),
+    smsReminders: boolean("sms_reminders").default(false),
+    socialLinks: jsonb("social_links").default(sql`'{}'::jsonb`),
+    stackUserId: text("stack_user_id"), // renamed from clerk_user_id
+    temperatureUnit: temperatureUnit("temperature_unit").default("fahrenheit"),
     theme: text("theme").default("system"), // system, light, dark
-    preferencesBackup: jsonb("preferences_backup"),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    use24HourTime: boolean("use_24_hour_time").default(false),
+    website: text(),
+    weekStartsOn: integer("week_starts_on").default(0), // 0 = Sunday, 1 = Monday
+    weightUnit: weightUnit("weight_unit").default("lbs"),
   },
   (table) => [
     unique("vetmed_users_email_unique").on(table.email),

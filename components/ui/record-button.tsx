@@ -45,12 +45,12 @@ export function RecordButton({
 
   return (
     <Button
-      onMouseDown={handleMouseDown}
       className={cn(
         "relative overflow-hidden",
         prefilled && "ring-2 ring-primary ring-offset-2",
         className,
       )}
+      onMouseDown={handleMouseDown}
       size="lg"
     >
       <div

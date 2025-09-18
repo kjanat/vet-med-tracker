@@ -5,71 +5,71 @@ import type {
 } from "@/components/providers/app-provider-consolidated";
 
 const BASE_USER: User = {
-  id: "user-123",
-  email: "john@example.com",
-  name: "John Doe",
-  firstName: null,
-  lastName: null,
-  image: "https://example.com/avatar.jpg",
-  emailVerified: null,
-  createdAt: "2024-01-01T00:00:00Z",
-  updatedAt: "2024-01-01T00:00:00Z",
-  stackUserId: null,
   bio: null,
-  pronouns: null,
-  location: null,
-  website: null,
-  socialLinks: {},
-  profileData: {},
-  profileVisibility: { name: true, email: false, bio: true, location: true },
-  profileCompletedAt: null,
-  pushNotifications: true,
-  preferredTimezone: "UTC",
-  preferredPhoneNumber: null,
-  use24HourTime: false,
-  temperatureUnit: "fahrenheit",
-  weightUnit: "lbs",
+  createdAt: "2024-01-01T00:00:00Z",
+  defaultAnimalId: null,
+  defaultHouseholdId: null,
+  email: "john@example.com",
   emailReminders: true,
-  smsReminders: false,
-  reminderLeadTimeMinutes: "15",
+  emailVerified: null,
   emergencyContactName: null,
   emergencyContactPhone: null,
+  firstName: null,
+  id: "user-123",
+  image: "https://example.com/avatar.jpg",
+  lastName: null,
+  location: null,
+  name: "John Doe",
   onboardingComplete: false,
   onboardingCompletedAt: null,
   preferencesBackup: null,
-  weekStartsOn: 0,
-  defaultHouseholdId: null,
-  defaultAnimalId: null,
+  preferredPhoneNumber: null,
+  preferredTimezone: "UTC",
+  profileCompletedAt: null,
+  profileData: {},
+  profileVisibility: { bio: true, email: false, location: true, name: true },
+  pronouns: null,
+  pushNotifications: true,
+  reminderLeadTimeMinutes: "15",
+  smsReminders: false,
+  socialLinks: {},
+  stackUserId: null,
+  temperatureUnit: "fahrenheit",
   theme: "light",
+  updatedAt: "2024-01-01T00:00:00Z",
+  use24HourTime: false,
+  website: null,
+  weekStartsOn: 0,
+  weightUnit: "lbs",
 };
 
 const BASE_PROFILE: UserProfile = {
-  id: "user-123",
-  stackUserId: null,
+  availableHouseholds: [],
+  currentHouseholdId: null,
   email: "john@example.com",
-  name: "John Doe",
+  id: "user-123",
   image: "https://example.com/avatar.jpg",
-  preferences: {
-    timezone: "UTC",
-    phoneNumber: null,
-    use24HourTime: false,
-    temperatureUnit: "fahrenheit",
-    weightUnit: "lbs",
-    emailReminders: true,
-    smsReminders: false,
-    pushNotifications: true,
-    reminderLeadTime: "15",
-    emergencyContact: {
-      name: null,
-      phone: null,
-    },
-  },
+  name: "John Doe",
   onboarding: {
     complete: false,
     completedAt: null,
   },
-  availableHouseholds: [],
-  currentHouseholdId: null,
+  preferences: {
+    emailReminders: true,
+    emergencyContact: {
+      name: null,
+      phone: null,
+    },
+    phoneNumber: null,
+    pushNotifications: true,
+    reminderLeadTime: "15",
+    smsReminders: false,
+    temperatureUnit: "fahrenheit",
+    timezone: "UTC",
+    use24HourTime: false,
+    weightUnit: "lbs",
+  },
+  stackUserId: null,
 };
 
 function mergePreferences(
@@ -98,12 +98,12 @@ export function createTestUserProfile(
 ): UserProfile {
   const userDerived: Partial<UserProfile> = user
     ? {
-        id: user.id,
-        stackUserId: user.stackUserId,
-        email: user.email,
-        name: user.name,
-        image: user.image,
         currentHouseholdId: user.defaultHouseholdId,
+        email: user.email,
+        id: user.id,
+        image: user.image,
+        name: user.name,
+        stackUserId: user.stackUserId,
       }
     : {};
 
@@ -117,22 +117,22 @@ export function createTestUserProfile(
       ...BASE_PROFILE.preferences,
       ...(user
         ? {
-            timezone:
-              user.preferredTimezone ?? BASE_PROFILE.preferences.timezone,
-            phoneNumber:
-              user.preferredPhoneNumber ?? BASE_PROFILE.preferences.phoneNumber,
-            use24HourTime:
-              user.use24HourTime ?? BASE_PROFILE.preferences.use24HourTime,
-            temperatureUnit:
-              user.temperatureUnit ?? BASE_PROFILE.preferences.temperatureUnit,
-            weightUnit: user.weightUnit ?? BASE_PROFILE.preferences.weightUnit,
             emailReminders:
               user.emailReminders ?? BASE_PROFILE.preferences.emailReminders,
-            smsReminders:
-              user.smsReminders ?? BASE_PROFILE.preferences.smsReminders,
+            phoneNumber:
+              user.preferredPhoneNumber ?? BASE_PROFILE.preferences.phoneNumber,
             pushNotifications:
               user.pushNotifications ??
               BASE_PROFILE.preferences.pushNotifications,
+            smsReminders:
+              user.smsReminders ?? BASE_PROFILE.preferences.smsReminders,
+            temperatureUnit:
+              user.temperatureUnit ?? BASE_PROFILE.preferences.temperatureUnit,
+            timezone:
+              user.preferredTimezone ?? BASE_PROFILE.preferences.timezone,
+            use24HourTime:
+              user.use24HourTime ?? BASE_PROFILE.preferences.use24HourTime,
+            weightUnit: user.weightUnit ?? BASE_PROFILE.preferences.weightUnit,
           }
         : {}),
     },
@@ -142,13 +142,13 @@ export function createTestUserProfile(
   return {
     ...baseProfile,
     ...overrides,
-    preferences: mergedPreferences,
+    availableHouseholds:
+      overrides.availableHouseholds ?? baseProfile.availableHouseholds,
     onboarding: {
       ...baseProfile.onboarding,
       ...overrides.onboarding,
     },
-    availableHouseholds:
-      overrides.availableHouseholds ?? baseProfile.availableHouseholds,
+    preferences: mergedPreferences,
   };
 }
 
@@ -175,115 +175,107 @@ export function createTestAppContext(
     overrides.userProfile ?? (user ? createTestUserProfile(user) : null);
 
   const defaultContext: AppContextType = {
-    selectedHouseholdId: null,
-    selectedAnimalId: null,
-    households: [],
-    animals: [],
-    user,
-    userProfile,
-    isAuthenticated: Boolean(user),
-    authStatus: user ? "authenticated" : "unauthenticated",
-    preferences: {
-      defaultTimezone: "UTC",
-      preferredPhoneNumber: "",
-      emergencyContactName: "",
-      emergencyContactPhone: "",
-      notificationPreferences: {
-        emailReminders: true,
-        smsReminders: false,
-        pushNotifications: true,
-        reminderLeadTime: 30,
-      },
-      displayPreferences: {
-        use24HourTime: false,
-        temperatureUnit: "celsius",
-        weightUnit: "kg",
-        weekStartsOn: 0,
-        theme: "system",
-      },
+    accessibility: {
+      announcements: { assertive: "", polite: "" },
+      fontSize: "medium",
+      highContrast: false,
+      reducedMotion: false,
     },
+    animals: [],
+    announce: () => {},
+    authStatus: user ? "authenticated" : "unauthenticated",
+    errors: {
+      animals: null,
+      households: null,
+      pendingMeds: null,
+      user: null,
+    },
+    formatTemperature: () => "",
+    formatTime: () => "",
+    formatWeight: () => "",
+    getUserTimezone: () => "UTC",
     householdSettings: {
-      primaryHouseholdName: "",
       defaultLocation: {
         address: "",
         city: "",
         state: "",
-        zipCode: "",
         timezone: "UTC",
+        zipCode: "",
       },
       householdRoles: [],
-      preferredVeterinarian: {
-        name: "",
-        phone: "",
-        address: "",
-      },
       inventoryPreferences: {
-        lowStockThreshold: 7,
         autoReorderEnabled: false,
         expirationWarningDays: 30,
+        lowStockThreshold: 7,
       },
+      preferredVeterinarian: {
+        address: "",
+        name: "",
+        phone: "",
+      },
+      primaryHouseholdName: "",
     },
+    households: [],
+    isAuthenticated: Boolean(user),
     isFirstTimeUser: false,
-    accessibility: {
-      announcements: { polite: "", assertive: "" },
-      reducedMotion: false,
-      highContrast: false,
-      fontSize: "medium",
-    },
     isOffline: false,
-    pendingSyncCount: 0,
     loading: {
-      user: false,
-      households: false,
       animals: false,
+      households: false,
       pendingMeds: false,
+      user: false,
     },
-    errors: {
-      user: null,
-      households: null,
-      animals: null,
-      pendingMeds: null,
-    },
-    setSelectedHousehold: () => {},
-    setSelectedAnimal: () => {},
-    refreshPendingMeds: () => {},
     login: () => {},
     logout: async () => {},
-    refreshAuth: async () => {},
-    updateVetMedPreferences: async () => {},
-    updateHouseholdSettings: async () => {},
     markOnboardingComplete: async () => {},
-    announce: () => {},
-    formatTime: () => "",
-    formatWeight: () => "",
-    formatTemperature: () => "",
-    getUserTimezone: () => "UTC",
-    selectedHousehold: null,
+    pendingSyncCount: 0,
+    preferences: {
+      defaultTimezone: "UTC",
+      displayPreferences: {
+        temperatureUnit: "celsius",
+        theme: "system",
+        use24HourTime: false,
+        weekStartsOn: 0,
+        weightUnit: "kg",
+      },
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      notificationPreferences: {
+        emailReminders: true,
+        pushNotifications: true,
+        reminderLeadTime: 30,
+        smsReminders: false,
+      },
+      preferredPhoneNumber: "",
+    },
+    refreshAuth: async () => {},
+    refreshPendingMeds: () => {},
     selectedAnimal: null,
+    selectedAnimalId: null,
+    selectedHousehold: null,
+    selectedHouseholdId: null,
+    setSelectedAnimal: () => {},
+    setSelectedHousehold: () => {},
+    updateHouseholdSettings: async () => {},
+    updateVetMedPreferences: async () => {},
+    user,
+    userProfile,
   };
 
   const context: AppContextType = {
     ...defaultContext,
     ...overrides,
-    loading: {
-      ...defaultContext.loading,
-      ...overrides.loading,
+    accessibility: {
+      ...defaultContext.accessibility,
+      ...overrides.accessibility,
+      announcements: {
+        ...defaultContext.accessibility.announcements,
+        ...(overrides.accessibility?.announcements ?? {}),
+      },
     },
     errors: {
       ...defaultContext.errors,
       ...overrides.errors,
-    },
-    preferences: {
-      ...defaultContext.preferences,
-      ...overrides.preferences,
-      notificationPreferences: {
-        ...defaultContext.preferences.notificationPreferences,
-        ...(overrides.preferences?.notificationPreferences ?? {}),
-      },
-      displayPreferences: {
-        ...defaultContext.preferences.displayPreferences,
-        ...(overrides.preferences?.displayPreferences ?? {}),
-      },
     },
     householdSettings: {
       ...defaultContext.householdSettings,
@@ -292,21 +284,29 @@ export function createTestAppContext(
         ...defaultContext.householdSettings.defaultLocation,
         ...(overrides.householdSettings?.defaultLocation ?? {}),
       },
-      preferredVeterinarian: {
-        ...defaultContext.householdSettings.preferredVeterinarian,
-        ...(overrides.householdSettings?.preferredVeterinarian ?? {}),
-      },
       inventoryPreferences: {
         ...defaultContext.householdSettings.inventoryPreferences,
         ...(overrides.householdSettings?.inventoryPreferences ?? {}),
       },
+      preferredVeterinarian: {
+        ...defaultContext.householdSettings.preferredVeterinarian,
+        ...(overrides.householdSettings?.preferredVeterinarian ?? {}),
+      },
     },
-    accessibility: {
-      ...defaultContext.accessibility,
-      ...overrides.accessibility,
-      announcements: {
-        ...defaultContext.accessibility.announcements,
-        ...(overrides.accessibility?.announcements ?? {}),
+    loading: {
+      ...defaultContext.loading,
+      ...overrides.loading,
+    },
+    preferences: {
+      ...defaultContext.preferences,
+      ...overrides.preferences,
+      displayPreferences: {
+        ...defaultContext.preferences.displayPreferences,
+        ...(overrides.preferences?.displayPreferences ?? {}),
+      },
+      notificationPreferences: {
+        ...defaultContext.preferences.notificationPreferences,
+        ...(overrides.preferences?.notificationPreferences ?? {}),
       },
     },
   };

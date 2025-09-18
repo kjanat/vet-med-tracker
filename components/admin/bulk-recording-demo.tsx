@@ -37,7 +37,7 @@ function AnimalTable() {
       householdId: selectedHouseholdId || "",
     },
     {
-      enabled: !!selectedHouseholdId,
+      enabled: Boolean(selectedHouseholdId),
     },
   );
 

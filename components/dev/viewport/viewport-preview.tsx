@@ -19,16 +19,16 @@ export const ViewportPreview: React.FC<ViewportPreviewProps> = ({
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [windowSize, setWindowSize] = useState({
-    width: typeof window !== "undefined" ? window.innerWidth : 1200,
     height: typeof window !== "undefined" ? window.innerHeight : 800,
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
   });
 
   // Track window resize for responsive scaling
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
-        width: window.innerWidth,
         height: window.innerHeight,
+        width: window.innerWidth,
       });
     };
 
@@ -48,8 +48,8 @@ export const ViewportPreview: React.FC<ViewportPreviewProps> = ({
         try {
           iframe.contentWindow?.postMessage(
             {
-              type: "theme-change",
               theme: state.scheme,
+              type: "theme-change",
             },
             "*", // In production, use specific origin
           );
@@ -157,23 +157,23 @@ export const ViewportPreview: React.FC<ViewportPreviewProps> = ({
       <Card
         className="overflow-hidden shadow-2xl"
         style={{
-          width: scaledWidth,
           height: scaledHeight,
+          width: scaledWidth,
         }}
       >
         <iframe
+          className="border-0 bg-background"
+          height={state.height}
           ref={iframeRef}
           src={src}
-          width={state.width}
-          height={state.height}
-          className="border-0 bg-background"
           style={{
+            height: state.height,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
             width: state.width,
-            height: state.height,
           }}
           title="Device Preview"
+          width={state.width}
         />
       </Card>
 

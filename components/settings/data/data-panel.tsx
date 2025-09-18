@@ -35,8 +35,8 @@ export function DataPanel() {
 
   // For now, assume all authenticated users can export data
   // and only check for household selection for data clearing
-  const canViewAudit = !!user;
-  const canClearData = !!user && !!selectedHousehold;
+  const canViewAudit = Boolean(user);
+  const canClearData = Boolean(user) && Boolean(selectedHousehold);
 
   const handleExport = async (format: "json" | "csv") => {
     if (!selectedHousehold?.id) {
@@ -145,7 +145,7 @@ export function DataPanel() {
           <div className="flex gap-4">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button disabled={isExporting} className="gap-2">
+                <Button className="gap-2" disabled={isExporting}>
                   <FileText className="h-4 w-4" />
                   Export JSON
                 </Button>
@@ -171,9 +171,9 @@ export function DataPanel() {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
+                  className="gap-2"
                   disabled={isExporting}
                   variant="outline"
-                  className="gap-2"
                 >
                   <FileText className="h-4 w-4" />
                   Export CSV
@@ -231,7 +231,7 @@ export function DataPanel() {
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="gap-2">
+                <Button className="gap-2" variant="destructive">
                   <Trash2 className="h-4 w-4" />
                   Clear History
                 </Button>
@@ -250,11 +250,11 @@ export function DataPanel() {
                     Type &quot;DELETE&quot; to confirm
                   </Label>
                   <Input
+                    className="max-w-[200px]"
                     id="confirm-dialog"
-                    value={clearConfirm}
                     onChange={(e) => setClearConfirm(e.target.value)}
                     placeholder="DELETE"
-                    className="max-w-[200px]"
+                    value={clearConfirm}
                   />
                 </div>
                 <AlertDialogFooter>
@@ -262,10 +262,10 @@ export function DataPanel() {
                     Cancel
                   </AlertDialogCancel>
                   <Button
-                    variant="destructive"
+                    className="relative overflow-hidden"
                     disabled={clearConfirm !== "DELETE" || isClearing}
                     onMouseDown={startHoldToClear}
-                    className="relative overflow-hidden"
+                    variant="destructive"
                   >
                     <div
                       className="absolute inset-0 bg-destructive-foreground/20 transition-all duration-75"
@@ -300,10 +300,10 @@ export function DataPanel() {
           </CardHeader>
           <CardContent>
             <Button
+              className="gap-2"
               onClick={() => {
                 window.location.href = "/settings/data-privacy/audit";
               }}
-              className="gap-2"
             >
               <FileText className="h-4 w-4" />
               View Audit Log

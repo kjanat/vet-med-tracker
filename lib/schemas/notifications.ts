@@ -18,30 +18,30 @@ export const notificationPrioritySchema = z.enum([
 ]);
 
 export const createNotificationSchema = z.object({
-  userId: z.uuid(),
-  householdId: z.uuid(),
-  type: notificationTypeSchema,
-  title: z.string().min(1).max(200),
-  message: z.string().min(1).max(500),
-  priority: notificationPrioritySchema.default("medium"),
   actionUrl: z.string().optional(),
   data: z.record(z.string(), z.any()).optional(),
+  householdId: z.uuid(),
+  message: z.string().min(1).max(500),
+  priority: notificationPrioritySchema.default("medium"),
+  title: z.string().min(1).max(200),
+  type: notificationTypeSchema,
+  userId: z.uuid(),
 });
 
 export const updateNotificationSchema = z.object({
-  read: z.boolean().optional(),
   dismissed: z.boolean().optional(),
+  read: z.boolean().optional(),
 });
 
 export const notificationFiltersSchema = z.object({
-  householdId: z.uuid().optional(),
-  type: notificationTypeSchema.optional(),
-  priority: notificationPrioritySchema.optional(),
-  read: z.boolean().optional(),
   dismissed: z.boolean().optional(),
-  unreadOnly: z.boolean().default(false),
+  householdId: z.uuid().optional(),
   limit: z.number().min(1).max(100).default(50),
   offset: z.number().min(0).default(0),
+  priority: notificationPrioritySchema.optional(),
+  read: z.boolean().optional(),
+  type: notificationTypeSchema.optional(),
+  unreadOnly: z.boolean().default(false),
 });
 
 export type NotificationType = z.infer<typeof notificationTypeSchema>;

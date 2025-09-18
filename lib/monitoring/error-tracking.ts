@@ -48,22 +48,22 @@ const DEFAULT_CONFIG: ErrorTrackingConfig = {
   enabled:
     typeof window !== "undefined" && process.env.NODE_ENV === "production",
   endpoint: "/api/monitoring",
-  maxReports: 10, // Max reports per session to prevent spam
-  reportInterval: 60000, // 1 minute minimum between identical reports
-  includeFeatureFlags: true,
-  includeUserContext: true,
   filters: {
-    ignoreUrls: [
-      /chrome-extension:\/\//,
-      /moz-extension:\/\//,
-      /safari-extension:\/\//,
-    ],
     ignoreMessages: [
       /Script error/,
       /Non-Error promise rejection captured/,
       /ResizeObserver loop limit exceeded/,
     ],
+    ignoreUrls: [
+      /chrome-extension:\/\//,
+      /moz-extension:\/\//,
+      /safari-extension:\/\//,
+    ],
   },
+  includeFeatureFlags: true,
+  includeUserContext: true,
+  maxReports: 10, // Max reports per session to prevent spam
+  reportInterval: 60000, // 1 minute minimum between identical reports
 };
 
 /**
@@ -113,33 +113,33 @@ class ErrorTrackingService {
     try {
       // Build complete error report
       const report: ErrorReport = {
-        error: errorData.error || "Unknown error",
-        message: errorData.message || errorData.error || "No message",
-        stack: errorData.stack,
-        name: errorData.name,
-        line: errorData.line,
         column: errorData.column,
-        filename: errorData.filename,
-        url: typeof window !== "undefined" ? window.location.href : "unknown",
-        userAgent:
-          typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
-        timestamp: new Date().toISOString(),
-        severity: errorData.severity || "normal",
-        sessionId: this.sessionId,
-        userId: await this.getUserId(),
+        context: errorData.context,
+        error: errorData.error || "Unknown error",
         featureFlags: this.config.includeFeatureFlags
           ? await this.getFeatureFlags()
           : undefined,
-        context: errorData.context,
+        filename: errorData.filename,
+        line: errorData.line,
+        message: errorData.message || errorData.error || "No message",
+        name: errorData.name,
+        sessionId: this.sessionId,
+        severity: errorData.severity || "normal",
+        stack: errorData.stack,
+        timestamp: new Date().toISOString(),
+        url: typeof window !== "undefined" ? window.location.href : "unknown",
+        userAgent:
+          typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+        userId: await this.getUserId(),
       };
 
       // Send error report
       const response = await fetch(this.config.endpoint, {
-        method: "POST",
+        body: JSON.stringify(report),
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(report),
+        method: "POST",
       });
 
       if (response.ok) {
@@ -163,12 +163,12 @@ class ErrorTrackingService {
     severity?: ErrorReport["severity"],
   ): void {
     this.reportError({
+      context,
       error: error.toString(),
       message: error.message,
-      stack: error.stack,
       name: error.name,
       severity: severity || "normal",
-      context,
+      stack: error.stack,
     });
   }
 
@@ -181,10 +181,10 @@ class ErrorTrackingService {
     context?: Record<string, unknown>,
   ): void {
     this.reportError({
+      context,
       error: message,
       message,
       severity,
-      context,
     });
   }
 
@@ -225,14 +225,14 @@ class ErrorTrackingService {
     // Handle JavaScript errors
     window.addEventListener("error", (event) => {
       this.reportError({
-        error: event.error?.toString() || "Unknown error",
-        message: event.message,
-        stack: event.error?.stack,
-        name: event.error?.name,
-        line: event.lineno,
         column: event.colno,
+        error: event.error?.toString() || "Unknown error",
         filename: event.filename,
+        line: event.lineno,
+        message: event.message,
+        name: event.error?.name,
         severity: "high",
+        stack: event.error?.stack,
       });
     });
 
@@ -241,9 +241,9 @@ class ErrorTrackingService {
       this.reportError({
         error: event.reason?.toString() || "Unhandled promise rejection",
         message: event.reason?.message || "Promise rejected",
-        stack: event.reason?.stack,
         name: "UnhandledPromiseRejection",
         severity: "high",
+        stack: event.reason?.stack,
       });
     });
 
@@ -368,8 +368,8 @@ export function reportNextError(error: Error, statusCode?: number): void {
   errorTracker.captureError(
     error,
     {
-      statusCode,
       nextjs: true,
+      statusCode,
     },
     statusCode && statusCode >= 500 ? "high" : "normal",
   );
@@ -387,7 +387,7 @@ export function reportPerformanceIssue(
     errorTracker.captureMessage(
       `Performance threshold exceeded: ${metric} = ${value}ms (threshold: ${threshold}ms)`,
       "normal",
-      { metric, value, threshold, performance: true },
+      { metric, performance: true, threshold, value },
     );
   }
 }

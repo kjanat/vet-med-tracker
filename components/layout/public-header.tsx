@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/sheet";
 
 const navigation = [
-  { name: "Features", href: "#features" },
-  { name: "How It Works", href: "#demo" },
-  { name: "Testimonials", href: "#testimonials" },
-  { name: "Pricing", href: "#pricing" },
+  { href: "#features", name: "Features" },
+  { href: "#demo", name: "How It Works" },
+  { href: "#testimonials", name: "Testimonials" },
+  { href: "#pricing", name: "Pricing" },
 ];
 
 export function PublicHeader() {
@@ -32,21 +32,21 @@ export function PublicHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-6xl items-center px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link className="flex items-center gap-2" href="/">
           <Logo size="sm" />
           <span className="font-semibold text-lg">VetMed Tracker</span>
         </Link>
 
         {/* Desktop Navigation */}
         <nav
-          id="main-navigation"
           className="mx-auto hidden items-center gap-6 md:flex"
+          id="main-navigation"
         >
           {navigation.map((item) => (
             <Link
-              key={item.name}
-              href={item.href as Route}
               className="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+              href={item.href as Route}
+              key={item.name}
             >
               {item.name}
             </Link>
@@ -60,7 +60,7 @@ export function PublicHeader() {
             <div className="h-10 w-20 animate-pulse rounded-md bg-muted" />
           ) : !user ? (
             <>
-              <Button variant="ghost" onClick={() => app.redirectToSignIn()}>
+              <Button onClick={() => app.redirectToSignIn()} variant="ghost">
                 Sign In
               </Button>
               <Button onClick={() => app.redirectToSignUp()}>
@@ -75,9 +75,9 @@ export function PublicHeader() {
         </div>
 
         {/* Mobile Menu */}
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <Sheet onOpenChange={setIsOpen} open={isOpen}>
           <SheetTrigger asChild className="ml-auto md:hidden">
-            <Button variant="ghost" size="icon" aria-label="Open menu">
+            <Button aria-label="Open menu" size="icon" variant="ghost">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -88,10 +88,10 @@ export function PublicHeader() {
             <nav className="mt-8 flex flex-col gap-4">
               {navigation.map((item) => (
                 <Link
-                  key={item.name}
-                  href={item.href as Route}
-                  onClick={() => setIsOpen(false)}
                   className="font-medium text-lg transition-colors hover:text-primary"
+                  href={item.href as Route}
+                  key={item.name}
+                  onClick={() => setIsOpen(false)}
                 >
                   {item.name}
                 </Link>
@@ -103,12 +103,12 @@ export function PublicHeader() {
                 ) : !user ? (
                   <>
                     <Button
-                      variant="outline"
                       className="w-full"
                       onClick={() => {
                         app.redirectToSignIn();
                         setIsOpen(false);
                       }}
+                      variant="outline"
                     >
                       Sign In
                     </Button>

@@ -61,8 +61,8 @@ function InsightsContent() {
         <div className="space-y-6 lg:col-span-2">
           <Suspense fallback={<ChartSkeleton />}>
             <ComplianceHeatmap
-              range={selectedRange}
               onRangeChange={setSelectedRange}
+              range={selectedRange}
             />
           </Suspense>
           <Suspense fallback={<div className="h-20" />}>

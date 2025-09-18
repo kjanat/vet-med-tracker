@@ -96,10 +96,10 @@ describe("OnboardingChecker", () => {
 
   describe("Onboarding Flow Logic", () => {
     const createMockUser = (metadata = {}) => ({
-      id: "user-123",
-      email: "test@example.com",
-      name: "Test User",
       clientMetadata: metadata,
+      email: "test@example.com",
+      id: "user-123",
+      name: "Test User",
     });
 
     it("should show onboarding for new user without preferences", async () => {
@@ -187,13 +187,13 @@ describe("OnboardingChecker", () => {
   describe("Complex Scenarios", () => {
     it("should handle user with both preferences and completed onboarding", async () => {
       const userWithBoth = {
-        id: "user-123",
-        email: "test@example.com",
-        name: "Test User",
         clientMetadata: {
-          vetMedPreferences: { timezone: "UTC" },
           onboardingComplete: true,
+          vetMedPreferences: { timezone: "UTC" },
         },
+        email: "test@example.com",
+        id: "user-123",
+        name: "Test User",
       };
       mockUseUser.mockReturnValue(userWithBoth);
 
@@ -207,10 +207,10 @@ describe("OnboardingChecker", () => {
 
     it("should prioritize profile page check over onboarding needs", async () => {
       const newUserOnProfilePage = {
-        id: "user-123",
-        email: "test@example.com",
-        name: "Test User",
         clientMetadata: {}, // No preferences or completion
+        email: "test@example.com",
+        id: "user-123",
+        name: "Test User",
       };
       mockUseUser.mockReturnValue(newUserOnProfilePage);
       mockUsePathname.mockReturnValue("/profile");
@@ -236,9 +236,9 @@ describe("OnboardingChecker", () => {
 
       // User loads and needs onboarding
       const newUser = {
-        id: "user-123",
-        email: "test@example.com",
         clientMetadata: {},
+        email: "test@example.com",
+        id: "user-123",
       };
       mockUseUser.mockReturnValue(newUser);
       mockUsePathname.mockReturnValue("/dashboard");
@@ -252,9 +252,9 @@ describe("OnboardingChecker", () => {
 
     it("should react to pathname changes", async () => {
       const newUser = {
-        id: "user-123",
-        email: "test@example.com",
         clientMetadata: {},
+        email: "test@example.com",
+        id: "user-123",
       };
       mockUseUser.mockReturnValue(newUser);
       mockUsePathname.mockReturnValue("/dashboard");
@@ -281,9 +281,9 @@ describe("OnboardingChecker", () => {
   describe("Edge Cases", () => {
     it("should handle user with null clientMetadata", async () => {
       const userWithNullMetadata = {
-        id: "user-123",
-        email: "test@example.com",
         clientMetadata: null,
+        email: "test@example.com",
+        id: "user-123",
       };
       mockUseUser.mockReturnValue(userWithNullMetadata);
       mockUsePathname.mockReturnValue("/dashboard");
@@ -297,9 +297,9 @@ describe("OnboardingChecker", () => {
 
     it("should handle user with empty clientMetadata", async () => {
       const userWithEmptyMetadata = {
-        id: "user-123",
-        email: "test@example.com",
         clientMetadata: {},
+        email: "test@example.com",
+        id: "user-123",
       };
       mockUseUser.mockReturnValue(userWithEmptyMetadata);
       mockUsePathname.mockReturnValue("/dashboard");
@@ -313,13 +313,13 @@ describe("OnboardingChecker", () => {
 
     it("should handle falsy preference values correctly", async () => {
       const userWithFalsyPrefs = {
-        id: "user-123",
-        email: "test@example.com",
         clientMetadata: {
-          vetMedPreferences: null,
           householdSettings: undefined,
           onboardingComplete: false,
+          vetMedPreferences: null,
         },
+        email: "test@example.com",
+        id: "user-123",
       };
       mockUseUser.mockReturnValue(userWithFalsyPrefs);
       mockUsePathname.mockReturnValue("/dashboard");
@@ -333,9 +333,9 @@ describe("OnboardingChecker", () => {
 
     it("should handle root profile path correctly", async () => {
       const newUser = {
-        id: "user-123",
-        email: "test@example.com",
         clientMetadata: {},
+        email: "test@example.com",
+        id: "user-123",
       };
       mockUseUser.mockReturnValue(newUser);
       mockUsePathname.mockReturnValue("/profile");

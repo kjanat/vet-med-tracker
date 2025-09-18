@@ -48,12 +48,12 @@ export function useBulkSelectionIntegration<T>({
   }, [data, selectedIds, getItemId, onSelectionChange]);
 
   return {
-    selectedItems,
-    selectedIds: Array.from(selectedIds),
-    selectionCount,
     clearSelection,
-    selectAll,
     isAllSelected,
     isPartiallySelected,
+    selectAll,
+    selectedIds: Array.from(selectedIds),
+    selectedItems,
+    selectionCount,
   };
 }

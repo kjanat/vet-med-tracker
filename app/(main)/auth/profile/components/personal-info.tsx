@@ -176,31 +176,31 @@ export default function PersonalInfoSection() {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6">
+      <form className="space-y-6 p-6" onSubmit={handleSubmit(onSubmit)}>
         {/* Personal Information */}
         <div>
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-medium text-lg">Personal Information</h3>
             {!isEditing ? (
               <Button
+                onClick={() => setIsEditing(true)}
+                size="sm"
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
               >
                 Edit Profile
               </Button>
             ) : (
               <div className="flex gap-2">
                 <Button
+                  onClick={handleCancel}
+                  size="sm"
                   type="button"
                   variant="outline"
-                  size="sm"
-                  onClick={handleCancel}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" size="sm" disabled={isSubmitting}>
+                <Button disabled={isSubmitting} size="sm" type="submit">
                   {isSubmitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
@@ -292,10 +292,10 @@ export default function PersonalInfoSection() {
                 <FormControl>
                   <Textarea
                     {...field}
+                    className="resize-none"
                     disabled={!isEditing}
                     placeholder="Tell us a bit about yourself..."
                     rows={4}
-                    className="resize-none"
                   />
                 </FormControl>
                 <FormMessage />
@@ -312,9 +312,9 @@ export default function PersonalInfoSection() {
                 <FormControl>
                   <Input
                     {...field}
-                    type="url"
                     disabled={!isEditing}
                     placeholder="https://yourwebsite.com"
+                    type="url"
                   />
                 </FormControl>
                 <FormMessage />
@@ -416,10 +416,10 @@ export default function PersonalInfoSection() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="visibility-name">Show Name</Label>
                   <Switch
-                    id="visibility-name"
                     checked={field.value ?? true}
-                    onCheckedChange={field.onChange}
                     disabled={!isEditing}
+                    id="visibility-name"
+                    onCheckedChange={field.onChange}
                   />
                 </div>
               )}
@@ -431,10 +431,10 @@ export default function PersonalInfoSection() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="visibility-email">Show Email</Label>
                   <Switch
-                    id="visibility-email"
                     checked={field.value ?? false}
-                    onCheckedChange={field.onChange}
                     disabled={!isEditing}
+                    id="visibility-email"
+                    onCheckedChange={field.onChange}
                   />
                 </div>
               )}
@@ -446,10 +446,10 @@ export default function PersonalInfoSection() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="visibility-bio">Show Bio</Label>
                   <Switch
-                    id="visibility-bio"
                     checked={field.value ?? true}
-                    onCheckedChange={field.onChange}
                     disabled={!isEditing}
+                    id="visibility-bio"
+                    onCheckedChange={field.onChange}
                   />
                 </div>
               )}
@@ -461,10 +461,10 @@ export default function PersonalInfoSection() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="visibility-location">Show Location</Label>
                   <Switch
-                    id="visibility-location"
                     checked={field.value ?? true}
-                    onCheckedChange={field.onChange}
                     disabled={!isEditing}
+                    id="visibility-location"
+                    onCheckedChange={field.onChange}
                   />
                 </div>
               )}
@@ -476,10 +476,10 @@ export default function PersonalInfoSection() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="visibility-social">Show Social Links</Label>
                   <Switch
-                    id="visibility-social"
                     checked={field.value ?? true}
-                    onCheckedChange={field.onChange}
                     disabled={!isEditing}
+                    id="visibility-social"
+                    onCheckedChange={field.onChange}
                   />
                 </div>
               )}

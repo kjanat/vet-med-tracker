@@ -135,29 +135,29 @@ export const LoggingConfig = {
    * Development environment configuration
    */
   development: {
+    audit: {
+      criticalEventsOnly: false,
+      enableDataChangeTracking: true,
+      trackPreviousValues: true,
+    },
     logger: {
-      service: "vet-med-tracker-dev",
-      minLevel: LogLevel.DEBUG,
       enableConsole: true,
       enableStructured: false,
       maskSensitiveData: false,
-    },
-    audit: {
-      enableDataChangeTracking: true,
-      trackPreviousValues: true,
-      criticalEventsOnly: false,
-    },
-    trpc: {
-      logRequests: true,
-      logResponses: true,
-      logErrors: true,
-      logPerformance: true,
+      minLevel: LogLevel.DEBUG,
+      service: "vet-med-tracker-dev",
     },
     request: {
+      excludeStaticAssets: true,
+      logHeaders: false,
       logRequests: true,
       logResponses: true,
-      logHeaders: false,
-      excludeStaticAssets: true,
+    },
+    trpc: {
+      logErrors: true,
+      logPerformance: true,
+      logRequests: true,
+      logResponses: true,
     },
   },
 
@@ -165,29 +165,29 @@ export const LoggingConfig = {
    * Production environment configuration
    */
   production: {
+    audit: {
+      criticalEventsOnly: false,
+      enableDataChangeTracking: true,
+      trackPreviousValues: true,
+    },
     logger: {
-      service: "vet-med-tracker",
-      minLevel: LogLevel.INFO,
       enableConsole: false,
       enableStructured: true,
       maskSensitiveData: true,
-    },
-    audit: {
-      enableDataChangeTracking: true,
-      trackPreviousValues: true,
-      criticalEventsOnly: false,
-    },
-    trpc: {
-      logRequests: true,
-      logResponses: false,
-      logErrors: true,
-      logPerformance: true,
+      minLevel: LogLevel.INFO,
+      service: "vet-med-tracker",
     },
     request: {
+      excludeStaticAssets: true,
+      logHeaders: false,
       logRequests: true,
       logResponses: true,
-      logHeaders: false,
-      excludeStaticAssets: true,
+    },
+    trpc: {
+      logErrors: true,
+      logPerformance: true,
+      logRequests: true,
+      logResponses: false,
     },
   },
 
@@ -195,29 +195,29 @@ export const LoggingConfig = {
    * Testing environment configuration
    */
   testing: {
+    audit: {
+      criticalEventsOnly: true,
+      enableDataChangeTracking: false,
+      trackPreviousValues: false,
+    },
     logger: {
-      service: "vet-med-tracker-test",
-      minLevel: LogLevel.WARN,
       enableConsole: false,
       enableStructured: true,
       maskSensitiveData: true,
-    },
-    audit: {
-      enableDataChangeTracking: false,
-      trackPreviousValues: false,
-      criticalEventsOnly: true,
-    },
-    trpc: {
-      logRequests: false,
-      logResponses: false,
-      logErrors: true,
-      logPerformance: false,
+      minLevel: LogLevel.WARN,
+      service: "vet-med-tracker-test",
     },
     request: {
+      excludeStaticAssets: true,
+      logHeaders: false,
       logRequests: false,
       logResponses: false,
-      logHeaders: false,
-      excludeStaticAssets: true,
+    },
+    trpc: {
+      logErrors: true,
+      logPerformance: false,
+      logRequests: false,
+      logResponses: false,
     },
   },
 };
@@ -247,9 +247,9 @@ export function initializeLogging() {
   // This function is here for any future initialization needs
 
   return {
-    logger,
     auditLogger,
     config,
+    logger,
   };
 }
 
@@ -258,21 +258,23 @@ export function initializeLogging() {
  */
 export const VetMedLogging = {
   /**
-   * Log user actions with household context
+   * Log business logic errors with context
    */
-  async userAction(
-    action: string,
-    userId: string,
+  async businessError(
+    operation: string,
+    error: Error,
+    userId?: string,
     householdId?: string,
     metadata?: Record<string, unknown>,
     correlationId?: string,
   ): Promise<void> {
-    await logger.info(
-      `User action: ${action}`,
+    await logger.error(
+      `Business logic error in ${operation}`,
+      error,
       {
-        userId,
         householdId,
-        action,
+        operation,
+        userId,
         ...metadata,
       },
       correlationId,
@@ -293,11 +295,11 @@ export const VetMedLogging = {
     await logger.info(
       `Medication event: ${event}`,
       {
-        userId,
-        householdId,
         animalId,
         event,
+        householdId,
         medication: medicationInfo,
+        userId,
       },
       correlationId,
     );
@@ -329,25 +331,22 @@ export const VetMedLogging = {
       correlationId,
     );
   },
-
   /**
-   * Log business logic errors with context
+   * Log user actions with household context
    */
-  async businessError(
-    operation: string,
-    error: Error,
-    userId?: string,
+  async userAction(
+    action: string,
+    userId: string,
     householdId?: string,
     metadata?: Record<string, unknown>,
     correlationId?: string,
   ): Promise<void> {
-    await logger.error(
-      `Business logic error in ${operation}`,
-      error,
+    await logger.info(
+      `User action: ${action}`,
       {
-        operation,
-        userId,
+        action,
         householdId,
+        userId,
         ...metadata,
       },
       correlationId,

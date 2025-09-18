@@ -105,14 +105,14 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent("dashboard:export", {
-            detail: { format, dateRange, timestamp: Date.now() },
+            detail: { dateRange, format, timestamp: Date.now() },
           }),
         );
       }
 
       toast({
-        title: "Export started",
         description: `Generating ${format.toUpperCase()} for selected range...`,
+        title: "Export started",
       });
       // TODO: trigger server-side export job and show progress
     },
@@ -123,81 +123,81 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
   const widgets = useMemo<DashboardWidget[]>(
     () => [
       {
-        id: "compliance-rate",
-        title: "Compliance Rate Trend",
         component: ({ isFullscreen }) => (
           <LazyComplianceRateWidget
             dateRange={dateRange}
             isFullscreen={isFullscreen}
           />
         ),
-        minHeight: 320,
         defaultExpanded: true,
+        id: "compliance-rate",
+        minHeight: 320,
+        title: "Compliance Rate Trend",
       },
       {
-        id: "administration-timeline",
-        title: "Administration Timeline",
         component: ({ isFullscreen }) => (
           <LazyAdministrationTimelineWidget
-            period={selectedPeriod}
             isFullscreen={isFullscreen}
+            period={selectedPeriod}
           />
         ),
-        minHeight: 320,
         defaultExpanded: true,
+        id: "administration-timeline",
+        minHeight: 320,
+        title: "Administration Timeline",
       },
       {
-        id: "medication-distribution",
-        title: "Medication Distribution",
         component: ({ isFullscreen }) => (
           <LazyMedicationDistributionWidget isFullscreen={isFullscreen} />
         ),
-        minHeight: 300,
         defaultExpanded: true,
+        id: "medication-distribution",
+        minHeight: 300,
+        title: "Medication Distribution",
       },
       {
-        id: "animal-activity",
-        title: "Animal Activity Ranking",
         component: ({ isFullscreen }) => (
           <LazyAnimalActivityWidget
             dateRange={dateRange}
             isFullscreen={isFullscreen}
           />
         ),
-        minHeight: 350,
         defaultExpanded: true,
+        id: "animal-activity",
+        minHeight: 350,
+        title: "Animal Activity Ranking",
       },
       {
-        id: "inventory-levels",
-        title: "Inventory Status",
         component: ({ isFullscreen }) => (
           <LazyInventoryLevelsWidget isFullscreen={isFullscreen} />
         ),
-        minHeight: 320,
         defaultExpanded: true,
+        id: "inventory-levels",
+        minHeight: 320,
+        title: "Inventory Status",
       },
       {
-        id: "upcoming-doses",
-        title: "Upcoming Doses Calendar",
         component: ({ isFullscreen }) => (
           <UpcomingDosesWidget isFullscreen={isFullscreen} />
         ),
-        minHeight: 300,
         defaultExpanded: true,
+        id: "upcoming-doses",
+        minHeight: 300,
+        title: "Upcoming Doses Calendar",
       },
       {
-        id: "compliance-heatmap",
-        title: "Compliance Heatmap",
         component: ({ isFullscreen }) => (
           <div className={isFullscreen ? "h-full" : ""}>
             <LazyComplianceHeatmap
-              range={dateRange}
               onRangeChange={handleDateRangeChange}
+              range={dateRange}
             />
           </div>
         ),
-        minHeight: 400,
         defaultExpanded: false, // Collapsed by default due to complexity
+        id: "compliance-heatmap",
+        minHeight: 400,
+        title: "Compliance Heatmap",
       },
     ],
     [dateRange, selectedPeriod, handleDateRangeChange],
@@ -243,10 +243,10 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
           {/* Actions */}
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
               className="gap-2"
+              onClick={handleRefresh}
+              size="sm"
+              variant="outline"
             >
               <RefreshCw className="h-4 w-4" />
               Refresh
@@ -254,7 +254,7 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button className="gap-2" size="sm" variant="outline">
                   <Download className="h-4 w-4" />
                   Export
                 </Button>
@@ -284,8 +284,8 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
           <DateRangeSelector
             dateRange={dateRange}
             onDateRangeChange={handleDateRangeChange}
-            selectedPeriod={selectedPeriod}
             onPeriodChange={handlePeriodChange}
+            selectedPeriod={selectedPeriod}
           />
 
           <div className="text-muted-foreground text-sm">
@@ -298,7 +298,7 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
       </div>
 
       {/* Dashboard Grid */}
-      <DashboardLayout widgets={widgets} gap={4} />
+      <DashboardLayout gap={4} widgets={widgets} />
 
       {/* Footer */}
       <div className="mt-8 text-center text-muted-foreground text-sm">

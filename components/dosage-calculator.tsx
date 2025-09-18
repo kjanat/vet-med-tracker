@@ -50,26 +50,26 @@ import { trpc } from "@/server/trpc/client";
 // Form schema for dosage calculation
 const dosageCalculatorSchema = z.object({
   animalId: z.string().min(1, "Please select an animal"),
+  customAdjustment: z.string().optional(),
   medicationId: z.string().min(1, "Please select a medication"),
-  weight: z.number().positive("Weight must be positive"),
-  weightUnit: z.enum(["kg", "lbs"]),
   route: z.string().optional(),
   targetUnit: z.enum(["mg", "ml", "tablets"]),
-  customAdjustment: z.string().optional(),
+  weight: z.number().positive("Weight must be positive"),
+  weightUnit: z.enum(["kg", "lbs"]),
 });
 
 type DosageCalculatorForm = z.infer<typeof dosageCalculatorSchema>;
 
 // Routes commonly used in veterinary medicine
 const ADMINISTRATION_ROUTES = [
-  { value: "oral", label: "Oral (PO)" },
-  { value: "intramuscular", label: "Intramuscular (IM)" },
-  { value: "intravenous", label: "Intravenous (IV)" },
-  { value: "subcutaneous", label: "Subcutaneous (SC)" },
-  { value: "topical", label: "Topical" },
-  { value: "rectal", label: "Rectal (PR)" },
-  { value: "ophthalmic", label: "Ophthalmic" },
-  { value: "otic", label: "Otic" },
+  { label: "Oral (PO)", value: "oral" },
+  { label: "Intramuscular (IM)", value: "intramuscular" },
+  { label: "Intravenous (IV)", value: "intravenous" },
+  { label: "Subcutaneous (SC)", value: "subcutaneous" },
+  { label: "Topical", value: "topical" },
+  { label: "Rectal (PR)", value: "rectal" },
+  { label: "Ophthalmic", value: "ophthalmic" },
+  { label: "Otic", value: "otic" },
 ];
 
 // Safety level colors and messages
@@ -83,26 +83,26 @@ const SAFETY_CONFIG: Record<
     icon: string;
   }
 > = {
-  safe: {
-    color: "rgb(34, 197, 94)", // green-500
-    bgColor: "rgb(240, 253, 244)", // green-50
-    textColor: "rgb(21, 128, 61)", // green-700
-    label: "Safe Dose",
-    icon: "✓",
-  },
   caution: {
-    color: "rgb(234, 179, 8)", // yellow-500
     bgColor: "rgb(254, 252, 232)", // yellow-50
-    textColor: "rgb(161, 98, 7)", // yellow-700
-    label: "Use Caution",
+    color: "rgb(234, 179, 8)", // yellow-500
     icon: "⚠",
+    label: "Use Caution",
+    textColor: "rgb(161, 98, 7)", // yellow-700
   },
   danger: {
-    color: "rgb(239, 68, 68)", // red-500
     bgColor: "rgb(254, 242, 242)", // red-50
-    textColor: "rgb(185, 28, 28)", // red-700
-    label: "Dangerous",
+    color: "rgb(239, 68, 68)", // red-500
     icon: "!",
+    label: "Dangerous",
+    textColor: "rgb(185, 28, 28)", // red-700
+  },
+  safe: {
+    bgColor: "rgb(240, 253, 244)", // green-50
+    color: "rgb(34, 197, 94)", // green-500
+    icon: "✓",
+    label: "Safe Dose",
+    textColor: "rgb(21, 128, 61)", // green-700
   },
 };
 
@@ -138,16 +138,16 @@ export function DosageCalculator() {
 
   // Form management
   const form = useForm<DosageCalculatorForm>({
-    resolver: zodResolver(dosageCalculatorSchema),
     defaultValues: {
       animalId: selectedAnimal?.id || "",
+      customAdjustment: "",
       medicationId: "",
-      weight: 0,
-      weightUnit: "kg",
       route: "",
       targetUnit: "mg",
-      customAdjustment: "",
+      weight: 0,
+      weightUnit: "kg",
     },
+    resolver: zodResolver(dosageCalculatorSchema),
   });
 
   const { watch, setValue, reset } = form;
@@ -180,22 +180,22 @@ export function DosageCalculator() {
   // tRPC query for dosage calculation
   const dosageCalculationQuery = trpc.dosage.calculate.useQuery(
     {
-      medicationId: watchedValues.medicationId,
       animal: {
         species:
           animals.find((a) => a.id === watchedValues.animalId)?.species || "",
         weight: watchedValues.weight,
         weightUnit: watchedValues.weightUnit,
       },
+      medicationId: watchedValues.medicationId,
       route: watchedValues.route,
       targetUnit: watchedValues.targetUnit,
     },
     {
-      enabled: !!(
+      enabled: Boolean(
         watchedValues.animalId &&
-        watchedValues.medicationId &&
-        watchedValues.weight > 0 &&
-        animals.find((a) => a.id === watchedValues.animalId)
+          watchedValues.medicationId &&
+          watchedValues.weight > 0 &&
+          animals.find((a) => a.id === watchedValues.animalId),
       ),
       retry: false,
     },
@@ -219,20 +219,20 @@ export function DosageCalculator() {
     if (!selectedAnimalData) return;
 
     const historyItem: CalculationHistoryItem = {
-      id: Date.now().toString(),
-      timestamp: new Date(),
       animalName: selectedAnimalData.name,
+      dose: calculationResult.dose,
+      id: Date.now().toString(),
       medicationName:
         selectedMedication.genericName +
         (selectedMedication.brandName
           ? ` (${selectedMedication.brandName})`
           : ""),
+      route: watchedValues.route,
+      safetyLevel: calculationResult.safetyLevel,
+      timestamp: new Date(),
+      unit: calculationResult.unit,
       weight: watchedValues.weight,
       weightUnit: watchedValues.weightUnit,
-      dose: calculationResult.dose,
-      unit: calculationResult.unit,
-      safetyLevel: calculationResult.safetyLevel,
-      route: watchedValues.route,
     };
 
     const newHistory = [historyItem, ...calculationHistory.slice(0, 19)]; // Keep last 20
@@ -243,9 +243,9 @@ export function DosageCalculator() {
     );
 
     toast({
-      title: "Calculation Saved",
       description: "Added to calculation history",
       duration: 2000,
+      title: "Calculation Saved",
     });
   }, [
     calculationResult,
@@ -406,17 +406,17 @@ export function DosageCalculator() {
             </div>
             <div className="relative">
               <Progress
-                value={percentage}
                 className="h-3"
                 style={{
                   backgroundColor: config.bgColor,
                 }}
+                value={percentage}
               />
               <div
                 className="absolute top-0 left-0 h-3 rounded-full transition-all"
                 style={{
-                  width: `${percentage}%`,
                   backgroundColor: config.color,
+                  width: `${percentage}%`,
                 }}
               />
             </div>
@@ -429,8 +429,8 @@ export function DosageCalculator() {
                 <div className="font-medium text-sm">Alternative Formats:</div>
                 {calculationResult.alternativeFormats.map((format) => (
                   <div
-                    key={`${format.dose}-${format.unit}`}
                     className="text-muted-foreground text-sm"
+                    key={`${format.dose}-${format.unit}`}
                   >
                     {format.dose} {format.unit} - {format.description}
                   </div>
@@ -454,7 +454,7 @@ export function DosageCalculator() {
         </p>
       </div>
 
-      <Tabs defaultValue="calculator" className="w-full">
+      <Tabs className="w-full" defaultValue="calculator">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="calculator">Calculator</TabsTrigger>
           <TabsTrigger value="history">
@@ -462,7 +462,7 @@ export function DosageCalculator() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="calculator" className="space-y-6">
+        <TabsContent className="space-y-6" value="calculator">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Input Form */}
             <div className="space-y-6">
@@ -485,8 +485,8 @@ export function DosageCalculator() {
                             <FormLabel>Animal</FormLabel>
                             <FormControl>
                               <Select
-                                value={String(field.value)}
                                 onValueChange={field.onChange}
+                                value={String(field.value)}
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select animal" />
@@ -518,10 +518,10 @@ export function DosageCalculator() {
                               <FormLabel>Weight</FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
-                                  step="0.1"
                                   min="0"
                                   placeholder="0.0"
+                                  step="0.1"
+                                  type="number"
                                   {...field}
                                   onChange={(e) =>
                                     field.onChange(
@@ -542,8 +542,8 @@ export function DosageCalculator() {
                               <FormLabel>Unit</FormLabel>
                               <FormControl>
                                 <Select
-                                  value={String(field.value)}
                                   onValueChange={field.onChange}
+                                  value={String(field.value)}
                                 >
                                   <SelectTrigger>
                                     <SelectValue />
@@ -569,17 +569,17 @@ export function DosageCalculator() {
                             <FormLabel>Medication</FormLabel>
                             <FormControl>
                               <MedicationSearch
-                                value={String(field.value || "")}
+                                householdId={selectedHousehold?.id}
                                 onChange={(medicationId, medication) => {
                                   field.onChange(medicationId);
                                   setSelectedMedication({
-                                    genericName: medication.genericName,
                                     brandName: medication.brandName,
+                                    genericName: medication.genericName,
                                   });
                                 }}
-                                householdId={selectedHousehold?.id}
                                 placeholder="Search medications..."
                                 required
+                                value={String(field.value || "")}
                               />
                             </FormControl>
                             <FormMessage />
@@ -596,8 +596,8 @@ export function DosageCalculator() {
                             <FormLabel>Route (Optional)</FormLabel>
                             <FormControl>
                               <Select
-                                value={String(field.value || "")}
                                 onValueChange={field.onChange}
+                                value={String(field.value || "")}
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select route" />
@@ -628,8 +628,8 @@ export function DosageCalculator() {
                             <FormLabel>Display Unit</FormLabel>
                             <FormControl>
                               <Select
-                                value={String(field.value)}
                                 onValueChange={field.onChange}
+                                value={String(field.value)}
                               >
                                 <SelectTrigger>
                                   <SelectValue />
@@ -657,8 +657,8 @@ export function DosageCalculator() {
                             <FormLabel>Notes (Optional)</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Additional considerations or notes..."
                                 className="resize-none"
+                                placeholder="Additional considerations or notes..."
                                 rows={3}
                                 {...field}
                                 value={field.value || ""}
@@ -675,7 +675,7 @@ export function DosageCalculator() {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
-                <Button onClick={resetCalculator} variant="outline" size="sm">
+                <Button onClick={resetCalculator} size="sm" variant="outline">
                   <RotateCcw className="h-4 w-4" />
                   Reset
                 </Button>
@@ -684,8 +684,8 @@ export function DosageCalculator() {
                   <>
                     <Button
                       onClick={saveCalculation}
-                      variant="outline"
                       size="sm"
+                      variant="outline"
                     >
                       <Save className="h-4 w-4" />
                       Save
@@ -693,8 +693,8 @@ export function DosageCalculator() {
 
                     <Button
                       onClick={printCalculation}
-                      variant="outline"
                       size="sm"
+                      variant="outline"
                     >
                       <Printer className="h-4 w-4" />
                       Print
@@ -733,8 +733,8 @@ export function DosageCalculator() {
                         <ul className="space-y-1">
                           {calculationResult.warnings.map((warning) => (
                             <li
-                              key={warning}
                               className="text-sm text-yellow-700 dark:text-yellow-300"
+                              key={warning}
                             >
                               • {warning}
                             </li>
@@ -842,7 +842,7 @@ export function DosageCalculator() {
           </div>
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-6">
+        <TabsContent className="space-y-6" value="history">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

@@ -24,17 +24,17 @@ export function HeroSection() {
           <span className="relative text-primary">
             Dose
             <svg
-              className="-bottom-2 absolute left-0 w-full"
-              viewBox="0 0 200 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
               aria-hidden="true"
+              className="-bottom-2 absolute left-0 w-full"
+              fill="none"
+              viewBox="0 0 200 20"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 d="M1 10C50 5 150 5 199 10"
                 stroke="currentColor"
-                strokeWidth="3"
                 strokeLinecap="round"
+                strokeWidth="3"
               />
             </svg>
           </span>{" "}
@@ -48,7 +48,7 @@ export function HeroSection() {
         </p>
 
         {/* CTA buttons */}
-        <CtaButtons variant="hero" className="mb-12" />
+        <CtaButtons className="mb-12" variant="hero" />
 
         {/* Feature highlights */}
         <FeatureHighlights className="mb-8" />

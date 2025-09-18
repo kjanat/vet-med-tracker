@@ -90,39 +90,39 @@ export function CoSignStatusIndicator({
 
   // Status configuration
   const statusConfig = {
-    none: {
-      icon: null,
-      label: "No co-sign required",
-      color: "secondary",
-      bgColor: "bg-secondary",
-      show: false,
-    },
-    pending: {
-      icon: Clock,
-      label: "Pending co-signature",
-      color: "warning",
-      bgColor: "bg-amber-100",
-      show: true,
-    },
     approved: {
+      bgColor: "bg-green-100",
+      color: "success",
       icon: CheckCircle,
       label: "Co-signed",
-      color: "success",
-      bgColor: "bg-green-100",
-      show: true,
-    },
-    rejected: {
-      icon: X,
-      label: "Co-sign rejected",
-      color: "destructive",
-      bgColor: "bg-red-100",
       show: true,
     },
     expired: {
+      bgColor: "bg-amber-100",
+      color: "warning",
       icon: AlertTriangle,
       label: "Co-sign request expired",
-      color: "warning",
+      show: true,
+    },
+    none: {
+      bgColor: "bg-secondary",
+      color: "secondary",
+      icon: null,
+      label: "No co-sign required",
+      show: false,
+    },
+    pending: {
       bgColor: "bg-amber-100",
+      color: "warning",
+      icon: Clock,
+      label: "Pending co-signature",
+      show: true,
+    },
+    rejected: {
+      bgColor: "bg-red-100",
+      color: "destructive",
+      icon: X,
+      label: "Co-sign rejected",
       show: true,
     },
   };
@@ -141,6 +141,7 @@ export function CoSignStatusIndicator({
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge
+            className={cn("flex items-center gap-1", className)}
             variant={
               config.color as
                 | "default"
@@ -151,7 +152,6 @@ export function CoSignStatusIndicator({
                 | "warning"
                 | "info"
             }
-            className={cn("flex items-center gap-1", className)}
           >
             {IconComponent && <IconComponent className="h-3 w-3" />}
             {config.label}
@@ -184,6 +184,7 @@ export function CoSignStatusIndicator({
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Badge
+        className="flex items-center gap-1"
         variant={
           config.color as
             | "default"
@@ -194,7 +195,6 @@ export function CoSignStatusIndicator({
             | "warning"
             | "info"
         }
-        className="flex items-center gap-1"
       >
         {IconComponent && <IconComponent className="h-3 w-3" />}
         {config.label}
@@ -206,16 +206,16 @@ export function CoSignStatusIndicator({
           status === "rejected") && (
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-1">
+              <Button className="h-6 w-6 p-1" size="sm" variant="ghost">
                 <FileSignature className="h-3 w-3" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80" align="start">
+            <PopoverContent align="start" className="w-80">
               <CoSignDetails
-                status={status}
-                cosignRequest={cosignRequest}
                 coSignedAt={coSignedAt}
                 coSignNotes={coSignNotes}
+                cosignRequest={cosignRequest}
+                status={status}
               />
             </PopoverContent>
           </Popover>
@@ -239,9 +239,8 @@ const formatUserName = (
   return user.name || user.email || "Unknown User";
 };
 
-const formatTimestamp = (timestamp: string) => {
-  return formatDistanceToNow(parseISO(timestamp), { addSuffix: true });
-};
+const formatTimestamp = (timestamp: string) =>
+  formatDistanceToNow(parseISO(timestamp), { addSuffix: true });
 
 // User display component to reduce duplication
 function UserDisplay({
@@ -298,13 +297,13 @@ function CoSignDetails({
         <div>
           <h4 className="mb-2 font-medium text-sm">Co-signature Details</h4>
           <div className="space-y-1 text-muted-foreground text-xs">
-            <PendingDetails status={status} cosignRequest={cosignRequest} />
+            <PendingDetails cosignRequest={cosignRequest} status={status} />
             <ApprovedDetails
-              status={status}
-              cosignRequest={cosignRequest}
               coSignedAt={coSignedAt}
+              cosignRequest={cosignRequest}
+              status={status}
             />
-            <RejectedDetails status={status} cosignRequest={cosignRequest} />
+            <RejectedDetails cosignRequest={cosignRequest} status={status} />
             <NotesSection coSignNotes={coSignNotes} />
           </div>
         </div>
@@ -371,8 +370,8 @@ function ApprovedDetails({
           <DetailRow label="Approved by">
             {cosignRequest.cosigner && (
               <UserDisplay
-                user={cosignRequest.cosigner}
                 textClassName="text-green-700"
+                user={cosignRequest.cosigner}
               />
             )}
           </DetailRow>
@@ -438,13 +437,13 @@ function DigitalSignature({ signature }: { signature?: string }) {
         <span className="font-medium text-xs">Digital Signature:</span>
         <div className="rounded-md border bg-background p-2">
           <Image
-            src={signature}
             alt="Digital signature"
-            width={200}
-            height={60}
             className="h-auto max-w-full"
+            height={60}
+            src={signature}
             style={{ maxHeight: "60px" }}
             unoptimized
+            width={200}
           />
         </div>
       </div>

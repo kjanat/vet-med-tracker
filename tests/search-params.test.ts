@@ -26,8 +26,8 @@ describe("createTypedQueryString", () => {
   it("should handle undefined values by removing them", () => {
     const result = createTypedQueryString({
       animalId: "123",
-      type: undefined,
       status: "all",
+      type: undefined,
     });
     expect(result).toBe("animalId=123&status=all");
   });
@@ -35,8 +35,8 @@ describe("createTypedQueryString", () => {
   it("should handle null values by removing them", () => {
     const result = createTypedQueryString({
       animalId: "123",
-      type: null,
       status: "all",
+      type: null,
     });
     expect(result).toBe("animalId=123&status=all");
   });
@@ -44,8 +44,8 @@ describe("createTypedQueryString", () => {
   it("should handle empty strings by removing them", () => {
     const result = createTypedQueryString({
       animalId: "123",
-      type: "",
       status: "all",
+      type: "",
     });
     expect(result).toBe("animalId=123&status=all");
   });
@@ -77,8 +77,8 @@ describe("parseTypedSearchParams", () => {
 
     expect(result).toEqual({
       animalId: "123",
-      type: "scheduled",
       status: "all",
+      type: "scheduled",
     });
   });
 
@@ -127,8 +127,8 @@ describe("updateSearchParams", () => {
   it("should update existing search params", () => {
     const current = new URLSearchParams("animalId=123&type=all");
     const result = updateSearchParams(current, {
-      type: "scheduled",
       status: "on-time",
+      type: "scheduled",
     });
 
     expect(result).toBe("animalId=123&type=scheduled&status=on-time");

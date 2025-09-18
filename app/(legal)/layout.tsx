@@ -11,7 +11,7 @@ export default function LegalLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <PublicHeader />
-      <main id="main-content" className="relative flex-1">
+      <main className="relative flex-1" id="main-content">
         {/* Unified animated background for all sections */}
         <AnimatedBackground variant="default" />
         <div className="relative z-10">{children}</div>

@@ -52,30 +52,30 @@ export function PrefsPanel() {
         : null;
 
     return {
-      theme: savedTheme || "system",
       clock12h: !vetMedPreferences.displayPreferences.use24HourTime,
-      weekStartsOn: 0, // Default, will be added to preferences
-      units:
-        vetMedPreferences.displayPreferences.weightUnit === "kg"
-          ? "metric"
-          : "imperial",
+      defaultAnimalId: undefined, // Will be added to preferences
       defaultHouseholdId: householdSettings.primaryHouseholdName
         ? households.find(
             (h) => h.name === householdSettings.primaryHouseholdName,
           )?.id
         : undefined,
-      defaultAnimalId: undefined, // Will be added to preferences
+      theme: savedTheme || "system",
+      units:
+        vetMedPreferences.displayPreferences.weightUnit === "kg"
+          ? "metric"
+          : "imperial",
+      weekStartsOn: 0, // Default, will be added to preferences
     };
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // tRPC mutation for updating preferences
   const updatePreferences = trpc.user.updatePreferences.useMutation({
-    onSuccess: () => {
-      toast.success("Preferences saved successfully");
-    },
     onError: (error) => {
       toast.error(`Failed to save preferences: ${error.message}`);
+    },
+    onSuccess: () => {
+      toast.success("Preferences saved successfully");
     },
   });
 
@@ -109,20 +109,20 @@ export function PrefsPanel() {
         : null;
 
     setPrefs({
-      theme:
-        savedTheme || vetMedPreferences.displayPreferences.theme || "system",
       clock12h: !vetMedPreferences.displayPreferences.use24HourTime,
-      weekStartsOn: vetMedPreferences.displayPreferences.weekStartsOn || 0,
-      units:
-        vetMedPreferences.displayPreferences.weightUnit === "kg"
-          ? "metric"
-          : "imperial",
+      defaultAnimalId: vetMedPreferences.defaultAnimalId,
       defaultHouseholdId: householdSettings.primaryHouseholdName
         ? households.find(
             (h) => h.name === householdSettings.primaryHouseholdName,
           )?.id
         : undefined,
-      defaultAnimalId: vetMedPreferences.defaultAnimalId,
+      theme:
+        savedTheme || vetMedPreferences.displayPreferences.theme || "system",
+      units:
+        vetMedPreferences.displayPreferences.weightUnit === "kg"
+          ? "metric"
+          : "imperial",
+      weekStartsOn: vetMedPreferences.displayPreferences.weekStartsOn || 0,
     });
   }, [vetMedPreferences, householdSettings, households]);
 
@@ -152,34 +152,34 @@ export function PrefsPanel() {
 
       // Update preferences via tRPC
       await updatePreferences.mutateAsync({
-        vetMedPreferences: {
-          displayPreferences: {
-            use24HourTime: !prefs.clock12h,
-            temperatureUnit:
-              prefs.units === "metric" ? "celsius" : "fahrenheit",
-            weightUnit: prefs.units === "metric" ? "kg" : "lbs",
-            weekStartsOn: prefs.weekStartsOn,
-            theme: prefs.theme,
-          },
-          defaultHouseholdId: prefs.defaultHouseholdId,
-          defaultAnimalId: prefs.defaultAnimalId,
-        },
         householdSettings: {
           primaryHouseholdName: selectedHousehold?.name || "",
+        },
+        vetMedPreferences: {
+          defaultAnimalId: prefs.defaultAnimalId,
+          defaultHouseholdId: prefs.defaultHouseholdId,
+          displayPreferences: {
+            temperatureUnit:
+              prefs.units === "metric" ? "celsius" : "fahrenheit",
+            theme: prefs.theme,
+            use24HourTime: !prefs.clock12h,
+            weekStartsOn: prefs.weekStartsOn,
+            weightUnit: prefs.units === "metric" ? "kg" : "lbs",
+          },
         },
       });
 
       // Also update via the context hooks for immediate UI updates
       await updateVetMedPreferences({
-        displayPreferences: {
-          use24HourTime: !prefs.clock12h,
-          temperatureUnit: prefs.units === "metric" ? "celsius" : "fahrenheit",
-          weightUnit: prefs.units === "metric" ? "kg" : "lbs",
-          weekStartsOn: prefs.weekStartsOn,
-          theme: prefs.theme,
-        },
-        defaultHouseholdId: prefs.defaultHouseholdId,
         defaultAnimalId: prefs.defaultAnimalId,
+        defaultHouseholdId: prefs.defaultHouseholdId,
+        displayPreferences: {
+          temperatureUnit: prefs.units === "metric" ? "celsius" : "fahrenheit",
+          theme: prefs.theme,
+          use24HourTime: !prefs.clock12h,
+          weekStartsOn: prefs.weekStartsOn,
+          weightUnit: prefs.units === "metric" ? "kg" : "lbs",
+        },
       });
 
       if (selectedHousehold) {
@@ -273,7 +273,7 @@ export function PrefsPanel() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Time & Date
+            Time &amp; Date
           </CardTitle>
           <CardDescription>
             Configure time and date display preferences
@@ -284,10 +284,10 @@ export function PrefsPanel() {
             <div className="space-y-2">
               <Label>Time Format</Label>
               <Select
-                value={prefs.clock12h ? "12h" : "24h"}
                 onValueChange={(value) =>
                   setPrefs((prev) => ({ ...prev, clock12h: value === "12h" }))
                 }
+                value={prefs.clock12h ? "12h" : "24h"}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -302,13 +302,13 @@ export function PrefsPanel() {
             <div className="space-y-2">
               <Label>Week Starts On</Label>
               <Select
-                value={prefs.weekStartsOn.toString()}
                 onValueChange={(value) =>
                   setPrefs((prev) => ({
                     ...prev,
                     weekStartsOn: Number.parseInt(value, 10) as 0 | 1,
                   }))
                 }
+                value={prefs.weekStartsOn.toString()}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -394,13 +394,13 @@ export function PrefsPanel() {
             <div className="space-y-2">
               <Label>Default Household</Label>
               <Select
-                value={prefs.defaultHouseholdId || "none"}
                 onValueChange={(value) =>
                   setPrefs((prev) => ({
                     ...prev,
                     defaultHouseholdId: value === "none" ? undefined : value,
                   }))
                 }
+                value={prefs.defaultHouseholdId || "none"}
               >
                 <SelectTrigger className="truncate">
                   <SelectValue placeholder="No default" />
@@ -419,13 +419,13 @@ export function PrefsPanel() {
             <div className="space-y-2">
               <Label>Default Animal</Label>
               <Select
-                value={prefs.defaultAnimalId || "none"}
                 onValueChange={(value) =>
                   setPrefs((prev) => ({
                     ...prev,
                     defaultAnimalId: value === "none" ? undefined : value,
                   }))
                 }
+                value={prefs.defaultAnimalId || "none"}
               >
                 <SelectTrigger className="truncate">
                   <SelectValue placeholder="No default" />
@@ -445,7 +445,7 @@ export function PrefsPanel() {
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSubmitting}>
+        <Button disabled={isSubmitting} onClick={handleSave}>
           {isSubmitting ? "Saving..." : "Save Preferences"}
         </Button>
       </div>

@@ -75,7 +75,7 @@ export function TimezoneCombobox({
   const getTimezoneDisplay = (zone: IanaZone) => {
     const offset = offsetOf(zone);
     const time = timeIn(zone);
-    return { zone, offset, time };
+    return { offset, time, zone };
   };
 
   const currentDisplay = currentValue
@@ -100,9 +100,9 @@ export function TimezoneCombobox({
     // Avoid hydration mismatch by not rendering time-dependent content on server
     return (
       <Button
-        variant="outline"
-        disabled={disabled}
         className={cn("w-full justify-between", className)}
+        disabled={disabled}
+        variant="outline"
       >
         <span className="text-muted-foreground">{placeholder}</span>
         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -111,22 +111,22 @@ export function TimezoneCombobox({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          role="combobox"
+          aria-controls="timezone-listbox"
           aria-expanded={open}
+          aria-haspopup="listbox"
           aria-label="Select timezone"
           aria-required={required}
-          aria-haspopup="listbox"
-          aria-controls="timezone-listbox"
-          disabled={disabled}
           className={cn(
             "w-full justify-between",
             !currentDisplay && "text-muted-foreground",
             className,
           )}
+          disabled={disabled}
+          role="combobox"
+          variant="outline"
         >
           <span className="truncate">
             {currentDisplay ? (
@@ -148,12 +148,12 @@ export function TimezoneCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
-        <Command shouldFilter={false} id="timezone-listbox">
+      <PopoverContent align="start" className="w-[400px] p-0">
+        <Command id="timezone-listbox" shouldFilter={false}>
           <CommandInput
+            onValueChange={setQuery}
             placeholder="Search timezones..."
             value={query}
-            onValueChange={setQuery}
           />
           <CommandEmpty>
             {query.length === 0
@@ -166,8 +166,8 @@ export function TimezoneCombobox({
             <>
               <CommandGroup>
                 <CommandItem
-                  onSelect={handleDetectBrowser}
                   className="flex items-center gap-2"
+                  onSelect={handleDetectBrowser}
                 >
                   <Globe className="h-4 w-4" />
                   <span>Detect from browser</span>
@@ -188,10 +188,10 @@ export function TimezoneCombobox({
                   const display = getTimezoneDisplay(zone as IanaZone);
                   return (
                     <CommandItem
-                      key={zone}
-                      value={zone}
-                      onSelect={handleSelect}
                       className="flex items-start"
+                      key={zone}
+                      onSelect={handleSelect}
+                      value={zone}
                     >
                       <Check
                         className={cn(
@@ -225,10 +225,10 @@ export function TimezoneCombobox({
               const display = getTimezoneDisplay(zone as IanaZone);
               return (
                 <CommandItem
-                  key={zone}
-                  value={zone}
-                  onSelect={handleSelect}
                   className="flex items-start"
+                  key={zone}
+                  onSelect={handleSelect}
+                  value={zone}
                 >
                   <Check
                     className={cn(

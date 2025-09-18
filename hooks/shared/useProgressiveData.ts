@@ -60,12 +60,12 @@ export function useProgressiveData<T>(
   }, [initialLoadSize]);
 
   return {
-    visibleData,
-    isLoadingMore,
     hasMore,
+    isLoadingMore,
     loadMore,
-    reset,
     progress,
+    reset,
+    visibleData,
   };
 }
 
@@ -110,7 +110,7 @@ export function useBatchedData<T>(data: T[], priorityFn?: (item: T) => number) {
     requestAnimationFrame(processBatch);
   }, [data, priorityFn]);
 
-  return { processedData, isProcessing };
+  return { isProcessing, processedData };
 }
 
 /**

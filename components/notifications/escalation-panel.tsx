@@ -29,9 +29,9 @@ interface NotificationPrefs {
 
 export function EscalationPanel() {
   const [prefs, setPrefs] = useState<NotificationPrefs>({
-    leadMinutes: 15,
     attempts: [-15, 0, 15, 45, 90],
     escalationRole: "Owner",
+    leadMinutes: 15,
   });
   const [newAttempt, setNewAttempt] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,13 +104,13 @@ export function EscalationPanel() {
           <div className="space-y-2">
             <Label htmlFor="leadTime">Default Lead Time</Label>
             <Select
-              value={prefs.leadMinutes.toString()}
               onValueChange={(value) =>
                 setPrefs((prev) => ({
                   ...prev,
                   leadMinutes: Number.parseInt(value, 10),
                 }))
               }
+              value={prefs.leadMinutes.toString()}
             >
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
@@ -132,9 +132,7 @@ export function EscalationPanel() {
             <Label>Reminder Attempts</Label>
             <div className="flex gap-2">
               <Input
-                type="number"
-                placeholder="Minutes (e.g., -15, 0, 30)"
-                value={newAttempt}
+                className="w-[200px]"
                 onChange={(e) => setNewAttempt(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -142,18 +140,20 @@ export function EscalationPanel() {
                     addAttempt();
                   }
                 }}
-                className="w-[200px]"
+                placeholder="Minutes (e.g., -15, 0, 30)"
+                type="number"
+                value={newAttempt}
               />
-              <Button type="button" onClick={addAttempt} size="sm">
+              <Button onClick={addAttempt} size="sm" type="button">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {prefs.attempts.map((minutes) => (
-                <Badge key={minutes} variant="secondary" className="gap-1">
+                <Badge className="gap-1" key={minutes} variant="secondary">
                   {formatAttempt(minutes)}
-                  <button type="button" onClick={() => removeAttempt(minutes)}>
+                  <button onClick={() => removeAttempt(minutes)} type="button">
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
@@ -182,13 +182,13 @@ export function EscalationPanel() {
           <div className="space-y-2">
             <Label>Escalate to Role</Label>
             <Select
-              value={prefs.escalationRole}
               onValueChange={(value) =>
                 setPrefs((prev) => ({
                   ...prev,
                   escalationRole: value as "Owner" | "Lead",
                 }))
               }
+              value={prefs.escalationRole}
             >
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
@@ -206,7 +206,7 @@ export function EscalationPanel() {
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSubmitting}>
+        <Button disabled={isSubmitting} onClick={handleSave}>
           {isSubmitting ? "Saving..." : "Save Preferences"}
         </Button>
       </div>

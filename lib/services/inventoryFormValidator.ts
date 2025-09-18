@@ -97,8 +97,8 @@ export class InventoryFormValidator {
     warnings.push(...storageValidation.warnings);
 
     return {
-      isValid: errors.length === 0,
       errors,
+      isValid: errors.length === 0,
       warnings,
     };
   }
@@ -111,15 +111,15 @@ export class InventoryFormValidator {
 
     if (!householdId || householdId.trim() === "") {
       errors.push({
+        code: "MISSING_HOUSEHOLD",
         field: "general",
         message: "No household selected. Please select a household first.",
-        code: "MISSING_HOUSEHOLD",
       });
     }
 
     return {
-      isValid: errors.length === 0,
       errors,
+      isValid: errors.length === 0,
       warnings: [],
     };
   }
@@ -138,25 +138,25 @@ export class InventoryFormValidator {
 
     if (!hasMedicationId && !hasName) {
       errors.push({
+        code: "MISSING_MEDICATION",
         field: "medicationId",
         message:
           "Please select a medication or enter a custom medication name.",
-        code: "MISSING_MEDICATION",
       });
     }
 
     // Validate custom medication has required name
     if (data.isCustomMedication && !hasName) {
       errors.push({
+        code: "MISSING_CUSTOM_NAME",
         field: "name",
         message: "Custom medication name is required.",
-        code: "MISSING_CUSTOM_NAME",
       });
     }
 
     return {
-      isValid: errors.length === 0,
       errors,
+      isValid: errors.length === 0,
       warnings: [],
     };
   }
@@ -171,26 +171,26 @@ export class InventoryFormValidator {
     // Basic quantity validation
     if (data.quantityUnits <= 0) {
       errors.push({
+        code: "INVALID_QUANTITY",
         field: "quantityUnits",
         message: "Total quantity must be greater than 0.",
-        code: "INVALID_QUANTITY",
       });
     }
 
     if (data.unitsRemaining < 0) {
       errors.push({
+        code: "NEGATIVE_REMAINING",
         field: "unitsRemaining",
         message: "Units remaining cannot be negative.",
-        code: "NEGATIVE_REMAINING",
       });
     }
 
     // Business rule: remaining cannot exceed total
     if (data.unitsRemaining > data.quantityUnits) {
       errors.push({
+        code: "REMAINING_EXCEEDS_TOTAL",
         field: "unitsRemaining",
         message: "Units remaining cannot exceed total quantity.",
-        code: "REMAINING_EXCEEDS_TOTAL",
       });
     }
 
@@ -202,24 +202,24 @@ export class InventoryFormValidator {
 
     if (percentRemaining < 20 && percentRemaining > 0) {
       warnings.push({
+        code: "LOW_STOCK",
         field: "unitsRemaining",
         message: "Low stock warning: Less than 20% remaining.",
-        code: "LOW_STOCK",
       });
     }
 
     // Warning for empty stock
     if (data.unitsRemaining === 0) {
       warnings.push({
+        code: "EMPTY_STOCK",
         field: "unitsRemaining",
         message: "Empty stock: No units remaining.",
-        code: "EMPTY_STOCK",
       });
     }
 
     return {
-      isValid: errors.length === 0,
       errors,
+      isValid: errors.length === 0,
       warnings,
     };
   }
@@ -236,11 +236,11 @@ export class InventoryFormValidator {
 
     if (!data.expiresOn) {
       errors.push({
+        code: "MISSING_EXPIRY",
         field: "expiresOn",
         message: "Expiry date is required.",
-        code: "MISSING_EXPIRY",
       });
-      return { isValid: false, errors, warnings };
+      return { errors, isValid: false, warnings };
     }
 
     const now = new Date();
@@ -250,15 +250,15 @@ export class InventoryFormValidator {
     if (expiryDate < now) {
       if (allowPastExpiry) {
         warnings.push({
+          code: "EXPIRED_MEDICATION",
           field: "expiresOn",
           message: "This medication has already expired.",
-          code: "EXPIRED_MEDICATION",
         });
       } else {
         errors.push({
+          code: "PAST_EXPIRY_DATE",
           field: "expiresOn",
           message: "Expiry date must be in the future.",
-          code: "PAST_EXPIRY_DATE",
         });
       }
     }
@@ -270,24 +270,24 @@ export class InventoryFormValidator {
 
     if (daysUntilExpiry > 0 && daysUntilExpiry <= 30) {
       warnings.push({
+        code: "EXPIRING_SOON",
         field: "expiresOn",
         message: `Expires in ${daysUntilExpiry} days. Consider using soon.`,
-        code: "EXPIRING_SOON",
       });
     }
 
     // Warning for very long expiry (over 5 years)
     if (daysUntilExpiry > 5 * 365) {
       warnings.push({
+        code: "LONG_EXPIRY",
         field: "expiresOn",
         message: "Very long expiry date. Please verify this is correct.",
-        code: "LONG_EXPIRY",
       });
     }
 
     return {
-      isValid: errors.length === 0,
       errors,
+      isValid: errors.length === 0,
       warnings,
     };
   }
@@ -301,9 +301,9 @@ export class InventoryFormValidator {
     // Storage-specific warnings based on medication type
     if (data.storage === "CONTROLLED" && !data.lot) {
       warnings.push({
+        code: "CONTROLLED_LOT_RECOMMENDED",
         field: "lot",
         message: "Lot number recommended for controlled substances.",
-        code: "CONTROLLED_LOT_RECOMMENDED",
       });
     }
 
@@ -312,15 +312,15 @@ export class InventoryFormValidator {
       data.form?.toLowerCase().includes("liquid")
     ) {
       warnings.push({
+        code: "LIQUID_FREEZER_WARNING",
         field: "storage",
         message: "Verify liquid medication is suitable for freezing.",
-        code: "LIQUID_FREEZER_WARNING",
       });
     }
 
     return {
-      isValid: true,
       errors: [],
+      isValid: true,
       warnings,
     };
   }
@@ -351,7 +351,7 @@ export class InventoryFormValidator {
       case "storage":
         return InventoryFormValidator.validateStorage(mockData);
       default:
-        return { isValid: true, errors: [], warnings: [] };
+        return { errors: [], isValid: true, warnings: [] };
     }
   }
 

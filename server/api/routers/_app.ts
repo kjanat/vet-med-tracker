@@ -15,19 +15,19 @@ import { userRouter } from "./user";
 
 // Root router combining all sub-routers
 export const appRouter = createTRPCRouter({
-  animal: animalRouter,
-  household: householdRouter,
-  regimen: regimenRouter,
   admin: adminRouter,
+  animal: animalRouter,
+  audit: auditRouter,
+  cosigner: cosignerRouter,
+  dosage: dosageRouter,
+  household: householdRouter,
+  insights: insightsRouter,
   inventory: inventoryRouter,
   medication: medicationRouter,
-  dosage: dosageRouter,
-  insights: insightsRouter,
+  notifications: notificationsRouter,
+  regimen: regimenRouter,
   reports: reportsRouter,
   user: userRouter,
-  audit: auditRouter,
-  notifications: notificationsRouter,
-  cosigner: cosignerRouter,
 });
 
 // Export type for use in client

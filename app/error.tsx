@@ -57,7 +57,7 @@ export default function ErrorPage({
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
           </Button>
-          <Button variant="outline" asChild>
+          <Button asChild variant="outline">
             <Link href="/auth/dashboard">
               <Home className="mr-2 h-4 w-4" />
               Go to Dashboard
@@ -69,13 +69,13 @@ export default function ErrorPage({
         <div className="border-t pt-4">
           <p className="text-muted-foreground text-sm">
             If this problem persists, please{" "}
-            <Link href="/help" className="text-primary hover:underline">
+            <Link className="text-primary hover:underline" href="/help">
               contact support
             </Link>{" "}
             or check our{" "}
             <Link
-              href="/auth/dashboard"
               className="text-primary hover:underline"
+              href="/auth/dashboard"
             >
               dashboard
             </Link>

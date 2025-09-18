@@ -30,8 +30,8 @@ export function CtaSection() {
             <div className="mb-8 flex flex-wrap justify-center gap-4">
               {benefits.map((benefit, index) => (
                 <div
-                  key={`benefit-${benefit.substring(0, 20).replace(/\s+/g, "-").toLowerCase()}`}
                   className="flex items-center gap-2 transition-transform duration-200 hover:scale-105"
+                  key={`benefit-${benefit.substring(0, 20).replace(/\s+/g, "-").toLowerCase()}`}
                 >
                   <CheckCircle
                     className="h-5 w-5 animate-pulse text-green-600"

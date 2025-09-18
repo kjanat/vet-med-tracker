@@ -13,37 +13,37 @@ export function AnimalSwitcher() {
     <ScrollArea className="w-full whitespace-nowrap">
       <div className="flex gap-2 pb-2">
         <button
-          type="button"
-          onClick={() => setSelectedAnimal(null)}
           className={cn(
             "flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 font-medium text-sm transition-colors",
             !selectedAnimal
               ? "bg-primary text-primary-foreground"
               : "bg-background hover:bg-accent",
           )}
+          onClick={() => setSelectedAnimal(null)}
+          type="button"
         >
           All Animals
-          <Badge variant="secondary" className="ml-1">
+          <Badge className="ml-1" variant="secondary">
             {animals.reduce((sum, animal) => sum + animal.pendingMeds, 0)}
           </Badge>
         </button>
 
         {animals.map((animal) => (
           <button
-            type="button"
-            key={animal.id}
-            onClick={() => setSelectedAnimal(animal)}
             className={cn(
               "flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 font-medium text-sm transition-colors",
               selectedAnimal?.id === animal.id
                 ? "bg-primary text-primary-foreground"
                 : "bg-background hover:bg-accent",
             )}
+            key={animal.id}
+            onClick={() => setSelectedAnimal(animal)}
+            type="button"
           >
             <AnimalAvatar animal={animal} size="sm" />
             {animal.name}
             {animal.pendingMeds > 0 && (
-              <Badge variant="destructive" className="ml-1">
+              <Badge className="ml-1" variant="destructive">
                 {animal.pendingMeds}
               </Badge>
             )}

@@ -36,7 +36,7 @@ function usePushNotifications() {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      const hasLocalSubscription = !!subscription;
+      const hasLocalSubscription = Boolean(subscription);
       const hasServerSubscription = (subscriptionsQuery.data?.length || 0) > 0;
 
       setIsSubscribed(hasLocalSubscription && hasServerSubscription);
@@ -57,18 +57,18 @@ function usePushNotifications() {
   }, [checkSubscriptionStatus]);
 
   return {
-    isSupported,
-    isSubscribed,
     isLoading,
+    isSubscribed,
+    isSupported,
     permission,
-    setIsSubscribed,
     setIsLoading,
+    setIsSubscribed,
     setPermission,
-    vapidPublicKey: vapidKeyQuery.data?.publicKey,
-    subscriptions: subscriptionsQuery.data || [],
     subscribeMutation,
-    unsubscribeMutation,
+    subscriptions: subscriptionsQuery.data || [],
     testMutation,
+    unsubscribeMutation,
+    vapidPublicKey: vapidKeyQuery.data?.publicKey,
   };
 }
 
@@ -92,9 +92,9 @@ export function PushPanel() {
   const subscribeToPush = async () => {
     if (!isSupported || !vapidPublicKey) {
       toast({
-        title: "Error",
         description:
           "Push notifications are not supported or VAPID key is not available",
+        title: "Error",
         variant: "destructive",
       });
       return;
@@ -108,9 +108,9 @@ export function PushPanel() {
 
       if (permissionResult !== "granted") {
         toast({
-          title: "Permission Required",
           description:
             "Please allow notifications to receive medication reminders",
+          title: "Permission Required",
           variant: "destructive",
         });
         return;
@@ -121,22 +121,22 @@ export function PushPanel() {
 
       // Subscribe to push notifications
       const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        userVisibleOnly: true,
       });
 
       const subscriptionData = subscription.toJSON();
 
       // Send subscription to server via tRPC
       await subscribeMutation.mutateAsync({
+        deviceInfo: {
+          deviceName: getDeviceName(),
+          userAgent: navigator.userAgent,
+        },
         endpoint: subscription.endpoint,
         keys: {
-          p256dh: subscriptionData.keys?.p256dh || "",
           auth: subscriptionData.keys?.auth || "",
-        },
-        deviceInfo: {
-          userAgent: navigator.userAgent,
-          deviceName: getDeviceName(),
+          p256dh: subscriptionData.keys?.p256dh || "",
         },
       });
 
@@ -149,15 +149,15 @@ export function PushPanel() {
 
       setIsSubscribed(true);
       toast({
-        title: "Success!",
         description: "You're now subscribed to push notifications",
+        title: "Success!",
       });
     } catch (error) {
       console.error("Failed to subscribe to push notifications:", error);
       toast({
-        title: "Error",
         description:
           "Failed to subscribe to push notifications. Please try again.",
+        title: "Error",
         variant: "destructive",
       });
     } finally {
@@ -184,8 +184,8 @@ export function PushPanel() {
 
         console.log("Unsubscribed from push notifications");
         toast({
-          title: "Unsubscribed",
           description: "You will no longer receive push notifications",
+          title: "Unsubscribed",
         });
       }
 
@@ -193,8 +193,8 @@ export function PushPanel() {
     } catch (error) {
       console.error("Failed to unsubscribe from push notifications:", error);
       toast({
-        title: "Error",
         description: "Failed to unsubscribe. Please try again.",
+        title: "Error",
         variant: "destructive",
       });
     } finally {
@@ -205,8 +205,8 @@ export function PushPanel() {
   const sendTestNotification = async () => {
     if (!isSubscribed) {
       toast({
-        title: "Not Subscribed",
         description: "Please subscribe to push notifications first",
+        title: "Not Subscribed",
         variant: "destructive",
       });
       return;
@@ -215,14 +215,14 @@ export function PushPanel() {
     try {
       const result = await testMutation.mutateAsync();
       toast({
-        title: "Test Sent!",
         description: `Sent ${result.sent} notification(s), ${result.failed} failed`,
+        title: "Test Sent!",
       });
     } catch (error) {
       console.error("Failed to send test notification:", error);
       toast({
-        title: "Error",
         description: "Failed to send test notification. Please try again.",
+        title: "Error",
         variant: "destructive",
       });
     }
@@ -244,23 +244,23 @@ export function PushPanel() {
       <CardContent className="space-y-4">
         {isMobile ? (
           <MobileLayout
-            permission={permission}
-            isSubscribed={isSubscribed}
             isLoading={isLoading}
-            onSubscribe={subscribeToPush}
-            onUnsubscribe={unsubscribeFromPush}
-            onTest={sendTestNotification}
+            isSubscribed={isSubscribed}
             isTestLoading={testMutation.isPending}
+            onSubscribe={subscribeToPush}
+            onTest={sendTestNotification}
+            onUnsubscribe={unsubscribeFromPush}
+            permission={permission}
           />
         ) : (
           <DesktopLayout
-            permission={permission}
-            isSubscribed={isSubscribed}
             isLoading={isLoading}
-            onSubscribe={subscribeToPush}
-            onUnsubscribe={unsubscribeFromPush}
-            onTest={sendTestNotification}
+            isSubscribed={isSubscribed}
             isTestLoading={testMutation.isPending}
+            onSubscribe={subscribeToPush}
+            onTest={sendTestNotification}
+            onUnsubscribe={unsubscribeFromPush}
+            permission={permission}
           />
         )}
 
@@ -278,7 +278,7 @@ export function PushPanel() {
             <h4 className="font-medium text-sm">Active Devices</h4>
             <div className="space-y-1">
               {subscriptions.map((sub) => (
-                <div key={sub.id} className="text-muted-foreground text-xs">
+                <div className="text-muted-foreground text-xs" key={sub.id}>
                   {sub.deviceName || "Unknown Device"} - Last used:{" "}
                   {new Date(sub.lastUsed).toLocaleDateString()}
                 </div>
@@ -336,18 +336,18 @@ function MobileLayout({
       {permission !== "denied" && (
         <div className="space-y-2">
           <SubscriptionButton
-            isSubscribed={isSubscribed}
+            className="w-full"
             isLoading={isLoading}
+            isSubscribed={isSubscribed}
             onSubscribe={onSubscribe}
             onUnsubscribe={onUnsubscribe}
-            className="w-full"
           />
           {isSubscribed && (
             <Button
-              onClick={onTest}
-              disabled={isTestLoading}
-              variant="outline"
               className="w-full"
+              disabled={isTestLoading}
+              onClick={onTest}
+              variant="outline"
             >
               <TestTube className="mr-2 h-4 w-4" />
               {isTestLoading ? "Sending..." : "Send Test"}
@@ -383,21 +383,21 @@ function DesktopLayout({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <StatusDisplay permission={permission} isSubscribed={isSubscribed} />
+      <StatusDisplay isSubscribed={isSubscribed} permission={permission} />
       {permission !== "denied" && (
         <div className="flex gap-2">
           <SubscriptionButton
-            isSubscribed={isSubscribed}
             isLoading={isLoading}
+            isSubscribed={isSubscribed}
             onSubscribe={onSubscribe}
             onUnsubscribe={onUnsubscribe}
           />
           {isSubscribed && (
             <Button
-              onClick={onTest}
               disabled={isTestLoading}
-              variant="outline"
+              onClick={onTest}
               size="sm"
+              variant="outline"
             >
               <TestTube className="mr-2 h-4 w-4" />
               {isTestLoading ? "Sending..." : "Test"}
@@ -451,8 +451,9 @@ function SubscriptionButton({
 }) {
   return (
     <Button
-      onClick={isSubscribed ? onUnsubscribe : onSubscribe}
+      className={className}
       disabled={isLoading}
+      onClick={isSubscribed ? onUnsubscribe : onSubscribe}
       variant={
         isSubscribed
           ? className?.includes("w-full")
@@ -460,7 +461,6 @@ function SubscriptionButton({
             : "outline"
           : "default"
       }
-      className={className}
     >
       {isLoading ? "Loading..." : isSubscribed ? "Unsubscribe" : "Subscribe"}
     </Button>

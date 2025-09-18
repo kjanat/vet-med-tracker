@@ -6,22 +6,22 @@ import {
 } from "../lib/calculators/dosage";
 
 const baseMedication: Medication = {
-  id: "med-amoxicillin",
-  genericName: "Amoxicillin",
   category: "antibiotic",
-  formulation: "tablet",
-  dosageMinMgKg: 10,
-  dosageMaxMgKg: 20,
-  dosageTypicalMgKg: 15,
-  maxDailyDoseMg: 800,
   concentrationMgMl: 50,
-  unitsPerTablet: 125,
-  frequencyPerDay: 2,
+  dosageMaxMgKg: 20,
+  dosageMinMgKg: 10,
+  dosageTypicalMgKg: 15,
   duration: "7 days",
+  formulation: "tablet",
+  frequencyPerDay: 2,
+  genericName: "Amoxicillin",
+  id: "med-amoxicillin",
+  isControlledSubstance: false,
+  maxDailyDoseMg: 800,
+  prescriptionRequired: true,
   route: "oral",
   species: ["dog", "cat"],
-  isControlledSubstance: false,
-  prescriptionRequired: true,
+  unitsPerTablet: 125,
 };
 
 const caninePatient: Animal = {
@@ -33,8 +33,8 @@ const caninePatient: Animal = {
 describe("DosageCalculator more edge cases", () => {
   test("handles non-dog species with breed", () => {
     const catWithBreed: Animal = {
-      species: "cat",
       breed: "Siamese",
+      species: "cat",
       weight: 5,
       weightUnit: "kg",
     };
@@ -67,8 +67,8 @@ describe("DosageCalculator more edge cases", () => {
 
   test("determines calculation method for breed adjustment only", () => {
     const greyhound: Animal = {
-      species: "dog",
       breed: "Greyhound",
+      species: "dog",
       weight: 30,
       weightUnit: "kg",
     };

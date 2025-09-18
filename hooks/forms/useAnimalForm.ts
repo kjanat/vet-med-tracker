@@ -15,24 +15,24 @@ import { useAnimalFormState } from "./useAnimalFormState";
 
 // Simplified schema for form validation to avoid complex type inference issues
 const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  species: z.string().min(1, "Species is required"),
+  allergies: z.array(z.string()),
   breed: z.string().optional(),
-  sex: z.enum(["Male", "Female"]).optional(),
-  neutered: z.boolean(),
-  dob: z.date().optional(),
-  weightKg: z.number().optional(),
-  microchipId: z.string().optional(),
+  clinicName: z.string().optional(),
   color: z.string().optional(),
+  conditions: z.array(z.string()),
+  dob: z.date().optional(),
+  microchipId: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  neutered: z.boolean(),
+  notes: z.string().optional(),
+  photoUrl: z.url().optional().or(z.literal("")),
+  sex: z.enum(["Male", "Female"]).optional(),
+  species: z.string().min(1, "Species is required"),
   timezone: z.string().min(1, "Timezone is required"),
+  vetEmail: z.email().optional().or(z.literal("")),
   vetName: z.string().optional(),
   vetPhone: z.string().optional(),
-  vetEmail: z.email().optional().or(z.literal("")),
-  clinicName: z.string().optional(),
-  notes: z.string().optional(),
-  allergies: z.array(z.string()),
-  conditions: z.array(z.string()),
-  photoUrl: z.url().optional().or(z.literal("")),
+  weightKg: z.number().optional(),
 });
 
 /**
@@ -162,71 +162,71 @@ export function useAnimalForm(
     openForm: openFormState,
     closeForm: closeFormState,
   } = useAnimalFormState({
-    onOpen,
     onClose,
+    onOpen,
   });
 
   // Initialize form with validation
   const form = useForm<AnimalFormData>({
-    resolver: zodResolver(formSchema),
     defaultValues: AnimalDataTransformer.createDefaultValues(),
     mode: "onBlur",
+    resolver: zodResolver(formSchema),
   });
 
   // tRPC mutations
   const createMutation = trpc.animal.create.useMutation({
-    onSuccess: (data) => {
+    onError: (error): void => {
+      console.error("Error creating animal:", error);
+      toast({
+        description: "Failed to create animal. Please try again.",
+        title: "Error",
+        variant: "destructive",
+      });
+      onError?.(error, editingAnimal);
+    },
+    onSuccess: (data): void => {
       // Invalidate queries to refresh data
       utils.animal.list.invalidate();
       utils.household.getAnimals.invalidate();
 
       if (showSuccessToast && data) {
-        const message =
+        const message: string =
           successMessage?.(data as unknown as Animal, true) ||
           `Created ${data.name}`;
-        toast({ title: "Success", description: message });
+        toast({ description: message, title: "Success" });
       }
 
       if (data) {
         onSave?.(data as unknown as Animal, true);
       }
     },
-    onError: (error) => {
-      console.error("Error creating animal:", error);
+  });
+
+  const updateMutation = trpc.animal.update.useMutation({
+    onError: (error): void => {
+      console.error("Error updating animal:", error);
       toast({
+        description: "Failed to update animal. Please try again.",
         title: "Error",
-        description: "Failed to create animal. Please try again.",
         variant: "destructive",
       });
       onError?.(error, editingAnimal);
     },
-  });
-
-  const updateMutation = trpc.animal.update.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data): void => {
       // Invalidate queries to refresh data
       utils.animal.list.invalidate();
       utils.household.getAnimals.invalidate();
 
       if (showSuccessToast && data) {
-        const message =
+        const message: string =
           successMessage?.(data as unknown as Animal, false) ||
           `Updated ${data.name}`;
-        toast({ title: "Success", description: message });
+        toast({ description: message, title: "Success" });
       }
 
       if (data) {
         onSave?.(data as unknown as Animal, false);
       }
-    },
-    onError: (error) => {
-      console.error("Error updating animal:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update animal. Please try again.",
-        variant: "destructive",
-      });
-      onError?.(error, editingAnimal);
     },
   });
 
@@ -234,7 +234,7 @@ export function useAnimalForm(
    * Fire instrumentation events using the data transformer
    */
   const fireInstrumentationEvent = useCallback(
-    (data: AnimalFormData, isNew: boolean) => {
+    (data: AnimalFormData, isNew: boolean): void => {
       const eventData = AnimalDataTransformer.toInstrumentationData(
         data,
         isNew,
@@ -254,7 +254,7 @@ export function useAnimalForm(
    * Open the form for creating or editing an animal
    */
   const openForm = useCallback(
-    (animal?: Animal | null) => {
+    (animal?: Animal | null): void => {
       if (animal) {
         const formData = AnimalDataTransformer.fromAnimalRecord(animal);
         form.reset(formData);
@@ -270,7 +270,7 @@ export function useAnimalForm(
   /**
    * Close the form
    */
-  const closeForm = useCallback(() => {
+  const closeForm: () => void = useCallback((): void => {
     form.reset();
     closeFormState();
   }, [form, closeFormState]);
@@ -278,7 +278,7 @@ export function useAnimalForm(
   /**
    * Reset the form to default values
    */
-  const resetForm = useCallback(() => {
+  const resetForm: () => void = useCallback((): void => {
     form.reset(AnimalDataTransformer.createDefaultValues());
     setIsDirty(false);
   }, [form, setIsDirty]);
@@ -287,23 +287,23 @@ export function useAnimalForm(
    * Save the form data
    */
   const saveForm = useCallback(
-    async (data: AnimalFormData) => {
+    async (data: AnimalFormData): Promise<void> => {
       // Validate form data using the validation service
       const validationContext = {
         household: selectedHousehold,
-        isEditing: !!editingAnimal,
+        isEditing: Boolean(editingAnimal),
       };
 
       if (!AnimalFormValidator.canSubmit(data, validationContext)) {
-        const errorMessage = AnimalFormValidator.getErrorMessage(
+        const errorMessage: string | null = AnimalFormValidator.getErrorMessage(
           data,
           validationContext,
         );
         if (errorMessage) {
           setError(errorMessage);
           toast({
-            title: "Validation Error",
             description: errorMessage,
+            title: "Validation Error",
             variant: "destructive",
           });
         }
@@ -314,7 +314,7 @@ export function useAnimalForm(
       clearError();
 
       try {
-        const isNew = !editingAnimal;
+        const isNew: boolean = !editingAnimal;
         fireInstrumentationEvent(data, isNew);
 
         if (editingAnimal) {
@@ -365,28 +365,28 @@ export function useAnimalForm(
   }
 
   return {
-    // Core form state
-    isOpen,
+    clearErrorAction: clearError,
+    closeForm,
+
+    // Mutations (for backward compatibility)
+    createMutation,
     editingAnimal,
-    isLoading: createMutation.isPending || updateMutation.isPending,
-    isDirty: isDirty || formState.isDirty,
     error,
 
     // Form management
     form,
+    isDirty: isDirty || formState.isDirty,
+    isLoading: createMutation.isPending || updateMutation.isPending,
+    // Core form state
+    isOpen,
 
     // Core actions
     openForm,
-    closeForm,
-    saveForm,
 
     // Additional actions
     resetForm,
+    saveForm,
     setDirty: setIsDirty,
-    clearErrorAction: clearError,
-
-    // Mutations (for backward compatibility)
-    createMutation,
     updateMutation,
   };
 }
@@ -420,10 +420,10 @@ export function useSimpleAnimalForm(animal?: Animal | null) {
   }
 
   return {
-    form,
-    saveAnimal: saveForm,
-    isLoading,
     createMutation,
+    form,
+    isLoading,
+    saveAnimal: saveForm,
     updateMutation,
   };
 }
@@ -454,58 +454,70 @@ export function useSimpleAnimalForm(animal?: Animal | null) {
  */
 export function useAnimalCalculations(
   form: ReturnType<typeof useForm<AnimalFormData>>,
-) {
+): {
+  ageInYears: number | null;
+  completenessPercentage: number;
+  hasHealthInfo: boolean;
+  hasRequiredFields: boolean;
+  hasVetInfo: boolean;
+  isAgeKnown: boolean;
+  isCompleteRecord: boolean;
+  isPuppy: boolean;
+  isSenior: boolean;
+  recordStatus: "complete" | "partial" | "minimal";
+} {
   const formData = form.watch();
 
   // Use data transformer service for consistent calculations
-  const completenessPercentage =
+  const completenessPercentage: number =
     AnimalDataTransformer.calculateCompleteness(formData);
-  const isCompleteRecord = AnimalDataTransformer.isCompleteRecord(formData);
-  const hasRequiredFields = AnimalDataTransformer.hasRequiredFields(formData);
+  const isCompleteRecord: boolean =
+    AnimalDataTransformer.isCompleteRecord(formData);
+  const hasRequiredFields: boolean =
+    AnimalDataTransformer.hasRequiredFields(formData);
 
   // Calculate age in years if DOB is available
-  const ageInYears = formData.dob
+  const ageInYears: number | null = formData.dob
     ? Math.floor(
         (Date.now() - formData.dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
       )
     : null;
 
   // Calculate age status
-  const isAgeKnown = !!formData.dob;
-  const isPuppy = ageInYears !== null && ageInYears < 1;
-  const isSenior = ageInYears !== null && ageInYears > 7; // Varies by species/breed
+  const isAgeKnown: boolean = Boolean(formData.dob);
+  const isPuppy: boolean = ageInYears !== null && ageInYears < 1;
+  const isSenior: boolean = ageInYears !== null && ageInYears > 7; // Varies by species/breed
 
   // Health information completeness
-  const hasHealthInfo = !!(
+  const hasHealthInfo: boolean = Boolean(
     (formData.allergies && formData.allergies.length > 0) ||
-    (formData.conditions && formData.conditions.length > 0) ||
-    formData.weightKg ||
-    formData.microchipId
+      (formData.conditions && formData.conditions.length > 0) ||
+      formData.weightKg ||
+      formData.microchipId,
   );
 
   // Vet contact completeness
-  const hasVetInfo = !!(
+  const hasVetInfo: boolean = Boolean(
     formData.vetName ||
-    formData.vetPhone ||
-    formData.vetEmail ||
-    formData.clinicName
+      formData.vetPhone ||
+      formData.vetEmail ||
+      formData.clinicName,
   );
 
   return {
-    // Core calculations
-    completenessPercentage,
-    isCompleteRecord,
-    hasRequiredFields,
-
     // Age calculations
     ageInYears,
-    isAgeKnown,
-    isPuppy,
-    isSenior,
+    // Core calculations
+    completenessPercentage,
 
     // Information categories
     hasHealthInfo,
+    hasRequiredFields,
     hasVetInfo,
+    isAgeKnown,
+    isCompleteRecord,
+    isPuppy,
+    isSenior,
 
     // Summary indicators
     recordStatus:

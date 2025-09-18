@@ -200,10 +200,10 @@ function AnimalLeaderboard({
 
               return (
                 <button
-                  type="button"
-                  key={animal.animalId}
                   className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent"
+                  key={animal.animalId}
                   onClick={() => handleCardClick(`animalId=${animal.animalId}`)}
+                  type="button"
                 >
                   {/* Left side: Position, avatar, and animal info */}
                   <div className="flex min-w-0 items-center gap-3">
@@ -226,6 +226,7 @@ function AnimalLeaderboard({
                   {/* Right side: Badges stacked vertically */}
                   <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-2">
                     <Badge
+                      className="w-fit"
                       variant={
                         animal.adherencePct >= 90
                           ? "default"
@@ -233,14 +234,13 @@ function AnimalLeaderboard({
                             ? "secondary"
                             : "destructive"
                       }
-                      className="w-fit"
                     >
                       {animal.adherencePct}%
                     </Badge>
                     {animal.missed > 0 && (
                       <Badge
-                        variant="outline"
                         className="w-fit whitespace-nowrap text-orange-600"
+                        variant="outline"
                       >
                         {animal.missed} missed
                       </Badge>
@@ -263,12 +263,12 @@ export function SummaryCards({ range }: SummaryCardsProps) {
   // Fetch administration data for the selected date range
   const { data: adminData, isLoading } = trpc.admin.list.useQuery(
     {
+      endDate: range.to.toISOString(),
       householdId: selectedHousehold?.id || "",
       startDate: range.from.toISOString(),
-      endDate: range.to.toISOString(),
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
     },
   );
 
@@ -302,13 +302,13 @@ export function SummaryCards({ range }: SummaryCardsProps) {
         scheduled > 0 ? Math.round((completed / scheduled) * 100) : 100;
 
       return {
+        adherencePct,
         animalId: animal.id,
         animalName: animal.name,
-        adherencePct,
-        scheduled,
         completed,
-        missed,
         late,
+        missed,
+        scheduled,
         veryLate,
       };
     };
@@ -347,12 +347,12 @@ export function SummaryCards({ range }: SummaryCardsProps) {
   // Calculate household totals
   const householdTotals = complianceData.reduce(
     (acc, animal) => ({
-      scheduled: acc.scheduled + animal.scheduled,
       completed: acc.completed + animal.completed,
-      missed: acc.missed + animal.missed,
       late: acc.late + animal.late,
+      missed: acc.missed + animal.missed,
+      scheduled: acc.scheduled + animal.scheduled,
     }),
-    { scheduled: 0, completed: 0, missed: 0, late: 0 },
+    { completed: 0, late: 0, missed: 0, scheduled: 0 },
   );
 
   const householdAdherence =
@@ -378,8 +378,8 @@ export function SummaryCards({ range }: SummaryCardsProps) {
   }
 
   // Check if we have any data to show
-  const hasData = !!(adminData && adminData.length > 0);
-  const hasAnimals = !!(animals && animals.length > 0);
+  const hasData = Boolean(adminData && adminData.length > 0);
+  const hasAnimals = Boolean(animals && animals.length > 0);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -445,11 +445,11 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
       {/* Best Performer */}
       <TopPerformerCard
-        sortedAnimals={sortedAnimals}
         animals={animals}
+        handleCardClick={handleCardClick}
         hasAnimals={hasAnimals}
         hasData={hasData}
-        handleCardClick={handleCardClick}
+        sortedAnimals={sortedAnimals}
       />
 
       {/* Needs Attention */}
@@ -482,11 +482,11 @@ export function SummaryCards({ range }: SummaryCardsProps) {
 
       {/* Animal Leaderboard */}
       <AnimalLeaderboard
-        sortedAnimals={sortedAnimals}
         animals={animals}
+        handleCardClick={handleCardClick}
         hasAnimals={hasAnimals}
         hasData={hasData}
-        handleCardClick={handleCardClick}
+        sortedAnimals={sortedAnimals}
       />
     </div>
   );

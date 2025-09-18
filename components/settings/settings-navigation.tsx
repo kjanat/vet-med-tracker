@@ -19,9 +19,9 @@ interface SettingsNavigationProps {
 }
 
 const tabs = [
-  { value: "data", label: "Data & Privacy" },
-  { value: "preferences", label: "Preferences" },
-  { value: "notifications", label: "Notifications" },
+  { label: "Data & Privacy", value: "data" },
+  { label: "Preferences", value: "preferences" },
+  { label: "Notifications", value: "notifications" },
 ] as const;
 
 export function SettingsNavigation({
@@ -54,7 +54,7 @@ export function SettingsNavigation({
   // Mobile: Select dropdown
   if (isMobile) {
     return (
-      <Select value={activeTab} onValueChange={onTabChange}>
+      <Select onValueChange={onTabChange} value={activeTab}>
         <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
@@ -74,9 +74,9 @@ export function SettingsNavigation({
     <TabsList className="grid h-auto w-full grid-cols-3 gap-1 p-1">
       {tabs.map((tab) => (
         <TabsTrigger
+          className="min-h-[44px] w-full justify-start"
           key={tab.value}
           value={tab.value}
-          className="min-h-[44px] w-full justify-start"
         >
           {tab.label}
         </TabsTrigger>

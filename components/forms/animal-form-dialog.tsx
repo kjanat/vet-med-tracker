@@ -12,16 +12,16 @@ import type { Animal } from "@/lib/utils/types";
  */
 export function AnimalFormDialog() {
   const { isOpen, editingAnimal, closeForm, saveForm } = useAnimalForm({
-    showSuccessToast: true,
     autoClose: true,
+    showSuccessToast: true,
   });
 
   return (
     <AnimalForm
       animal={editingAnimal}
-      open={isOpen}
       onOpenChange={closeForm}
       onSave={saveForm}
+      open={isOpen}
     />
   );
 }
@@ -36,8 +36,8 @@ export function useAnimalFormDialog() {
   const { openForm, isOpen, isLoading } = useAnimalForm();
 
   return {
-    openAnimalForm: (animal?: Animal | null) => openForm(animal),
-    isFormOpen: isOpen,
     isFormLoading: isLoading,
+    isFormOpen: isOpen,
+    openAnimalForm: (animal?: Animal | null) => openForm(animal),
   };
 }

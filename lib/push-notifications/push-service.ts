@@ -116,8 +116,8 @@ export class PushNotificationService {
   ): Promise<{ userId: string; success: boolean }[]> {
     const results = await Promise.allSettled(
       userIds.map(async (userId) => ({
-        userId,
         success: await this.sendToUser(userId, payload),
+        userId,
       })),
     );
 
@@ -127,8 +127,8 @@ export class PushNotificationService {
         throw new Error(`Missing userId at index ${index}`);
       }
       return {
-        userId,
         success: result.status === "fulfilled" ? result.value.success : false,
+        userId,
       };
     });
   }
@@ -166,28 +166,28 @@ export class PushNotificationService {
 
     try {
       const notificationPayload = JSON.stringify({
-        title: payload.title,
-        body: payload.body,
-        icon: payload.icon || "/icons/icon-192x192.png",
+        actions: payload.actions || [],
         badge: payload.badge || "/icons/badge-72x72.png",
-        image: payload.image,
+        body: payload.body,
         data: {
           ...payload.data,
-          url: payload.data?.url || "/",
           timestamp: Date.now(),
+          url: payload.data?.url || "/",
         },
-        actions: payload.actions || [],
-        tag: payload.tag,
+        icon: payload.icon || "/icons/icon-192x192.png",
+        image: payload.image,
         requireInteraction: payload.requireInteraction || false,
         silent: payload.silent || false,
+        tag: payload.tag,
+        title: payload.title,
       });
 
       await webpush.sendNotification(
         subscription.subscription,
         notificationPayload,
         {
-          urgency: payload.urgency || "normal",
           TTL: payload.ttl || 24 * 60 * 60, // 24 hours default
+          urgency: payload.urgency || "normal",
         },
       );
 
@@ -233,19 +233,19 @@ export class PushNotificationService {
       );
 
     return result.map((row) => ({
+      createdAt: new Date(row.createdAt),
       id: row.id,
-      userId: row.userId,
+      isActive: row.isActive,
+      lastUsed: row.lastUsed ? new Date(row.lastUsed) : null,
       subscription: {
         endpoint: row.endpoint,
         keys: {
-          p256dh: row.p256dhKey,
           auth: row.authKey,
+          p256dh: row.p256dhKey,
         },
       },
       userAgent: row.userAgent,
-      isActive: row.isActive,
-      createdAt: new Date(row.createdAt),
-      lastUsed: row.lastUsed ? new Date(row.lastUsed) : null,
+      userId: row.userId,
     }));
   }
 
@@ -301,30 +301,30 @@ export class PushNotificationService {
     dosage: string;
   }): PushNotificationPayload {
     return {
-      title: `Medication Reminder: ${data.animalName}`,
-      body: `Time to give ${data.medicationName} (${data.dosage})`,
-      icon: "/icons/medication-reminder.png",
-      badge: "/icons/badge-72x72.png",
-      tag: `medication-${data.regimenId}`,
-      data: {
-        type: "medication_reminder",
-        regimenId: data.regimenId,
-        animalId: data.animalId,
-        url: `/administer/${data.regimenId}`,
-      },
       actions: [
         {
           action: "administer",
-          title: "Mark as Given",
           icon: "/icons/check.png",
+          title: "Mark as Given",
         },
         {
           action: "snooze",
-          title: "Snooze 15min",
           icon: "/icons/snooze.png",
+          title: "Snooze 15min",
         },
       ],
+      badge: "/icons/badge-72x72.png",
+      body: `Time to give ${data.medicationName} (${data.dosage})`,
+      data: {
+        animalId: data.animalId,
+        regimenId: data.regimenId,
+        type: "medication_reminder",
+        url: `/administer/${data.regimenId}`,
+      },
+      icon: "/icons/medication-reminder.png",
       requireInteraction: true,
+      tag: `medication-${data.regimenId}`,
+      title: `Medication Reminder: ${data.animalName}`,
       urgency: "high",
     };
   }
@@ -334,30 +334,30 @@ export class PushNotificationService {
    */
   createMedicationReminder(data: MedicationReminder): PushNotificationPayload {
     return {
-      title: `Medication Reminder: ${data.data.animalName}`,
-      body: `Time to give ${data.data.medicationName} (${data.data.dose})`,
-      icon: "/icons/medication-reminder.png",
-      badge: "/icons/badge-72x72.png",
-      tag: `medication-${data.data.regimenId}`,
-      data: {
-        type: "medication_reminder",
-        regimenId: data.data.regimenId,
-        animalId: data.data.animalId,
-        url: `/administer/${data.data.regimenId}`,
-      },
       actions: [
         {
           action: "administer",
-          title: "Mark as Given",
           icon: "/icons/check.png",
+          title: "Mark as Given",
         },
         {
           action: "snooze",
-          title: "Snooze 15min",
           icon: "/icons/snooze.png",
+          title: "Snooze 15min",
         },
       ],
+      badge: "/icons/badge-72x72.png",
+      body: `Time to give ${data.data.medicationName} (${data.data.dose})`,
+      data: {
+        animalId: data.data.animalId,
+        regimenId: data.data.regimenId,
+        type: "medication_reminder",
+        url: `/administer/${data.data.regimenId}`,
+      },
+      icon: "/icons/medication-reminder.png",
       requireInteraction: true,
+      tag: `medication-${data.data.regimenId}`,
+      title: `Medication Reminder: ${data.data.animalName}`,
       urgency: "high",
     };
   }
@@ -367,30 +367,30 @@ export class PushNotificationService {
    */
   createCosignRequest(data: CosignRequest): PushNotificationPayload {
     return {
-      title: "Co-signature Required",
-      body: `${data.data.requesterName} needs you to co-sign a ${data.data.medicationName} administration for ${data.data.animalName}`,
-      icon: "/icons/cosign-request.png",
-      badge: "/icons/badge-72x72.png",
-      tag: `cosign-${data.data.cosignRequestId}`,
-      data: {
-        type: "cosign_request",
-        cosignRequestId: data.data.cosignRequestId,
-        requesterId: data.data.requesterId,
-        url: `/cosign/${data.data.cosignRequestId}`,
-      },
       actions: [
         {
           action: "approve",
-          title: "Approve",
           icon: "/icons/approve.png",
+          title: "Approve",
         },
         {
           action: "view",
-          title: "View Details",
           icon: "/icons/view.png",
+          title: "View Details",
         },
       ],
+      badge: "/icons/badge-72x72.png",
+      body: `${data.data.requesterName} needs you to co-sign a ${data.data.medicationName} administration for ${data.data.animalName}`,
+      data: {
+        cosignRequestId: data.data.cosignRequestId,
+        requesterId: data.data.requesterId,
+        type: "cosign_request",
+        url: `/cosign/${data.data.cosignRequestId}`,
+      },
+      icon: "/icons/cosign-request.png",
       requireInteraction: true,
+      tag: `cosign-${data.data.cosignRequestId}`,
+      title: "Co-signature Required",
       urgency: "high",
     };
   }
@@ -402,29 +402,29 @@ export class PushNotificationService {
     data: LowInventoryWarning,
   ): PushNotificationPayload {
     return {
-      title: "Low Inventory Warning",
-      body: `${data.data.medicationName} is running low (${data.data.daysRemaining} days left)`,
-      icon: "/icons/low-inventory.png",
-      badge: "/icons/badge-72x72.png",
-      tag: `inventory-${data.data.inventoryItemId}`,
-      data: {
-        type: "low_inventory",
-        inventoryItemId: data.data.inventoryItemId,
-        medicationId: data.data.inventoryItemId, // Using inventoryItemId as medicationId since it's not in schema
-        url: `/inventory/${data.data.inventoryItemId}`,
-      },
       actions: [
         {
           action: "reorder",
-          title: "Reorder",
           icon: "/icons/reorder.png",
+          title: "Reorder",
         },
         {
           action: "view",
-          title: "View Details",
           icon: "/icons/view.png",
+          title: "View Details",
         },
       ],
+      badge: "/icons/badge-72x72.png",
+      body: `${data.data.medicationName} is running low (${data.data.daysRemaining} days left)`,
+      data: {
+        inventoryItemId: data.data.inventoryItemId,
+        medicationId: data.data.inventoryItemId, // Using inventoryItemId as medicationId since it's not in schema
+        type: "low_inventory",
+        url: `/inventory/${data.data.inventoryItemId}`,
+      },
+      icon: "/icons/low-inventory.png",
+      tag: `inventory-${data.data.inventoryItemId}`,
+      title: "Low Inventory Warning",
       urgency: "normal",
     };
   }
@@ -434,19 +434,19 @@ export class PushNotificationService {
    */
   createSystemAnnouncement(data: SystemAnnouncement): PushNotificationPayload {
     return {
-      title: data.title,
-      body: data.body,
-      icon: "/icons/announcement.png",
       badge: "/icons/badge-72x72.png",
-      tag: `announcement-${data.data.announcementId}`,
+      body: data.body,
       data: {
-        type: "system_announcement",
         announcementId: data.data.announcementId,
+        type: "system_announcement",
         url: "/", // No actionUrl in the schema
       },
-      urgency: data.data.priority === "high" ? "high" : "normal",
+      icon: "/icons/announcement.png",
       requireInteraction:
         data.data.priority === "high" || data.data.priority === "critical",
+      tag: `announcement-${data.data.announcementId}`,
+      title: data.title,
+      urgency: data.data.priority === "high" ? "high" : "normal",
     };
   }
 }

@@ -18,11 +18,11 @@ export interface TRPCLoggingConfig {
  * Default tRPC logging configuration
  */
 const DEFAULT_TRPC_CONFIG: TRPCLoggingConfig = {
-  logRequests: true,
-  logResponses: false, // Can be verbose, enable as needed
+  excludePaths: ["/health", "/ping"],
   logErrors: true,
   logPerformance: true,
-  excludePaths: ["/health", "/ping"],
+  logRequests: true,
+  logResponses: false, // Can be verbose, enable as needed
   maxPayloadSize: 1000, // Truncate large payloads
   sensitiveInputs: ["password", "token", "secret"],
 };
@@ -81,9 +81,9 @@ class TRPCLogHelper {
     }
 
     return {
-      _truncated: true,
       _originalSize: serialized.length,
       _preview: serialized.substring(0, this.config.maxPayloadSize - 100),
+      _truncated: true,
     };
   }
 
@@ -92,10 +92,10 @@ class TRPCLogHelper {
    */
   formatTRPCError(error: TRPCError, path: string) {
     return {
-      name: error.name,
-      message: error.message,
-      code: error.code,
       cause: error.cause,
+      code: error.code,
+      message: error.message,
+      name: error.name,
       path,
       stack: error.stack,
     };
@@ -149,9 +149,9 @@ export function createTRPCLoggingMiddleware(
         `tRPC ${type} completed: ${path}`,
         performance,
         {
+          path,
           success: true,
           type,
-          path,
           ...(finalConfig.logResponses && {
             output: logHelper.truncatePayload(result.data),
           }),
@@ -162,11 +162,11 @@ export function createTRPCLoggingMiddleware(
       await logger.info(
         `tRPC ${type} completed: ${path}`,
         {
-          success: true,
-          type,
-          path,
           duration: performance.duration,
           output: logHelper.truncatePayload(result.data),
+          path,
+          success: true,
+          type,
         },
         correlationId,
       );
@@ -191,10 +191,10 @@ export function createTRPCLoggingMiddleware(
         `tRPC ${type} error: ${path}`,
         logHelper.formatTRPCError(error as TRPCError, path),
         {
-          type,
-          path,
           duration: performance.duration,
           input: logHelper.sanitizeInput(input),
+          path,
+          type,
         },
         correlationId,
       );
@@ -203,10 +203,10 @@ export function createTRPCLoggingMiddleware(
         `tRPC ${type} unexpected error: ${path}`,
         error instanceof Error ? error : new Error(String(error)),
         {
-          type,
-          path,
           duration: performance.duration,
           input: logHelper.sanitizeInput(input),
+          path,
+          type,
         },
         correlationId,
       );
@@ -246,9 +246,9 @@ export function createTRPCLoggingMiddleware(
 
     // Create logging context
     const _loggingContext = await logger.createContext(`trpc.${path}`, {
-      type,
       path,
       trpc: true,
+      type,
     });
 
     // Update context with user information
@@ -264,8 +264,8 @@ export function createTRPCLoggingMiddleware(
           `tRPC ${type} request: ${path}`,
           {
             input: logHelper.sanitizeInput(input),
-            type,
             path,
+            type,
           },
           correlationId,
         );
@@ -382,9 +382,9 @@ export async function logDatabaseOperation<T>(
       await logger.debug(
         `Database ${operation} completed`,
         {
-          table: tableName,
-          operation,
           hasResult: result !== null && result !== undefined,
+          operation,
+          table: tableName,
         },
         loggingContext.correlationId,
       );
@@ -418,9 +418,9 @@ export async function logExternalAPICall<T>(
       await logger.info(
         `External API call completed`,
         {
-          service: serviceName,
           endpoint,
           hasResult: result !== null && result !== undefined,
+          service: serviceName,
         },
         loggingContext.correlationId,
       );

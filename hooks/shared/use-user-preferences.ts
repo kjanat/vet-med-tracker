@@ -48,47 +48,47 @@ export interface HouseholdSettings {
 }
 
 const defaultVetMedPreferences: VetMedPreferences = {
+  defaultAnimalId: undefined,
+  defaultHouseholdId: undefined,
   defaultTimezone: "America/New_York",
-  preferredPhoneNumber: "",
+  displayPreferences: {
+    temperatureUnit: "fahrenheit",
+    theme: "system",
+    use24HourTime: false,
+    weekStartsOn: 0,
+    weightUnit: "lbs",
+  },
   emergencyContactName: "",
   emergencyContactPhone: "",
   notificationPreferences: {
     emailReminders: true,
-    smsReminders: false,
     pushNotifications: true,
     reminderLeadTime: 15,
+    smsReminders: false,
   },
-  displayPreferences: {
-    use24HourTime: false,
-    temperatureUnit: "fahrenheit",
-    weightUnit: "lbs",
-    weekStartsOn: 0,
-    theme: "system",
-  },
-  defaultHouseholdId: undefined,
-  defaultAnimalId: undefined,
+  preferredPhoneNumber: "",
 };
 
 const defaultHouseholdSettings: HouseholdSettings = {
-  primaryHouseholdName: "",
   defaultLocation: {
     address: "",
     city: "",
     state: "",
-    zipCode: "",
     timezone: "America/New_York",
+    zipCode: "",
   },
   householdRoles: ["Owner", "Primary Caregiver"],
-  preferredVeterinarian: {
-    name: "",
-    phone: "",
-    address: "",
-  },
   inventoryPreferences: {
-    lowStockThreshold: 7,
     autoReorderEnabled: false,
     expirationWarningDays: 30,
+    lowStockThreshold: 7,
   },
+  preferredVeterinarian: {
+    address: "",
+    name: "",
+    phone: "",
+  },
+  primaryHouseholdName: "",
 };
 
 export function useUserPreferences() {
@@ -131,9 +131,9 @@ export function useUserPreferences() {
     // Optionally sync to backend
     try {
       await fetch("/api/user/metadata", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vetMedPreferences: newPreferences }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
       });
     } catch (error) {
       console.warn("Failed to sync preferences to backend:", error);
@@ -157,9 +157,9 @@ export function useUserPreferences() {
     // Optionally sync to backend
     try {
       await fetch("/api/user/metadata", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ householdSettings: newSettings }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
       });
     } catch (error) {
       console.warn("Failed to sync settings to backend:", error);
@@ -167,19 +167,18 @@ export function useUserPreferences() {
   };
 
   // Utility functions
-  const formatTime = (date: Date) => {
-    return vetMedPreferences.displayPreferences.use24HourTime
+  const formatTime = (date: Date) =>
+    vetMedPreferences.displayPreferences.use24HourTime
       ? date.toLocaleTimeString("en-US", {
-          hour12: false,
           hour: "2-digit",
+          hour12: false,
           minute: "2-digit",
         })
       : date.toLocaleTimeString("en-US", {
-          hour12: true,
           hour: "numeric",
+          hour12: true,
           minute: "2-digit",
         });
-  };
 
   const formatWeight = (weightInKg: number) => {
     if (vetMedPreferences.displayPreferences.weightUnit === "lbs") {
@@ -195,24 +194,21 @@ export function useUserPreferences() {
     return `${tempInCelsius.toFixed(1)}°C`;
   };
 
-  const getUserTimezone = () => {
-    return (
-      vetMedPreferences.defaultTimezone ||
-      householdSettings.defaultLocation.timezone ||
-      "America/New_York"
-    );
-  };
+  const getUserTimezone = () =>
+    vetMedPreferences.defaultTimezone ||
+    householdSettings.defaultLocation.timezone ||
+    "America/New_York";
 
   return {
-    isLoaded,
-    vetMedPreferences,
-    householdSettings,
-    updateVetMedPreferences,
-    updateHouseholdSettings,
+    formatTemperature,
     // Utility functions
     formatTime,
     formatWeight,
-    formatTemperature,
     getUserTimezone,
+    householdSettings,
+    isLoaded,
+    updateHouseholdSettings,
+    updateVetMedPreferences,
+    vetMedPreferences,
   };
 }

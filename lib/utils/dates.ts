@@ -128,24 +128,24 @@ function getLargestTimeUnit(diff: {
 } {
   if (Math.abs(diff.days) >= 1) {
     return {
-      value: Math.abs(Math.floor(diff.days)),
-      unit: "day",
       isPast: diff.days < 0,
+      unit: "day",
+      value: Math.abs(Math.floor(diff.days)),
     };
   }
 
   if (Math.abs(diff.hours) >= 1) {
     return {
-      value: Math.abs(Math.floor(diff.hours)),
-      unit: "hour",
       isPast: diff.hours < 0,
+      unit: "hour",
+      value: Math.abs(Math.floor(diff.hours)),
     };
   }
 
   return {
-    value: Math.abs(Math.floor(diff.minutes)),
-    unit: "minute",
     isPast: diff.minutes < 0,
+    unit: "minute",
+    value: Math.abs(Math.floor(diff.minutes)),
   };
 }
 
@@ -315,10 +315,10 @@ export function parseFrequency(frequency: string): ParsedFrequency {
  */
 function tryParseStandardFrequency(normalized: string): ParsedFrequency | null {
   const standardFrequencies: Record<string, ParsedFrequency> = {
-    SID: { hours: 24, timesPerDay: 1 }, // Once daily
     BID: { hours: 12, timesPerDay: 2 }, // Twice daily
-    TID: { hours: 8, timesPerDay: 3 }, // Three times daily
     QID: { hours: 6, timesPerDay: 4 }, // Four times daily
+    SID: { hours: 24, timesPerDay: 1 }, // Once daily
+    TID: { hours: 8, timesPerDay: 3 }, // Three times daily
   };
 
   return standardFrequencies[normalized] || null;
@@ -345,11 +345,11 @@ function tryParseHourlyInterval(normalized: string): ParsedFrequency | null {
  */
 function tryParseCustomFormats(normalized: string): ParsedFrequency | null {
   const customPatterns = [
-    { pattern: /EVERY (\d+) HOURS?/, multiplier: 1 },
-    { pattern: /TWICE DAILY/, hours: 12, timesPerDay: 2 },
-    { pattern: /ONCE DAILY/, hours: 24, timesPerDay: 1 },
-    { pattern: /THREE TIMES DAILY/, hours: 8, timesPerDay: 3 },
-    { pattern: /FOUR TIMES DAILY/, hours: 6, timesPerDay: 4 },
+    { multiplier: 1, pattern: /EVERY (\d+) HOURS?/ },
+    { hours: 12, pattern: /TWICE DAILY/, timesPerDay: 2 },
+    { hours: 24, pattern: /ONCE DAILY/, timesPerDay: 1 },
+    { hours: 8, pattern: /THREE TIMES DAILY/, timesPerDay: 3 },
+    { hours: 6, pattern: /FOUR TIMES DAILY/, timesPerDay: 4 },
   ];
 
   for (const patternConfig of customPatterns) {
@@ -439,9 +439,9 @@ export function calculateAge(dateOfBirth: Date): {
   const diff = now.diff(birth, ["years", "months"]);
 
   return {
-    years: Math.floor(diff.years),
     months: Math.floor(diff.months % 12),
     totalMonths: Math.floor(now.diff(birth, "months").months),
+    years: Math.floor(diff.years),
   };
 }
 
@@ -475,9 +475,9 @@ export function getNextOccurrence(
 
   let target = dt.set({
     hour: targetHour,
+    millisecond: 0,
     minute: targetMinute,
     second: 0,
-    millisecond: 0,
   });
 
   // If the target time has already passed today, move to tomorrow

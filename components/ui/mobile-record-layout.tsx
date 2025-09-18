@@ -85,7 +85,7 @@ function useSwipeHandler(
     }
   };
 
-  return { handleTouchStart, handleTouchEnd };
+  return { handleTouchEnd, handleTouchStart };
 }
 
 // Helper to get medication sections
@@ -95,20 +95,20 @@ function getMedicationSections(
   return [
     {
       key: "due",
-      title: "Due Now",
       regimens: groupedRegimens.due,
+      title: "Due Now",
       urgent: true,
     },
     {
       key: "later",
-      title: "Later Today",
       regimens: groupedRegimens.later,
+      title: "Later Today",
       urgent: false,
     },
     {
       key: "prn",
-      title: "PRN (As Needed)",
       regimens: groupedRegimens.prn,
+      title: "PRN (As Needed)",
       urgent: false,
     },
   ].filter((section) => section.regimens.length > 0);
@@ -131,11 +131,11 @@ function NonSelectStepLayout({
   return (
     <>
       <MobileRecordHeader
-        step={step}
-        selectedAnimalName={selectedRegimen?.animalName}
-        selectedMedication={selectedRegimen?.medicationName}
         onBack={onBack}
         onCancel={onCancel}
+        selectedAnimalName={selectedRegimen?.animalName}
+        selectedMedication={selectedRegimen?.medicationName}
+        step={step}
       />
       <div className="flex-1 overflow-auto">{children}</div>
     </>
@@ -189,10 +189,10 @@ export function MobileRecordLayout({
   if (step !== "select") {
     return (
       <NonSelectStepLayout
-        step={step}
-        selectedRegimen={selectedRegimen}
         onBack={onBack}
         onCancel={onCancel}
+        selectedRegimen={selectedRegimen}
+        step={step}
       >
         {children}
       </NonSelectStepLayout>
@@ -201,13 +201,13 @@ export function MobileRecordLayout({
 
   return (
     <div className="flex h-full flex-col">
-      <MobileRecordHeader step="select" onCancel={onCancel} />
+      <MobileRecordHeader onCancel={onCancel} step="select" />
 
       {(stats.dueCount > 0 || stats.overdueCount > 0) && (
         <MobileRecordStats
+          complianceRate={stats.complianceRate}
           dueCount={stats.dueCount}
           overdueCount={stats.overdueCount}
-          complianceRate={stats.complianceRate}
         />
       )}
 
@@ -229,22 +229,22 @@ export function MobileRecordLayout({
         ) : (
           <div
             className="flex flex-1 flex-col"
-            onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
+            onTouchStart={handleTouchStart}
           >
             {/* Section navigation tabs */}
             <SectionNavigationTabs
-              sections={sections}
               currentSectionIndex={currentSectionIndex}
               onSectionChange={setCurrentSectionIndex}
+              sections={sections}
             />
 
             {/* Current section content */}
             {currentSection && (
               <SectionContent
-                section={currentSection}
                 animals={animals}
                 onRegimenSelect={onRegimenSelect}
+                section={currentSection}
               />
             )}
 
@@ -254,12 +254,12 @@ export function MobileRecordLayout({
                 <div className="flex gap-1">
                   {sections.map((section, index) => (
                     <div
-                      key={`section-indicator-${section.key}`}
                       className={`h-2 w-2 rounded-full transition-colors ${
                         index === currentSectionIndex
                           ? "bg-primary"
                           : "bg-muted-foreground/30"
                       }`}
+                      key={`section-indicator-${section.key}`}
                     />
                   ))}
                 </div>
@@ -356,9 +356,9 @@ function calculateStats(
   dueRegimens: DueRegimen[],
 ) {
   return {
+    complianceRate: calculateComplianceRate(dueRegimens),
     dueCount: groupedRegimens.due.length,
     overdueCount: groupedRegimens.due.filter((r) => r.isOverdue).length,
-    complianceRate: calculateComplianceRate(dueRegimens),
   };
 }
 
@@ -383,15 +383,15 @@ function SectionNavigationTabs({
     <div className="flex border-b bg-background/95 backdrop-blur">
       {sections.map((section, index) => (
         <button
-          type="button"
-          key={section.key}
+          aria-label={`Switch to ${section.title} section`}
           className={`flex-1 border-b-2 px-3 py-3 font-medium text-sm transition-colors ${
             index === currentSectionIndex
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
+          key={section.key}
           onClick={() => onSectionChange(index)}
-          aria-label={`Switch to ${section.title} section`}
+          type="button"
         >
           <div className="flex items-center justify-center gap-2">
             <span>{section.title}</span>
@@ -448,7 +448,7 @@ function StatusAlerts({
       )}
 
       {regimensError && (
-        <Alert variant="destructive" className="mx-4 mt-4">
+        <Alert className="mx-4 mt-4" variant="destructive">
           <AlertDescription>
             Failed to load medications: {regimensError.message}
           </AlertDescription>
@@ -482,10 +482,10 @@ function SectionContent({
     <ScrollArea className="flex-1">
       <div className="p-4">
         <MobileSectionHeader
-          title={section.title}
+          className="mb-4"
           count={section.regimens.length}
           subtitle={getSectionSubtitle(section.key, section.regimens)}
-          className="mb-4"
+          title={section.title}
         />
 
         <div className="space-y-3">
@@ -493,10 +493,10 @@ function SectionContent({
             const animal = animals.find((a) => a.id === regimen.animalId);
             return (
               <MobileMedicationCard
-                key={regimen.id}
-                regimen={regimen}
                 animal={animal}
+                key={regimen.id}
                 onClick={() => onRegimenSelect(regimen)}
+                regimen={regimen}
               />
             );
           })}

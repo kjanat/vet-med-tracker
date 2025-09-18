@@ -36,53 +36,53 @@ interface DemoItem {
 // Sample data
 const generateDemoData = (): DemoItem[] => [
   {
+    assignee: "John Doe",
+    category: "work",
+    dueDate: new Date(2024, 2, 15),
     id: "1",
     name: "Review quarterly reports",
-    category: "work",
-    status: "pending",
     priority: "high",
-    assignee: "John Doe",
-    dueDate: new Date(2024, 2, 15),
+    status: "pending",
     tags: ["finance", "quarterly"],
   },
   {
+    assignee: "Jane Smith",
+    category: "work",
+    dueDate: new Date(2024, 2, 20),
     id: "2",
     name: "Plan team retreat",
-    category: "work",
-    status: "in-progress",
     priority: "medium",
-    assignee: "Jane Smith",
-    dueDate: new Date(2024, 2, 20),
+    status: "in-progress",
     tags: ["team", "event"],
   },
   {
+    assignee: "Mike Johnson",
+    category: "personal",
+    dueDate: new Date(2024, 2, 25),
     id: "3",
     name: "Update personal website",
-    category: "personal",
-    status: "pending",
     priority: "low",
-    assignee: "Mike Johnson",
-    dueDate: new Date(2024, 2, 25),
+    status: "pending",
     tags: ["web", "personal"],
   },
   {
+    assignee: "Sarah Wilson",
+    category: "urgent",
+    dueDate: new Date(2024, 2, 10),
     id: "4",
     name: "Emergency security patch",
-    category: "urgent",
-    status: "completed",
     priority: "high",
-    assignee: "Sarah Wilson",
-    dueDate: new Date(2024, 2, 10),
+    status: "completed",
     tags: ["security", "urgent"],
   },
   {
+    assignee: "David Brown",
+    category: "work",
+    dueDate: new Date(2024, 2, 18),
     id: "5",
     name: "Client presentation prep",
-    category: "work",
-    status: "in-progress",
     priority: "high",
-    assignee: "David Brown",
-    dueDate: new Date(2024, 2, 18),
+    status: "in-progress",
     tags: ["client", "presentation"],
   },
 ];
@@ -120,17 +120,16 @@ function BulkSelectionDemoContent() {
   const columns: BulkSelectionColumn<DemoItem>[] = [
     {
       key: "name",
-      title: "Task Name",
       render: (item) => (
         <div>
           <div className="font-medium">{item.name}</div>
           <div className="text-muted-foreground text-sm">{item.assignee}</div>
         </div>
       ),
+      title: "Task Name",
     },
     {
       key: "category",
-      title: "Category",
       render: (item) => (
         <Badge
           variant={
@@ -144,10 +143,10 @@ function BulkSelectionDemoContent() {
           {item.category}
         </Badge>
       ),
+      title: "Category",
     },
     {
       key: "status",
-      title: "Status",
       render: (item) => (
         <Badge
           variant={
@@ -161,10 +160,10 @@ function BulkSelectionDemoContent() {
           {item.status.replace("-", " ")}
         </Badge>
       ),
+      title: "Status",
     },
     {
       key: "priority",
-      title: "Priority",
       render: (item) => (
         <Badge
           variant={
@@ -178,48 +177,49 @@ function BulkSelectionDemoContent() {
           {item.priority}
         </Badge>
       ),
+      title: "Priority",
     },
     {
       key: "dueDate",
-      title: "Due Date",
       render: (item) => (
         <div className="text-sm">{item.dueDate.toLocaleDateString()}</div>
       ),
+      title: "Due Date",
     },
     {
       key: "tags",
-      title: "Tags",
       render: (item) => (
         <div className="flex flex-wrap gap-1">
           {item.tags.slice(0, 2).map((tag) => (
-            <Badge key={tag} variant="outline" className="text-xs">
+            <Badge className="text-xs" key={tag} variant="outline">
               {tag}
             </Badge>
           ))}
           {item.tags.length > 2 && (
-            <Badge variant="outline" className="text-xs">
-              +{item.tags.length - 2}
+            <Badge className="text-xs" variant="outline">
+              Number(){item.tags.length - 2}
             </Badge>
           )}
         </div>
       ),
+      title: "Tags",
     },
     {
       key: "actions",
-      title: "Actions",
       render: (item) => (
-        <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+        <Button onClick={() => handleEdit(item)} size="sm" variant="outline">
           Edit
         </Button>
       ),
+      title: "Actions",
     },
   ];
 
   // Action handlers
   const handleEdit = (item: DemoItem) => {
     toast({
-      title: "Edit Item",
       description: `Editing: ${item.name}`,
+      title: "Edit Item",
     });
   };
 
@@ -235,8 +235,8 @@ function BulkSelectionDemoContent() {
     ) {
       setData((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
       toast({
-        title: "Items Deleted",
         description: `Successfully deleted ${selectedIds.length} items`,
+        title: "Items Deleted",
       });
     }
   };
@@ -272,8 +272,8 @@ function BulkSelectionDemoContent() {
     URL.revokeObjectURL(url);
 
     toast({
-      title: "Export Complete",
       description: `Exported ${selectedIds.length} items to CSV`,
+      title: "Export Complete",
     });
   };
 
@@ -286,8 +286,8 @@ function BulkSelectionDemoContent() {
       ),
     );
     toast({
-      title: "Items Archived",
       description: `Marked ${selectedIds.length} items as completed`,
+      title: "Items Archived",
     });
   };
 
@@ -297,26 +297,26 @@ function BulkSelectionDemoContent() {
       .filter(Boolean);
 
     toast({
-      title: "Share Items",
       description: `Sharing ${selectedIds.length} items: ${selectedNames.slice(0, 2).join(", ")}${selectedNames.length > 2 ? "..." : ""}`,
+      title: "Share Items",
     });
   };
 
   const addSampleItem = () => {
     const newItem: DemoItem = {
+      assignee: "New User",
+      category: "work",
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       id: `${Date.now()}`,
       name: `New Task ${data.length + 1}`,
-      category: "work",
-      status: "pending",
       priority: "medium",
-      assignee: "New User",
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      status: "pending",
       tags: ["new", "demo"],
     };
     setData((prev) => [...prev, newItem]);
     toast({
-      title: "Item Added",
       description: `Added: ${newItem.name}`,
+      title: "Item Added",
     });
   };
 
@@ -339,21 +339,21 @@ function BulkSelectionDemoContent() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center space-x-2">
               <Switch
-                id="custom-actions"
                 checked={showCustomActions}
+                id="custom-actions"
                 onCheckedChange={setShowCustomActions}
               />
               <Label htmlFor="custom-actions">Show Custom Actions</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Switch
-                id="highlight-selected"
                 checked={highlightSelected}
+                id="highlight-selected"
                 onCheckedChange={setHighlightSelected}
               />
               <Label htmlFor="highlight-selected">Highlight Selected</Label>
             </div>
-            <Button onClick={addSampleItem} size="sm" className="gap-1">
+            <Button className="gap-1" onClick={addSampleItem} size="sm">
               <Plus className="h-4 w-4" />
               Add Item
             </Button>
@@ -363,10 +363,10 @@ function BulkSelectionDemoContent() {
           <div className="relative max-w-sm">
             <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
             <Input
+              className="pl-10"
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tasks..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
             />
           </div>
 
@@ -381,12 +381,7 @@ function BulkSelectionDemoContent() {
 
       {/* Bulk Selection Table */}
       <BulkSelectionTable
-        data={filteredData}
         columns={columns}
-        getItemId={(item) => item.id}
-        getItemLabel={(item) => item.name}
-        onDelete={handleBulkDelete}
-        onExport={handleBulkExport}
         customActions={
           showCustomActions
             ? [
@@ -405,7 +400,12 @@ function BulkSelectionDemoContent() {
               ]
             : undefined
         }
+        data={filteredData}
         emptyMessage="No tasks found. Try adjusting your search."
+        getItemId={(item) => item.id}
+        getItemLabel={(item) => item.name}
+        onDelete={handleBulkDelete}
+        onExport={handleBulkExport}
         rowClassName={
           highlightSelected
             ? (_item, isSelected) =>
@@ -429,10 +429,10 @@ function BulkSelectionDemoContent() {
               <div className="space-y-1">
                 {selectedItems.slice(0, 3).map((item) => (
                   <div
-                    key={item.id}
                     className="flex items-center gap-2 text-sm"
+                    key={item.id}
                   >
-                    <Badge variant="outline" className="text-xs">
+                    <Badge className="text-xs" variant="outline">
                       {item.category}
                     </Badge>
                     <span>{item.name}</span>

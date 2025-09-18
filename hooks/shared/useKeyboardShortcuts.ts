@@ -97,10 +97,10 @@ export function useKeyboardShortcuts(
     const parts = shortcut.split("+");
     const key = parts[parts.length - 1];
     const modifiers = {
-      ctrl: parts.includes("Ctrl"),
       alt: parts.includes("Alt"),
-      shift: parts.includes("Shift"),
+      ctrl: parts.includes("Ctrl"),
       meta: parts.includes("Meta") || parts.includes("Cmd"),
+      shift: parts.includes("Shift"),
     };
     return { key, modifiers };
   }, []);
@@ -153,18 +153,17 @@ export function useKeyboardShortcuts(
    * Check if a shortcut is currently active
    */
   const isShortcutActive = useCallback(
-    (key: string): boolean => {
-      return activeShortcuts.has(key);
-    },
+    (key: string) => activeShortcuts.has(key),
     [activeShortcuts],
   );
 
   /**
    * Get all registered shortcuts
    */
-  const getShortcuts = useCallback((): ShortcutConfig[] => {
-    return Array.from(shortcuts.values());
-  }, [shortcuts]);
+  const getShortcuts = useCallback(
+    () => Array.from(shortcuts.values()),
+    [shortcuts],
+  );
 
   /**
    * Check if the current context allows shortcuts
@@ -280,11 +279,11 @@ export function useKeyboardShortcuts(
   }, [handleKeyDown, handleKeyUp, enabled, targetElement]);
 
   return {
+    activeShortcuts: Array.from(activeShortcuts),
+    getShortcuts,
+    isShortcutActive,
     registerShortcut,
     unregisterShortcut,
-    isShortcutActive,
-    getShortcuts,
-    activeShortcuts: Array.from(activeShortcuts),
   };
 }
 
@@ -312,72 +311,72 @@ export function useGlobalKeyboardShortcuts(
   useEffect(() => {
     // Navigation shortcuts
     registerShortcut({
-      key: "Ctrl+R",
-      description: "Navigating to record medication page",
       action: () => router.push("/admin/record" as Route),
+      description: "Navigating to record medication page",
+      key: "Ctrl+R",
     });
 
     registerShortcut({
-      key: "Ctrl+I",
-      description: "Navigating to inventory page",
       action: () => router.push("/medications/inventory" as Route),
+      description: "Navigating to inventory page",
+      key: "Ctrl+I",
     });
 
     registerShortcut({
-      key: "Ctrl+H",
-      description: "Navigating to history page",
       action: () => router.push("/dashboard/history" as Route),
+      description: "Navigating to history page",
+      key: "Ctrl+H",
     });
 
     registerShortcut({
-      key: "Ctrl+N",
-      description: "Navigating to manage animals page",
       action: () => router.push("/manage/animals" as Route),
+      description: "Navigating to manage animals page",
+      key: "Ctrl+N",
     });
 
     registerShortcut({
-      key: "Ctrl+S",
-      description: "Navigating to settings page",
       action: () => router.push("/settings" as Route),
+      description: "Navigating to settings page",
+      key: "Ctrl+S",
     });
 
     // Search shortcut
     registerShortcut({
-      key: "Ctrl+K",
-      description: "Opening global search",
       action: () => {
         window.dispatchEvent(new CustomEvent("open-global-search"));
       },
+      description: "Opening global search",
+      key: "Ctrl+K",
     });
 
     // Quick actions
     registerShortcut({
-      key: "Ctrl+Shift+A",
-      description: "Quick action: record medication",
       action: () => router.push("/admin/record" as Route),
+      description: "Quick action: record medication",
+      key: "Ctrl+Shift+A",
     });
 
     registerShortcut({
-      key: "Ctrl+Shift+I",
-      description: "Quick action: add inventory item",
       action: () => {
         window.dispatchEvent(new CustomEvent("open-inventory-form"));
       },
+      description: "Quick action: add inventory item",
+      key: "Ctrl+Shift+I",
     });
 
     registerShortcut({
-      key: "Ctrl+Shift+R",
-      description: "Quick action: create new regimen",
       action: () => router.push("/medications/regimens" as Route),
+      description: "Quick action: create new regimen",
+      key: "Ctrl+Shift+R",
     });
 
     // Menu toggle
     registerShortcut({
-      key: "Alt+M",
-      description: "Toggling main menu",
       action: () => {
         window.dispatchEvent(new CustomEvent("toggle-main-menu"));
       },
+      description: "Toggling main menu",
+      key: "Alt+M",
     });
   }, [registerShortcut, router]);
 }
@@ -419,24 +418,24 @@ export function useContextualKeyboardShortcuts() {
   }> => {
     if (pathname.includes("/admin/record")) {
       return [
-        { key: "Escape", description: "Cancel recording" },
-        { key: "Enter", description: "Confirm selection" },
-        { key: "Space", description: "Hold to confirm medication" },
+        { description: "Cancel recording", key: "Escape" },
+        { description: "Confirm selection", key: "Enter" },
+        { description: "Hold to confirm medication", key: "Space" },
       ];
     }
 
     if (pathname.includes("/inventory")) {
       return [
-        { key: "Ctrl+Shift+I", description: "Add new inventory item" },
-        { key: "Ctrl+K", description: "Search inventory" },
+        { description: "Add new inventory item", key: "Ctrl+Shift+I" },
+        { description: "Search inventory", key: "Ctrl+K" },
       ];
     }
 
     if (pathname.includes("/history")) {
       return [
-        { key: "Ctrl+K", description: "Search history" },
-        { key: "Enter", description: "Expand record details" },
-        { key: "Space", description: "Expand record details" },
+        { description: "Search history", key: "Ctrl+K" },
+        { description: "Expand record details", key: "Enter" },
+        { description: "Expand record details", key: "Space" },
       ];
     }
 
@@ -444,7 +443,7 @@ export function useContextualKeyboardShortcuts() {
   }, [pathname]);
 
   return {
-    shortcuts: getContextualShortcuts(),
     pathname,
+    shortcuts: getContextualShortcuts(),
   };
 }

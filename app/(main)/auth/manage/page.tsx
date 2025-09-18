@@ -42,7 +42,7 @@ export default function ManagePage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {manageCards.map((card) => (
-          <Link key={card.href} href={card.href}>
+          <Link href={card.href} key={card.href}>
             <Card className="h-full transition-colors hover:bg-accent">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

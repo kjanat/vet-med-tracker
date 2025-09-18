@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 
 // Consistent breakpoints across the entire app
 const BREAKPOINTS = {
+  desktop: 1024, // >1024px
   mobile: 768, // <768px
   tablet: 1024, // 768-1024px
-  desktop: 1024, // >1024px
 } as const;
 
 type ResponsiveState = {
@@ -21,12 +21,12 @@ type ResponsiveState = {
 export function useResponsive(): ResponsiveState {
   // Initialize with undefined for SSR safety
   const [state, setState] = useState<ResponsiveState>({
+    height: undefined,
+    isDesktop: false,
     isMobile: false,
     isTablet: false,
-    isDesktop: false,
     isTouchDevice: false,
     width: undefined,
-    height: undefined,
   });
 
   useEffect(() => {
@@ -49,12 +49,12 @@ export function useResponsive(): ResponsiveState {
         window.matchMedia("(pointer: coarse)").matches;
 
       setState({
+        height,
+        isDesktop,
         isMobile,
         isTablet,
-        isDesktop,
         isTouchDevice,
         width,
-        height,
       });
     };
 
@@ -136,7 +136,7 @@ export function useMobileDetection() {
 
 export function useWindowDimensions() {
   const { width, height } = useResponsive();
-  return { width, height };
+  return { height, width };
 }
 
 // Custom media query hook for specific breakpoints

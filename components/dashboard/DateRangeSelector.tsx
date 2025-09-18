@@ -73,14 +73,14 @@ export function DateRangeSelector({
     // Clear selected period when using custom dates
     if (onPeriodChange) {
       const customPeriod: Period = {
-        label: "Custom",
-        value: "custom",
         days: Math.max(
           1,
           Math.ceil(
             (tempToDate.getTime() - tempFromDate.getTime()) / 86400000, // ms in a day
           ),
         ),
+        label: "Custom",
+        value: "custom",
       };
       onPeriodChange(customPeriod);
     }
@@ -107,7 +107,7 @@ export function DateRangeSelector({
       {showPeriodSelector && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-auto gap-2">
+            <Button className="w-auto gap-2" variant="outline">
               <CalendarIcon className="h-4 w-4" />
               {getCurrentPeriodLabel()}
               <ChevronDown className="h-4 w-4" />
@@ -116,17 +116,17 @@ export function DateRangeSelector({
           <DropdownMenuContent align="start" className="w-48">
             {PERIOD_OPTIONS.map((period) => (
               <DropdownMenuItem
+                className="cursor-pointer"
                 key={period.value}
                 onClick={() => handlePeriodSelect(period)}
-                className="cursor-pointer"
               >
                 {period.label}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={handleDatePickerOpen}
               className="cursor-pointer"
+              onClick={handleDatePickerOpen}
             >
               Custom Range...
             </DropdownMenuItem>
@@ -135,61 +135,61 @@ export function DateRangeSelector({
       )}
 
       {/* Custom Date Range Picker */}
-      <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+      <Popover onOpenChange={setIsDatePickerOpen} open={isDatePickerOpen}>
         <PopoverTrigger asChild>
           {showPeriodSelector ? (
             <button
-              type="button"
-              tabIndex={-1}
               aria-hidden
               className="sr-only"
+              tabIndex={-1}
+              type="button"
             />
           ) : (
-            <Button variant="outline" className="w-auto gap-2">
+            <Button className="w-auto gap-2" variant="outline">
               <CalendarIcon className="h-4 w-4" />
               {formatDateRange(dateRange.from, dateRange.to)}
             </Button>
           )}
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent align="start" className="w-auto p-0">
           <div className="p-4">
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="font-medium text-sm">From Date</div>
                 <Calendar
-                  mode="single"
-                  selected={tempFromDate}
-                  onSelect={(date) => date && setTempFromDate(date)}
-                  className="rounded-md border"
                   aria-label="Select from date"
+                  className="rounded-md border"
+                  mode="single"
+                  onSelect={(date) => date && setTempFromDate(date)}
+                  selected={tempFromDate}
                 />
               </div>
 
               <div className="space-y-2">
                 <div className="font-medium text-sm">To Date</div>
                 <Calendar
-                  mode="single"
-                  selected={tempToDate}
-                  onSelect={(date) => date && setTempToDate(date)}
-                  disabled={(date) => date < tempFromDate}
-                  className="rounded-md border"
                   aria-label="Select to date"
+                  className="rounded-md border"
+                  disabled={(date) => date < tempFromDate}
+                  mode="single"
+                  onSelect={(date) => date && setTempToDate(date)}
+                  selected={tempToDate}
                 />
               </div>
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
               <Button
-                variant="outline"
-                size="sm"
                 onClick={() => setIsDatePickerOpen(false)}
+                size="sm"
+                variant="outline"
               >
                 Cancel
               </Button>
               <Button
-                size="sm"
-                onClick={handleCustomDateApply}
                 disabled={tempToDate < tempFromDate}
+                onClick={handleCustomDateApply}
+                size="sm"
               >
                 Apply
               </Button>
@@ -223,11 +223,11 @@ export function QuickDatePresets({
     <div className={cn("flex flex-wrap gap-1", className)}>
       {PERIOD_OPTIONS.map((period) => (
         <Button
-          key={period.value}
-          variant="ghost"
-          size="sm"
-          onClick={() => handlePresetClick(period)}
           className="h-8 px-2 text-xs"
+          key={period.value}
+          onClick={() => handlePresetClick(period)}
+          size="sm"
+          variant="ghost"
         >
           {period.label}
         </Button>

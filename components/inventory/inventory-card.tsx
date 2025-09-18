@@ -49,12 +49,12 @@ interface InventoryCardProps {
 }
 
 const formIcons = {
-  Tablet: "💊",
   Capsule: "💊",
-  Liquid: "🧪",
-  Injection: "💉",
-  Topical: "🧴",
   Drops: "💧",
+  Injection: "💉",
+  Liquid: "🧪",
+  Tablet: "💊",
+  Topical: "🧴",
 };
 
 // Helper component for expiry info
@@ -100,28 +100,28 @@ function StatusBadges({
   return (
     <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center">
       {isExpired && (
-        <Badge variant="destructive" className="text-xs">
+        <Badge className="text-xs" variant="destructive">
           Expired
         </Badge>
       )}
       {isExpiring && !isExpired && (
         <Badge
-          variant="secondary"
           className="text-orange-600 text-xs dark:text-orange-400"
+          variant="secondary"
         >
           Expiring
         </Badge>
       )}
       {isLowStock && (
         <Badge
-          variant="secondary"
           className="text-orange-600 text-xs dark:text-orange-400"
+          variant="secondary"
         >
           Low
         </Badge>
       )}
       {storage === "FRIDGE" && (
-        <Badge variant="outline" className="text-xs">
+        <Badge className="text-xs" variant="outline">
           <MapPin className="mr-1 h-3 w-3" />
           Fridge
         </Badge>
@@ -154,7 +154,7 @@ export function InventoryCard({
     // Fire instrumentation event
     window.dispatchEvent(
       new CustomEvent("inventory_set_in_use", {
-        detail: { itemId: item.id, inUse: !item.inUse },
+        detail: { inUse: !item.inUse, itemId: item.id },
       }),
     );
   };
@@ -201,7 +201,7 @@ export function InventoryCard({
                 </h3>
 
                 {item.inUse && (
-                  <Badge variant="default" className="shrink-0">
+                  <Badge className="shrink-0" variant="default">
                     In Use
                   </Badge>
                 )}
@@ -214,9 +214,9 @@ export function InventoryCard({
 
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
                   <ExpiryInfo
-                    item={item}
                     isExpired={isExpired}
                     isExpiring={isExpiring}
+                    item={item}
                   />
 
                   <div className="flex items-center gap-1">
@@ -259,7 +259,7 @@ export function InventoryCard({
           {/* Actions */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button className="shrink-0" size="icon" variant="ghost">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -285,7 +285,7 @@ export function InventoryCard({
                 </span>
               </div>
             ) : (
-              <Badge variant="outline" className="text-muted-foreground">
+              <Badge className="text-muted-foreground" variant="outline">
                 Unassigned
               </Badge>
             )}

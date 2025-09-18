@@ -27,8 +27,8 @@ export function useBulkRecording() {
   const recordBulkAdministration = async (options: BulkRecordingOptions) => {
     if (!selectedHouseholdId || selectedIds.size === 0) {
       toast({
-        title: "Error",
         description: "No household selected or no animals selected",
+        title: "Error",
         variant: "destructive",
       });
       return;
@@ -40,28 +40,28 @@ export function useBulkRecording() {
       const idempotencyKey = `bulk-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
       const result = await bulkRecordMutation.mutateAsync({
-        householdId: selectedHouseholdId,
-        animalIds: Array.from(selectedIds),
-        regimenId: options.regimenId,
         administeredAt: options.administeredAt.toISOString(),
+        allowOverride: options.allowOverride || false,
+        animalIds: Array.from(selectedIds),
+        dose: options.dose,
+        householdId: selectedHouseholdId,
+        idempotencyKey,
         inventorySourceId: options.inventorySourceId,
         notes: options.notes,
+        regimenId: options.regimenId,
         site: options.site,
-        dose: options.dose,
-        allowOverride: options.allowOverride || false,
-        idempotencyKey,
       });
 
       if (result.summary.failed > 0) {
         toast({
-          title: "Partial Success",
           description: `Recorded ${result.summary.successful} of ${result.summary.total} administrations. ${result.summary.failed} failed.`,
+          title: "Partial Success",
           variant: "default",
         });
       } else {
         toast({
-          title: "Success",
           description: `Successfully recorded ${result.summary.successful} administrations.`,
+          title: "Success",
         });
         clearSelection();
       }
@@ -69,11 +69,11 @@ export function useBulkRecording() {
       return result;
     } catch (error) {
       toast({
-        title: "Error",
         description:
           error instanceof Error
             ? error.message
             : "Failed to record administrations",
+        title: "Error",
         variant: "destructive",
       });
       throw error;
@@ -83,9 +83,9 @@ export function useBulkRecording() {
   };
 
   return {
-    recordBulkAdministration,
-    isRecording,
-    selectedCount: selectedIds.size,
     canRecord: selectedIds.size > 0 && selectedHouseholdId !== undefined,
+    isRecording,
+    recordBulkAdministration,
+    selectedCount: selectedIds.size,
   };
 }

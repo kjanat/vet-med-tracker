@@ -54,9 +54,9 @@ export const MobileToolbar = memo(function MobileToolbar({
     <div className="shrink-0 border-b bg-background">
       {/* Current Device Info */}
       <button
-        type="button"
-        onClick={onOpenDeviceSelector}
         className="flex w-full items-center justify-between px-3 py-2.5 text-left transition-colors active:bg-accent/50"
+        onClick={onOpenDeviceSelector}
+        type="button"
       >
         <div className="flex items-center gap-2">
           <Smartphone className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -73,30 +73,30 @@ export const MobileToolbar = memo(function MobileToolbar({
       {/* Action Buttons */}
       <div className="flex items-center gap-1.5 px-3 pb-2">
         <Button
-          variant="outline"
-          size="sm"
-          onClick={onRotate}
           className="h-8 flex-1 text-xs"
+          onClick={onRotate}
+          size="sm"
+          variant="outline"
         >
           <RotateCw className="mr-1.5 h-3.5 w-3.5" />
           Rotate
         </Button>
 
         <Button
-          variant="outline"
-          size="sm"
-          onClick={cycleColorScheme}
           className="h-8 flex-1 text-xs"
+          onClick={cycleColorScheme}
+          size="sm"
+          variant="outline"
         >
           {getSchemeIcon()}
           <span className="ml-1.5 capitalize">{state.scheme}</span>
         </Button>
 
         <Button
-          variant="outline"
-          size="icon"
-          onClick={onOpenInNewTab}
           className="h-8 w-8"
+          onClick={onOpenInNewTab}
+          size="icon"
+          variant="outline"
         >
           <ExternalLink className="h-3.5 w-3.5" />
         </Button>

@@ -29,16 +29,16 @@ export function CtaButtons({
     >
       {!user && (
         <Button
-          size="lg"
           className="px-8 text-lg"
           onClick={() => app.redirectToSignUp()}
+          size="lg"
         >
           {variant === "hero" ? "Start Free" : "Get Started Free"}
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       )}
       {user && (
-        <Button size="lg" className="px-8 text-lg" asChild>
+        <Button asChild className="px-8 text-lg" size="lg">
           <Link href="/auth/dashboard">
             Go to Dashboard
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -46,7 +46,7 @@ export function CtaButtons({
         </Button>
       )}
       {showSecondary && (
-        <Button size="lg" variant="outline" className="px-8 text-lg" asChild>
+        <Button asChild className="px-8 text-lg" size="lg" variant="outline">
           <Link href={variant === "hero" ? "#demo" : "/help"}>
             {variant === "hero" ? "See How It Works" : "Questions? Contact Us"}
           </Link>

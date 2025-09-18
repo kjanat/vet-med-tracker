@@ -38,25 +38,24 @@ export function useRecordParams() {
   );
 
   // Memoize parsed parameters to prevent re-parsing
-  const typedParams = useMemo(() => {
-    return getTypedSearchParams(
-      new URLSearchParams(searchParamsString),
-      "record",
-      {
+  const typedParams = useMemo(
+    () =>
+      getTypedSearchParams(new URLSearchParams(searchParamsString), "record", {
         mode: "quick",
-      },
-    ) as RecordSearchParams;
-  }, [searchParamsString]);
+      }) as RecordSearchParams,
+    [searchParamsString],
+  );
 
   // Memoize the params object to prevent unnecessary re-renders
-  const params = useMemo((): RecordParams => {
-    return {
+  const params = useMemo(
+    () => ({
       animalId: typedParams.animalId,
+      mode: typedParams.mode || "quick",
       regimenId: typedParams.regimenId,
       returnTo: typedParams.returnTo,
-      mode: typedParams.mode || "quick",
-    };
-  }, [typedParams]);
+    }),
+    [typedParams],
+  );
 
   // Memoize validation functions to prevent recreation on every render
   // This avoids creating new functions each time and allows stable references
@@ -216,18 +215,19 @@ export function useRecordParams() {
    * Checks if required parameters for recording are present
    * Memoized to prevent unnecessary recalculations
    */
-  const isReadyToRecord = useMemo(() => {
-    return Boolean(params.animalId && params.regimenId);
-  }, [params.animalId, params.regimenId]);
+  const isReadyToRecord = useMemo(
+    () => Boolean(params.animalId && params.regimenId),
+    [params.animalId, params.regimenId],
+  );
 
   return {
+    clearSelection,
+    isReadyToRecord,
+    navigateToReturn,
     params,
     setParam,
     setParams,
-    setSelectedItems,
-    clearSelection,
     setReturnUrl,
-    navigateToReturn,
-    isReadyToRecord,
+    setSelectedItems,
   };
 }

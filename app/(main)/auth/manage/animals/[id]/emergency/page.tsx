@@ -151,9 +151,9 @@ const MedicalAlertsCard = ({ animalData }: { animalData: EmergencyAnimal }) => {
             <div className="flex flex-wrap gap-2">
               {animalData.allergies.map((allergy) => (
                 <Badge
+                  className="text-sm print:bg-gray-300 print:text-black"
                   key={allergy}
                   variant="destructive"
-                  className="text-sm print:bg-gray-300 print:text-black"
                 >
                   {allergy}
                 </Badge>
@@ -169,9 +169,9 @@ const MedicalAlertsCard = ({ animalData }: { animalData: EmergencyAnimal }) => {
             <div className="flex flex-wrap gap-2">
               {animalData.conditions.map((condition) => (
                 <Badge
+                  className="text-sm print:bg-gray-300 print:text-black"
                   key={condition}
                   variant="secondary"
-                  className="text-sm print:bg-gray-300 print:text-black"
                 >
                   {condition}
                 </Badge>
@@ -199,37 +199,35 @@ const MedicationsCard = ({ regimens }: { regimens: EmergencyRegimen[] }) => (
             No active medications
           </p>
         ) : (
-          regimens.map((regimen) => {
-            return (
-              <div key={regimen.id} className="rounded-lg border p-3 sm:p-4">
-                <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div className="font-medium text-base sm:text-lg">
-                      {regimen.medication?.genericName ||
-                        regimen.medication?.brandName ||
-                        regimen.name}
-                    </div>
-                    <div className="text-muted-foreground">
-                      {regimen.medication?.strength &&
-                        `${regimen.medication.strength} • `}
-                      {regimen.route || regimen.medication?.route || "Oral"}
-                    </div>
+          regimens.map((regimen) => (
+            <div className="rounded-lg border p-3 sm:p-4" key={regimen.id}>
+              <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="font-medium text-base sm:text-lg">
+                    {regimen.medication?.genericName ||
+                      regimen.medication?.brandName ||
+                      regimen.name}
                   </div>
-                  <Badge variant="outline">
-                    {regimen.scheduleType === "PRN"
-                      ? `PRN - ${regimen.prnReason || "As needed"}`
-                      : regimen.timesLocal?.join(", ") || "See instructions"}
-                  </Badge>
+                  <div className="text-muted-foreground">
+                    {regimen.medication?.strength &&
+                      `${regimen.medication.strength} • `}
+                    {regimen.route || regimen.medication?.route || "Oral"}
+                  </div>
                 </div>
-                {regimen.instructions && (
-                  <div className="text-muted-foreground text-sm">
-                    <span className="font-medium">Instructions:</span>{" "}
-                    {regimen.instructions}
-                  </div>
-                )}
+                <Badge variant="outline">
+                  {regimen.scheduleType === "PRN"
+                    ? `PRN - ${regimen.prnReason || "As needed"}`
+                    : regimen.timesLocal?.join(", ") || "See instructions"}
+                </Badge>
               </div>
-            );
-          })
+              {regimen.instructions && (
+                <div className="text-muted-foreground text-sm">
+                  <span className="font-medium">Instructions:</span>{" "}
+                  {regimen.instructions}
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
     </CardContent>
@@ -258,7 +256,7 @@ export default function EmergencyCardPage() {
         householdId: selectedHousehold?.id || "",
       },
       {
-        enabled: !!selectedHousehold?.id && !!animalId,
+        enabled: Boolean(selectedHousehold?.id) && Boolean(animalId),
       },
     );
 
@@ -334,7 +332,7 @@ export default function EmergencyCardPage() {
             </p>
           </div>
 
-          <AnimalInfoCard animalData={animalData} age={age} />
+          <AnimalInfoCard age={age} animalData={animalData} />
           <EmergencyContactsCard animalData={animalData} />
           <MedicalAlertsCard animalData={animalData} />
           <MedicationsCard regimens={regimens} />
@@ -353,7 +351,7 @@ export default function EmergencyCardPage() {
         </div>
       </div>
 
-      <style jsx global>{`
+      <style global jsx>{`
         @media print {
           .no-print {
             display: none !important;

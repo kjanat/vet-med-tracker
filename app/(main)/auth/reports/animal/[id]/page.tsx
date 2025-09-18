@@ -131,11 +131,11 @@ const ReportContent = ({
         </h1>
         <div className="flex items-center gap-3">
           {useDemoMode && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge className="text-xs" variant="secondary">
               Demo Mode
             </Badge>
           )}
-          <Button onClick={handlePrint} className="gap-2">
+          <Button className="gap-2" onClick={handlePrint}>
             <Printer className="h-4 w-4" />
             Print Report
           </Button>
@@ -258,8 +258,8 @@ const ReportContent = ({
             ) : (
               regimens.map((regimen) => (
                 <div
-                  key={regimen.id}
                   className="flex items-center justify-between rounded-lg border p-4"
+                  key={regimen.id}
                 >
                   <div className="flex-1">
                     <div className="font-medium text-lg">
@@ -304,7 +304,7 @@ const ReportContent = ({
               </p>
             ) : (
               notableEvents.map((event) => (
-                <div key={event.id} className="rounded-lg border p-3">
+                <div className="rounded-lg border p-3" key={event.id}>
                   <div className="mb-2 flex items-center justify-between">
                     <div className="font-medium">{event.medication}</div>
                     <div className="text-muted-foreground text-sm">
@@ -316,7 +316,7 @@ const ReportContent = ({
                   </div>
                   <div className="flex gap-1">
                     {event.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
+                      <Badge className="text-xs" key={tag} variant="secondary">
                         {tag}
                       </Badge>
                     ))}
@@ -341,7 +341,7 @@ const ReportContent = ({
       </div>
     </div>
 
-    <style jsx global>{`
+    <style global jsx>{`
 		@media print {
 			.no-print {
 				display: none !important;
@@ -394,7 +394,7 @@ export default function AnimalReportPage() {
       householdId: selectedHouseholdId,
     },
     {
-      enabled: !!selectedHouseholdId && !!animalId,
+      enabled: Boolean(selectedHouseholdId) && Boolean(animalId),
     },
   );
 
@@ -450,7 +450,7 @@ export default function AnimalReportPage() {
       endDate: queryDates.endDate,
     },
     {
-      enabled: !!animalId && !!selectedHouseholdId,
+      enabled: Boolean(animalId) && Boolean(selectedHouseholdId),
       retry: 1, // Only retry once
       retryDelay: 1000,
       staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
@@ -481,13 +481,13 @@ export default function AnimalReportPage() {
 
   return (
     <ReportContent
-      reportPeriod={reportPeriod}
       animal={animal}
       compliance={compliance}
-      regimens={regimens}
-      notableEvents={notableEvents}
-      useDemoMode={false}
       handlePrint={handlePrint}
+      notableEvents={notableEvents}
+      regimens={regimens}
+      reportPeriod={reportPeriod}
+      useDemoMode={false}
     />
   );
 }

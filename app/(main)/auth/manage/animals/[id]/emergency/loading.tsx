@@ -50,7 +50,7 @@ export default function EmergencyCardLoading() {
             <Skeleton className="mb-2 h-6 w-48" />
             <div className="space-y-2">
               {["med-1", "med-2", "med-3"].map((key) => (
-                <Skeleton key={key} className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" key={key} />
               ))}
             </div>
           </div>

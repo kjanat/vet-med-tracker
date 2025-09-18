@@ -65,8 +65,8 @@ export function MobileMedicationCard({
 
     if (regimen.isPRN) {
       return {
-        icon: CheckCircle,
         config,
+        icon: CheckCircle,
         label: "PRN",
         priority: "normal" as const,
       };
@@ -74,8 +74,8 @@ export function MobileMedicationCard({
 
     if (regimen.isOverdue) {
       return {
-        icon: AlertTriangle,
         config,
+        icon: AlertTriangle,
         label: "Overdue",
         priority: "urgent" as const,
       };
@@ -83,16 +83,16 @@ export function MobileMedicationCard({
 
     if (regimen.section === "due") {
       return {
-        icon: Clock,
         config,
+        icon: Clock,
         label: "Due Now",
         priority: "high" as const,
       };
     }
 
     return {
-      icon: Clock,
       config,
+      icon: Clock,
       label: "Later",
       priority: "normal" as const,
     };
@@ -130,26 +130,26 @@ export function MobileMedicationCard({
 
   return (
     <Card
+      aria-label={`Select ${regimen.medicationName} for ${regimen.animalName}`}
       className={`
         ${getCardAnimation(isSelected)}
         ${statusInfo.config.bg} ${statusInfo.config.border}
       `}
       onClick={onClick}
-      tabIndex={0}
-      aria-label={`Select ${regimen.medicationName} for ${regimen.animalName}`}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick();
         }
       }}
+      tabIndex={0}
     >
       <CardContent className="p-4">
         {/* Priority indicator */}
         {statusInfo.priority === "urgent" && (
           <output
-            className={`absolute top-2 right-2 h-3 w-3 rounded-full bg-red-500 ${PRIORITY_ANIMATIONS.urgent}`}
             aria-label="Urgent medication"
+            className={`absolute top-2 right-2 h-3 w-3 rounded-full bg-red-500 ${PRIORITY_ANIMATIONS.urgent}`}
           />
         )}
 
@@ -157,7 +157,7 @@ export function MobileMedicationCard({
           {/* Animal avatar */}
           {animal && (
             <div className="shrink-0">
-              <AnimalAvatar animal={animal} size="md" showBadge={false} />
+              <AnimalAvatar animal={animal} showBadge={false} size="md" />
             </div>
           )}
 
@@ -167,10 +167,11 @@ export function MobileMedicationCard({
             <div className={`mb-2 ${layoutPatterns.flexBetween}`}>
               <div className={layoutPatterns.flexCenterGap2}>
                 <StatusIcon
-                  className={`h-4 w-4 ${statusInfo.config.icon}`}
                   aria-hidden="true"
+                  className={`h-4 w-4 ${statusInfo.config.icon}`}
                 />
                 <Badge
+                  className="text-xs"
                   variant={
                     statusInfo.config.badge as
                       | "default"
@@ -181,7 +182,6 @@ export function MobileMedicationCard({
                       | "warning"
                       | "info"
                   }
-                  className="text-xs"
                 >
                   {statusInfo.label}
                 </Badge>
@@ -216,19 +216,19 @@ export function MobileMedicationCard({
             {/* Special indicators */}
             <div className={`mt-2 ${layoutPatterns.flexCenterGap2}`}>
               {regimen.isHighRisk && (
-                <Badge variant="destructive" className="text-xs">
+                <Badge className="text-xs" variant="destructive">
                   High Risk
                 </Badge>
               )}
 
               {regimen.requiresCoSign && (
-                <Badge variant="outline" className="text-xs">
+                <Badge className="text-xs" variant="outline">
                   Co-sign Required
                 </Badge>
               )}
 
               {regimen.isPRN && regimen.prnReason && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="text-xs" variant="secondary">
                   {regimen.prnReason}
                 </Badge>
               )}

@@ -29,7 +29,7 @@ export function HouseholdSwitcher() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg" disabled>
+          <SidebarMenuButton disabled size="lg">
             <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
               <Home className="size-4" />
             </div>
@@ -49,9 +49,9 @@ export function HouseholdSwitcher() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
-              className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               aria-label={`Switch household. Current: ${selectedHousehold.name}`}
+              className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              size="lg"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 {selectedHousehold.avatar && (
@@ -76,8 +76,8 @@ export function HouseholdSwitcher() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             align="start"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
@@ -86,9 +86,9 @@ export function HouseholdSwitcher() {
             </DropdownMenuLabel>
             {households.map((household) => (
               <DropdownMenuItem
+                className="cursor-pointer gap-2 p-2"
                 key={household.id}
                 onClick={() => setSelectedHousehold(household)}
-                className="cursor-pointer gap-2 p-2"
               >
                 <Avatar className="h-6 w-6 rounded-md">
                   {household.avatar && <AvatarImage src={household.avatar} />}

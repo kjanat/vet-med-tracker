@@ -39,8 +39,8 @@ export function useFileProcessor({
         setState((prev) => ({
           ...prev,
           error: validation.error || "Invalid file",
-          isUploading: false,
           isCompressing: false,
+          isUploading: false,
           progress: 0,
         }));
         return;
@@ -69,18 +69,18 @@ export function useFileProcessor({
 
         setState((prev) => ({
           ...prev,
+          error: null,
           isUploading: false,
           progress: 100,
-          error: null,
         }));
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Upload failed";
         setState((prev) => ({
           ...prev,
-          isUploading: false,
-          isCompressing: false,
           error: errorMessage,
+          isCompressing: false,
+          isUploading: false,
           progress: 0,
         }));
       }

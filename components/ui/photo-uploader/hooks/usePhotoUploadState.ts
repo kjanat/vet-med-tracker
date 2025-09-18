@@ -3,26 +3,26 @@ import type { UploadState } from "../types";
 
 export function usePhotoUploadState(initialValue?: string) {
   const [state, setState] = useState<UploadState>({
-    isUploading: false,
-    isCompressing: false,
-    progress: 0,
-    error: null,
-    preview: initialValue || null,
-    originalFile: null,
     compressedFile: null,
+    error: null,
+    isCompressing: false,
+    isUploading: false,
+    originalFile: null,
+    preview: initialValue || null,
+    progress: 0,
   });
 
   const clearState = useCallback(() => {
     setState({
-      isUploading: false,
-      isCompressing: false,
-      progress: 0,
-      error: null,
-      preview: null,
-      originalFile: null,
       compressedFile: null,
+      error: null,
+      isCompressing: false,
+      isUploading: false,
+      originalFile: null,
+      preview: null,
+      progress: 0,
     });
   }, []);
 
-  return { state, setState, clearState };
+  return { clearState, setState, state };
 }

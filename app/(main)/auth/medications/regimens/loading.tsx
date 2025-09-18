@@ -24,7 +24,7 @@ export default function RegimensLoading() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {["reg-1", "reg-2", "reg-3", "reg-4", "reg-5", "reg-6"].map(
               (key) => (
-                <Skeleton key={key} className="h-48" />
+                <Skeleton className="h-48" key={key} />
               ),
             )}
           </div>

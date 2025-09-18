@@ -69,15 +69,15 @@ export interface MemberListProps {
 }
 
 const roleIcons = {
-  OWNER: Crown,
   CAREGIVER: Shield,
+  OWNER: Crown,
   VETREADONLY: Eye,
 };
 
 const roleColors = {
+  CAREGIVER: "bg-blue-100 text-blue-900 dark:bg-blue-900/20 dark:text-blue-400",
   OWNER:
     "bg-purple-100 text-purple-900 dark:bg-purple-900/20 dark:text-purple-400",
-  CAREGIVER: "bg-blue-100 text-blue-900 dark:bg-blue-900/20 dark:text-blue-400",
   VETREADONLY:
     "bg-gray-100 text-gray-900 dark:bg-gray-900/20 dark:text-gray-400",
 };
@@ -128,8 +128,8 @@ function MemberInfo({ member }: { member: Member }) {
 function RoleBadge({ role }: { role: Member["role"] }) {
   const Icon = roleIcons[role];
   const roleLabels = {
-    OWNER: { full: "Owner", short: "Own" },
     CAREGIVER: { full: "Caregiver", short: "Care" },
+    OWNER: { full: "Owner", short: "Own" },
     VETREADONLY: { full: "Vet Read-Only", short: "Vet" },
   };
 
@@ -154,9 +154,9 @@ function RoleSelector({
 }) {
   return (
     <Select
-      value={currentRole}
-      onValueChange={(value) => onRoleChange(value as Member["role"])}
       disabled={disabled}
+      onValueChange={(value) => onRoleChange(value as Member["role"])}
+      value={currentRole}
     >
       <SelectTrigger className="w-[110px] sm:w-[140px]">
         <SelectValue />
@@ -213,8 +213,8 @@ function MemberItem({
         {canManageRoles && member.userId !== currentUserId ? (
           <RoleSelector
             currentRole={member.role}
-            onRoleChange={(role) => onRoleChange(member.id, role)}
             disabled={isUpdating}
+            onRoleChange={(role) => onRoleChange(member.id, role)}
           />
         ) : (
           <RoleBadge role={member.role} />
@@ -275,8 +275,8 @@ function PendingInviteItem({
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
-              onClick={() => onRevoke(invite.id)}
               className="text-destructive"
+              onClick={() => onRevoke(invite.id)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Revoke Invite
@@ -305,85 +305,85 @@ export function MemberList({
 
   // Mutations
   const inviteMemberMutation = trpc.household.inviteMember.useMutation({
+    onError: (error) => {
+      toast({
+        description: error.message || "Please try again later.",
+        title: "Failed to send invitation",
+        variant: "destructive",
+      });
+    },
     onSuccess: () => {
       toast({
-        title: "Invitation sent",
         description: "The invitation has been sent successfully.",
+        title: "Invitation sent",
       });
       setIsInviteFormOpen(false);
       utils.household.getMembers.invalidate({
         householdId: selectedHousehold?.id,
       });
     },
-    onError: (error) => {
-      toast({
-        title: "Failed to send invitation",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
-      });
-    },
   });
 
   const updateRoleMutation = trpc.household.updateMemberRole.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: "Role updated",
-        description: data.message,
-      });
-    },
     onError: (error) => {
       toast({
-        title: "Failed to update role",
         description: error.message,
+        title: "Failed to update role",
         variant: "destructive",
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        description: data.message,
+        title: "Role updated",
       });
     },
   });
 
   const _removeMemberMutation = trpc.household.removeMember.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: "Member removed",
-        description: data.message,
-      });
-    },
     onError: (error) => {
       toast({
-        title: "Failed to remove member",
         description: error.message,
+        title: "Failed to remove member",
         variant: "destructive",
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        description: data.message,
+        title: "Member removed",
       });
     },
   });
 
   const resendInviteMutation = trpc.household.resendInvite.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: "Invite resent",
-        description: data.message,
-      });
-    },
     onError: (error) => {
       toast({
-        title: "Failed to resend invite",
         description: error.message,
+        title: "Failed to resend invite",
         variant: "destructive",
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        description: data.message,
+        title: "Invite resent",
       });
     },
   });
 
   const revokeInviteMutation = trpc.household.revokeInvite.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: "Invite revoked",
-        description: data.message,
-      });
-    },
     onError: (error) => {
       toast({
-        title: "Failed to revoke invite",
         description: error.message,
+        title: "Failed to revoke invite",
         variant: "destructive",
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        description: data.message,
+        title: "Invite revoked",
       });
     },
   });
@@ -418,12 +418,12 @@ export function MemberList({
       {/* Invite Member Accordion */}
       {canManageRoles && (
         <Accordion
-          type="single"
           collapsible
-          value={isInviteFormOpen ? "invite" : ""}
           onValueChange={(value) => setIsInviteFormOpen(value === "invite")}
+          type="single"
+          value={isInviteFormOpen ? "invite" : ""}
         >
-          <AccordionItem value="invite" className="rounded-lg border">
+          <AccordionItem className="rounded-lg border" value="invite">
             <AccordionTrigger className="px-4 hover:no-underline">
               <div className="flex items-center gap-3">
                 <Plus className="h-4 w-4" />
@@ -432,27 +432,27 @@ export function MemberList({
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4">
               <InviteForm
-                open={isInviteFormOpen}
-                onOpenChange={setIsInviteFormOpen}
                 onInvite={async (email, role) => {
                   if (!selectedHousehold?.id) {
                     toast({
-                      title: "No household selected",
                       description: "Please select a household first.",
+                      title: "No household selected",
                       variant: "destructive",
                     });
                     return;
                   }
 
                   await inviteMemberMutation.mutateAsync({
-                    householdId: selectedHousehold.id,
                     email,
+                    householdId: selectedHousehold.id,
                     role: role.toUpperCase() as
                       | "OWNER"
                       | "CAREGIVER"
                       | "VETREADONLY",
                   });
                 }}
+                onOpenChange={setIsInviteFormOpen}
+                open={isInviteFormOpen}
               />
             </AccordionContent>
           </AccordionItem>
@@ -475,12 +475,12 @@ export function MemberList({
           <div className="space-y-4">
             {members.map((member) => (
               <MemberItem
-                key={member.id}
-                member={member}
                 canManageRoles={canManageRoles}
                 currentUserId={stackUser?.id}
-                onRoleChange={handleRoleChange}
                 isUpdating={updateRoleMutation.isPending}
+                key={member.id}
+                member={member}
+                onRoleChange={handleRoleChange}
               />
             ))}
           </div>
@@ -497,11 +497,11 @@ export function MemberList({
             <div className="space-y-4">
               {pendingInvites.map((invite) => (
                 <PendingInviteItem
-                  key={invite.id}
                   invite={invite}
+                  isExpired={new Date() > invite.expiresAt}
+                  key={invite.id}
                   onResend={handleResendInvite}
                   onRevoke={handleRevokeInvite}
-                  isExpired={new Date() > invite.expiresAt}
                 />
               ))}
             </div>

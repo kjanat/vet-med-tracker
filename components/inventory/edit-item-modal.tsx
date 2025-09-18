@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import z from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,11 +35,11 @@ import type { InventoryItem } from "./inventory-card";
 
 const editItemSchema = z.object({
   brandOverride: z.string().optional(),
-  lot: z.string().optional(),
   expiresOn: z.string().min(1, "Expiration date is required"),
+  lot: z.string().optional(),
+  notes: z.string().optional(),
   storage: z.enum(["ROOM", "FRIDGE", "FREEZER", "CONTROLLED"]),
   unitsRemaining: z.number().int().min(0, "Units must be 0 or more"),
-  notes: z.string().optional(),
 });
 
 export type EditItemData = z.infer<typeof editItemSchema>;
@@ -60,26 +60,26 @@ export function EditItemModal({
   onDelete,
 }: EditItemModalProps) {
   const form = useForm<EditItemData>({
-    resolver: zodResolver(editItemSchema),
     defaultValues: {
       brandOverride: "",
-      lot: "",
       expiresOn: "",
+      lot: "",
+      notes: "",
       storage: "ROOM",
       unitsRemaining: 0,
-      notes: "",
     },
+    resolver: zodResolver(editItemSchema),
   });
 
   // Reset form when item changes
   if (item) {
     const defaultValues = {
       brandOverride: item.brand || "",
-      lot: item.lot || "",
       expiresOn: format(item.expiresOn, "yyyy-MM-dd"),
+      lot: item.lot || "",
+      notes: item.notes || "",
       storage: item.storage,
       unitsRemaining: item.unitsRemaining,
-      notes: item.notes || "",
     };
     form.reset(defaultValues);
   }
@@ -110,7 +110,7 @@ export function EditItemModal({
   if (!item) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Inventory Item</DialogTitle>
@@ -120,7 +120,7 @@ export function EditItemModal({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="brandOverride"
@@ -173,8 +173,8 @@ export function EditItemModal({
                 <FormItem>
                   <FormLabel>Storage Location</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
                     defaultValue={field.value}
+                    onValueChange={field.onChange}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -203,8 +203,8 @@ export function EditItemModal({
                   <FormLabel>Units Remaining</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
                       min="0"
+                      type="number"
                       {...field}
                       onChange={(e) =>
                         field.onChange(parseInt(e.target.value, 10) || 0)
@@ -224,8 +224,8 @@ export function EditItemModal({
                   <FormLabel>Notes (Optional)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Additional notes..."
                       className="resize-none"
+                      placeholder="Additional notes..."
                       {...field}
                     />
                   </FormControl>
@@ -237,18 +237,18 @@ export function EditItemModal({
             <DialogFooter className="flex justify-between gap-2 sm:justify-between">
               {onDelete && (
                 <Button
+                  onClick={handleDelete}
                   type="button"
                   variant="destructive"
-                  onClick={handleDelete}
                 >
                   Delete
                 </Button>
               )}
               <div className="flex gap-2">
                 <Button
+                  onClick={() => onOpenChange(false)}
                   type="button"
                   variant="outline"
-                  onClick={() => onOpenChange(false)}
                 >
                   Cancel
                 </Button>

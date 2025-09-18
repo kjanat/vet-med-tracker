@@ -78,19 +78,19 @@ export interface RecordSearchParams {
 
 const HistorySearchParamsSchema = z.object({
   animalId: z.string().optional(),
-  regimenId: z.string().optional(),
   caregiverId: z.string().optional(),
-  type: z.enum(["all", "scheduled", "prn"]).optional(),
-  status: z.enum(["on-time", "late", "missed", "all"]).optional(),
-  view: z.enum(["list", "calendar"]).optional(),
   from: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  regimenId: z.string().optional(),
+  status: z.enum(["on-time", "late", "missed", "all"]).optional(),
   to: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  type: z.enum(["all", "scheduled", "prn"]).optional(),
+  view: z.enum(["list", "calendar"]).optional(),
 });
 
 const SettingsSearchParamsSchema = z.object({
@@ -98,32 +98,32 @@ const SettingsSearchParamsSchema = z.object({
 });
 
 const InsightsSearchParamsSchema = z.object({
+  animalId: z.string().optional(),
   from: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  metric: z.enum(["compliance", "timing", "inventory", "all"]).optional(),
   to: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
-  animalId: z.string().optional(),
   view: z.enum(["summary", "detailed", "charts"]).optional(),
-  metric: z.enum(["compliance", "timing", "inventory", "all"]).optional(),
 });
 
 const RecordSearchParamsSchema = z.object({
   animalId: z.string().optional(),
+  mode: z.enum(["quick", "detailed"]).optional(),
   regimenId: z.string().optional(),
   returnTo: z.string().optional(),
-  mode: z.enum(["quick", "detailed"]).optional(),
 });
 
 // Schema mapping for type-safe validation
 const schemaMap = {
   history: HistorySearchParamsSchema,
-  settings: SettingsSearchParamsSchema,
   insights: InsightsSearchParamsSchema,
   record: RecordSearchParamsSchema,
+  settings: SettingsSearchParamsSchema,
 } as const;
 
 export type SearchParamPageType = keyof typeof schemaMap;

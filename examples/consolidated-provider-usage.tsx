@@ -90,19 +90,19 @@ function HouseholdAnimalSelector() {
     <div className="space-y-4">
       <div>
         <label
-          htmlFor="household-select"
           className="mb-2 block font-medium text-sm"
+          htmlFor="household-select"
         >
           Select Household:
         </label>
         <select
+          className="w-full rounded border p-2"
           id="household-select"
-          value={selectedHousehold?.id || ""}
           onChange={(e) => {
             const household = households.find((h) => h.id === e.target.value);
             setSelectedHousehold(household || null);
           }}
-          className="w-full rounded border p-2"
+          value={selectedHousehold?.id || ""}
         >
           <option value="">Select a household...</option>
           {households.map((household) => (
@@ -116,19 +116,19 @@ function HouseholdAnimalSelector() {
       {selectedHousehold && animals.length > 0 && (
         <div>
           <label
-            htmlFor="animal-select"
             className="mb-2 block font-medium text-sm"
+            htmlFor="animal-select"
           >
             Select Animal:
           </label>
           <select
+            className="w-full rounded border p-2"
             id="animal-select"
-            value={selectedAnimal?.id || ""}
             onChange={(e) => {
               const animal = animals.find((a) => a.id === e.target.value);
               setSelectedAnimal(animal || null);
             }}
-            className="w-full rounded border p-2"
+            value={selectedAnimal?.id || ""}
           >
             <option value="">Select an animal...</option>
             {animals.map((animal) => (
@@ -165,9 +165,9 @@ function AuthExample() {
         <div>
           <p>Signed in as: {user?.name}</p>
           <button
-            type="button"
-            onClick={logout}
             className="rounded bg-red-500 px-4 py-2 text-white"
+            onClick={logout}
+            type="button"
           >
             Sign Out
           </button>
@@ -176,9 +176,9 @@ function AuthExample() {
         <div>
           <p>Not signed in</p>
           <button
-            type="button"
-            onClick={login}
             className="rounded bg-blue-500 px-4 py-2 text-white"
+            onClick={login}
+            type="button"
           >
             Sign In
           </button>
@@ -236,9 +236,9 @@ function PreferencesExample() {
         <div className="rounded bg-blue-50 p-4">
           <p>Welcome! Complete your setup:</p>
           <button
-            type="button"
-            onClick={markOnboardingComplete}
             className="mt-2 rounded bg-blue-500 px-4 py-2 text-white"
+            onClick={markOnboardingComplete}
+            type="button"
           >
             Complete Onboarding
           </button>
@@ -250,10 +250,10 @@ function PreferencesExample() {
         <div className="space-y-2">
           <label className="flex items-center">
             <input
-              type="checkbox"
               checked={vetMedPreferences.displayPreferences.use24HourTime}
-              onChange={handleToggle24Hour}
               className="mr-2"
+              onChange={handleToggle24Hour}
+              type="checkbox"
             />
             Use 24-hour time format
           </label>
@@ -263,10 +263,10 @@ function PreferencesExample() {
         <div className="space-y-2">
           <label className="flex items-center">
             <input
-              type="checkbox"
               checked={vetMedPreferences.displayPreferences.weightUnit === "kg"}
-              onChange={handleWeightUnitToggle}
               className="mr-2"
+              onChange={handleWeightUnitToggle}
+              type="checkbox"
             />
             Use metric weight (kg)
           </label>
@@ -325,17 +325,17 @@ function AccessibilityExample() {
 
       <div className="space-y-2">
         <button
-          type="button"
-          onClick={handleSave}
           className="rounded bg-green-500 px-4 py-2 text-white"
+          onClick={handleSave}
+          type="button"
         >
           Save Settings (Success Announcement)
         </button>
 
         <button
-          type="button"
-          onClick={handleError}
           className="rounded bg-red-500 px-4 py-2 text-white"
+          onClick={handleError}
+          type="button"
         >
           Trigger Error (Error Announcement)
         </button>
@@ -546,7 +546,7 @@ function OptimizedAnimalList() {
       <h2>Animals ({animals.length})</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {sortedAnimals.map((animal) => (
-          <OptimizedAnimalCard key={animal.id} animalId={animal.id} />
+          <OptimizedAnimalCard animalId={animal.id} key={animal.id} />
         ))}
       </div>
     </div>

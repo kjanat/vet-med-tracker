@@ -124,23 +124,23 @@ export function PhotoGallery({
 
   // Lightbox state
   const [lightbox, setLightbox] = useState<LightboxState>({
-    isOpen: false,
     currentIndex: 0,
-    zoom: 1,
-    panX: 0,
-    panY: 0,
     isDragging: false,
+    isOpen: false,
     lastPanX: 0,
     lastPanY: 0,
+    panX: 0,
+    panY: 0,
+    zoom: 1,
   });
 
   // Touch/swipe state
   const [swipe, setSwipe] = useState<SwipeState>({
-    startX: 0,
-    startY: 0,
     currentX: 0,
     currentY: 0,
     isDragging: false,
+    startX: 0,
+    startY: 0,
     threshold: 50,
   });
 
@@ -199,14 +199,14 @@ export function PhotoGallery({
    */
   const openLightbox = useCallback((index: number) => {
     setLightbox({
-      isOpen: true,
       currentIndex: index,
-      zoom: 1,
-      panX: 0,
-      panY: 0,
       isDragging: false,
+      isOpen: true,
       lastPanX: 0,
       lastPanY: 0,
+      panX: 0,
+      panY: 0,
+      zoom: 1,
     });
   }, []);
 
@@ -216,13 +216,13 @@ export function PhotoGallery({
   const closeLightbox = useCallback(() => {
     setLightbox((prev) => ({
       ...prev,
-      isOpen: false,
-      zoom: 1,
-      panX: 0,
-      panY: 0,
       isDragging: false,
+      isOpen: false,
       lastPanX: 0,
       lastPanY: 0,
+      panX: 0,
+      panY: 0,
+      zoom: 1,
     }));
   }, []);
 
@@ -238,9 +238,9 @@ export function PhotoGallery({
         return {
           ...prev,
           currentIndex: newIndex,
-          zoom: 1,
           panX: 0,
           panY: 0,
+          zoom: 1,
         };
       });
     },
@@ -263,9 +263,9 @@ export function PhotoGallery({
   const zoomOut = useCallback(() => {
     setLightbox((prev) => ({
       ...prev,
-      zoom: Math.max(prev.zoom / 1.5, 0.5),
       panX: prev.zoom <= 1 ? 0 : prev.panX,
       panY: prev.zoom <= 1 ? 0 : prev.panY,
+      zoom: Math.max(prev.zoom / 1.5, 0.5),
     }));
   }, []);
 
@@ -275,9 +275,9 @@ export function PhotoGallery({
   const resetZoom = useCallback(() => {
     setLightbox((prev) => ({
       ...prev,
-      zoom: 1,
       panX: 0,
       panY: 0,
+      zoom: 1,
     }));
   }, []);
 
@@ -335,11 +335,11 @@ export function PhotoGallery({
         if (!touch) return;
 
         setSwipe({
-          startX: touch.clientX,
-          startY: touch.clientY,
           currentX: touch.clientX,
           currentY: touch.clientY,
           isDragging: true,
+          startX: touch.clientX,
+          startY: touch.clientY,
           threshold: 50,
         });
 
@@ -393,12 +393,11 @@ export function PhotoGallery({
 
   // Helper to calculate distance between two touches
   const calculateTouchDistance = useCallback(
-    (touch1: React.Touch, touch2: React.Touch) => {
-      return Math.sqrt(
+    (touch1: React.Touch, touch2: React.Touch) =>
+      Math.sqrt(
         (touch1.clientX - touch2.clientX) ** 2 +
           (touch1.clientY - touch2.clientY) ** 2,
-      );
-    },
+      ),
     [],
   );
 
@@ -525,14 +524,14 @@ export function PhotoGallery({
         }
 
         toast({
-          title: "Photo deleted",
           description: "The photo has been successfully deleted.",
+          title: "Photo deleted",
         });
       } catch (error) {
         console.error("Error deleting photo:", error);
         toast({
-          title: "Error",
           description: "Failed to delete photo. Please try again.",
+          title: "Error",
           variant: "destructive",
         });
       }
@@ -555,14 +554,14 @@ export function PhotoGallery({
       try {
         await onPhotoPrimary?.(photoId);
         toast({
-          title: "Primary photo updated",
           description: "The primary photo has been updated successfully.",
+          title: "Primary photo updated",
         });
       } catch (error) {
         console.error("Error setting primary photo:", error);
         toast({
-          title: "Error",
           description: "Failed to update primary photo. Please try again.",
+          title: "Error",
           variant: "destructive",
         });
       }
@@ -589,8 +588,8 @@ export function PhotoGallery({
       } catch (error) {
         console.error("Error downloading photo:", error);
         toast({
-          title: "Error",
           description: "Failed to download photo. Please try again.",
+          title: "Error",
           variant: "destructive",
         });
       }
@@ -625,7 +624,7 @@ export function PhotoGallery({
         </div>
         <div className={cn("grid gap-4", getGridColumns())}>
           {Array.from({ length: 6 }).map(() => (
-            <div key={crypto.randomUUID()} className="space-y-2">
+            <div className="space-y-2" key={crypto.randomUUID()}>
               <Skeleton className="aspect-square w-full rounded-lg" />
               {showCaptions && <Skeleton className="h-4 w-3/4" />}
             </div>
@@ -666,10 +665,11 @@ export function PhotoGallery({
         <div className={cn("grid gap-4", getGridColumns())}>
           {photos.map((photo, index) => (
             <PhotoGridItem
-              key={photo.id}
-              photo={photo}
+              enableLazyLoading={enableLazyLoading}
               index={index}
-              onOpenLightbox={openLightbox}
+              intersectionObserver={intersectionObserver.current}
+              isVisible={visiblePhotos.has(photo.id)}
+              key={photo.id}
               onDelete={
                 allowDelete
                   ? (photoId) =>
@@ -680,21 +680,20 @@ export function PhotoGallery({
                       })
                   : undefined
               }
+              onOpenLightbox={openLightbox}
               onSetPrimary={allowSetPrimary ? handleSetPrimary : undefined}
+              photo={photo}
               showCaption={showCaptions}
-              enableLazyLoading={enableLazyLoading}
-              intersectionObserver={intersectionObserver.current}
-              isVisible={visiblePhotos.has(photo.id)}
             />
           ))}
         </div>
       </div>
 
       {/* Lightbox Modal */}
-      <Dialog open={lightbox.isOpen} onOpenChange={closeLightbox}>
+      <Dialog onOpenChange={closeLightbox} open={lightbox.isOpen}>
         <DialogContent
-          className="h-screen max-h-full w-screen max-w-full border-0 p-0"
           aria-describedby={undefined}
+          className="h-screen max-h-full w-screen max-w-full border-0 p-0"
         >
           <DialogHeader className="absolute top-4 left-4 z-10">
             <DialogTitle className="text-white">
@@ -704,31 +703,31 @@ export function PhotoGallery({
           </DialogHeader>
 
           <div
-            ref={lightboxContentRef}
             className="relative flex h-full w-full items-center justify-center overflow-hidden bg-black"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
+            onTouchStart={handleTouchStart}
+            ref={lightboxContentRef}
           >
             {/* Navigation buttons */}
             {photos.length > 1 && (
               <>
                 <Button
-                  variant="ghost"
-                  size="icon"
                   className="-translate-y-1/2 absolute top-1/2 left-4 z-10 bg-black/50 text-white hover:bg-black/70"
-                  onClick={() => navigatePhoto(-1)}
                   disabled={lightbox.currentIndex === 0}
+                  onClick={() => navigatePhoto(-1)}
+                  size="icon"
+                  variant="ghost"
                 >
                   <ChevronLeft className="h-6 w-6" />
                 </Button>
 
                 <Button
-                  variant="ghost"
-                  size="icon"
                   className="-translate-y-1/2 absolute top-1/2 right-4 z-10 bg-black/50 text-white hover:bg-black/70"
-                  onClick={() => navigatePhoto(1)}
                   disabled={lightbox.currentIndex === photos.length - 1}
+                  onClick={() => navigatePhoto(1)}
+                  size="icon"
+                  variant="ghost"
                 >
                   <ChevronRight className="h-6 w-6" />
                 </Button>
@@ -738,11 +737,11 @@ export function PhotoGallery({
             {/* Zoom controls */}
             <div className="-translate-x-1/2 absolute bottom-4 left-1/2 z-10 flex items-center gap-2 rounded-lg bg-black/50 p-2">
               <Button
-                variant="ghost"
-                size="sm"
                 className="text-white hover:bg-white/20"
-                onClick={zoomOut}
                 disabled={lightbox.zoom <= 0.5}
+                onClick={zoomOut}
+                size="sm"
+                variant="ghost"
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -752,21 +751,21 @@ export function PhotoGallery({
               </span>
 
               <Button
-                variant="ghost"
-                size="sm"
                 className="text-white hover:bg-white/20"
-                onClick={zoomIn}
                 disabled={lightbox.zoom >= 5}
+                onClick={zoomIn}
+                size="sm"
+                variant="ghost"
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
 
               <Button
-                variant="ghost"
-                size="sm"
                 className="text-white hover:bg-white/20"
-                onClick={resetZoom}
                 disabled={lightbox.zoom === 1}
+                onClick={resetZoom}
+                size="sm"
+                variant="ghost"
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
@@ -778,9 +777,9 @@ export function PhotoGallery({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="icon"
                       className="bg-black/50 text-white hover:bg-black/70"
+                      size="icon"
+                      variant="ghost"
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
@@ -806,6 +805,7 @@ export function PhotoGallery({
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
                           onClick={() =>
                             setDeleteConfirm({
                               isOpen: true,
@@ -813,7 +813,6 @@ export function PhotoGallery({
                               photoUrl: currentPhoto.url,
                             })
                           }
-                          className="text-destructive focus:text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -828,19 +827,19 @@ export function PhotoGallery({
             {/* Main image */}
             {currentPhoto && (
               <Image
-                ref={lightboxImageRef}
-                src={currentPhoto.url}
                 alt={
                   currentPhoto.caption || `Photo ${lightbox.currentIndex + 1}`
                 }
-                fill
                 className="max-h-full max-w-full object-contain transition-transform duration-200"
-                style={{
-                  transform: `scale(${lightbox.zoom}) translate(${lightbox.panX}px, ${lightbox.panY}px)`,
-                  cursor: lightbox.zoom > 1 ? "grab" : "default",
-                }}
                 draggable={false}
+                fill
+                ref={lightboxImageRef}
                 sizes="100vw"
+                src={currentPhoto.url}
+                style={{
+                  cursor: lightbox.zoom > 1 ? "grab" : "default",
+                  transform: `scale(${lightbox.zoom}) translate(${lightbox.panX}px, ${lightbox.panY}px)`,
+                }}
                 unoptimized
               />
             )}
@@ -857,10 +856,10 @@ export function PhotoGallery({
 
       {/* Delete confirmation dialog */}
       <AlertDialog
-        open={deleteConfirm.isOpen}
         onOpenChange={(open) =>
           setDeleteConfirm((prev) => ({ ...prev, isOpen: open }))
         }
+        open={deleteConfirm.isOpen}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -873,11 +872,11 @@ export function PhotoGallery({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() =>
                 deleteConfirm.photoId &&
                 handleDeletePhoto(deleteConfirm.photoId)
               }
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
@@ -940,14 +939,14 @@ function PhotoGridItem({
   };
 
   return (
-    <div ref={itemRef} className="group relative">
+    <div className="group relative" ref={itemRef}>
       {/* Photo container */}
       <button
-        type="button"
+        aria-label={`Open photo ${index + 1} in lightbox`}
         className="relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted transition-all duration-200 hover:ring-2 hover:ring-primary hover:ring-offset-2 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         onClick={() => onOpenLightbox(index)}
         onKeyDown={handleKeyDown}
-        aria-label={`Open photo ${index + 1} in lightbox`}
+        type="button"
       >
         {/* Primary indicator */}
         {photo.isPrimary && (
@@ -963,10 +962,10 @@ function PhotoGridItem({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="secondary"
-                  size="sm"
                   className="h-8 w-8 p-0"
                   onClick={(e) => e.stopPropagation()}
+                  size="sm"
+                  variant="secondary"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -990,11 +989,11 @@ function PhotoGridItem({
                       <DropdownMenuSeparator />
                     )}
                     <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete(photo.id);
                       }}
-                      className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
@@ -1010,19 +1009,19 @@ function PhotoGridItem({
         {showImage ? (
           enableLazyLoading ? (
             <LazyImage
-              src={photo.thumbnailUrl || photo.url}
               alt={photo.caption || `Image ${index + 1}`}
-              width={400}
-              height={400}
               className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+              height={400}
+              src={photo.thumbnailUrl || photo.url}
+              width={400}
             />
           ) : (
             <ProgressiveImage
-              src={photo.thumbnailUrl || photo.url}
               alt={photo.caption || `Image ${index + 1}`}
-              width={400}
-              height={400}
               className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+              height={400}
+              src={photo.thumbnailUrl || photo.url}
+              width={400}
             />
           )
         ) : (

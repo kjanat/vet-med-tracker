@@ -47,7 +47,7 @@ export function SignaturePad({
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
   const [isEmpty, setIsEmpty] = useState(true);
-  const [canvasSize, setCanvasSize] = useState({ width, height });
+  const [canvasSize, setCanvasSize] = useState({ height, width });
 
   // Responsive canvas sizing
   useEffect(() => {
@@ -60,8 +60,8 @@ export function SignaturePad({
         const newHeight = maxWidth * aspectRatio;
 
         setCanvasSize({
-          width: maxWidth,
           height: Math.max(newHeight, 150), // Minimum height
+          width: maxWidth,
         });
       }
     };
@@ -146,10 +146,10 @@ export function SignaturePad({
       if (!eventData) return null;
 
       return {
-        x: (eventData.clientX - rect.left) * scaleX,
-        y: (eventData.clientY - rect.top) * scaleY,
         pressure: eventData.pressure,
         timestamp: Date.now(),
+        x: (eventData.clientX - rect.left) * scaleX,
+        y: (eventData.clientY - rect.top) * scaleY,
       };
     },
     [getCanvasScaling, getMouseEventData, getTouchEventData],
@@ -254,8 +254,8 @@ export function SignaturePad({
     // Draw current stroke if drawing
     if (isDrawing && currentStroke.length > 0) {
       drawStroke({
-        points: currentStroke,
         color: penColor,
+        points: currentStroke,
         width: penWidth,
       });
     }
@@ -344,8 +344,8 @@ export function SignaturePad({
       setStrokes((prev) => [
         ...prev,
         {
-          points: currentStroke,
           color: penColor,
+          points: currentStroke,
           width: penWidth,
         },
       ]);
@@ -415,23 +415,23 @@ export function SignaturePad({
         <div className="flex flex-col items-center space-y-3">
           <div className="rounded-lg border-2 border-muted-foreground/25 border-dashed p-2">
             <canvas
-              ref={canvasRef}
               className={cn(
                 "cursor-crosshair touch-none rounded-md border border-border bg-background",
                 disabled && "cursor-not-allowed opacity-50",
               )}
-              style={{
-                width: canvasSize.width,
-                height: canvasSize.height,
-              }}
               onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseUp}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
               onTouchCancel={handleTouchEnd}
+              onTouchEnd={handleTouchEnd}
+              onTouchMove={handleTouchMove}
+              onTouchStart={handleTouchStart}
+              ref={canvasRef}
+              style={{
+                height: canvasSize.height,
+                width: canvasSize.width,
+              }}
             />
           </div>
 
@@ -453,33 +453,33 @@ export function SignaturePad({
 
         <div className="flex flex-wrap justify-center gap-2">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={undoStroke}
-            disabled={disabled || strokes.length === 0}
             className="flex items-center gap-2"
+            disabled={disabled || strokes.length === 0}
+            onClick={undoStroke}
+            size="sm"
+            variant="outline"
           >
             <RotateCcw className="h-4 w-4" />
             Undo
           </Button>
 
           <Button
-            variant="outline"
-            size="sm"
-            onClick={clearSignature}
-            disabled={disabled || isEmpty}
             className="flex items-center gap-2"
+            disabled={disabled || isEmpty}
+            onClick={clearSignature}
+            size="sm"
+            variant="outline"
           >
             <Eraser className="h-4 w-4" />
             Clear
           </Button>
 
           <Button
-            variant="outline"
-            size="sm"
-            disabled={isEmpty}
             className="flex items-center gap-2"
+            disabled={isEmpty}
+            size="sm"
             title={isEmpty ? "No signature to save" : "Signature ready"}
+            variant="outline"
           >
             <Save className="h-4 w-4" />
             {isEmpty ? "No Signature" : "Signature Ready"}

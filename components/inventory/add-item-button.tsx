@@ -20,9 +20,9 @@ export function AddItemButton({
   return (
     <Button
       className={`gap-2 ${className || ""}`}
+      onClick={openInventoryForm}
       size={size}
       variant={variant}
-      onClick={openInventoryForm}
     >
       <Plus className="h-4 w-4" />
       Add Item

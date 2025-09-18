@@ -42,19 +42,19 @@ export default function HouseholdsPage() {
     isLoading,
     refetch,
   } = trpc.user.getMemberships.useQuery(undefined, {
-    enabled: !!user,
+    enabled: Boolean(user),
   });
 
   // Get detailed data for selected household
   const { data: selectedHouseholdData } = trpc.household.get.useQuery(
     { householdId: selectedHousehold?.id ?? "" },
-    { enabled: !!selectedHousehold?.id },
+    { enabled: Boolean(selectedHousehold?.id) },
   );
 
   // Get members for selected household
   const { data: membersData } = trpc.household.getMembers.useQuery(
     { householdId: selectedHousehold?.id ?? "" },
-    { enabled: !!selectedHousehold?.id },
+    { enabled: Boolean(selectedHousehold?.id) },
   );
 
   // Transform members data
@@ -171,7 +171,7 @@ export default function HouseholdsPage() {
       </div>
 
       {/* Main Content with Tabs */}
-      <Tabs defaultValue="all" className="space-y-6">
+      <Tabs className="space-y-6" defaultValue="all">
         <TabsList>
           <TabsTrigger value="all">All Households</TabsTrigger>
           {selectedHousehold && (
@@ -180,19 +180,19 @@ export default function HouseholdsPage() {
         </TabsList>
 
         {/* All Households Tab */}
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent className="space-y-4" value="all">
           <div className="grid gap-4">
             {memberships?.map((membership) => (
               <HouseholdCard
+                isSelected={selectedHousehold?.id === membership.household.id}
                 key={membership.household.id}
                 membership={membership}
-                isSelected={selectedHousehold?.id === membership.household.id}
-                onMakeActive={() => setSelectedHousehold(membership.household)}
                 onEdit={() => handleEditHousehold(membership.household.id)}
                 onLeave={() => {
                   setLeavingHouseholdId(membership.household.id);
                   setIsLeaveDialogOpen(true);
                 }}
+                onMakeActive={() => setSelectedHousehold(membership.household)}
               />
             ))}
           </div>
@@ -219,16 +219,16 @@ export default function HouseholdsPage() {
 
         {/* Current Household Tab */}
         {selectedHousehold && (
-          <TabsContent value="current" className="space-y-6">
+          <TabsContent className="space-y-6" value="current">
             {selectedHouseholdData && (
               <HouseholdDetails
                 household={selectedHouseholdData}
-                userRole={userRoleInSelected}
                 onEdit={() => handleEditHousehold(selectedHousehold.id)}
                 onLeave={() => {
                   setLeavingHouseholdId(selectedHousehold.id);
                   setIsLeaveDialogOpen(true);
                 }}
+                userRole={userRoleInSelected}
               />
             )}
             <MemberList members={members} userRole={userRoleInSelected} />
@@ -238,20 +238,20 @@ export default function HouseholdsPage() {
 
       {/* Dialogs */}
       <EditHouseholdDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
         editedName={editedName}
-        onNameChange={setEditedName}
         editedTimezone={editedTimezone}
-        onTimezoneChange={setEditedTimezone}
-        onSave={handleSaveHousehold}
         isSaving={updateHouseholdMutation.isPending}
+        onNameChange={setEditedName}
+        onOpenChange={setIsEditDialogOpen}
+        onSave={handleSaveHousehold}
+        onTimezoneChange={setEditedTimezone}
+        open={isEditDialogOpen}
       />
       <LeaveHouseholdDialog
-        open={isLeaveDialogOpen}
-        onOpenChange={setIsLeaveDialogOpen}
-        onLeave={handleLeaveHousehold}
         isLeaving={leaveHouseholdMutation.isPending}
+        onLeave={handleLeaveHousehold}
+        onOpenChange={setIsLeaveDialogOpen}
+        open={isLeaveDialogOpen}
       />
     </div>
   );

@@ -6,23 +6,23 @@ import { SectionHeader } from "./primitives/section-header";
 
 const steps = [
   {
-    number: "1",
-    title: "Add Your Pets",
     description:
       "Set up profiles for each of your pets with their medications and schedules.",
     icon: Smartphone,
+    number: "1",
+    title: "Add Your Pets",
   },
   {
-    number: "2",
-    title: "Get Reminded",
     description: "Receive smart notifications when it's time for medications.",
     icon: Timer,
+    number: "2",
+    title: "Get Reminded",
   },
   {
-    number: "3",
-    title: "Record in 3 Taps",
     description: "Select pet, confirm medication, hold to record. That's it!",
     icon: CheckCircle2,
+    number: "3",
+    title: "Record in 3 Taps",
   },
 ];
 
@@ -30,16 +30,16 @@ export function HowItWorksSection() {
   return (
     <Section id="demo">
       <SectionHeader
-        title="How It Works"
         description="Get started in minutes and never worry about missed medications again."
+        title="How It Works"
       />
 
       {/* Steps */}
       <div className="mb-16 grid grid-cols-1 gap-8 md:grid-cols-3">
         {steps.map((step, index) => (
           <div
-            key={`step-${step.title.replace(/\s+/g, "-").toLowerCase()}`}
             className="relative"
+            key={`step-${step.title.replace(/\s+/g, "-").toLowerCase()}`}
           >
             {/* Connection line (hidden on mobile and last item) */}
             {index < steps.length - 1 && (
@@ -82,11 +82,11 @@ export function HowItWorksSection() {
             />
             <div
               className="h-12 animate-pulse rounded bg-muted"
-              style={{ animationDuration: "2s", animationDelay: "200ms" }}
+              style={{ animationDelay: "200ms", animationDuration: "2s" }}
             />
             <div
               className="h-12 animate-pulse rounded bg-muted"
-              style={{ animationDuration: "2s", animationDelay: "400ms" }}
+              style={{ animationDelay: "400ms", animationDuration: "2s" }}
             />
           </div>
         </div>

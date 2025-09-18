@@ -47,7 +47,7 @@ export function TableLoadingSkeleton({ rows = 5 }: { rows?: number }) {
       </div>
       <div className="divide-y">
         {rowKeys.map((key) => (
-          <div key={key} className="flex items-center gap-4 p-4">
+          <div className="flex items-center gap-4 p-4" key={key}>
             <Skeleton className="h-10 w-10 rounded-full" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-1/3" />

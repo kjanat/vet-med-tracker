@@ -16,17 +16,17 @@ interface InventoryLevelsWidgetProps {
 }
 
 const chartConfig = {
-  normal: {
-    label: "Normal Stock",
-    color: "hsl(var(--chart-1))",
+  empty: {
+    color: "hsl(var(--destructive))",
+    label: "Out of Stock",
   },
   low: {
-    label: "Low Stock",
     color: "hsl(var(--chart-3))",
+    label: "Low Stock",
   },
-  empty: {
-    label: "Out of Stock",
-    color: "hsl(var(--destructive))",
+  normal: {
+    color: "hsl(var(--chart-1))",
+    label: "Normal Stock",
   },
 } satisfies ChartConfig;
 
@@ -43,14 +43,14 @@ function InventoryLevelsWidgetContent({
     const normalStock = inventoryData.activeItems - inventoryData.lowStockItems;
     const stockDistribution = [
       {
+        color: chartConfig.normal.color,
         name: "Normal Stock",
         value: normalStock,
-        color: chartConfig.normal.color,
       },
       {
+        color: chartConfig.low.color,
         name: "Low Stock",
         value: inventoryData.lowStockItems,
-        color: chartConfig.low.color,
       },
     ];
 
@@ -94,14 +94,14 @@ function InventoryLevelsWidgetContent({
           : null;
 
         return {
-          id: item.id,
-          medicationName: item.genericName || "Unknown",
           animalName: item.assignedAnimalName,
+          daysUntilExpiry,
+          id: item.id,
+          isExpiringSoon: daysUntilExpiry !== null && daysUntilExpiry <= 30,
+          isLowStock: percentRemaining <= 20,
+          medicationName: item.genericName || "Unknown",
           percentRemaining,
           unitsRemaining: item.unitsRemaining || 0,
-          daysUntilExpiry,
-          isLowStock: percentRemaining <= 20,
-          isExpiringSoon: daysUntilExpiry !== null && daysUntilExpiry <= 30,
         };
       })
       .sort((a, b) => {
@@ -119,9 +119,9 @@ function InventoryLevelsWidgetContent({
       });
 
     return {
-      stockDistribution,
       attentionItems,
       metrics: inventoryData,
+      stockDistribution,
     };
   }, [inventoryData]);
 
@@ -175,21 +175,21 @@ function InventoryLevelsWidgetContent({
       <div className="relative">
         <div className="h-32">
           <ChartContainer config={chartConfig}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer height="100%" width="100%">
               <PieChart>
                 <Pie
-                  data={processedData.stockDistribution}
                   cx="50%"
                   cy="50%"
-                  startAngle={180}
+                  data={processedData.stockDistribution}
+                  dataKey="value"
                   endAngle={0}
                   innerRadius={40}
                   outerRadius={60}
                   paddingAngle={2}
-                  dataKey="value"
+                  startAngle={180}
                 >
                   {processedData.stockDistribution.map((entry) => (
-                    <Cell key={`cell-${entry.name}`} fill={entry.color} />
+                    <Cell fill={entry.color} key={`cell-${entry.name}`} />
                   ))}
                 </Pie>
               </PieChart>
@@ -220,7 +220,7 @@ function InventoryLevelsWidgetContent({
             className={`space-y-2 ${isFullscreen ? "max-h-64" : "max-h-32"} overflow-y-auto`}
           >
             {processedData.attentionItems.map((item) => (
-              <div key={item.id} className="rounded-lg border p-2">
+              <div className="rounded-lg border p-2" key={item.id}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-sm">{item.medicationName}</p>
@@ -232,12 +232,12 @@ function InventoryLevelsWidgetContent({
                   </div>
                   <div className="flex items-center gap-2">
                     {item.isLowStock && (
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge className="text-xs" variant="destructive">
                         {item.percentRemaining}%
                       </Badge>
                     )}
                     {item.isExpiringSoon && item.daysUntilExpiry !== null && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge className="text-xs" variant="secondary">
                         {item.daysUntilExpiry === 0
                           ? "Expired"
                           : `${item.daysUntilExpiry}d`}
@@ -248,7 +248,7 @@ function InventoryLevelsWidgetContent({
 
                 {item.isLowStock && (
                   <div className="mt-2">
-                    <Progress value={item.percentRemaining} className="h-1" />
+                    <Progress className="h-1" value={item.percentRemaining} />
                     <p className="mt-1 text-muted-foreground text-xs">
                       {item.unitsRemaining} units remaining
                     </p>

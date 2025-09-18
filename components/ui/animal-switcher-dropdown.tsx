@@ -54,8 +54,8 @@ export function AnimalSwitcherDropdown() {
   return (
     <div className="w-full max-w-[260px]">
       <Select
-        value={selectedAnimal?.id || "all"}
         onValueChange={handleAnimalChange}
+        value={selectedAnimal?.id || "all"}
       >
         <SelectTrigger className="h-9 w-full px-3">
           <SelectValue>
@@ -65,8 +65,8 @@ export function AnimalSwitcherDropdown() {
                 <span className="truncate">{selectedAnimal.name}</span>
                 {selectedAnimal.pendingMeds > 0 && (
                   <Badge
-                    variant="destructive"
                     className="ml-auto h-5 px-1.5 text-xs"
+                    variant="destructive"
                   >
                     {selectedAnimal.pendingMeds}
                   </Badge>
@@ -76,7 +76,7 @@ export function AnimalSwitcherDropdown() {
               <div className="flex w-full items-center justify-between">
                 <span>All Animals</span>
                 {totalPendingMeds > 0 && (
-                  <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                  <Badge className="h-5 px-1.5 text-xs" variant="secondary">
                     {totalPendingMeds}
                   </Badge>
                 )}
@@ -89,7 +89,7 @@ export function AnimalSwitcherDropdown() {
             <div className="flex w-full items-center justify-between pr-2">
               <span>All Animals</span>
               {totalPendingMeds > 0 && (
-                <Badge variant="secondary" className="ml-4 h-5 px-1.5 text-xs">
+                <Badge className="ml-4 h-5 px-1.5 text-xs" variant="secondary">
                   {totalPendingMeds}
                 </Badge>
               )}
@@ -102,8 +102,8 @@ export function AnimalSwitcherDropdown() {
                 <span className="flex-1 truncate">{animal.name}</span>
                 {animal.pendingMeds > 0 && (
                   <Badge
-                    variant="destructive"
                     className="ml-2 h-5 px-1.5 text-xs"
+                    variant="destructive"
                   >
                     {animal.pendingMeds}
                   </Badge>

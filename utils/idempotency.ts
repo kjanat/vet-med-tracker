@@ -4,7 +4,7 @@ export function adminKey(
   localDayISO: string,
   slotIndex?: number,
 ) {
-  return slotIndex != null
+  return typeof slotIndex === "number"
     ? `${animalId}:${regimenId}:${localDayISO}:${slotIndex}`
     : `${animalId}:${regimenId}:${localDayISO}:prn:${crypto.randomUUID()}`;
 }

@@ -38,31 +38,30 @@ export interface FeatureFlags {
  * Default feature flag values
  */
 const DEFAULT_FLAGS: FeatureFlags = {
-  // Core Features - Generally enabled in production
-  pushNotifications: true,
-  bulkOperations: true,
+  // Admin Features - Enabled by default
+  adminPanel: true,
   advancedReporting: true,
-  offlineMode: true,
-
-  // Performance Features - Enabled by default
-  serviceWorker: true,
-  caching: true,
   backgroundSync: true,
+  bulkOperations: true,
+  caching: true,
 
   // UI Features - Enabled by default
   darkMode: true,
-  experimentalUI: false, // Disabled by default for stability
-  mobileOptimizations: true,
-
-  // Admin Features - Enabled by default
-  adminPanel: true,
-  userManagement: true,
-  systemMetrics: true,
 
   // Development Features - Disabled in production
   debugMode: false,
-  testingTools: false,
+  experimentalUI: false, // Disabled by default for stability
+  mobileOptimizations: true,
   mockData: false,
+  offlineMode: true,
+  // Core Features - Generally enabled in production
+  pushNotifications: true,
+
+  // Performance Features - Enabled by default
+  serviceWorker: true,
+  systemMetrics: true,
+  testingTools: false,
+  userManagement: true,
 };
 
 /**
@@ -75,9 +74,9 @@ function getEnvironmentFlags(): Partial<FeatureFlags> {
   if (env === "development") {
     return {
       debugMode: process.env.FEATURE_DEBUG_MODE !== "false",
-      testingTools: process.env.FEATURE_TESTING_TOOLS !== "false",
-      mockData: process.env.FEATURE_MOCK_DATA === "true",
       experimentalUI: process.env.FEATURE_EXPERIMENTAL_UI === "true",
+      mockData: process.env.FEATURE_MOCK_DATA === "true",
+      testingTools: process.env.FEATURE_TESTING_TOOLS !== "false",
     };
   }
 
@@ -85,31 +84,31 @@ function getEnvironmentFlags(): Partial<FeatureFlags> {
   if (env === "test") {
     return {
       debugMode: false,
-      testingTools: true,
       mockData: true,
       pushNotifications: false, // Disabled in tests
       serviceWorker: false, // Disabled in tests
+      testingTools: true,
     };
   }
 
   // Production environment overrides from env vars
   return {
-    pushNotifications: process.env.FEATURE_PUSH_NOTIFICATIONS !== "false",
-    bulkOperations: process.env.FEATURE_BULK_OPERATIONS !== "false",
+    adminPanel: process.env.FEATURE_ADMIN_PANEL !== "false",
     advancedReporting: process.env.FEATURE_ADVANCED_REPORTING !== "false",
-    offlineMode: process.env.FEATURE_OFFLINE_MODE !== "false",
-    serviceWorker: process.env.FEATURE_SERVICE_WORKER !== "false",
-    caching: process.env.FEATURE_CACHING !== "false",
     backgroundSync: process.env.FEATURE_BACKGROUND_SYNC !== "false",
+    bulkOperations: process.env.FEATURE_BULK_OPERATIONS !== "false",
+    caching: process.env.FEATURE_CACHING !== "false",
     darkMode: process.env.FEATURE_DARK_MODE !== "false",
+    debugMode: false, // Always disabled in production
     experimentalUI: process.env.FEATURE_EXPERIMENTAL_UI === "true",
     mobileOptimizations: process.env.FEATURE_MOBILE_OPTIMIZATIONS !== "false",
-    adminPanel: process.env.FEATURE_ADMIN_PANEL !== "false",
-    userManagement: process.env.FEATURE_USER_MANAGEMENT !== "false",
-    systemMetrics: process.env.FEATURE_SYSTEM_METRICS !== "false",
-    debugMode: false, // Always disabled in production
-    testingTools: false, // Always disabled in production
     mockData: false, // Always disabled in production
+    offlineMode: process.env.FEATURE_OFFLINE_MODE !== "false",
+    pushNotifications: process.env.FEATURE_PUSH_NOTIFICATIONS !== "false",
+    serviceWorker: process.env.FEATURE_SERVICE_WORKER !== "false",
+    systemMetrics: process.env.FEATURE_SYSTEM_METRICS !== "false",
+    testingTools: false, // Always disabled in production
+    userManagement: process.env.FEATURE_USER_MANAGEMENT !== "false",
   };
 }
 
@@ -141,17 +140,17 @@ export function getClientFeatureFlags(): Partial<FeatureFlags> {
 
   // Only include client-safe feature flags
   return {
-    pushNotifications: flags.pushNotifications,
-    bulkOperations: flags.bulkOperations,
     advancedReporting: flags.advancedReporting,
-    offlineMode: flags.offlineMode,
-    serviceWorker: flags.serviceWorker,
-    caching: flags.caching,
     backgroundSync: flags.backgroundSync,
+    bulkOperations: flags.bulkOperations,
+    caching: flags.caching,
     darkMode: flags.darkMode,
+    debugMode: flags.debugMode && process.env.NODE_ENV !== "production",
     experimentalUI: flags.experimentalUI,
     mobileOptimizations: flags.mobileOptimizations,
-    debugMode: flags.debugMode && process.env.NODE_ENV !== "production",
+    offlineMode: flags.offlineMode,
+    pushNotifications: flags.pushNotifications,
+    serviceWorker: flags.serviceWorker,
   };
 }
 
@@ -164,18 +163,18 @@ export function getEmergencyModeFlags(): Partial<FeatureFlags> {
     console.warn("Emergency mode enabled - non-essential features disabled");
 
     return {
-      pushNotifications: false,
-      bulkOperations: false,
-      advancedReporting: false,
-      serviceWorker: false,
-      backgroundSync: false,
-      experimentalUI: false,
       adminPanel: false,
-      userManagement: false,
-      systemMetrics: false,
+      advancedReporting: false,
+      backgroundSync: false,
+      bulkOperations: false,
       debugMode: false,
-      testingTools: false,
+      experimentalUI: false,
       mockData: false,
+      pushNotifications: false,
+      serviceWorker: false,
+      systemMetrics: false,
+      testingTools: false,
+      userManagement: false,
     };
   }
 

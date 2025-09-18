@@ -52,7 +52,7 @@ function HistoryContent() {
           .toISO() || undefined,
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
     },
   );
 
@@ -349,9 +349,9 @@ function HistoryContent() {
                 {error.message || "An unexpected error occurred"}
               </p>
               <button
-                type="button"
-                onClick={() => window.location.reload()}
                 className="text-primary hover:underline"
+                onClick={() => window.location.reload()}
+                type="button"
               >
                 Try again
               </button>
@@ -370,19 +370,19 @@ function HistoryContent() {
         {filters.view === "list" ? (
           <HistoryList
             groups={groupedRecords}
-            onLoadMore={handleLoadMore}
-            hasMore={false} // Implement pagination logic
-            onUndo={handleUndo}
+            hasMore={false}
+            onCosign={(id) => handleCosign(id)} // Implement pagination logic
             onDelete={handleDelete}
-            onCosign={(id) => handleCosign(id)}
+            onLoadMore={handleLoadMore}
+            onUndo={handleUndo}
           />
         ) : (
           <HistoryCalendar
-            month={currentMonth}
             counts={dailyCounts}
-            records={filteredRecords}
-            onSelectDay={handleSelectDay}
+            month={currentMonth}
             onMonthChange={setCurrentMonth}
+            onSelectDay={handleSelectDay}
+            records={filteredRecords}
           />
         )}
       </div>

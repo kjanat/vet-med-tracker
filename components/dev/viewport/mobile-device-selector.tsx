@@ -67,10 +67,10 @@ export const MobileDeviceSelector = memo(function MobileDeviceSelector({
       {/* Header */}
       <div className="flex items-center gap-2 border-b px-4 py-3">
         <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
           className="h-8 w-8"
+          onClick={onClose}
+          size="icon"
+          variant="ghost"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -82,11 +82,11 @@ export const MobileDeviceSelector = memo(function MobileDeviceSelector({
         <div className="relative">
           <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
           <Input
-            ref={searchInputRef}
-            placeholder="Search devices..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search devices..."
+            ref={searchInputRef}
+            value={searchQuery}
           />
         </div>
       </div>
@@ -95,15 +95,15 @@ export const MobileDeviceSelector = memo(function MobileDeviceSelector({
       <div className="flex border-b">
         {(["all", "phone", "tablet"] as const).map((tab) => (
           <button
-            type="button"
-            key={tab}
-            onClick={() => setActiveTab(tab)}
             className={cn(
               "flex-1 py-3 font-medium text-sm capitalize transition-colors",
               activeTab === tab
                 ? "border-primary border-b-2 text-primary"
                 : "text-muted-foreground",
             )}
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            type="button"
           >
             {tab === "all" ? "All Devices" : `${tab}s`}
           </button>
@@ -116,21 +116,21 @@ export const MobileDeviceSelector = memo(function MobileDeviceSelector({
           {Object.entries(groupedDevices)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([brand, brandDevices]) => (
-              <div key={brand} className="mb-6">
+              <div className="mb-6" key={brand}>
                 <h3 className="mb-2 font-medium text-muted-foreground text-sm">
                   {brand}
                 </h3>
                 <div className="space-y-1">
                   {brandDevices.map((device) => (
                     <button
-                      type="button"
-                      key={device.id}
-                      onClick={() => handleSelectDevice(device)}
                       className={cn(
                         "flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition-colors",
                         "hover:bg-accent active:scale-[0.98]",
                         selectedDevice?.id === device.id && "bg-accent",
                       )}
+                      key={device.id}
+                      onClick={() => handleSelectDevice(device)}
+                      type="button"
                     >
                       <div className="flex-1">
                         <div className="font-medium">

@@ -69,13 +69,13 @@ export function HouseholdDetails({
           <Separator />
           <div className="flex flex-wrap gap-2">
             {userRole === "OWNER" && (
-              <Button variant="outline" size="sm" onClick={onEdit}>
+              <Button onClick={onEdit} size="sm" variant="outline">
                 <Edit2 className="mr-2 h-4 w-4" />
                 Edit Settings
               </Button>
             )}
             {userRole !== "OWNER" && (
-              <Button variant="outline" size="sm" onClick={onLeave}>
+              <Button onClick={onLeave} size="sm" variant="outline">
                 <LogOut className="mr-2 h-4 w-4" />
                 Leave Household
               </Button>

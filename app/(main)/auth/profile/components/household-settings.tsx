@@ -242,11 +242,11 @@ export default function HouseholdSettingsPage() {
             <Label htmlFor="household-name">Household Name</Label>
             <Input
               id="household-name"
-              placeholder="The Smith Family"
-              value={settings.primaryHouseholdName}
               onChange={(e) =>
                 updateSettings({ primaryHouseholdName: e.target.value })
               }
+              placeholder="The Smith Family"
+              value={settings.primaryHouseholdName}
             />
           </div>
         </CardContent>
@@ -268,9 +268,9 @@ export default function HouseholdSettingsPage() {
             <Label htmlFor="address">Street Address</Label>
             <Input
               id="address"
+              onChange={(e) => updateLocation({ address: e.target.value })}
               placeholder="123 Main Street"
               value={settings.defaultLocation.address}
-              onChange={(e) => updateLocation({ address: e.target.value })}
             />
           </div>
 
@@ -279,16 +279,16 @@ export default function HouseholdSettingsPage() {
               <Label htmlFor="city">City</Label>
               <Input
                 id="city"
+                onChange={(e) => updateLocation({ city: e.target.value })}
                 placeholder="Anytown"
                 value={settings.defaultLocation.city}
-                onChange={(e) => updateLocation({ city: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="state">State</Label>
               <Select
-                value={settings.defaultLocation.state}
                 onValueChange={(value) => updateLocation({ state: value })}
+                value={settings.defaultLocation.state}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="State" />
@@ -306,9 +306,9 @@ export default function HouseholdSettingsPage() {
               <Label htmlFor="zip">ZIP Code</Label>
               <Input
                 id="zip"
+                onChange={(e) => updateLocation({ zipCode: e.target.value })}
                 placeholder="12345"
                 value={settings.defaultLocation.zipCode}
-                onChange={(e) => updateLocation({ zipCode: e.target.value })}
               />
             </div>
           </div>
@@ -330,15 +330,15 @@ export default function HouseholdSettingsPage() {
           <div className="flex flex-wrap gap-2">
             {settings.householdRoles.map((role) => (
               <Badge
+                className="flex items-center gap-1"
                 key={role}
                 variant="secondary"
-                className="flex items-center gap-1"
               >
                 {role}
                 <button
-                  type="button"
-                  onClick={() => removeRole(role)}
                   className="ml-1 hover:text-red-600"
+                  onClick={() => removeRole(role)}
+                  type="button"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -348,12 +348,12 @@ export default function HouseholdSettingsPage() {
 
           <div className="flex gap-2">
             <Input
-              placeholder="Add new role (e.g., Foster Parent, Sitter)"
-              value={newRole}
               onChange={(e) => setNewRole(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addRole()}
+              placeholder="Add new role (e.g., Foster Parent, Sitter)"
+              value={newRole}
             />
-            <Button onClick={addRole} variant="outline" size="sm">
+            <Button onClick={addRole} size="sm" variant="outline">
               <Plus className="h-4 w-4" />
               Add
             </Button>
@@ -374,9 +374,9 @@ export default function HouseholdSettingsPage() {
             <Label htmlFor="vet-name">Veterinarian/Clinic Name</Label>
             <Input
               id="vet-name"
+              onChange={(e) => updateVeterinarian({ name: e.target.value })}
               placeholder="Dr. Johnson's Animal Hospital"
               value={settings.preferredVeterinarian.name}
-              onChange={(e) => updateVeterinarian({ name: e.target.value })}
             />
           </div>
 
@@ -385,21 +385,21 @@ export default function HouseholdSettingsPage() {
               <Label htmlFor="vet-phone">Phone Number</Label>
               <Input
                 id="vet-phone"
-                type="tel"
-                placeholder="+1 (555) 123-4567"
-                value={settings.preferredVeterinarian.phone}
                 onChange={(e) => updateVeterinarian({ phone: e.target.value })}
+                placeholder="+1 (555) 123-4567"
+                type="tel"
+                value={settings.preferredVeterinarian.phone}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="vet-address">Address</Label>
               <Input
                 id="vet-address"
-                placeholder="456 Pet Street, Petville, ST 12345"
-                value={settings.preferredVeterinarian.address}
                 onChange={(e) =>
                   updateVeterinarian({ address: e.target.value })
                 }
+                placeholder="456 Pet Street, Petville, ST 12345"
+                value={settings.preferredVeterinarian.address}
               />
             </div>
           </div>
@@ -419,12 +419,12 @@ export default function HouseholdSettingsPage() {
             <div className="space-y-2">
               <Label htmlFor="low-stock">Low Stock Threshold (days)</Label>
               <Select
-                value={settings.inventoryPreferences.lowStockThreshold.toString()}
                 onValueChange={(value) =>
                   updateInventoryPreferences({
                     lowStockThreshold: parseInt(value, 10),
                   })
                 }
+                value={settings.inventoryPreferences.lowStockThreshold.toString()}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -443,12 +443,12 @@ export default function HouseholdSettingsPage() {
                 Expiration Warning (days)
               </Label>
               <Select
-                value={settings.inventoryPreferences.expirationWarningDays.toString()}
                 onValueChange={(value) =>
                   updateInventoryPreferences({
                     expirationWarningDays: parseInt(value, 10),
                   })
                 }
+                value={settings.inventoryPreferences.expirationWarningDays.toString()}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -471,8 +471,8 @@ export default function HouseholdSettingsPage() {
               </p>
             </div>
             <Switch
-              id="auto-reorder"
               checked={settings.inventoryPreferences.autoReorderEnabled}
+              id="auto-reorder"
               onCheckedChange={(checked) =>
                 updateInventoryPreferences({ autoReorderEnabled: checked })
               }
@@ -483,7 +483,7 @@ export default function HouseholdSettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSaveSettings} disabled={isSaving} size="lg">
+        <Button disabled={isSaving} onClick={handleSaveSettings} size="lg">
           {isSaving ? "Saving..." : "Save Settings"}
         </Button>
       </div>

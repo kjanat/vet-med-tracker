@@ -147,9 +147,9 @@ describe("date utilities", () => {
 
     const birth = DateTime.fromISO("2020-01-01T00:00:00Z").toJSDate();
     expect(calculateAge(birth)).toEqual({
-      years: 4,
       months: 2,
       totalMonths: 50,
+      years: 4,
     });
 
     const morning = getNextOccurrence(8, 0, "UTC");

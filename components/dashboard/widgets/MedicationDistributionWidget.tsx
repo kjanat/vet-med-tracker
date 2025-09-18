@@ -45,9 +45,9 @@ function MedicationDistributionWidgetContent({
     const otherMedications = medicationData.slice(8);
 
     const processedData = topMedications.map((med, index) => ({
-      name: med.name,
-      count: med.count,
       color: COLORS[index % COLORS.length],
+      count: med.count,
+      name: med.name,
       percentage: 0, // Will be calculated below
     }));
 
@@ -57,9 +57,9 @@ function MedicationDistributionWidgetContent({
         0,
       );
       processedData.push({
-        name: `Others (${otherMedications.length})`,
-        count: otherCount,
         color: COLORS[8 % COLORS.length],
+        count: otherCount,
+        name: `Others (${otherMedications.length})`,
         percentage: 0,
       });
     }
@@ -77,8 +77,8 @@ function MedicationDistributionWidgetContent({
     const config: ChartConfig = {};
     chartData.forEach((item, _index) => {
       config[item.name] = {
-        label: item.name,
         color: item.color,
+        label: item.name,
       };
     });
     return config;
@@ -137,21 +137,21 @@ function MedicationDistributionWidgetContent({
       {/* Pie Chart */}
       <div className={isFullscreen ? "h-80" : "h-64"}>
         <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer height="100%" width="100%">
             <PieChart>
               <Pie
-                data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={isFullscreen ? 60 : 40}
-                outerRadius={isFullscreen ? 120 : 80}
-                paddingAngle={2}
+                data={chartData}
                 dataKey="count"
+                innerRadius={isFullscreen ? 60 : 40}
                 label={false}
                 labelLine={false}
+                outerRadius={isFullscreen ? 120 : 80}
+                paddingAngle={2}
               >
                 {chartData.map((entry) => (
-                  <Cell key={`cell-${entry.name}`} fill={entry.color} />
+                  <Cell fill={entry.color} key={`cell-${entry.name}`} />
                 ))}
               </Pie>
               <Tooltip content={customTooltip} />
@@ -164,8 +164,8 @@ function MedicationDistributionWidgetContent({
       <div className="space-y-2">
         {chartData.map((item, _index) => (
           <div
-            key={item.name}
             className="flex items-center justify-between gap-2"
+            key={item.name}
           >
             <div className="flex items-center gap-2">
               <div
@@ -175,7 +175,7 @@ function MedicationDistributionWidgetContent({
               <span className="truncate text-sm">{item.name}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
+              <Badge className="text-xs" variant="secondary">
                 {item.count}
               </Badge>
               <span className="text-muted-foreground text-sm">

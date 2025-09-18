@@ -8,8 +8,8 @@ export function validateFile(
   // Check file type
   if (!acceptedTypes.includes(file.type)) {
     return {
-      isValid: false,
       error: `File type ${file.type} is not supported. Allowed types: ${acceptedTypes.join(", ")}`,
+      isValid: false,
     };
   }
 
@@ -17,8 +17,8 @@ export function validateFile(
   const maxSizeBytes = maxSizeKB * 1024;
   if (file.size > maxSizeBytes) {
     return {
-      isValid: false,
       error: `File size (${formatFileSize(file.size)}) exceeds maximum allowed size of ${formatFileSize(maxSizeBytes)}`,
+      isValid: false,
     };
   }
 

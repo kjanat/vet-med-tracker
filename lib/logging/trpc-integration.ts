@@ -16,11 +16,11 @@ import {
  * Enhanced tRPC middleware that integrates with existing Stack Auth context
  */
 export const enhancedLoggingMiddleware = createTRPCLoggingMiddleware({
-  logRequests: true,
-  logResponses: process.env.NODE_ENV === "development",
+  excludePaths: ["/health", "/ping"],
   logErrors: true,
   logPerformance: true,
-  excludePaths: ["/health", "/ping"],
+  logRequests: true,
+  logResponses: process.env.NODE_ENV === "development",
   maxPayloadSize: 2000,
 });
 
@@ -40,10 +40,10 @@ export const auditMiddleware = async ({
 }) => {
   // Create logging context with user information from Stack Auth
   const loggingContext = await logger.createContext(`trpc.${path}`, {
-    trpc: true,
-    path,
-    userId: ctx.dbUser?.id,
     householdId: ctx.currentHouseholdId,
+    path,
+    trpc: true,
+    userId: ctx.dbUser?.id,
   });
 
   // Update context with user info
@@ -67,9 +67,9 @@ export const auditMiddleware = async ({
       await logger.info(
         `Audit-worthy operation completed: ${path}`,
         {
-          userId: ctx.dbUser?.id,
           householdId: ctx.currentHouseholdId,
           input: sanitizeAuditInput(input),
+          userId: ctx.dbUser?.id,
         },
         loggingContext.correlationId,
       );
@@ -82,10 +82,10 @@ export const auditMiddleware = async ({
       `tRPC procedure failed: ${path}`,
       error instanceof Error ? error : new Error(String(error)),
       {
-        userId: ctx.dbUser?.id,
         householdId: ctx.currentHouseholdId,
-        membershipRole: ctx.currentMembership?.role,
         input: sanitizeAuditInput(input),
+        membershipRole: ctx.currentMembership?.role,
+        userId: ctx.dbUser?.id,
       },
       loggingContext.correlationId,
     );
@@ -153,6 +153,62 @@ function sanitizeAuditInput(input: unknown): unknown {
  */
 export const trpcAudit = {
   /**
+   * Create logging context from tRPC context
+   */
+  async createContextFromTRPC(
+    ctx: Context,
+    operation: string,
+  ): Promise<string> {
+    const loggingContext = await getTRPCLoggingContext(
+      {
+        auth: ctx.stackUser?.id ? { userId: ctx.stackUser.id } : undefined,
+        householdId: ctx.currentHouseholdId || undefined,
+        loggingContext: undefined,
+      },
+      operation,
+    );
+    return loggingContext.correlationId;
+  },
+
+  /**
+   * Log data changes with before/after values
+   */
+  async logDataChange(
+    ctx: Context,
+    eventType: AuditEventType,
+    targetId: string,
+    targetType: string,
+    previousValues?: Record<string, unknown>,
+    newValues?: Record<string, unknown>,
+    reason?: string,
+    correlationId?: string,
+  ): Promise<void> {
+    if (!ctx.dbUser?.id || !ctx.currentHouseholdId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User context required for audit logging",
+      });
+    }
+
+    // Log the data change event using the generic audit logger
+    await auditLogger.logEvent(
+      {
+        eventType,
+        householdId: ctx.currentHouseholdId,
+        metadata: {
+          newValues,
+          previousValues,
+          reason,
+        },
+        severity: AuditSeverity.MEDIUM, // Will be overridden by SEVERITY_MAP in logEvent
+        targetId,
+        targetType,
+        userId: ctx.dbUser.id,
+      },
+      correlationId,
+    );
+  },
+  /**
    * Log medication administration with audit trail
    */
   async logMedicationAdministration(
@@ -185,40 +241,23 @@ export const trpcAudit = {
   },
 
   /**
-   * Log data changes with before/after values
+   * Log permission denied events
    */
-  async logDataChange(
+  async logPermissionDenied(
     ctx: Context,
-    eventType: AuditEventType,
-    targetId: string,
-    targetType: string,
-    previousValues?: Record<string, unknown>,
-    newValues?: Record<string, unknown>,
-    reason?: string,
+    resource: string,
+    action: string,
     correlationId?: string,
   ): Promise<void> {
     if (!ctx.dbUser?.id || !ctx.currentHouseholdId) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User context required for audit logging",
-      });
+      return; // Can't audit without user context
     }
 
-    // Log the data change event using the generic audit logger
-    await auditLogger.logEvent(
-      {
-        eventType,
-        severity: AuditSeverity.MEDIUM, // Will be overridden by SEVERITY_MAP in logEvent
-        userId: ctx.dbUser.id,
-        householdId: ctx.currentHouseholdId,
-        targetId,
-        targetType,
-        metadata: {
-          previousValues,
-          newValues,
-          reason,
-        },
-      },
+    await auditLog.permissionDenied(
+      ctx.dbUser.id,
+      ctx.currentHouseholdId,
+      resource,
+      action,
       correlationId,
     );
   },
@@ -246,46 +285,6 @@ export const trpcAudit = {
       metadata,
       correlationId,
     );
-  },
-
-  /**
-   * Log permission denied events
-   */
-  async logPermissionDenied(
-    ctx: Context,
-    resource: string,
-    action: string,
-    correlationId?: string,
-  ): Promise<void> {
-    if (!ctx.dbUser?.id || !ctx.currentHouseholdId) {
-      return; // Can't audit without user context
-    }
-
-    await auditLog.permissionDenied(
-      ctx.dbUser.id,
-      ctx.currentHouseholdId,
-      resource,
-      action,
-      correlationId,
-    );
-  },
-
-  /**
-   * Create logging context from tRPC context
-   */
-  async createContextFromTRPC(
-    ctx: Context,
-    operation: string,
-  ): Promise<string> {
-    const loggingContext = await getTRPCLoggingContext(
-      {
-        auth: ctx.stackUser?.id ? { userId: ctx.stackUser.id } : undefined,
-        householdId: ctx.currentHouseholdId || undefined,
-        loggingContext: undefined,
-      },
-      operation,
-    );
-    return loggingContext.correlationId;
   },
 };
 
@@ -322,13 +321,13 @@ export const trpcDb = {
         await logger.debug(
           `Database ${operation} completed`,
           {
-            table: tableName,
-            operation,
-            userId: ctx.dbUser?.id,
-            householdId: ctx.currentHouseholdId,
             hasResult: result !== null && result !== undefined,
-            resultType: Array.isArray(result) ? "array" : typeof result,
+            householdId: ctx.currentHouseholdId,
+            operation,
             resultCount: Array.isArray(result) ? result.length : undefined,
+            resultType: Array.isArray(result) ? "array" : typeof result,
+            table: tableName,
+            userId: ctx.dbUser?.id,
           },
           finalCorrelationId,
         );
@@ -365,9 +364,9 @@ export const trpcDb = {
         await logger.debug(
           `Executing query: ${queryName}`,
           {
+            householdId: ctx.currentHouseholdId,
             parameters: sanitizeAuditInput(parameters),
             userId: ctx.dbUser?.id,
-            householdId: ctx.currentHouseholdId,
           },
           finalCorrelationId,
         );
@@ -378,8 +377,8 @@ export const trpcDb = {
           `Query completed: ${queryName}`,
           {
             hasResult: result !== null && result !== undefined,
-            resultType: Array.isArray(result) ? "array" : typeof result,
             resultCount: Array.isArray(result) ? result.length : undefined,
+            resultType: Array.isArray(result) ? "array" : typeof result,
           },
           finalCorrelationId,
         );
@@ -401,8 +400,8 @@ export function enhanceTRPCError(
   // Add correlation ID to error data
   const enhancedError = new TRPCError({
     ...error,
-    message: error.message,
     cause: error.cause,
+    message: error.message,
   });
 
   // Add correlation ID to error for debugging
@@ -417,11 +416,11 @@ export function enhanceTRPCError(
  */
 export function createRouterLoggingMiddleware(_routerName: string) {
   return createTRPCLoggingMiddleware({
-    logRequests: true,
-    logResponses: false,
+    excludePaths: [],
     logErrors: true,
     logPerformance: true,
-    excludePaths: [],
+    logRequests: true,
+    logResponses: false,
     maxPayloadSize: 1500,
     sensitiveInputs: ["password", "token", "secret", "email"],
   });

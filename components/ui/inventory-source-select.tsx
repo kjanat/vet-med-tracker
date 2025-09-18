@@ -51,12 +51,12 @@ export function InventorySourceSelect({
 
   return (
     <div className="space-y-3">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover onOpenChange={setOpen} open={open}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
             aria-expanded={open}
             className="w-full justify-between bg-transparent"
+            variant="outline"
           >
             {selectedSource ? (
               <div className="flex items-center gap-2">
@@ -84,11 +84,11 @@ export function InventorySourceSelect({
               <CommandEmpty>No inventory found.</CommandEmpty>
               <CommandGroup>
                 <CommandItem
-                  value="no-source"
                   onSelect={() => {
                     onSelect(null);
                     setOpen(false);
                   }}
+                  value="no-source"
                 >
                   <Check
                     className={cn(
@@ -101,11 +101,11 @@ export function InventorySourceSelect({
                 {sources.map((source) => (
                   <CommandItem
                     key={source.id}
-                    value={source.id}
                     onSelect={() => {
                       onSelect(source.id);
                       setOpen(false);
                     }}
+                    value={source.id}
                   >
                     <Check
                       className={cn(
@@ -152,11 +152,11 @@ export function InventorySourceSelect({
             {allowOverride && (
               <div className="mt-2 flex items-center space-x-2">
                 <Checkbox
-                  id="override"
                   checked={override}
+                  id="override"
                   onCheckedChange={handleOverrideChange}
                 />
-                <label htmlFor="override" className="text-sm">
+                <label className="text-sm" htmlFor="override">
                   Override and continue anyway
                 </label>
               </div>

@@ -103,40 +103,40 @@ export default function CookiesPage() {
           <ul className="list-disc space-y-2 pl-6">
             <li>
               <a
-                href="https://support.google.com/chrome/answer/95647"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="text-primary hover:underline"
+                href="https://support.google.com/chrome/answer/95647"
+                rel="noopener noreferrer"
+                target="_blank"
               >
                 Chrome
               </a>
             </li>
             <li>
               <a
-                href="https://support.mozilla.org/en-US/kb/enable-and-disable-cookies-website-preferences"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="text-primary hover:underline"
+                href="https://support.mozilla.org/en-US/kb/enable-and-disable-cookies-website-preferences"
+                rel="noopener noreferrer"
+                target="_blank"
               >
                 Firefox
               </a>
             </li>
             <li>
               <a
-                href="https://support.apple.com/guide/safari/manage-cookies-and-website-data-sfri11471/mac"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="text-primary hover:underline"
+                href="https://support.apple.com/guide/safari/manage-cookies-and-website-data-sfri11471/mac"
+                rel="noopener noreferrer"
+                target="_blank"
               >
                 Safari
               </a>
             </li>
             <li>
               <a
-                href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="text-primary hover:underline"
+                href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09"
+                rel="noopener noreferrer"
+                target="_blank"
               >
                 Edge
               </a>
@@ -159,8 +159,8 @@ export default function CookiesPage() {
             If you have any questions about our use of cookies, please contact
             us at{" "}
             <a
-              href="mailto:privacy@vetmedtracker.com"
               className="text-primary hover:underline"
+              href="mailto:privacy@vetmedtracker.com"
             >
               privacy@vetmedtracker.com
             </a>

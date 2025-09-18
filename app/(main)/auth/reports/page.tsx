@@ -70,9 +70,9 @@ export default function AnimalReportsPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {animals.map((animal) => (
               <Link
-                key={animal.id}
-                href={`/auth/reports/animal/${animal.id}`}
                 className="group"
+                href={`/auth/reports/animal/${animal.id}`}
+                key={animal.id}
               >
                 <Card className="h-full transition-all duration-200 hover:border-primary hover:shadow-lg">
                   <CardHeader className="pb-4">
@@ -101,8 +101,8 @@ export default function AnimalReportsPage() {
                     {animal.pendingMeds > 0 && (
                       <div className="mt-2 flex items-center gap-2 text-sm">
                         <span
-                          className="inline-block h-2 w-2 rounded-full bg-amber-500"
                           aria-hidden="true"
+                          className="inline-block h-2 w-2 rounded-full bg-amber-500"
                         />
                         <span className="text-muted-foreground">
                           {animal.pendingMeds} pending medication

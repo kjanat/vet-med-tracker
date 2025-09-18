@@ -79,8 +79,8 @@ export class AnimalFormValidator {
     warnings.push(...validationWarnings);
 
     return {
-      isValid: errors.length === 0,
       errors,
+      isValid: errors.length === 0,
       warnings,
     };
   }
@@ -95,8 +95,8 @@ export class AnimalFormValidator {
 
     if (!data.name?.trim()) {
       errors.push({
-        field: "name",
         code: "REQUIRED_FIELD",
+        field: "name",
         message: "Animal name is required",
         severity: "error",
       });
@@ -104,8 +104,8 @@ export class AnimalFormValidator {
 
     if (!data.species?.trim()) {
       errors.push({
-        field: "species",
         code: "REQUIRED_FIELD",
+        field: "species",
         message: "Species is required",
         severity: "error",
       });
@@ -113,8 +113,8 @@ export class AnimalFormValidator {
 
     if (!data.timezone?.trim()) {
       errors.push({
-        field: "timezone",
         code: "REQUIRED_FIELD",
+        field: "timezone",
         message: "Timezone is required",
         severity: "error",
       });
@@ -154,8 +154,8 @@ export class AnimalFormValidator {
       !AnimalFormValidator.isValidEmail(data.vetEmail)
     ) {
       errors.push({
-        field: "vetEmail",
         code: "INVALID_EMAIL",
+        field: "vetEmail",
         message: "Please enter a valid email address",
         severity: "error",
       });
@@ -173,16 +173,16 @@ export class AnimalFormValidator {
     if (data.weightKg !== undefined && data.weightKg !== null) {
       if (data.weightKg <= 0) {
         errors.push({
-          field: "weightKg",
           code: "INVALID_WEIGHT",
+          field: "weightKg",
           message: "Weight must be greater than 0",
           severity: "error",
         });
       }
       if (data.weightKg > 1000) {
         errors.push({
-          field: "weightKg",
           code: "UNREALISTIC_WEIGHT",
+          field: "weightKg",
           message: "Weight seems unusually high. Please verify.",
           severity: "warning",
         });
@@ -204,8 +204,8 @@ export class AnimalFormValidator {
 
       if (dobDate > now) {
         errors.push({
-          field: "dob",
           code: "FUTURE_DATE",
+          field: "dob",
           message: "Date of birth cannot be in the future",
           severity: "error",
         });
@@ -215,8 +215,8 @@ export class AnimalFormValidator {
       maxAge.setFullYear(maxAge.getFullYear() - 50);
       if (dobDate < maxAge) {
         errors.push({
-          field: "dob",
           code: "UNREALISTIC_AGE",
+          field: "dob",
           message: "This age seems unusually high. Please verify.",
           severity: "warning",
         });
@@ -237,8 +237,8 @@ export class AnimalFormValidator {
       !AnimalFormValidator.isValidPhoneNumber(data.vetPhone)
     ) {
       errors.push({
-        field: "vetPhone",
         code: "INVALID_PHONE",
+        field: "vetPhone",
         message: "Please enter a valid phone number",
         severity: "warning", // Phone formats vary widely, so warning instead of error
       });
@@ -263,8 +263,8 @@ export class AnimalFormValidator {
       context.existingAnimals.includes(data.name.trim().toLowerCase())
     ) {
       errors.push({
-        field: "name",
         code: "DUPLICATE_NAME",
+        field: "name",
         message: "An animal with this name already exists in this household",
         severity: "warning",
       });
@@ -286,8 +286,8 @@ export class AnimalFormValidator {
 
     if (!context.household) {
       errors.push({
-        field: "general",
         code: "NO_HOUSEHOLD",
+        field: "general",
         message: "No household selected. Please select a household first.",
         severity: "error",
       });
@@ -307,8 +307,8 @@ export class AnimalFormValidator {
     // Completeness warnings
     if (!data.breed?.trim()) {
       warnings.push({
-        field: "breed",
         code: "MISSING_RECOMMENDED",
+        field: "breed",
         message: "Consider adding breed information for better record keeping",
         severity: "info",
       });
@@ -316,8 +316,8 @@ export class AnimalFormValidator {
 
     if (!data.weightKg) {
       warnings.push({
-        field: "weightKg",
         code: "MISSING_RECOMMENDED",
+        field: "weightKg",
         message: "Weight information helps with medication dosage calculations",
         severity: "info",
       });
@@ -325,8 +325,8 @@ export class AnimalFormValidator {
 
     if (!data.dob) {
       warnings.push({
-        field: "dob",
         code: "MISSING_RECOMMENDED",
+        field: "dob",
         message: "Date of birth helps track age-related health needs",
         severity: "info",
       });
@@ -334,8 +334,8 @@ export class AnimalFormValidator {
 
     if (!data.vetName?.trim() && !data.clinicName?.trim()) {
       warnings.push({
-        field: "vetName",
         code: "MISSING_VET_INFO",
+        field: "vetName",
         message: "Consider adding veterinary contact information",
         severity: "info",
       });
@@ -419,9 +419,9 @@ export class AnimalFormValidator {
     return {
       canSubmit: errorCount === 0,
       errorCount,
-      warningCount,
       primaryMessage:
         errorCount > 0 ? (result.errors[0]?.message ?? null) : null,
+      warningCount,
     };
   }
 }

@@ -54,30 +54,30 @@ export function InviteForm({ open, onOpenChange, onInvite }: InviteFormProps) {
 
   const roles = [
     {
-      value: "Owner" as const,
+      color: "border-yellow-200 bg-yellow-50",
+      description: "Full access including member management",
       icon: Crown,
       title: "Owner",
-      description: "Full access including member management",
-      color: "border-yellow-200 bg-yellow-50",
+      value: "Owner" as const,
     },
     {
-      value: "Caregiver" as const,
+      color: "border-blue-200 bg-blue-50",
+      description: "Can record medications and manage inventory",
       icon: Shield,
       title: "Caregiver",
-      description: "Can record medications and manage inventory",
-      color: "border-blue-200 bg-blue-50",
+      value: "Caregiver" as const,
     },
     {
-      value: "VetReadOnly" as const,
+      color: "border-gray-200 bg-gray-50",
+      description: "View-only access to history and insights",
       icon: Eye,
       title: "Vet Read-Only",
-      description: "View-only access to history and insights",
-      color: "border-gray-200 bg-gray-50",
+      value: "VetReadOnly" as const,
     },
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Invite Member</DialogTitle>
@@ -86,16 +86,16 @@ export function InviteForm({ open, onOpenChange, onInvite }: InviteFormProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
             <Input
               id="email"
-              type="email"
-              required
-              value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter email address"
+              required
+              type="email"
+              value={email}
             />
           </div>
 
@@ -104,12 +104,12 @@ export function InviteForm({ open, onOpenChange, onInvite }: InviteFormProps) {
             <div className="grid gap-3">
               {roles.map((role) => (
                 <Card
-                  key={role.value}
                   className={`cursor-pointer transition-colors ${
                     selectedRole === role.value
                       ? `ring-2 ring-primary ${role.color}`
                       : "hover:bg-accent"
                   }`}
+                  key={role.value}
                   onClick={() => setSelectedRole(role.value)}
                 >
                   <CardContent className="p-4">
@@ -139,13 +139,13 @@ export function InviteForm({ open, onOpenChange, onInvite }: InviteFormProps) {
 
           <div className="flex justify-end gap-2">
             <Button
+              onClick={() => onOpenChange(false)}
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || !email.trim()}>
+            <Button disabled={isSubmitting || !email.trim()} type="submit">
               {isSubmitting ? "Sending..." : "Send Invite"}
             </Button>
           </div>

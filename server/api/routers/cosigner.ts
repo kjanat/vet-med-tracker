@@ -22,9 +22,9 @@ const cosignerUsers = alias(users, "cosigner_users");
 
 // Input validation schemas
 const createRequestSchema = z.object({
-  householdId: z.uuid(),
   administrationId: z.uuid(),
   cosignerId: z.uuid(),
+  householdId: z.uuid(),
 });
 
 const approveRequestSchema = z.object({
@@ -35,8 +35,8 @@ const approveRequestSchema = z.object({
 
 const rejectRequestSchema = z.object({
   householdId: z.uuid(),
-  requestId: z.uuid(),
   rejectionReason: z.string().min(1, "Rejection reason is required"),
+  requestId: z.uuid(),
 });
 
 const listPendingSchema = z.object({
@@ -58,9 +58,9 @@ async function verifyAdministration(
   const result = await db
     .select({
       administration: administrations,
-      regimen: regimens,
       animal: animals,
       medication: medicationCatalog,
+      regimen: regimens,
     })
     .from(administrations)
     .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
@@ -106,8 +106,8 @@ async function verifyCosigner(
   // Check if cosigner is a member of the household
   const membership = await db
     .select({
-      user: users,
       membership: memberships,
+      user: users,
     })
     .from(memberships)
     .innerJoin(users, eq(memberships.userId, users.id))
@@ -191,23 +191,146 @@ async function createCosignNotification(
   },
 ) {
   await db.insert(notifications).values({
-    userId: cosignerId,
-    householdId,
-    type: "cosign_request",
-    title: "Co-sign Request",
-    message: `${requesterName} requested co-signing for ${medicationName} administration to ${animalName}`,
-    priority: "high",
     actionUrl: `/administrations/${administrationId}?tab=cosign`,
     data: {
       administrationId,
-      requesterName,
       animalName,
       medicationName,
+      requesterName,
     },
+    householdId,
+    message: `${requesterName} requested co-signing for ${medicationName} administration to ${animalName}`,
+    priority: "high",
+    title: "Co-sign Request",
+    type: "cosign_request",
+    userId: cosignerId,
   });
 }
 
 export const cosignerRouter = createTRPCRouter({
+  // Approve a co-sign request with signature
+  approve: householdProcedure
+    .input(approveRequestSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Expire old requests first
+      await expireOldRequests(ctx.db);
+
+      // Get the request with full details
+      const requestResult = await ctx.db
+        .select({
+          administration: administrations,
+          animal: animals,
+          medication: medicationCatalog,
+          regimen: regimens,
+          request: cosignRequests,
+          requester: users,
+        })
+        .from(cosignRequests)
+        .innerJoin(
+          administrations,
+          eq(cosignRequests.administrationId, administrations.id),
+        )
+        .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
+        .innerJoin(animals, eq(administrations.animalId, animals.id))
+        .innerJoin(
+          medicationCatalog,
+          eq(regimens.medicationId, medicationCatalog.id),
+        )
+        .innerJoin(users, eq(cosignRequests.requesterId, users.id))
+        .where(
+          and(
+            eq(cosignRequests.id, input.requestId),
+            eq(cosignRequests.householdId, input.householdId),
+            eq(cosignRequests.cosignerId, ctx.dbUser.id), // Only assigned cosigner can approve
+            eq(cosignRequests.status, "pending"),
+          ),
+        )
+        .limit(1)
+        .execute();
+
+      if (!requestResult[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "Co-sign request not found, already processed, or you are not the assigned cosigner",
+        });
+      }
+
+      const { request, administration } = requestResult[0];
+
+      // Check if request has expired
+      if (new Date(request.expiresAt) < new Date()) {
+        // Mark as expired
+        await ctx.db
+          .update(cosignRequests)
+          .set({
+            status: "expired",
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(cosignRequests.id, input.requestId));
+
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Co-sign request has expired",
+        });
+      }
+
+      // Check if administration is already co-signed
+      if (administration.coSignedAt) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Administration has already been co-signed",
+        });
+      }
+
+      const now = new Date();
+
+      // Update the co-sign request
+      const updatedRequest = await ctx.db
+        .update(cosignRequests)
+        .set({
+          signature: input.signature,
+          signedAt: now.toISOString(),
+          status: "approved",
+          updatedAt: now.toISOString(),
+        })
+        .where(eq(cosignRequests.id, input.requestId))
+        .returning()
+        .execute();
+
+      // Update the administration record with co-sign information
+      const updatedAdministration = await ctx.db
+        .update(administrations)
+        .set({
+          coSignedAt: now.toISOString(),
+          coSignNotes: `Co-signed via signature request system`,
+          coSignUserId: ctx.dbUser.id,
+          updatedAt: now.toISOString(),
+        })
+        .where(eq(administrations.id, request.administrationId))
+        .returning()
+        .execute();
+
+      // Create audit log
+      await createAuditLog(ctx.db, {
+        action: "APPROVE_COSIGN_REQUEST",
+        details: {
+          administrationId: request.administrationId,
+          signatureProvided: true,
+        },
+        householdId: input.householdId,
+        newValues: updatedRequest[0],
+        oldValues: request,
+        recordId: input.requestId,
+        tableName: "cosign_requests",
+        userId: ctx.dbUser.id,
+      });
+
+      return {
+        administration: updatedAdministration[0],
+        request: updatedRequest[0],
+      };
+    }),
   // Create a co-sign request
   createRequest: householdProcedure
     .input(createRequestSchema)
@@ -276,11 +399,11 @@ export const cosignerRouter = createTRPCRouter({
       // Create the co-sign request
       const newRequest: NewCosignRequest = {
         administrationId: input.administrationId,
-        requesterId: ctx.dbUser.id,
         cosignerId: input.cosignerId,
-        householdId: input.householdId,
-        status: "pending",
         expiresAt: expiresAt.toISOString(),
+        householdId: input.householdId,
+        requesterId: ctx.dbUser.id,
+        status: "pending",
       };
 
       const result = await ctx.db
@@ -298,265 +421,29 @@ export const cosignerRouter = createTRPCRouter({
 
       // Create notification for cosigner
       await createCosignNotification(ctx.db, {
+        administrationId: input.administrationId,
+        animalName: adminData.animal.name,
         cosignerId: input.cosignerId,
         householdId: input.householdId,
-        administrationId: input.administrationId,
-        requesterName: ctx.dbUser.name || ctx.dbUser.email,
-        animalName: adminData.animal.name,
         medicationName: adminData.medication.genericName,
+        requesterName: ctx.dbUser.name || ctx.dbUser.email,
       });
 
       // Create audit log
       await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
         action: "CREATE_COSIGN_REQUEST",
-        tableName: "cosign_requests",
-        recordId: result[0].id,
-        newValues: result[0],
         details: {
           administrationId: input.administrationId,
           cosignerId: input.cosignerId,
         },
-      });
-
-      return result[0];
-    }),
-
-  // Approve a co-sign request with signature
-  approve: householdProcedure
-    .input(approveRequestSchema)
-    .mutation(async ({ ctx, input }) => {
-      // Expire old requests first
-      await expireOldRequests(ctx.db);
-
-      // Get the request with full details
-      const requestResult = await ctx.db
-        .select({
-          request: cosignRequests,
-          administration: administrations,
-          regimen: regimens,
-          animal: animals,
-          medication: medicationCatalog,
-          requester: users,
-        })
-        .from(cosignRequests)
-        .innerJoin(
-          administrations,
-          eq(cosignRequests.administrationId, administrations.id),
-        )
-        .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
-        .innerJoin(animals, eq(administrations.animalId, animals.id))
-        .innerJoin(
-          medicationCatalog,
-          eq(regimens.medicationId, medicationCatalog.id),
-        )
-        .innerJoin(users, eq(cosignRequests.requesterId, users.id))
-        .where(
-          and(
-            eq(cosignRequests.id, input.requestId),
-            eq(cosignRequests.householdId, input.householdId),
-            eq(cosignRequests.cosignerId, ctx.dbUser.id), // Only assigned cosigner can approve
-            eq(cosignRequests.status, "pending"),
-          ),
-        )
-        .limit(1)
-        .execute();
-
-      if (!requestResult[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message:
-            "Co-sign request not found, already processed, or you are not the assigned cosigner",
-        });
-      }
-
-      const { request, administration } = requestResult[0];
-
-      // Check if request has expired
-      if (new Date(request.expiresAt) < new Date()) {
-        // Mark as expired
-        await ctx.db
-          .update(cosignRequests)
-          .set({
-            status: "expired",
-            updatedAt: new Date().toISOString(),
-          })
-          .where(eq(cosignRequests.id, input.requestId));
-
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Co-sign request has expired",
-        });
-      }
-
-      // Check if administration is already co-signed
-      if (administration.coSignedAt) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "Administration has already been co-signed",
-        });
-      }
-
-      const now = new Date();
-
-      // Update the co-sign request
-      const updatedRequest = await ctx.db
-        .update(cosignRequests)
-        .set({
-          status: "approved",
-          signature: input.signature,
-          signedAt: now.toISOString(),
-          updatedAt: now.toISOString(),
-        })
-        .where(eq(cosignRequests.id, input.requestId))
-        .returning()
-        .execute();
-
-      // Update the administration record with co-sign information
-      const updatedAdministration = await ctx.db
-        .update(administrations)
-        .set({
-          coSignUserId: ctx.dbUser.id,
-          coSignedAt: now.toISOString(),
-          coSignNotes: `Co-signed via signature request system`,
-          updatedAt: now.toISOString(),
-        })
-        .where(eq(administrations.id, request.administrationId))
-        .returning()
-        .execute();
-
-      // Create audit log
-      await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
         householdId: input.householdId,
-        action: "APPROVE_COSIGN_REQUEST",
-        tableName: "cosign_requests",
-        recordId: input.requestId,
-        newValues: updatedRequest[0],
-        oldValues: request,
-        details: {
-          administrationId: request.administrationId,
-          signatureProvided: true,
-        },
-      });
-
-      return {
-        request: updatedRequest[0],
-        administration: updatedAdministration[0],
-      };
-    }),
-
-  // Reject a co-sign request
-  reject: householdProcedure
-    .input(rejectRequestSchema)
-    .mutation(async ({ ctx, input }) => {
-      // Expire old requests first
-      await expireOldRequests(ctx.db);
-
-      // Get the request
-      const existing = await ctx.db
-        .select()
-        .from(cosignRequests)
-        .where(
-          and(
-            eq(cosignRequests.id, input.requestId),
-            eq(cosignRequests.householdId, input.householdId),
-            eq(cosignRequests.cosignerId, ctx.dbUser.id), // Only assigned cosigner can reject
-            eq(cosignRequests.status, "pending"),
-          ),
-        )
-        .limit(1)
-        .execute();
-
-      if (!existing[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message:
-            "Co-sign request not found, already processed, or you are not the assigned cosigner",
-        });
-      }
-
-      // Check if request has expired
-      if (new Date(existing[0].expiresAt) < new Date()) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Co-sign request has expired",
-        });
-      }
-
-      // Update the request
-      const result = await ctx.db
-        .update(cosignRequests)
-        .set({
-          status: "rejected",
-          rejectionReason: input.rejectionReason,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(cosignRequests.id, input.requestId))
-        .returning()
-        .execute();
-
-      // Create audit log
-      await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
-        action: "REJECT_COSIGN_REQUEST",
-        tableName: "cosign_requests",
-        recordId: input.requestId,
         newValues: result[0],
-        oldValues: existing[0],
-        details: {
-          rejectionReason: input.rejectionReason,
-        },
+        recordId: result[0].id,
+        tableName: "cosign_requests",
+        userId: ctx.dbUser.id,
       });
 
       return result[0];
-    }),
-
-  // List pending co-sign requests for current user
-  listPending: householdProcedure
-    .input(listPendingSchema)
-    .query(async ({ ctx, input }) => {
-      // Expire old requests first
-      await expireOldRequests(ctx.db);
-
-      const result = await ctx.db
-        .select({
-          request: cosignRequests,
-          administration: administrations,
-          regimen: regimens,
-          animal: animals,
-          medication: medicationCatalog,
-          requester: requesterUsers,
-        })
-        .from(cosignRequests)
-        .innerJoin(
-          administrations,
-          eq(cosignRequests.administrationId, administrations.id),
-        )
-        .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
-        .innerJoin(animals, eq(administrations.animalId, animals.id))
-        .innerJoin(
-          medicationCatalog,
-          eq(regimens.medicationId, medicationCatalog.id),
-        )
-        .innerJoin(
-          requesterUsers,
-          eq(cosignRequests.requesterId, requesterUsers.id),
-        )
-        .where(
-          and(
-            eq(cosignRequests.householdId, input.householdId),
-            eq(cosignRequests.cosignerId, ctx.dbUser.id),
-            eq(cosignRequests.status, "pending"),
-          ),
-        )
-        .orderBy(cosignRequests.createdAt)
-        .limit(input.limit)
-        .execute();
-
-      return result;
     }),
 
   // Get specific co-sign request details
@@ -565,13 +452,13 @@ export const cosignerRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const result = await ctx.db
         .select({
-          request: cosignRequests,
           administration: administrations,
-          regimen: regimens,
           animal: animals,
-          medication: medicationCatalog,
-          requester: requesterUsers,
           cosigner: cosignerUsers,
+          medication: medicationCatalog,
+          regimen: regimens,
+          request: cosignRequests,
+          requester: requesterUsers,
         })
         .from(cosignRequests)
         .innerJoin(
@@ -621,10 +508,10 @@ export const cosignerRouter = createTRPCRouter({
     .input(
       z.object({
         householdId: z.uuid(),
+        limit: z.number().min(1).max(100).default(50),
         status: z
           .enum(["pending", "approved", "rejected", "expired"])
           .optional(),
-        limit: z.number().min(1).max(100).default(50),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -636,13 +523,13 @@ export const cosignerRouter = createTRPCRouter({
 
       const result = await ctx.db
         .select({
-          request: cosignRequests,
           administration: administrations,
-          regimen: regimens,
           animal: animals,
-          medication: medicationCatalog,
-          requester: requesterUsers,
           cosigner: cosignerUsers,
+          medication: medicationCatalog,
+          regimen: regimens,
+          request: cosignRequests,
+          requester: requesterUsers,
         })
         .from(cosignRequests)
         .innerJoin(
@@ -669,5 +556,117 @@ export const cosignerRouter = createTRPCRouter({
         .execute();
 
       return result;
+    }),
+
+  // List pending co-sign requests for current user
+  listPending: householdProcedure
+    .input(listPendingSchema)
+    .query(async ({ ctx, input }) => {
+      // Expire old requests first
+      await expireOldRequests(ctx.db);
+
+      const result = await ctx.db
+        .select({
+          administration: administrations,
+          animal: animals,
+          medication: medicationCatalog,
+          regimen: regimens,
+          request: cosignRequests,
+          requester: requesterUsers,
+        })
+        .from(cosignRequests)
+        .innerJoin(
+          administrations,
+          eq(cosignRequests.administrationId, administrations.id),
+        )
+        .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
+        .innerJoin(animals, eq(administrations.animalId, animals.id))
+        .innerJoin(
+          medicationCatalog,
+          eq(regimens.medicationId, medicationCatalog.id),
+        )
+        .innerJoin(
+          requesterUsers,
+          eq(cosignRequests.requesterId, requesterUsers.id),
+        )
+        .where(
+          and(
+            eq(cosignRequests.householdId, input.householdId),
+            eq(cosignRequests.cosignerId, ctx.dbUser.id),
+            eq(cosignRequests.status, "pending"),
+          ),
+        )
+        .orderBy(cosignRequests.createdAt)
+        .limit(input.limit)
+        .execute();
+
+      return result;
+    }),
+
+  // Reject a co-sign request
+  reject: householdProcedure
+    .input(rejectRequestSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Expire old requests first
+      await expireOldRequests(ctx.db);
+
+      // Get the request
+      const existing = await ctx.db
+        .select()
+        .from(cosignRequests)
+        .where(
+          and(
+            eq(cosignRequests.id, input.requestId),
+            eq(cosignRequests.householdId, input.householdId),
+            eq(cosignRequests.cosignerId, ctx.dbUser.id), // Only assigned cosigner can reject
+            eq(cosignRequests.status, "pending"),
+          ),
+        )
+        .limit(1)
+        .execute();
+
+      if (!existing[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "Co-sign request not found, already processed, or you are not the assigned cosigner",
+        });
+      }
+
+      // Check if request has expired
+      if (new Date(existing[0].expiresAt) < new Date()) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Co-sign request has expired",
+        });
+      }
+
+      // Update the request
+      const result = await ctx.db
+        .update(cosignRequests)
+        .set({
+          rejectionReason: input.rejectionReason,
+          status: "rejected",
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(cosignRequests.id, input.requestId))
+        .returning()
+        .execute();
+
+      // Create audit log
+      await createAuditLog(ctx.db, {
+        action: "REJECT_COSIGN_REQUEST",
+        details: {
+          rejectionReason: input.rejectionReason,
+        },
+        householdId: input.householdId,
+        newValues: result[0],
+        oldValues: existing[0],
+        recordId: input.requestId,
+        tableName: "cosign_requests",
+        userId: ctx.dbUser.id,
+      });
+
+      return result[0];
     }),
 });

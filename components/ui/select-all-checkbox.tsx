@@ -33,11 +33,11 @@ export function SelectAllCheckbox({
 
   return (
     <Checkbox
+      aria-label={ariaLabel}
       checked={
         isAllSelected ? true : isPartiallySelected ? "indeterminate" : false
       }
       onCheckedChange={handleCheckedChange}
-      aria-label={ariaLabel}
     />
   );
 }

@@ -120,19 +120,19 @@ export function NotificationDropdown({
   };
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu onOpenChange={setOpen} open={open}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
-          size="icon"
-          className="relative"
           aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+          className="relative"
+          size="icon"
+          variant="ghost"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
-              variant="destructive"
               className="-top-1 -right-1 absolute flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
+              variant="destructive"
             >
               {unreadCount}
             </Badge>
@@ -144,10 +144,10 @@ export function NotificationDropdown({
           <DropdownMenuLabel>Notifications</DropdownMenuLabel>
           {unreadCount > 0 && (
             <Button
-              variant="ghost"
-              size="sm"
               className="h-auto p-0 text-xs hover:bg-transparent"
               onClick={handleMarkAllAsRead}
+              size="sm"
+              variant="ghost"
             >
               Mark all as read
             </Button>
@@ -162,8 +162,8 @@ export function NotificationDropdown({
           ) : (
             notifications.map((notification) => (
               <DropdownMenuItem
-                key={notification.id}
                 className="flex cursor-pointer items-start gap-3 p-4"
+                key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div

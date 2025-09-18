@@ -115,27 +115,27 @@ export default function HelpPage() {
       <div className="mx-auto mb-12 max-w-2xl">
         <div className="relative">
           <input
-            type="search"
-            placeholder="Search for help..."
             className="w-full rounded-lg border bg-background px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="Search for help..."
+            type="search"
           />
           <button
-            type="button"
-            className="-translate-y-1/2 absolute top-1/2 right-3"
             aria-label="Search"
+            className="-translate-y-1/2 absolute top-1/2 right-3"
+            type="button"
           >
             <svg
+              aria-hidden="true"
               className="h-5 w-5 text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden="true"
             >
               <path
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
           </button>
@@ -164,8 +164,8 @@ export default function HelpPage() {
                   {category.links.map((link) => (
                     <li key={link.label}>
                       <Link
-                        href={link.href as Route}
                         className="text-primary transition-colors hover:text-primary/80 hover:underline"
+                        href={link.href as Route}
                       >
                         {link.label}
                       </Link>
@@ -220,8 +220,8 @@ export default function HelpPage() {
             const Icon = method.icon;
             return (
               <Card
-                key={method.title}
                 className="text-center transition-shadow hover:shadow-lg"
+                key={method.title}
               >
                 <CardContent className="pt-6">
                   <Icon className="mx-auto mb-4 h-12 w-12 text-primary" />
@@ -229,7 +229,7 @@ export default function HelpPage() {
                   <p className="mb-4 text-muted-foreground text-sm">
                     {method.description}
                   </p>
-                  <Button asChild variant="outline" className="w-full">
+                  <Button asChild className="w-full" variant="outline">
                     <Link href={method.href as Route}>{method.action}</Link>
                   </Button>
                 </CardContent>
@@ -248,7 +248,7 @@ export default function HelpPage() {
         </p>
         <p className="text-sm">
           <strong>Pet Poison Helpline:</strong>{" "}
-          <a href="tel:855-764-7661" className="text-primary hover:underline">
+          <a className="text-primary hover:underline" href="tel:855-764-7661">
             (855) 764-7661
           </a>
         </p>

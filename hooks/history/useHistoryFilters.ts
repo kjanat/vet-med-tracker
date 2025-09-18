@@ -33,16 +33,14 @@ export function useHistoryFilters() {
   );
 
   // Memoize the parsed parameters to prevent re-parsing on every render
-  const typedParams = useMemo(() => {
-    return getTypedSearchParams(
-      new URLSearchParams(searchParamsString),
-      "history",
-      {
+  const typedParams = useMemo(
+    () =>
+      getTypedSearchParams(new URLSearchParams(searchParamsString), "history", {
         type: "all",
         view: "list",
-      },
-    ) as HistorySearchParams;
-  }, [searchParamsString]);
+      }) as HistorySearchParams,
+    [searchParamsString],
+  );
 
   // Memoize the final filters object to prevent unnecessary re-renders downstream
   const filters = useMemo((): HistoryFilters => {
@@ -52,24 +50,20 @@ export function useHistoryFilters() {
 
     return {
       animalId: typedParams.animalId,
-      regimenId: typedParams.regimenId,
       caregiverId: typedParams.caregiverId,
+      from: defaultFrom,
+      regimenId: typedParams.regimenId,
+      to: defaultTo,
       type: typedParams.type || "all",
       view: typedParams.view || "list",
-      from: defaultFrom,
-      to: defaultTo,
     };
   }, [typedParams]);
 
   // Memoize the createQueryString helper to prevent recreating on every render
   // Use searchParamsString for more granular dependency tracking
   const createQueryString = useCallback(
-    (updates: Record<string, string | undefined>) => {
-      return createTypedQueryString(
-        updates,
-        new URLSearchParams(searchParamsString),
-      );
-    },
+    (updates: Record<string, string | undefined>) =>
+      createTypedQueryString(updates, new URLSearchParams(searchParamsString)),
     [searchParamsString],
   );
 
@@ -96,7 +90,7 @@ export function useHistoryFilters() {
         const currentFilters = { ...currentParams, [key]: value };
         window.dispatchEvent(
           new CustomEvent("history_filter_change", {
-            detail: { key, value, filters: currentFilters },
+            detail: { filters: currentFilters, key, value },
           }),
         );
       }

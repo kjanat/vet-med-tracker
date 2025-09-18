@@ -60,49 +60,49 @@ export function AnimalForm({
   const [newCondition, setNewCondition] = useState("");
 
   const form = useForm<AnimalFormData>({
-    resolver: zodResolver(animalFormSimpleSchema),
     defaultValues: {
-      name: "",
-      species: "",
+      allergies: [],
       breed: undefined,
-      sex: undefined,
-      neutered: false,
-      dob: undefined,
-      weightKg: undefined,
-      microchipId: undefined,
+      clinicName: undefined,
       color: undefined,
+      conditions: [],
+      dob: undefined,
+      microchipId: undefined,
+      name: "",
+      neutered: false,
+      notes: undefined,
+      photoUrl: undefined,
+      sex: undefined,
+      species: "",
       timezone: "America/New_York",
+      vetEmail: undefined,
       vetName: undefined,
       vetPhone: undefined,
-      vetEmail: undefined,
-      clinicName: undefined,
-      notes: undefined,
-      allergies: [],
-      conditions: [],
-      photoUrl: undefined,
+      weightKg: undefined,
     },
+    resolver: zodResolver(animalFormSimpleSchema),
   });
 
   useEffect(() => {
     if (animal) {
       form.reset({
-        name: animal.name,
-        species: animal.species,
+        allergies: animal.allergies || [],
         breed: animal.breed || "",
-        sex: animal.sex,
-        neutered: animal.neutered || false,
-        dob: animal.dob,
-        weightKg: animal.weightKg,
-        microchipId: animal.microchipId || "",
+        clinicName: animal.clinicName || "",
         color: animal.color || "",
+        conditions: animal.conditions || [],
+        dob: animal.dob,
+        microchipId: animal.microchipId || "",
+        name: animal.name,
+        neutered: animal.neutered || false,
+        notes: animal.notes || "",
+        sex: animal.sex,
+        species: animal.species,
         timezone: animal.timezone || "America/New_York",
+        vetEmail: animal.vetEmail || "",
         vetName: animal.vetName || "",
         vetPhone: animal.vetPhone || "",
-        vetEmail: animal.vetEmail || "",
-        clinicName: animal.clinicName || "",
-        notes: animal.notes || "",
-        allergies: animal.allergies || [],
-        conditions: animal.conditions || [],
+        weightKg: animal.weightKg,
       });
     } else {
       form.reset();
@@ -155,7 +155,7 @@ export function AnimalForm({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-xl md:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{animal ? "Edit Animal" : "Add Animal"}</DialogTitle>
@@ -168,8 +168,8 @@ export function AnimalForm({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
             className="mt-6 space-y-6"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             {/* Basic Info */}
             <div className="space-y-4">
@@ -284,18 +284,18 @@ export function AnimalForm({
                       <FormLabel>Date of Birth</FormLabel>
                       <FormControl>
                         <Input
-                          type="date"
-                          value={
-                            field.value
-                              ? field.value.toISOString().split("T")[0]
-                              : ""
-                          }
                           onChange={(e) =>
                             field.onChange(
                               e.target.value
                                 ? new Date(e.target.value)
                                 : undefined,
                             )
+                          }
+                          type="date"
+                          value={
+                            field.value
+                              ? field.value.toISOString().split("T")[0]
+                              : ""
                           }
                         />
                       </FormControl>
@@ -312,10 +312,7 @@ export function AnimalForm({
                       <FormLabel>Weight (kg)</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
-                          step="0.1"
                           min="0"
-                          value={field.value || ""}
                           onChange={(e) =>
                             field.onChange(
                               e.target.value
@@ -323,6 +320,9 @@ export function AnimalForm({
                                 : undefined,
                             )
                           }
+                          step="0.1"
+                          type="number"
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -372,10 +372,10 @@ export function AnimalForm({
                       <FormLabel>Timezone *</FormLabel>
                       <FormControl>
                         <TimezoneCombobox
-                          value={field.value}
                           onChange={field.onChange}
                           placeholder="Select timezone"
                           required
+                          value={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -457,8 +457,8 @@ export function AnimalForm({
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Additional notes about the animal..."
                         className="min-h-[100px]"
+                        placeholder="Additional notes about the animal..."
                         {...field}
                       />
                     </FormControl>
@@ -481,8 +481,6 @@ export function AnimalForm({
                       <FormLabel>Allergies</FormLabel>
                       <div className="mt-1 flex gap-2">
                         <Input
-                          placeholder="Add allergy"
-                          value={newAllergy}
                           onChange={(e) => setNewAllergy(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
@@ -490,22 +488,24 @@ export function AnimalForm({
                               addAllergy();
                             }
                           }}
+                          placeholder="Add allergy"
+                          value={newAllergy}
                         />
-                        <Button type="button" onClick={addAllergy} size="sm">
+                        <Button onClick={addAllergy} size="sm" type="button">
                           Add
                         </Button>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {field.value?.map((allergy) => (
                           <Badge
+                            className="gap-1"
                             key={allergy}
                             variant="destructive"
-                            className="gap-1"
                           >
                             {allergy}
                             <button
-                              type="button"
                               onClick={() => removeAllergy(allergy)}
+                              type="button"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -525,8 +525,6 @@ export function AnimalForm({
                       <FormLabel>Medical Conditions</FormLabel>
                       <div className="mt-1 flex gap-2">
                         <Input
-                          placeholder="Add condition"
-                          value={newCondition}
                           onChange={(e) => setNewCondition(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
@@ -534,22 +532,24 @@ export function AnimalForm({
                               addCondition();
                             }
                           }}
+                          placeholder="Add condition"
+                          value={newCondition}
                         />
-                        <Button type="button" onClick={addCondition} size="sm">
+                        <Button onClick={addCondition} size="sm" type="button">
                           Add
                         </Button>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {field.value?.map((condition) => (
                           <Badge
+                            className="gap-1"
                             key={condition}
                             variant="secondary"
-                            className="gap-1"
                           >
                             {condition}
                             <button
-                              type="button"
                               onClick={() => removeCondition(condition)}
+                              type="button"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -566,28 +566,28 @@ export function AnimalForm({
             {/* Photo Upload */}
             {user?.id && selectedHousehold?.id && (
               <PhotoUploader
+                animalId={animal?.id}
+                householdId={selectedHousehold.id}
+                maxSizeKB={5000}
                 onUpload={(url, _file) => {
                   form.setValue("photoUrl", url);
                 }}
-                value={form.watch("photoUrl") || undefined}
-                householdId={selectedHousehold.id}
-                userId={user.id}
-                animalId={animal?.id}
-                maxSizeKB={5000}
                 placeholder="Click to upload animal photo or drag and drop"
+                userId={user.id}
+                value={form.watch("photoUrl") || undefined}
               />
             )}
 
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-4">
               <Button
+                onClick={() => onOpenChange(false)}
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button disabled={form.formState.isSubmitting} type="submit">
                 {form.formState.isSubmitting
                   ? "Saving..."
                   : animal

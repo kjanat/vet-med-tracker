@@ -3,7 +3,7 @@
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 import Link from "next/link";
 // import { useRouter } from "next/navigation"; // Uncomment when needed
-import React, { Component, type ErrorInfo, type ReactNode } from "react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,9 +42,9 @@ export class ErrorBoundary extends Component<Props, State> {
     const errorId = `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     return {
-      hasError: true,
       error,
       errorId,
+      hasError: true,
     };
   }
 
@@ -62,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = (): void => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    this.setState({ error: undefined, errorInfo: undefined, hasError: false });
   };
 
   override render(): ReactNode {

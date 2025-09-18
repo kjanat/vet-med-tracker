@@ -1,8 +1,6 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "plugins": [
-    ".github/linters/object_assign.grit"
-  ],
+  // "plugins": [".github/linters/object_assign.grit"],
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -26,7 +24,7 @@
       "!test-results",
       "!.vercel",
       "!.vscode",
-      "!drizzle"
+      "!migrations"
     ]
   },
   "formatter": {
@@ -79,8 +77,8 @@
     "actions": {
       "source": {
         "organizeImports": "on",
-        "useSortedKeys": "off",
-        "useSortedAttributes": "off"
+        "useSortedKeys": "on",
+        "useSortedAttributes": "on"
       }
     }
   },
@@ -104,22 +102,6 @@
       }
     },
     {
-      "includes": ["migrations/*"],
-      "formatter": {
-        "enabled": false
-      },
-      "linter": {
-        "enabled": false
-      },
-      "assist": {
-        "actions": {
-          "source": {
-            "organizeImports": "off"
-          }
-        }
-      }
-    },
-    {
       "includes": ["**/*.css"],
       "linter": {
         "rules": {
@@ -130,16 +112,13 @@
       }
     },
     {
-      "includes": ["scripts/*.js"],
-      "linter": {
-        "enabled": true
-      },
-      "formatter": {
-        "enabled": true
-      }
-    },
-    {
-      "includes": ["**/*.jsonc", "**/*.json", "**/*.config.ts"],
+      "includes": [
+        "**/*.jsonc",
+        "**/*.json",
+        "**/*.config.ts",
+        "app/**",
+        "/*.js"
+      ],
       "assist": {
         "actions": {
           "source": {

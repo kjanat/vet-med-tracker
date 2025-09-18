@@ -30,13 +30,13 @@ export default function UsersPage() {
   // Get household members
   const { data: members, isLoading } = trpc.household.getMembers.useQuery(
     { householdId: selectedHousehold?.id || "" },
-    { enabled: !!selectedHousehold },
+    { enabled: Boolean(selectedHousehold) },
   );
 
   // Check user's role in household
   const { data: userMembership } = trpc.user.getMembership.useQuery(
     { householdId: selectedHousehold?.id || "" },
-    { enabled: !!selectedHousehold },
+    { enabled: Boolean(selectedHousehold) },
   );
 
   const canManageUsers = userMembership?.role === "OWNER";
@@ -84,10 +84,10 @@ export default function UsersPage() {
       <div className="relative">
         <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
         <Input
+          className="pl-9"
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search users..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
         />
       </div>
 
@@ -110,8 +110,8 @@ export default function UsersPage() {
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
                       <AvatarImage
-                        src={member.user.image || undefined}
                         alt={member.user.name || "User"}
+                        src={member.user.image || undefined}
                       />
                       <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
@@ -121,10 +121,10 @@ export default function UsersPage() {
                           {member.user.name || "Unknown User"}
                         </h3>
                         <Badge
+                          className="flex items-center gap-1"
                           variant={
                             member.role === "OWNER" ? "default" : "secondary"
                           }
-                          className="flex items-center gap-1"
                         >
                           <Shield className="h-3 w-3" />
                           {member.role}
@@ -145,7 +145,7 @@ export default function UsersPage() {
                   {canManageUsers && member.role !== "OWNER" && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button size="icon" variant="ghost">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>

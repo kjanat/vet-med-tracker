@@ -24,7 +24,7 @@ export default function AnimalReportLoading() {
         {/* Stats Grid */}
         <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {["stat-1", "stat-2", "stat-3", "stat-4"].map((key) => (
-            <Skeleton key={key} className="h-32" />
+            <Skeleton className="h-32" key={key} />
           ))}
         </div>
 
@@ -40,7 +40,7 @@ export default function AnimalReportLoading() {
           <div className="space-y-2">
             {["admin-1", "admin-2", "admin-3", "admin-4", "admin-5"].map(
               (key) => (
-                <Skeleton key={key} className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" key={key} />
               ),
             )}
           </div>

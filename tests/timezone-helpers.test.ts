@@ -31,9 +31,9 @@ describe("timezone helpers", () => {
 
   test("labels timezones with friendly names and optional components", () => {
     const label = labelFor(EASTERN, {
+      referenceDate: REFERENCE_NOON_UTC,
       showOffset: true,
       showTime: false,
-      referenceDate: REFERENCE_NOON_UTC,
     });
 
     expect(label).toMatch(/Eastern Time \(UTC-0?5/);
@@ -45,9 +45,9 @@ describe("timezone helpers", () => {
     expect(noOffsetTime).toBe("Eastern Time");
 
     const withTime = labelFor(EASTERN, {
+      referenceDate: REFERENCE_NOON_UTC,
       showOffset: false,
       showTime: true,
-      referenceDate: REFERENCE_NOON_UTC,
     });
     expect(withTime).toBe("Eastern Time , 07:00)");
   });

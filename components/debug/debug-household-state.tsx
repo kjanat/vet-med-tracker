@@ -13,16 +13,16 @@ export function DebugHouseholdState() {
     isLoading,
     error,
   } = trpc.household.list.useQuery(undefined, {
-    enabled: !!stackUser,
+    enabled: Boolean(stackUser),
   });
 
-  const isAuthenticated = !!stackUser;
+  const isAuthenticated = Boolean(stackUser);
   const user = useMemo(
     () =>
       stackUser
         ? {
-            id: stackUser.id,
             email: stackUser.primaryEmail || "",
+            id: stackUser.id,
             name: stackUser.displayName || stackUser.primaryEmail || "Unknown",
           }
         : null,
@@ -82,7 +82,7 @@ export function DebugHouseholdState() {
         <div className="mt-2 border-white/20 border-t pt-2">
           <div className="font-bold">API Households:</div>
           {householdData.map((h) => (
-            <div key={h.id} className="text-xs">
+            <div className="text-xs" key={h.id}>
               {h.name}: {h.id}
             </div>
           ))}

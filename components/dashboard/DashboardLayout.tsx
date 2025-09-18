@@ -25,26 +25,6 @@ interface DashboardLayoutProps {
 
 // CSS Grid breakpoint configurations
 const GRID_CONFIGURATIONS = {
-  mobile: {
-    columns: 1,
-    templateAreas: (widgets: DashboardWidget[]) =>
-      widgets.map((_w, i) => `"widget-${i}"`).join(" "),
-  },
-  tablet: {
-    columns: 2,
-    templateAreas: (widgets: DashboardWidget[]) => {
-      const rows = Math.ceil(widgets.length / 2);
-      const areas = [];
-      for (let row = 0; row < rows; row++) {
-        const left = widgets[row * 2];
-        const right = widgets[row * 2 + 1];
-        areas.push(
-          `"${left ? `widget-${row * 2}` : "."} ${right ? `widget-${row * 2 + 1}` : "."}"`,
-        );
-      }
-      return areas.join(" ");
-    },
-  },
   desktop: {
     columns: 3,
     templateAreas: (widgets: DashboardWidget[]) => {
@@ -71,6 +51,26 @@ const GRID_CONFIGURATIONS = {
           cells.push(widgets[widgetIndex] ? `widget-${widgetIndex}` : ".");
         }
         areas.push(`"${cells.join(" ")}"`);
+      }
+      return areas.join(" ");
+    },
+  },
+  mobile: {
+    columns: 1,
+    templateAreas: (widgets: DashboardWidget[]) =>
+      widgets.map((_w, i) => `"widget-${i}"`).join(" "),
+  },
+  tablet: {
+    columns: 2,
+    templateAreas: (widgets: DashboardWidget[]) => {
+      const rows = Math.ceil(widgets.length / 2);
+      const areas = [];
+      for (let row = 0; row < rows; row++) {
+        const left = widgets[row * 2];
+        const right = widgets[row * 2 + 1];
+        areas.push(
+          `"${left ? `widget-${row * 2}` : "."} ${right ? `widget-${row * 2 + 1}` : "."}"`,
+        );
       }
       return areas.join(" ");
     },
@@ -126,29 +126,29 @@ function WidgetWrapper({
       )}
       style={{
         gridArea: isFullscreen ? "unset" : widget.gridArea || `widget-${index}`,
-        minWidth: widget.minWidth || "auto",
         minHeight: isCollapsed ? "auto" : widget.minHeight || 300,
+        minWidth: widget.minWidth || "auto",
       }}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="font-medium text-lg">{widget.title}</CardTitle>
         <div className="flex items-center gap-1">
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={onRefresh}
             className="h-8 w-8 p-0"
+            onClick={onRefresh}
+            size="sm"
             title="Refresh"
+            variant="ghost"
           >
             <RotateCcw className="h-4 w-4" />
             <span className="sr-only">Refresh {widget.title}</span>
           </Button>
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleCollapse}
             className="h-8 w-8 p-0"
+            onClick={onToggleCollapse}
+            size="sm"
             title={isCollapsed ? "Expand" : "Collapse"}
+            variant="ghost"
           >
             <GripVertical className="h-4 w-4" />
             <span className="sr-only">
@@ -156,11 +156,11 @@ function WidgetWrapper({
             </span>
           </Button>
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleFullscreen}
             className="h-8 w-8 p-0"
+            onClick={onToggleFullscreen}
+            size="sm"
             title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            variant="ghost"
           >
             {isFullscreen ? (
               <Minimize2 className="h-4 w-4" />
@@ -265,7 +265,7 @@ export function DashboardLayout({
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent("dashboard:widget-refresh", {
-            detail: { widgetId, refreshKey: nextKey },
+            detail: { refreshKey: nextKey, widgetId },
           }),
         );
       }
@@ -297,28 +297,28 @@ export function DashboardLayout({
   return (
     <>
       <div
-        ref={containerRef}
         className={cn(
           "grid w-full auto-rows-min",
           fullscreenWidget && "pointer-events-none",
           className,
         )}
+        ref={containerRef}
         style={{
-          gridTemplateColumns: `repeat(${gridConfig.columns}, minmax(0, 1fr))`,
-          gridTemplateAreas: templateAreas,
           gap: `${gap * 0.25}rem`,
+          gridTemplateAreas: templateAreas,
+          gridTemplateColumns: `repeat(${gridConfig.columns}, minmax(0, 1fr))`,
         }}
       >
         {widgets.map((widget, index) => (
           <WidgetWrapper
-            key={`${widget.id}-${refreshKeys[widget.id] || 0}`}
-            widget={widget}
             index={index}
-            isFullscreen={fullscreenWidget === widget.id}
             isCollapsed={collapsedWidgets.has(widget.id)}
-            onToggleFullscreen={() => toggleWidgetFullscreen(widget.id)}
-            onToggleCollapse={() => toggleWidgetCollapse(widget.id)}
+            isFullscreen={fullscreenWidget === widget.id}
+            key={`${widget.id}-${refreshKeys[widget.id] || 0}`}
             onRefresh={() => refreshWidget(widget.id)}
+            onToggleCollapse={() => toggleWidgetCollapse(widget.id)}
+            onToggleFullscreen={() => toggleWidgetFullscreen(widget.id)}
+            widget={widget}
           />
         ))}
       </div>
@@ -326,7 +326,7 @@ export function DashboardLayout({
       {/* Fullscreen backdrop */}
       {fullscreenWidget && (
         <button
-          type="button"
+          aria-label="Close fullscreen widget"
           className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
           onClick={() => setFullscreenWidget(null)}
           onKeyDown={(e) => {
@@ -334,7 +334,7 @@ export function DashboardLayout({
               setFullscreenWidget(null);
             }
           }}
-          aria-label="Close fullscreen widget"
+          type="button"
         />
       )}
     </>

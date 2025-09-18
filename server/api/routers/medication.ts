@@ -9,29 +9,6 @@ import {
 } from "@/server/api/trpc";
 
 export const medicationRouter = createTRPCRouter({
-  search: protectedProcedure
-    .input(
-      z.object({
-        query: z.string().min(1),
-        limit: z.number().min(1).max(50).default(10),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { query, limit } = input;
-
-      return await ctx.db
-        .select()
-        .from(medicationCatalog)
-        .where(
-          or(
-            ilike(medicationCatalog.genericName, `%${query}%`),
-            ilike(medicationCatalog.brandName, `%${query}%`),
-          ),
-        )
-        .orderBy(medicationCatalog.genericName, medicationCatalog.brandName)
-        .limit(limit);
-    }),
-
   getById: protectedProcedure
     .input(
       z.object({
@@ -69,8 +46,8 @@ export const medicationRouter = createTRPCRouter({
       // Get medications used in inventory items for this household
       const frequentMeds = await ctx.db
         .select({
-          medicationId: inventoryItems.medicationId,
           count: sql<number>`count(*)::int`,
+          medicationId: inventoryItems.medicationId,
         })
         .from(inventoryItems)
         .where(
@@ -107,5 +84,27 @@ export const medicationRouter = createTRPCRouter({
           freq.medicationId ? medicationMap.get(freq.medicationId) : undefined,
         )
         .filter((med): med is (typeof medications)[0] => med !== undefined);
+    }),
+  search: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(50).default(10),
+        query: z.string().min(1),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { query, limit } = input;
+
+      return await ctx.db
+        .select()
+        .from(medicationCatalog)
+        .where(
+          or(
+            ilike(medicationCatalog.genericName, `%${query}%`),
+            ilike(medicationCatalog.brandName, `%${query}%`),
+          ),
+        )
+        .orderBy(medicationCatalog.genericName, medicationCatalog.brandName)
+        .limit(limit);
     }),
 });

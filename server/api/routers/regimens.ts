@@ -57,9 +57,9 @@ type DueStatusResult = {
 // Helper to create a PRN result
 function createPRNResult(): DueStatusResult {
   return {
-    section: "prn",
     isOverdue: false,
     minutesUntilDue: 0,
+    section: "prn",
   };
 }
 
@@ -104,10 +104,10 @@ function calculateScheduledResult(
   const section = determineSection(minutesUntilDue, includeUpcoming);
 
   return {
-    section,
-    targetTime: targetTime.toISOString(),
     isOverdue,
     minutesUntilDue,
+    section,
+    targetTime: targetTime.toISOString(),
   };
 }
 
@@ -213,28 +213,28 @@ function processRegimenRow(
     "Unknown";
 
   return {
-    id: regimen.id,
     animalId: animal.id,
     animalName: animal.name,
-    animalSpecies: animal.species,
     animalPhotoUrl: animal.photoUrl,
-    medicationName,
+    animalSpecies: animal.species,
     brandName: medication?.brandName || null,
-    route: regimen.route || medication?.route || "",
-    form: medication?.form || "",
-    strength: medication?.strength || "",
-    dose: regimen.dose || "",
-    targetTime: dueStatus.targetTime,
-    isPRN: regimen.scheduleType === "PRN",
-    isHighRisk: regimen.highRisk,
-    requiresCoSign: regimen.requiresCoSign,
     compliance,
-    section: dueStatus.section,
-    isOverdue: dueStatus.isOverdue,
-    minutesUntilDue: dueStatus.minutesUntilDue,
+    dose: regimen.dose || "",
+    form: medication?.form || "",
+    id: regimen.id,
     instructions: regimen.instructions,
-    prnReason: regimen.prnReason,
+    isHighRisk: regimen.highRisk,
+    isOverdue: dueStatus.isOverdue,
+    isPRN: regimen.scheduleType === "PRN",
     lastAdministration: lastAdmin,
+    medicationName,
+    minutesUntilDue: dueStatus.minutesUntilDue,
+    prnReason: regimen.prnReason,
+    requiresCoSign: regimen.requiresCoSign,
+    route: regimen.route || medication?.route || "",
+    section: dueStatus.section,
+    strength: medication?.strength || "",
+    targetTime: dueStatus.targetTime,
   };
 }
 
@@ -257,196 +257,32 @@ function sortByUrgency(a: ProcessedRegimen, b: ProcessedRegimen): number {
 }
 
 export const regimenRouter = createTRPCRouter({
-  // List all regimens for a household
-  list: householdProcedure
-    .input(
-      z.object({
-        householdId: z.uuid(),
-        animalId: z.uuid().optional(),
-        activeOnly: z.boolean().default(true),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const conditions = [
-        eq(animals.householdId, input.householdId),
-        isNull(regimens.deletedAt),
-      ];
-
-      if (input.animalId) {
-        conditions.push(eq(regimens.animalId, input.animalId));
-      }
-
-      if (input.activeOnly) {
-        conditions.push(eq(regimens.active, true));
-      }
-
-      const result = await ctx.db
-        .select({
-          regimen: regimens,
-          animal: animals,
-          medication: medicationCatalog,
-        })
-        .from(regimens)
-        .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .leftJoin(
-          medicationCatalog,
-          eq(regimens.medicationId, medicationCatalog.id),
-        )
-        .where(and(...conditions))
-        .orderBy(animals.name, regimens.startDate);
-
-      return result;
-    }),
-
-  // List due medications for recording
-  listDue: protectedProcedure
-    .input(
-      z.object({
-        householdId: z.uuid().optional(),
-        animalId: z.uuid().optional(),
-        includeUpcoming: z.boolean().default(true), // Include "later today"
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      // Use household from context or input
-      const householdId = input.householdId || ctx.currentHouseholdId;
-      if (!householdId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "householdId is required",
-        });
-      }
-
-      const now = new Date();
-      const startOfDay = new Date(now);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(now);
-      endOfDay.setHours(23, 59, 59, 999);
-
-      // Base conditions for active regimens in the household
-      const baseConditions = [
-        eq(animals.householdId, householdId),
-        eq(regimens.active, true),
-        isNull(regimens.deletedAt),
-        isNull(animals.deletedAt),
-        lte(regimens.startDate, now.toISOString().split("T")[0] ?? ""),
-        or(
-          isNull(regimens.endDate),
-          gte(regimens.endDate, now.toISOString().split("T")[0] ?? ""),
-        ),
-      ];
-
-      if (input.animalId) {
-        baseConditions.push(eq(regimens.animalId, input.animalId));
-      }
-
-      // Get active regimens with their animals and medications
-      const activeRegimens = await ctx.db
-        .select({
-          regimen: regimens,
-          animal: animals,
-          medication: medicationCatalog,
-          // Get the latest administration for each regimen
-          lastAdmin: {
-            id: administrations.id,
-            recordedAt: administrations.recordedAt,
-            status: administrations.status,
-          },
-        })
-        .from(regimens)
-        .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .leftJoin(
-          medicationCatalog,
-          eq(regimens.medicationId, medicationCatalog.id),
-        )
-        .leftJoin(
-          administrations,
-          and(
-            eq(administrations.regimenId, regimens.id),
-            gte(administrations.recordedAt, startOfDay.toISOString()),
-            lte(administrations.recordedAt, endOfDay.toISOString()),
-          ),
-        )
-        .where(and(...baseConditions))
-        .orderBy(animals.name);
-
-      // Process regimens to determine due status
-      const dueRegimens = activeRegimens.map((row) =>
-        processRegimenRow(row, now, input.includeUpcoming),
-      );
-
-      // Sort by urgency
-      dueRegimens.sort(sortByUrgency);
-
-      return dueRegimens;
-    }),
-
-  // Get a single regimen by ID
-  getById: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const result = await ctx.db
-        .select({
-          regimen: regimens,
-          animal: animals,
-          medication: medicationCatalog,
-        })
-        .from(regimens)
-        .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .leftJoin(
-          medicationCatalog,
-          eq(regimens.medicationId, medicationCatalog.id),
-        )
-        .where(
-          and(
-            eq(regimens.id, input.id),
-            eq(animals.householdId, input.householdId),
-            isNull(regimens.deletedAt),
-          ),
-        )
-        .limit(1);
-
-      if (!result[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Regimen not found",
-        });
-      }
-
-      return result[0];
-    }),
-
   // Create a new regimen
   create: householdProcedure
     .input(
       z.object({
-        householdId: z.uuid(),
         animalId: z.uuid(),
-        medicationId: z.uuid().optional(),
-        medicationName: z.string().optional(),
-        isCustomMedication: z.boolean().default(false),
-        name: z.string().optional(),
-        instructions: z.string().optional(),
-        scheduleType: z.enum(scheduleTypeEnum.enumValues),
-        timesLocal: z.array(z.string().regex(/^\d{2}:\d{2}$/)).optional(),
-        intervalHours: z.number().int().positive().optional(),
-        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        cutoffMinutes: z.number().int().positive().default(240),
+        dose: z.string().optional(),
         endDate: z
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional(),
-        prnReason: z.string().optional(),
-        maxDailyDoses: z.number().int().positive().optional(),
-        cutoffMinutes: z.number().int().positive().default(240),
         highRisk: z.boolean().default(false),
+        householdId: z.uuid(),
+        instructions: z.string().optional(),
+        intervalHours: z.number().int().positive().optional(),
+        isCustomMedication: z.boolean().default(false),
+        maxDailyDoses: z.number().int().positive().optional(),
+        medicationId: z.uuid().optional(),
+        medicationName: z.string().optional(),
+        name: z.string().optional(),
+        prnReason: z.string().optional(),
         requiresCoSign: z.boolean().default(false),
-        dose: z.string().optional(),
         route: z.string().optional(),
+        scheduleType: z.enum(scheduleTypeEnum.enumValues),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        timesLocal: z.array(z.string().regex(/^\d{2}:\d{2}$/)).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -520,25 +356,25 @@ export const regimenRouter = createTRPCRouter({
       }
 
       const newRegimen: NewRegimen = {
+        active: true,
         animalId: input.animalId,
+        cutoffMinutes: input.cutoffMinutes,
+        dose: input.dose,
+        endDate: input.endDate,
+        highRisk: input.highRisk,
+        instructions: input.instructions,
+        intervalHours: input.intervalHours,
+        isCustomMedication: input.isCustomMedication,
+        maxDailyDoses: input.maxDailyDoses,
         medicationId: input.medicationId,
         medicationName: input.medicationName,
-        isCustomMedication: input.isCustomMedication,
         name: input.name,
-        instructions: input.instructions,
-        scheduleType: input.scheduleType,
-        timesLocal: input.timesLocal,
-        intervalHours: input.intervalHours,
-        startDate: input.startDate,
-        endDate: input.endDate,
         prnReason: input.prnReason,
-        maxDailyDoses: input.maxDailyDoses,
-        cutoffMinutes: input.cutoffMinutes,
-        highRisk: input.highRisk,
         requiresCoSign: input.requiresCoSign,
-        dose: input.dose,
         route: input.route,
-        active: true,
+        scheduleType: input.scheduleType,
+        startDate: input.startDate,
+        timesLocal: input.timesLocal,
       };
 
       const result = await ctx.db
@@ -548,20 +384,20 @@ export const regimenRouter = createTRPCRouter({
 
       // Create audit log entry
       await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
         action: "CREATE",
-        resourceType: "regimen",
-        resourceId: result[0]?.id,
+        householdId: input.householdId,
         newValues: newRegimen,
+        resourceId: result[0]?.id,
+        resourceType: "regimen",
+        userId: ctx.dbUser.id,
       });
 
       // Get the complete regimen with medication details
       const completeRegimen = await ctx.db
         .select({
-          regimen: regimens,
           animal: animals,
           medication: medicationCatalog,
+          regimen: regimens,
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
@@ -575,32 +411,457 @@ export const regimenRouter = createTRPCRouter({
       return completeRegimen[0];
     }),
 
+  // Soft delete a regimen
+  delete: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+        id: z.uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify regimen exists and belongs to household
+      const existing = await ctx.db
+        .select({ animal: animals, regimen: regimens })
+        .from(regimens)
+        .innerJoin(animals, eq(regimens.animalId, animals.id))
+        .where(
+          and(
+            eq(regimens.id, input.id),
+            eq(animals.householdId, input.householdId),
+            isNull(regimens.deletedAt),
+          ),
+        )
+        .limit(1);
+
+      if (!existing[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Regimen not found",
+        });
+      }
+
+      const result = await ctx.db
+        .update(regimens)
+        .set({
+          deletedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(regimens.id, input.id))
+        .returning();
+
+      // Create audit log entry
+      await createAuditLog(ctx.db, {
+        action: "DELETE",
+        householdId: input.householdId,
+        oldValues: existing[0]?.regimen,
+        resourceId: input.id,
+        resourceType: "regimen",
+        userId: ctx.dbUser.id,
+      });
+
+      return { regimen: result[0], success: true };
+    }),
+
+  // Get a single regimen by ID
+  getById: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+        id: z.uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.db
+        .select({
+          animal: animals,
+          medication: medicationCatalog,
+          regimen: regimens,
+        })
+        .from(regimens)
+        .innerJoin(animals, eq(regimens.animalId, animals.id))
+        .leftJoin(
+          medicationCatalog,
+          eq(regimens.medicationId, medicationCatalog.id),
+        )
+        .where(
+          and(
+            eq(regimens.id, input.id),
+            eq(animals.householdId, input.householdId),
+            isNull(regimens.deletedAt),
+          ),
+        )
+        .limit(1);
+
+      if (!result[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Regimen not found",
+        });
+      }
+
+      return result[0];
+    }),
+  // List all regimens for a household
+  list: householdProcedure
+    .input(
+      z.object({
+        activeOnly: z.boolean().default(true),
+        animalId: z.uuid().optional(),
+        householdId: z.uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const conditions = [
+        eq(animals.householdId, input.householdId),
+        isNull(regimens.deletedAt),
+      ];
+
+      if (input.animalId) {
+        conditions.push(eq(regimens.animalId, input.animalId));
+      }
+
+      if (input.activeOnly) {
+        conditions.push(eq(regimens.active, true));
+      }
+
+      const result = await ctx.db
+        .select({
+          animal: animals,
+          medication: medicationCatalog,
+          regimen: regimens,
+        })
+        .from(regimens)
+        .innerJoin(animals, eq(regimens.animalId, animals.id))
+        .leftJoin(
+          medicationCatalog,
+          eq(regimens.medicationId, medicationCatalog.id),
+        )
+        .where(and(...conditions))
+        .orderBy(animals.name, regimens.startDate);
+
+      return result;
+    }),
+
+  // Get regimens for multiple animals (for bulk operations)
+  listByAnimals: householdProcedure
+    .input(
+      z.object({
+        animalIds: z.array(z.uuid()).min(1),
+        householdId: z.uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const results = await ctx.db
+        .select({
+          // Animal info
+          animalId: animals.id,
+          animalName: animals.name,
+          brandName: medicationCatalog.brandName,
+          dose: regimens.dose,
+          // Medication info
+          genericName: medicationCatalog.genericName,
+          isCustomMedication: regimens.isCustomMedication,
+          medicationId: regimens.medicationId,
+          medicationName: regimens.medicationName,
+          // Regimen info
+          regimenId: regimens.id,
+          route: regimens.route,
+          scheduleType: regimens.scheduleType,
+          strength: medicationCatalog.strength,
+          timesLocal: regimens.timesLocal,
+        })
+        .from(regimens)
+        .innerJoin(animals, eq(regimens.animalId, animals.id))
+        .leftJoin(
+          medicationCatalog,
+          eq(regimens.medicationId, medicationCatalog.id),
+        )
+        .where(
+          and(
+            eq(animals.householdId, input.householdId),
+            inArray(animals.id, input.animalIds),
+            eq(regimens.active, true),
+            isNull(regimens.deletedAt),
+          ),
+        )
+        .orderBy(animals.name, regimens.medicationName);
+
+      // Group regimens by animal
+      const animalRegimens = new Map<string, typeof results>();
+
+      for (const row of results) {
+        if (!animalRegimens.has(row.animalId)) {
+          animalRegimens.set(row.animalId, []);
+        }
+        animalRegimens.get(row.animalId)?.push(row);
+      }
+
+      // Convert to the expected format
+      return input.animalIds.map((animalId) => {
+        const animalData = results.find((r) => r.animalId === animalId);
+        const animalRegimensData = animalRegimens.get(animalId) || [];
+
+        return {
+          animalId,
+          animalName: animalData?.animalName || "Unknown Animal",
+          regimens: animalRegimensData.map((regimen) => ({
+            animalId: regimen.animalId,
+            animalName: regimen.animalName,
+            dose: regimen.dose || "",
+            id: regimen.regimenId,
+            medicationName:
+              regimen.medicationName ||
+              regimen.brandName ||
+              regimen.genericName ||
+              "Unknown",
+            route: regimen.route,
+            scheduleType: regimen.scheduleType,
+          })),
+        };
+      });
+    }),
+
+  // List due medications for recording
+  listDue: protectedProcedure
+    .input(
+      z.object({
+        animalId: z.uuid().optional(),
+        householdId: z.uuid().optional(),
+        includeUpcoming: z.boolean().default(true), // Include "later today"
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Use household from context or input
+      const householdId = input.householdId || ctx.currentHouseholdId;
+      if (!householdId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "householdId is required",
+        });
+      }
+
+      const now = new Date();
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      // Base conditions for active regimens in the household
+      const baseConditions = [
+        eq(animals.householdId, householdId),
+        eq(regimens.active, true),
+        isNull(regimens.deletedAt),
+        isNull(animals.deletedAt),
+        lte(regimens.startDate, now.toISOString().split("T")[0] ?? ""),
+        or(
+          isNull(regimens.endDate),
+          gte(regimens.endDate, now.toISOString().split("T")[0] ?? ""),
+        ),
+      ];
+
+      if (input.animalId) {
+        baseConditions.push(eq(regimens.animalId, input.animalId));
+      }
+
+      // Get active regimens with their animals and medications
+      const activeRegimens = await ctx.db
+        .select({
+          animal: animals,
+          // Get the latest administration for each regimen
+          lastAdmin: {
+            id: administrations.id,
+            recordedAt: administrations.recordedAt,
+            status: administrations.status,
+          },
+          medication: medicationCatalog,
+          regimen: regimens,
+        })
+        .from(regimens)
+        .innerJoin(animals, eq(regimens.animalId, animals.id))
+        .leftJoin(
+          medicationCatalog,
+          eq(regimens.medicationId, medicationCatalog.id),
+        )
+        .leftJoin(
+          administrations,
+          and(
+            eq(administrations.regimenId, regimens.id),
+            gte(administrations.recordedAt, startOfDay.toISOString()),
+            lte(administrations.recordedAt, endOfDay.toISOString()),
+          ),
+        )
+        .where(and(...baseConditions))
+        .orderBy(animals.name);
+
+      // Process regimens to determine due status
+      const dueRegimens = activeRegimens.map((row) =>
+        processRegimenRow(row, now, input.includeUpcoming),
+      );
+
+      // Sort by urgency
+      dueRegimens.sort(sortByUrgency);
+
+      return dueRegimens;
+    }),
+
+  // Pause a regimen
+  pause: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+        id: z.uuid(),
+        reason: z.string().min(1).max(500),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify regimen exists and belongs to household
+      const existing = await ctx.db
+        .select({ animal: animals, regimen: regimens })
+        .from(regimens)
+        .innerJoin(animals, eq(regimens.animalId, animals.id))
+        .where(
+          and(
+            eq(regimens.id, input.id),
+            eq(animals.householdId, input.householdId),
+            isNull(regimens.deletedAt),
+            eq(regimens.active, true),
+          ),
+        )
+        .limit(1);
+
+      if (!existing[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Active regimen not found",
+        });
+      }
+
+      // Check if already paused
+      if (existing[0].regimen.pausedAt) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Regimen is already paused",
+        });
+      }
+
+      const result = await ctx.db
+        .update(regimens)
+        .set({
+          pausedAt: new Date().toISOString(),
+          pauseReason: input.reason,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(regimens.id, input.id))
+        .returning();
+
+      // Create audit log entry
+      await createAuditLog(ctx.db, {
+        action: "PAUSE",
+        details: { reason: input.reason },
+        householdId: input.householdId,
+        newValues: { pausedAt: result[0]?.pausedAt, pauseReason: input.reason },
+        oldValues: { pausedAt: existing[0].regimen.pausedAt },
+        resourceId: input.id,
+        resourceType: "regimen",
+        userId: ctx.dbUser.id,
+      });
+
+      return { regimen: result[0], success: true };
+    }),
+
+  // Resume a paused regimen
+  resume: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+        id: z.uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify regimen exists and belongs to household
+      const existing = await ctx.db
+        .select({ animal: animals, regimen: regimens })
+        .from(regimens)
+        .innerJoin(animals, eq(regimens.animalId, animals.id))
+        .where(
+          and(
+            eq(regimens.id, input.id),
+            eq(animals.householdId, input.householdId),
+            isNull(regimens.deletedAt),
+            eq(regimens.active, true),
+          ),
+        )
+        .limit(1);
+
+      if (!existing[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Active regimen not found",
+        });
+      }
+
+      // Check if already resumed (not paused)
+      if (!existing[0].regimen.pausedAt) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Regimen is not paused",
+        });
+      }
+
+      const result = await ctx.db
+        .update(regimens)
+        .set({
+          pausedAt: null,
+          pauseReason: null,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(regimens.id, input.id))
+        .returning();
+
+      // Create audit log entry
+      await createAuditLog(ctx.db, {
+        action: "RESUME",
+        householdId: input.householdId,
+        newValues: { pausedAt: null, pauseReason: null },
+        oldValues: {
+          pausedAt: existing[0].regimen.pausedAt,
+          pauseReason: existing[0].regimen.pauseReason,
+        },
+        resourceId: input.id,
+        resourceType: "regimen",
+        userId: ctx.dbUser.id,
+      });
+
+      return { regimen: result[0], success: true };
+    }),
+
   // Update an existing regimen
   update: householdProcedure
     .input(
       z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-        name: z.string().optional(),
-        instructions: z.string().optional(),
-        scheduleType: z.enum(scheduleTypeEnum.enumValues).optional(),
-        timesLocal: z.array(z.string().regex(/^\d{2}:\d{2}$/)).optional(),
-        intervalHours: z.number().int().positive().optional(),
-        startDate: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
+        cutoffMinutes: z.number().int().positive().optional(),
+        dose: z.string().optional(),
         endDate: z
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional(),
-        prnReason: z.string().optional(),
-        maxDailyDoses: z.number().int().positive().optional(),
-        cutoffMinutes: z.number().int().positive().optional(),
         highRisk: z.boolean().optional(),
+        householdId: z.uuid(),
+        id: z.uuid(),
+        instructions: z.string().optional(),
+        intervalHours: z.number().int().positive().optional(),
+        maxDailyDoses: z.number().int().positive().optional(),
+        name: z.string().optional(),
+        prnReason: z.string().optional(),
         requiresCoSign: z.boolean().optional(),
-        dose: z.string().optional(),
         route: z.string().optional(),
+        scheduleType: z.enum(scheduleTypeEnum.enumValues).optional(),
+        startDate: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        timesLocal: z.array(z.string().regex(/^\d{2}:\d{2}$/)).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -608,7 +869,7 @@ export const regimenRouter = createTRPCRouter({
 
       // Verify regimen exists and belongs to household
       const existing = await ctx.db
-        .select({ regimen: regimens, animal: animals })
+        .select({ animal: animals, regimen: regimens })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
         .where(
@@ -668,21 +929,21 @@ export const regimenRouter = createTRPCRouter({
 
       // Create audit log entry
       await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: householdId,
         action: "UPDATE",
-        resourceType: "regimen",
-        resourceId: id,
-        oldValues: existing[0]?.regimen,
+        householdId: householdId,
         newValues: updateData,
+        oldValues: existing[0]?.regimen,
+        resourceId: id,
+        resourceType: "regimen",
+        userId: ctx.dbUser.id,
       });
 
       // Get the complete updated regimen with medication details
       const completeRegimen = await ctx.db
         .select({
-          regimen: regimens,
           animal: animals,
           medication: medicationCatalog,
+          regimen: regimens,
         })
         .from(regimens)
         .innerJoin(animals, eq(regimens.animalId, animals.id))
@@ -694,267 +955,5 @@ export const regimenRouter = createTRPCRouter({
         .limit(1);
 
       return completeRegimen[0];
-    }),
-
-  // Soft delete a regimen
-  delete: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Verify regimen exists and belongs to household
-      const existing = await ctx.db
-        .select({ regimen: regimens, animal: animals })
-        .from(regimens)
-        .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .where(
-          and(
-            eq(regimens.id, input.id),
-            eq(animals.householdId, input.householdId),
-            isNull(regimens.deletedAt),
-          ),
-        )
-        .limit(1);
-
-      if (!existing[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Regimen not found",
-        });
-      }
-
-      const result = await ctx.db
-        .update(regimens)
-        .set({
-          deletedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(regimens.id, input.id))
-        .returning();
-
-      // Create audit log entry
-      await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
-        action: "DELETE",
-        resourceType: "regimen",
-        resourceId: input.id,
-        oldValues: existing[0]?.regimen,
-      });
-
-      return { success: true, regimen: result[0] };
-    }),
-
-  // Pause a regimen
-  pause: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-        reason: z.string().min(1).max(500),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Verify regimen exists and belongs to household
-      const existing = await ctx.db
-        .select({ regimen: regimens, animal: animals })
-        .from(regimens)
-        .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .where(
-          and(
-            eq(regimens.id, input.id),
-            eq(animals.householdId, input.householdId),
-            isNull(regimens.deletedAt),
-            eq(regimens.active, true),
-          ),
-        )
-        .limit(1);
-
-      if (!existing[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Active regimen not found",
-        });
-      }
-
-      // Check if already paused
-      if (existing[0].regimen.pausedAt) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Regimen is already paused",
-        });
-      }
-
-      const result = await ctx.db
-        .update(regimens)
-        .set({
-          pausedAt: new Date().toISOString(),
-          pauseReason: input.reason,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(regimens.id, input.id))
-        .returning();
-
-      // Create audit log entry
-      await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
-        action: "PAUSE",
-        resourceType: "regimen",
-        resourceId: input.id,
-        details: { reason: input.reason },
-        oldValues: { pausedAt: existing[0].regimen.pausedAt },
-        newValues: { pausedAt: result[0]?.pausedAt, pauseReason: input.reason },
-      });
-
-      return { success: true, regimen: result[0] };
-    }),
-
-  // Resume a paused regimen
-  resume: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Verify regimen exists and belongs to household
-      const existing = await ctx.db
-        .select({ regimen: regimens, animal: animals })
-        .from(regimens)
-        .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .where(
-          and(
-            eq(regimens.id, input.id),
-            eq(animals.householdId, input.householdId),
-            isNull(regimens.deletedAt),
-            eq(regimens.active, true),
-          ),
-        )
-        .limit(1);
-
-      if (!existing[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Active regimen not found",
-        });
-      }
-
-      // Check if already resumed (not paused)
-      if (!existing[0].regimen.pausedAt) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Regimen is not paused",
-        });
-      }
-
-      const result = await ctx.db
-        .update(regimens)
-        .set({
-          pausedAt: null,
-          pauseReason: null,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(regimens.id, input.id))
-        .returning();
-
-      // Create audit log entry
-      await createAuditLog(ctx.db, {
-        userId: ctx.dbUser.id,
-        householdId: input.householdId,
-        action: "RESUME",
-        resourceType: "regimen",
-        resourceId: input.id,
-        oldValues: {
-          pausedAt: existing[0].regimen.pausedAt,
-          pauseReason: existing[0].regimen.pauseReason,
-        },
-        newValues: { pausedAt: null, pauseReason: null },
-      });
-
-      return { success: true, regimen: result[0] };
-    }),
-
-  // Get regimens for multiple animals (for bulk operations)
-  listByAnimals: householdProcedure
-    .input(
-      z.object({
-        householdId: z.uuid(),
-        animalIds: z.array(z.uuid()).min(1),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const results = await ctx.db
-        .select({
-          // Animal info
-          animalId: animals.id,
-          animalName: animals.name,
-          // Regimen info
-          regimenId: regimens.id,
-          medicationId: regimens.medicationId,
-          medicationName: regimens.medicationName,
-          isCustomMedication: regimens.isCustomMedication,
-          dose: regimens.dose,
-          route: regimens.route,
-          scheduleType: regimens.scheduleType,
-          timesLocal: regimens.timesLocal,
-          // Medication info
-          genericName: medicationCatalog.genericName,
-          brandName: medicationCatalog.brandName,
-          strength: medicationCatalog.strength,
-        })
-        .from(regimens)
-        .innerJoin(animals, eq(regimens.animalId, animals.id))
-        .leftJoin(
-          medicationCatalog,
-          eq(regimens.medicationId, medicationCatalog.id),
-        )
-        .where(
-          and(
-            eq(animals.householdId, input.householdId),
-            inArray(animals.id, input.animalIds),
-            eq(regimens.active, true),
-            isNull(regimens.deletedAt),
-          ),
-        )
-        .orderBy(animals.name, regimens.medicationName);
-
-      // Group regimens by animal
-      const animalRegimens = new Map<string, typeof results>();
-
-      for (const row of results) {
-        if (!animalRegimens.has(row.animalId)) {
-          animalRegimens.set(row.animalId, []);
-        }
-        animalRegimens.get(row.animalId)?.push(row);
-      }
-
-      // Convert to the expected format
-      return input.animalIds.map((animalId) => {
-        const animalData = results.find((r) => r.animalId === animalId);
-        const animalRegimensData = animalRegimens.get(animalId) || [];
-
-        return {
-          animalId,
-          animalName: animalData?.animalName || "Unknown Animal",
-          regimens: animalRegimensData.map((regimen) => ({
-            id: regimen.regimenId,
-            animalId: regimen.animalId,
-            animalName: regimen.animalName,
-            medicationName:
-              regimen.medicationName ||
-              regimen.brandName ||
-              regimen.genericName ||
-              "Unknown",
-            dose: regimen.dose || "",
-            route: regimen.route,
-            scheduleType: regimen.scheduleType,
-          })),
-        };
-      });
     }),
 });

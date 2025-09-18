@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ComponentProps } from "react";
-import { useCallback } from "react";
+import { type ComponentProps, useCallback } from "react";
 
 interface NavigationGuardLinkProps
   extends Omit<ComponentProps<typeof Link>, "onNavigate"> {

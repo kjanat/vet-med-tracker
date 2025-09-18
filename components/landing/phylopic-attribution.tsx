@@ -8,10 +8,10 @@ export function PhylopicAttribution() {
     <div className="mt-8 text-center text-muted-foreground text-xs">
       Animal silhouettes from{" "}
       <a
-        href="https://www.phylopic.org"
-        target="_blank"
-        rel="noopener noreferrer"
         className="underline hover:text-foreground"
+        href="https://www.phylopic.org"
+        rel="noopener noreferrer"
+        target="_blank"
       >
         PhyloPic
       </a>{" "}

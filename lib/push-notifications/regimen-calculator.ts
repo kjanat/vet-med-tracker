@@ -4,6 +4,7 @@
  */
 
 import { and, desc, eq, gte, isNull, lte, or, sql } from "drizzle-orm";
+
 import { DateTime } from "luxon";
 import type { db as _db } from "@/db/drizzle";
 import {
@@ -77,20 +78,20 @@ export class RegimenCalculator {
 
     const result = await db
       .select({
-        regimenId: regimens.id,
         animalId: animals.id,
         animalName: animals.name,
         animalTimezone: animals.timezone,
+        dosage: regimens.dose,
+        endDate: regimens.endDate,
+        householdId: animals.householdId,
+        intervalHours: regimens.intervalHours,
+        isActive: regimens.active, // Fixed: use 'active' not 'isActive'
         medicationId: regimens.medicationId,
         medicationName: medicationCatalog.brandName,
-        dosage: regimens.dose,
+        regimenId: regimens.id,
         scheduleType: regimens.scheduleType,
-        timesLocal: regimens.timesLocal,
-        intervalHours: regimens.intervalHours,
         startDate: regimens.startDate,
-        endDate: regimens.endDate,
-        isActive: regimens.active, // Fixed: use 'active' not 'isActive'
-        householdId: animals.householdId,
+        timesLocal: regimens.timesLocal,
       })
       .from(regimens)
       .innerJoin(animals, eq(regimens.animalId, animals.id))
@@ -117,22 +118,22 @@ export class RegimenCalculator {
       const caregivers = await this.getRegimenCaregivers(db, row.householdId);
 
       regimenSchedules.push({
-        regimenId: row.regimenId,
         animalId: row.animalId,
         animalName: row.animalName,
         animalTimezone: row.animalTimezone,
+        caregivers,
+        dosage: row.dosage || "",
+        endDate: row.endDate ? new Date(row.endDate) : null,
+        householdId: row.householdId,
+        intervalHours: row.intervalHours,
+        isActive: row.isActive,
         medicationId: row.medicationId || "",
         medicationName: row.medicationName || "Unknown Medication",
-        dosage: row.dosage || "",
+        regimenId: row.regimenId,
         scheduleType: row.scheduleType,
-        timesLocal: row.timesLocal,
-        intervalHours: row.intervalHours,
         startDate: new Date(row.startDate),
-        endDate: row.endDate ? new Date(row.endDate) : null,
-        isActive: row.isActive,
-        householdId: row.householdId,
         times: this.parseScheduleTimes(row.timesLocal),
-        caregivers,
+        timesLocal: row.timesLocal,
       });
     }
 
@@ -230,17 +231,17 @@ export class RegimenCalculator {
         // Only include doses within the window
         if (scheduledTime >= windowStart && scheduledTime <= windowEnd) {
           doses.push({
-            regimenId: regimen.regimenId,
             animalId: regimen.animalId,
             animalName: regimen.animalName,
             animalTimezone: regimen.animalTimezone,
-            medicationName: regimen.medicationName,
+            caregivers: regimen.caregivers,
             dosage: regimen.dosage,
+            householdId: regimen.householdId,
+            isOverdue: false,
+            medicationName: regimen.medicationName,
+            regimenId: regimen.regimenId,
             scheduledTime,
             timeSlot,
-            householdId: regimen.householdId,
-            caregivers: regimen.caregivers,
-            isOverdue: false,
           });
         }
       }
@@ -279,20 +280,20 @@ export class RegimenCalculator {
   > {
     const result = await db
       .select({
+        role: memberships.role,
+        userEmail: users.email,
         userId: users.id,
         userName: users.name,
-        userEmail: users.email,
-        role: memberships.role,
       })
       .from(memberships)
       .innerJoin(users, eq(memberships.userId, users.id))
       .where(eq(memberships.householdId, householdId));
 
     return result.map((row) => ({
+      role: row.role,
+      userEmail: row.userEmail || "",
       userId: row.userId,
       userName: row.userName || row.userEmail || "Unknown User",
-      userEmail: row.userEmail || "",
-      role: row.role,
     }));
   }
 

@@ -8,13 +8,13 @@
 import { mkdir, readdir } from "node:fs/promises";
 
 const ANIMAL_NODES = {
-  dogs: "bfa6b12f-992f-4e01-b34c-585813281842",
-  cats: "56b54867-1e98-4ea1-bb5d-c6eadc3d0393",
-  rabbits: "41a5492a-c5e7-43ac-8a9d-e82fa9d81691",
-  horses: "999b84d9-5fd8-450c-9de6-a8fe85b6248c",
   birds: "8d63e6d4-bfd5-490b-afbe-4ed99c4fbff6",
+  cats: "56b54867-1e98-4ea1-bb5d-c6eadc3d0393",
+  dogs: "bfa6b12f-992f-4e01-b34c-585813281842",
   goldfish: "a70b88c1-b11b-4f28-bf0b-02efedff5b00",
+  horses: "999b84d9-5fd8-450c-9de6-a8fe85b6248c",
   mice: "99b5c8a0-c6c5-45a3-9864-6ce41e6783b5",
+  rabbits: "41a5492a-c5e7-43ac-8a9d-e82fa9d81691",
 };
 
 const API_BASE = "https://api.phylopic.org";
@@ -91,7 +91,7 @@ async function downloadImageWithAttribution(
   const imageDetailsUrl = `${API_BASE}/images/${image.uuid}?embed_license=true&embed_specificNode=true`;
   const imageDetails: PhylopicImage = await fetchJSON(imageDetailsUrl);
   const license = imageDetails._embedded?.license?._links?.self;
-  const licenseInfo = license || { title: "CC0 1.0", href: "" };
+  const licenseInfo = license || { href: "", title: "CC0 1.0" };
 
   if (!imageDetails._links.vectorFile?.href) {
     return false;
@@ -112,12 +112,12 @@ async function downloadImageWithAttribution(
     // Attribution JSON
     const attribution = {
       animal: animalType,
-      uuid: image.uuid,
+      contributor: imageDetails._links.contributor?.title || "unknown",
       license: licenseInfo.title || "unknown",
       licenseUrl: licenseInfo.href || "",
-      contributor: imageDetails._links.contributor?.title || "unknown",
       specificName:
         imageDetails._embedded?.specificNode?._links?.self?.title || animalType,
+      uuid: image.uuid,
     };
     await Bun.write(
       `${OUTPUT_DIR}/${animalType}-${image.uuid}.json`,
@@ -181,10 +181,10 @@ async function main() {
     curatedAt: string;
     silhouettesPerAnimal: number;
   } = {
-    totalImages: 0,
     animals: {},
     curatedAt: new Date().toISOString(),
     silhouettesPerAnimal: SILHOUETTES_PER_ANIMAL,
+    totalImages: 0,
   };
 
   for (const [animalType, nodeId] of Object.entries(ANIMAL_NODES)) {

@@ -29,8 +29,8 @@ export default function SettingsPage() {
           if (!tab.path) {
             return (
               <Card
-                key={tab.title}
                 className="h-full cursor-not-allowed opacity-50"
+                key={tab.title}
               >
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -44,7 +44,7 @@ export default function SettingsPage() {
           }
 
           return (
-            <Link key={tab.path} href={tab.path}>
+            <Link href={tab.path} key={tab.path}>
               <Card className="h-full transition-colors hover:bg-accent">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

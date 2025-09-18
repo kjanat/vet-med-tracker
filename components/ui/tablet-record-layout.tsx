@@ -57,20 +57,20 @@ function getMedicationSections(
   return [
     {
       key: "due",
-      title: "Due Now",
       regimens: groupedRegimens.due,
+      title: "Due Now",
       urgent: true,
     },
     {
       key: "later",
-      title: "Later Today",
       regimens: groupedRegimens.later,
+      title: "Later Today",
       urgent: false,
     },
     {
       key: "prn",
-      title: "PRN (As Needed)",
       regimens: groupedRegimens.prn,
+      title: "PRN (As Needed)",
       urgent: false,
     },
   ].filter((section) => section.regimens.length > 0);
@@ -109,9 +109,9 @@ export function TabletRecordLayout({
 
   // Calculate stats for header
   const stats = {
+    complianceRate: calculateComplianceRate(dueRegimens || []),
     dueCount: groupedRegimens.due.length,
     overdueCount: groupedRegimens.due.filter((r) => r.isOverdue).length,
-    complianceRate: calculateComplianceRate(dueRegimens || []),
   };
 
   if (step !== "select") {
@@ -119,11 +119,11 @@ export function TabletRecordLayout({
     return (
       <div className="flex h-full">
         <SidebarContext
-          step={step}
-          selectedRegimen={selectedRegimen}
           animals={animals}
           onBack={onBack}
           onCancel={onCancel}
+          selectedRegimen={selectedRegimen}
+          step={step}
         />
         {/* Main content area */}
         <div className="flex-1 overflow-hidden">{children}</div>
@@ -140,10 +140,10 @@ export function TabletRecordLayout({
           <div className="mb-4 flex items-center justify-between">
             <h1 className="font-bold text-2xl">Record Medication</h1>
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={onCancel}
               className="h-8 w-8 p-0"
+              onClick={onCancel}
+              size="sm"
+              variant="ghost"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -166,7 +166,7 @@ export function TabletRecordLayout({
           )}
 
           {regimensError && (
-            <Alert variant="destructive" className="mb-4">
+            <Alert className="mb-4" variant="destructive">
               <AlertDescription className="text-sm">
                 Failed to load medications: {regimensError.message}
               </AlertDescription>
@@ -193,12 +193,12 @@ export function TabletRecordLayout({
           <ScrollArea className="h-full">
             <div className="space-y-6 p-6">
               {sections.map((section) => (
-                <div key={section.key} className="space-y-4">
+                <div className="space-y-4" key={section.key}>
                   <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-xl">{section.title}</h2>
                     <Badge
-                      variant={section.urgent ? "destructive" : "secondary"}
                       className="text-sm"
+                      variant={section.urgent ? "destructive" : "secondary"}
                     >
                       {section.regimens.length}
                     </Badge>
@@ -211,10 +211,10 @@ export function TabletRecordLayout({
                       );
                       return (
                         <MobileMedicationCard
-                          key={regimen.id}
-                          regimen={regimen}
                           animal={animal}
+                          key={regimen.id}
                           onClick={() => onRegimenSelect(regimen)}
+                          regimen={regimen}
                         />
                       );
                     })}
@@ -306,10 +306,10 @@ function SidebarContext({
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-lg">Record Medication</h2>
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCancel}
             className="h-8 w-8 p-0"
+            onClick={onCancel}
+            size="sm"
+            variant="ghost"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -348,7 +348,7 @@ function SidebarContext({
                       <div>Dose: {selectedRegimen.dose}</div>
                     )}
                     {selectedRegimen.isHighRisk && (
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge className="text-xs" variant="destructive">
                         High Risk
                       </Badge>
                     )}
@@ -362,7 +362,7 @@ function SidebarContext({
 
       {step === "confirm" && (
         <div className="p-4 pt-0">
-          <Button variant="outline" className="w-full" onClick={onBack}>
+          <Button className="w-full" onClick={onBack} variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Selection
           </Button>

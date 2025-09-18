@@ -6,19 +6,19 @@ describe("AnimalFormValidator", () => {
   const createValidAnimalData = (
     overrides: Partial<AnimalFormData> = {},
   ): AnimalFormData => ({
+    allergies: [],
+    breed: "Golden Retriever",
+    clinicName: "City Animal Hospital",
+    conditions: [],
+    dob: new Date("2020-01-01"),
     name: "Buddy",
+    neutered: true,
     species: "dog",
     timezone: "America/New_York",
-    neutered: true,
-    allergies: [],
-    conditions: [],
-    weightKg: 25,
-    dob: new Date("2020-01-01"),
-    breed: "Golden Retriever",
-    vetName: "Dr. Smith",
     vetEmail: "dr.smith@example.com",
+    vetName: "Dr. Smith",
     vetPhone: "(555) 123-4567",
-    clinicName: "City Animal Hospital",
+    weightKg: 25,
     ...overrides,
   });
 
@@ -41,8 +41,8 @@ describe("AnimalFormValidator", () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toEqual({
-        field: "name",
         code: "REQUIRED_FIELD",
+        field: "name",
         message: "Animal name is required",
         severity: "error",
       });
@@ -54,8 +54,8 @@ describe("AnimalFormValidator", () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toEqual({
-        field: "species",
         code: "REQUIRED_FIELD",
+        field: "species",
         message: "Species is required",
         severity: "error",
       });
@@ -67,8 +67,8 @@ describe("AnimalFormValidator", () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toEqual({
-        field: "timezone",
         code: "REQUIRED_FIELD",
+        field: "timezone",
         message: "Timezone is required",
         severity: "error",
       });
@@ -100,8 +100,8 @@ describe("AnimalFormValidator", () => {
         const emailErrors = errors.filter((e) => e.field === "vetEmail");
         expect(emailErrors).toHaveLength(1);
         expect(emailErrors[0]).toEqual({
-          field: "vetEmail",
           code: "INVALID_EMAIL",
+          field: "vetEmail",
           message: "Please enter a valid email address",
           severity: "error",
         });
@@ -132,8 +132,8 @@ describe("AnimalFormValidator", () => {
         const weightErrors = errors.filter((e) => e.field === "weightKg");
         expect(weightErrors).toHaveLength(1);
         expect(weightErrors[0]).toEqual({
-          field: "weightKg",
           code: "INVALID_WEIGHT",
+          field: "weightKg",
           message: "Weight must be greater than 0",
           severity: "error",
         });
@@ -155,8 +155,8 @@ describe("AnimalFormValidator", () => {
         const weightErrors = errors.filter((e) => e.field === "weightKg");
         expect(weightErrors).toHaveLength(1);
         expect(weightErrors[0]).toEqual({
-          field: "weightKg",
           code: "UNREALISTIC_WEIGHT",
+          field: "weightKg",
           message: "Weight seems unusually high. Please verify.",
           severity: "warning",
         });
@@ -181,8 +181,8 @@ describe("AnimalFormValidator", () => {
         const dobErrors = errors.filter((e) => e.field === "dob");
         expect(dobErrors).toHaveLength(1);
         expect(dobErrors[0]).toEqual({
-          field: "dob",
           code: "FUTURE_DATE",
+          field: "dob",
           message: "Date of birth cannot be in the future",
           severity: "error",
         });
@@ -197,8 +197,8 @@ describe("AnimalFormValidator", () => {
         const dobErrors = errors.filter((e) => e.field === "dob");
         expect(dobErrors).toHaveLength(1);
         expect(dobErrors[0]).toEqual({
-          field: "dob",
           code: "UNREALISTIC_AGE",
+          field: "dob",
           message: "This age seems unusually high. Please verify.",
           severity: "warning",
         });
@@ -221,8 +221,8 @@ describe("AnimalFormValidator", () => {
         const phoneErrors = errors.filter((e) => e.field === "vetPhone");
         expect(phoneErrors).toHaveLength(1);
         expect(phoneErrors[0]).toEqual({
-          field: "vetPhone",
           code: "INVALID_PHONE",
+          field: "vetPhone",
           message: "Please enter a valid phone number",
           severity: "warning",
         });
@@ -255,8 +255,8 @@ describe("AnimalFormValidator", () => {
         const nameErrors = errors.filter((e) => e.field === "name");
         expect(nameErrors).toHaveLength(1);
         expect(nameErrors[0]).toEqual({
-          field: "name",
           code: "DUPLICATE_NAME",
+          field: "name",
           message: "An animal with this name already exists in this household",
           severity: "warning",
         });
@@ -289,8 +289,8 @@ describe("AnimalFormValidator", () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toEqual({
-        field: "general",
         code: "NO_HOUSEHOLD",
+        field: "general",
         message: "No household selected. Please select a household first.",
         severity: "error",
       });
@@ -301,10 +301,10 @@ describe("AnimalFormValidator", () => {
     it("should generate warnings for missing optional fields", () => {
       const minimalData = createValidAnimalData({
         breed: undefined,
-        weightKg: undefined,
+        clinicName: undefined,
         dob: undefined,
         vetName: undefined,
-        clinicName: undefined,
+        weightKg: undefined,
       });
 
       const warnings = AnimalFormValidator.generateWarnings(minimalData);
@@ -312,28 +312,28 @@ describe("AnimalFormValidator", () => {
       expect(warnings).toHaveLength(4);
       expect(warnings).toEqual([
         {
-          field: "breed",
           code: "MISSING_RECOMMENDED",
+          field: "breed",
           message:
             "Consider adding breed information for better record keeping",
           severity: "info",
         },
         {
-          field: "weightKg",
           code: "MISSING_RECOMMENDED",
+          field: "weightKg",
           message:
             "Weight information helps with medication dosage calculations",
           severity: "info",
         },
         {
-          field: "dob",
           code: "MISSING_RECOMMENDED",
+          field: "dob",
           message: "Date of birth helps track age-related health needs",
           severity: "info",
         },
         {
-          field: "vetName",
           code: "MISSING_VET_INFO",
+          field: "vetName",
           message: "Consider adding veterinary contact information",
           severity: "info",
         },
@@ -373,8 +373,8 @@ describe("AnimalFormValidator", () => {
     it("should include warnings for missing optional fields", () => {
       const minimalData = createValidAnimalData({
         breed: undefined,
-        weightKg: undefined,
         dob: undefined,
+        weightKg: undefined,
       });
 
       const result = AnimalFormValidator.validate(minimalData, {
@@ -431,16 +431,16 @@ describe("AnimalFormValidator", () => {
       expect(result).toEqual({
         canSubmit: true,
         errorCount: 0,
-        warningCount: 0,
         primaryMessage: null,
+        warningCount: 0,
       });
     });
 
     it("should return summary for data with errors and warnings", () => {
       const dataWithIssues = createValidAnimalData({
+        dob: undefined, // Warning
         name: "", // Error
         weightKg: undefined, // Warning
-        dob: undefined, // Warning
       });
 
       const result = AnimalFormValidator.getValidationSummary(dataWithIssues, {

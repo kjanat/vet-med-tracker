@@ -32,7 +32,7 @@ export function NavDashboard({
           {items.map((item) => (
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild size="sm">
-                <Link href={item.url as Route} className="cursor-pointer">
+                <Link className="cursor-pointer" href={item.url as Route}>
                   <item.icon />
                   <span>{item.name}</span>
                 </Link>

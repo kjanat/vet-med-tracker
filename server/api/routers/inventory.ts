@@ -1,4 +1,5 @@
 import { and, count, eq, gte, inArray, isNull } from "drizzle-orm";
+
 import { z } from "zod";
 import {
   administrations,
@@ -10,174 +11,58 @@ import {
 import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 
 export const inventoryRouter = createTRPCRouter({
-  // List inventory items for a household
-  list: householdProcedure
+  // Assign to animal
+  assignToAnimal: householdProcedure
     .input(
       z.object({
+        animalId: z.uuid().nullable(),
         householdId: z.uuid(),
-        medicationId: z.uuid().optional(),
-        animalId: z.uuid().optional(),
-        includeExpired: z.boolean().default(false),
-        inUseOnly: z.boolean().default(false),
+        id: z.uuid(),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const conditions = [
-        eq(inventoryItems.householdId, input.householdId),
-        isNull(inventoryItems.deletedAt),
-      ];
-
-      if (input.medicationId) {
-        conditions.push(eq(inventoryItems.medicationId, input.medicationId));
-      }
-
-      if (input.animalId) {
-        conditions.push(eq(inventoryItems.assignedAnimalId, input.animalId));
-      }
-
-      if (!input.includeExpired) {
-        conditions.push(
-          gte(
-            inventoryItems.expiresOn,
-            new Date().toISOString().split("T")[0] ?? "",
-          ),
-        );
-      }
-
-      if (input.inUseOnly) {
-        conditions.push(eq(inventoryItems.inUse, true));
-      }
-
-      const result = await ctx.db
-        .select({
-          item: inventoryItems,
-          medication: medicationCatalog,
-          animal: animals,
+    .mutation(async ({ ctx, input }) => {
+      const updated = await ctx.db
+        .update(inventoryItems)
+        .set({
+          assignedAnimalId: input.animalId,
+          updatedAt: new Date().toISOString(),
         })
-        .from(inventoryItems)
-        .innerJoin(
-          medicationCatalog,
-          eq(inventoryItems.medicationId, medicationCatalog.id),
-        )
-        .leftJoin(animals, eq(inventoryItems.assignedAnimalId, animals.id))
-        .where(and(...conditions))
-        .orderBy(inventoryItems.expiresOn, inventoryItems.lot);
-
-      // Transform results to match frontend expectations
-      return result.map((row) => ({
-        id: row.item.id,
-        householdId: row.item.householdId,
-        medicationId: row.item.medicationId,
-        name:
-          row.item.brandOverride ||
-          row.medication.brandName ||
-          row.medication.genericName,
-        genericName: row.medication.genericName,
-        strength: row.medication.strength,
-        form: row.medication.form,
-        route: row.medication.route,
-        lot: row.item.lot || "",
-        expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
-        unitsRemaining: row.item.unitsRemaining,
-        unitsTotal: row.item.quantityUnits || 0,
-        isExpired:
-          row.item.expiresOn && new Date(row.item.expiresOn) < new Date(),
-        isWrongMed: false, // TODO: Implement logic to check if it matches the regimen
-        inUse: row.item.inUse,
-        assignedAnimalId: row.item.assignedAnimalId,
-        assignedAnimalName: row.animal?.name || null,
-        storage: row.item.storage,
-        notes: row.item.notes,
-      }));
-    }),
-
-  // Get sources for a specific medication
-  getSources: householdProcedure
-    .input(
-      z.object({
-        householdId: z.uuid(),
-        medicationName: z.string(),
-        includeExpired: z.boolean().default(false),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      // For now, just get all inventory items for the household
-      // TODO: Implement proper text search for medication names
-      const conditions = [
-        eq(inventoryItems.householdId, input.householdId),
-        isNull(inventoryItems.deletedAt),
-      ];
-
-      if (!input.includeExpired) {
-        conditions.push(
-          gte(
-            inventoryItems.expiresOn,
-            new Date().toISOString().split("T")[0] ?? "",
+        .where(
+          and(
+            eq(inventoryItems.id, input.id),
+            eq(inventoryItems.householdId, input.householdId),
+            isNull(inventoryItems.deletedAt),
           ),
-        );
+        )
+        .returning();
+
+      if (!updated[0]) {
+        throw new Error("Inventory item not found or already deleted");
       }
 
-      const result = await ctx.db
-        .select({
-          item: inventoryItems,
-          medication: medicationCatalog,
-        })
-        .from(inventoryItems)
-        .innerJoin(
-          medicationCatalog,
-          eq(inventoryItems.medicationId, medicationCatalog.id),
-        )
-        .where(and(...conditions))
-        .orderBy(inventoryItems.inUse, inventoryItems.expiresOn);
-
-      // Filter by medication name on the application side for now
-      const filtered = result.filter((row) => {
-        const itemName = (
-          row.item.brandOverride ||
-          row.medication.brandName ||
-          row.medication.genericName ||
-          ""
-        ).toLowerCase();
-        return itemName.includes(input.medicationName.toLowerCase());
-      });
-
-      return filtered.map((row) => ({
-        id: row.item.id,
-        name:
-          row.item.brandOverride ||
-          row.medication.brandName ||
-          row.medication.genericName,
-        lot: row.item.lot || "",
-        expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
-        unitsRemaining: row.item.unitsRemaining || 0,
-        isExpired: row.item.expiresOn
-          ? new Date(row.item.expiresOn) < new Date()
-          : false,
-        isWrongMed: false,
-        inUse: row.item.inUse,
-      }));
+      return updated[0];
     }),
 
   // Create new inventory item
   create: householdProcedure
     .input(
       z.object({
-        householdId: z.uuid(),
-        medicationId: z.uuid(),
+        assignedAnimalId: z.uuid().optional(),
         brandOverride: z.string().optional(),
-        lot: z.string().optional(),
         expiresOn: z.date(),
+        householdId: z.uuid(),
+        lot: z.string().optional(),
+        medicationId: z.uuid(),
+        notes: z.string().optional(),
+        purchaseDate: z.date().optional(),
+        purchasePrice: z.string().optional(),
         storage: z
           .enum(["ROOM", "FRIDGE", "FREEZER", "CONTROLLED"])
           .default("ROOM"),
-        unitsTotal: z.number().int().positive(),
-        unitsRemaining: z.number().int().min(0).optional(), // Optional, defaults to unitsTotal
-        unitType: z.string(),
-        purchaseDate: z.date().optional(),
-        purchasePrice: z.string().optional(),
         supplier: z.string().optional(),
-        notes: z.string().optional(),
-        assignedAnimalId: z.uuid().optional(),
+        unitsRemaining: z.number().int().min(0).optional(), // Optional, defaults to unitsTotal
+        unitsTotal: z.number().int().positive(),
+        unitType: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -196,11 +81,11 @@ export const inventoryRouter = createTRPCRouter({
       }
 
       const values: Record<string, unknown> = {
+        expiresOn: expiryDateStr,
         householdId: restInput.householdId,
         medicationId: restInput.medicationId,
-        expiresOn: expiryDateStr,
-        storage: restInput.storage,
         quantityUnits: unitsTotal,
+        storage: restInput.storage,
         unitsRemaining: unitsRemaining ?? unitsTotal, // Use provided value or default to unitsTotal
         unitType: restInput.unitType,
       };
@@ -246,107 +131,23 @@ export const inventoryRouter = createTRPCRouter({
           detail?: string;
         };
         console.error("Inventory insert error details:", {
-          message: errorObj?.message,
           cause: errorObj?.cause?.message,
           code: errorObj?.code,
           detail: errorObj?.detail,
-          values: JSON.stringify(values, null, 2),
+          message: errorObj?.message,
           stack: errorObj?.stack,
+          values: JSON.stringify(values, null, 2),
         });
         throw error;
       }
-    }),
-
-  // Update inventory item
-  update: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-        brandOverride: z.string().optional(),
-        lot: z.string().optional(),
-        expiresOn: z.date().optional(),
-        storage: z.enum(["ROOM", "FRIDGE", "FREEZER", "CONTROLLED"]).optional(),
-        unitsRemaining: z.number().int().optional(),
-        notes: z.string().optional(),
-        assignedAnimalId: z.uuid().nullable().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { id, householdId, expiresOn, ...updateData } = input;
-
-      const updates: Record<string, unknown> = {
-        ...updateData,
-        updatedAt: new Date().toISOString(),
-      };
-
-      if (expiresOn) {
-        updates.expiresOn = expiresOn.toISOString().split("T")[0];
-      }
-
-      const updated = await ctx.db
-        .update(inventoryItems)
-        .set(updates)
-        .where(
-          and(
-            eq(inventoryItems.id, id),
-            eq(inventoryItems.householdId, householdId),
-            isNull(inventoryItems.deletedAt),
-          ),
-        )
-        .returning();
-
-      if (!updated[0]) {
-        throw new Error("Inventory item not found or already deleted");
-      }
-
-      return updated[0];
-    }),
-
-  // Set in-use status
-  setInUse: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-        inUse: z.boolean(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const updates: Record<string, unknown> = {
-        inUse: input.inUse,
-        updatedAt: new Date().toISOString(),
-      };
-
-      if (input.inUse) {
-        updates.openedOn = new Date().toISOString().split("T")[0];
-      }
-
-      const updated = await ctx.db
-        .update(inventoryItems)
-        .set(updates)
-        .where(
-          and(
-            eq(inventoryItems.id, input.id),
-            eq(inventoryItems.householdId, input.householdId),
-            isNull(inventoryItems.deletedAt),
-          ),
-        )
-        .returning();
-
-      if (!updated[0]) {
-        throw new Error("Inventory item not found or already deleted");
-      }
-
-      return updated[0];
     }),
 
   // Delete inventory item (soft delete)
   delete: householdProcedure
     .input(
       z.object({
-        id: z.uuid(),
         householdId: z.uuid(),
+        id: z.uuid(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -372,130 +173,6 @@ export const inventoryRouter = createTRPCRouter({
       return deleted[0];
     }),
 
-  // Assign to animal
-  assignToAnimal: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-        animalId: z.uuid().nullable(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const updated = await ctx.db
-        .update(inventoryItems)
-        .set({
-          assignedAnimalId: input.animalId,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(
-          and(
-            eq(inventoryItems.id, input.id),
-            eq(inventoryItems.householdId, input.householdId),
-            isNull(inventoryItems.deletedAt),
-          ),
-        )
-        .returning();
-
-      if (!updated[0]) {
-        throw new Error("Inventory item not found or already deleted");
-      }
-
-      return updated[0];
-    }),
-
-  // Update quantity (used by offline queue)
-  updateQuantity: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-        quantityChange: z.number().int(), // negative for decrement
-        reason: z.string().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // First get current quantity
-      const current = await ctx.db
-        .select({ unitsRemaining: inventoryItems.unitsRemaining })
-        .from(inventoryItems)
-        .where(
-          and(
-            eq(inventoryItems.id, input.id),
-            eq(inventoryItems.householdId, input.householdId),
-            isNull(inventoryItems.deletedAt),
-          ),
-        )
-        .limit(1)
-        .execute();
-
-      if (!current[0]) {
-        throw new Error("Inventory item not found or already deleted");
-      }
-
-      const newQuantity =
-        (current[0].unitsRemaining || 0) + input.quantityChange;
-      if (newQuantity < 0) {
-        throw new Error("Insufficient quantity");
-      }
-
-      const updated = await ctx.db
-        .update(inventoryItems)
-        .set({
-          unitsRemaining: newQuantity,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(
-          and(
-            eq(inventoryItems.id, input.id),
-            eq(inventoryItems.householdId, input.householdId),
-            isNull(inventoryItems.deletedAt),
-          ),
-        )
-        .returning();
-
-      return updated[0];
-    }),
-
-  // Mark as in use (convenience method for offline queue)
-  markAsInUse: householdProcedure
-    .input(
-      z.object({
-        id: z.uuid(),
-        householdId: z.uuid(),
-        animalId: z.uuid().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const updates: Record<string, unknown> = {
-        inUse: true,
-        openedOn: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString(),
-      };
-
-      if (input.animalId) {
-        updates.assignedAnimalId = input.animalId;
-      }
-
-      const updated = await ctx.db
-        .update(inventoryItems)
-        .set(updates)
-        .where(
-          and(
-            eq(inventoryItems.id, input.id),
-            eq(inventoryItems.householdId, input.householdId),
-            isNull(inventoryItems.deletedAt),
-          ),
-        )
-        .returning();
-
-      if (!updated[0]) {
-        throw new Error("Inventory item not found or already deleted");
-      }
-
-      return updated[0];
-    }),
-
   // Calculate days of supply for inventory items
   getDaysOfSupply: householdProcedure
     .input(
@@ -518,11 +195,11 @@ export const inventoryRouter = createTRPCRouter({
 
       const inventoryResult = await ctx.db
         .select({
+          animalName: animals.name,
+          assignedAnimalId: inventoryItems.assignedAnimalId,
           itemId: inventoryItems.id,
           medicationId: inventoryItems.medicationId,
-          assignedAnimalId: inventoryItems.assignedAnimalId,
           unitsRemaining: inventoryItems.unitsRemaining,
-          animalName: animals.name,
         })
         .from(inventoryItems)
         .leftJoin(animals, eq(inventoryItems.assignedAnimalId, animals.id))
@@ -571,9 +248,9 @@ export const inventoryRouter = createTRPCRouter({
             // If no usage data, return null (will display as "—")
             if (averageDailyUsage === 0 || !item.unitsRemaining) {
               return {
-                itemId: item.itemId,
-                daysLeft: null,
                 animalName: item.animalName,
+                daysLeft: null,
+                itemId: item.itemId,
               };
             }
 
@@ -583,9 +260,9 @@ export const inventoryRouter = createTRPCRouter({
             );
 
             return {
-              itemId: item.itemId,
-              daysLeft: daysLeft > 0 ? daysLeft : 0,
               animalName: item.animalName,
+              daysLeft: daysLeft > 0 ? daysLeft : 0,
+              itemId: item.itemId,
             };
           } catch (error) {
             console.error(
@@ -593,9 +270,9 @@ export const inventoryRouter = createTRPCRouter({
               error,
             );
             return {
-              itemId: item.itemId,
-              daysLeft: null,
               animalName: item.animalName,
+              daysLeft: null,
+              itemId: item.itemId,
             };
           }
         }),
@@ -639,14 +316,337 @@ export const inventoryRouter = createTRPCRouter({
         .execute();
 
       return result.map((row) => ({
+        expiresOn: row.item.expiresOn,
         id: row.item.id,
-        quantity: row.item.unitsRemaining,
+        inUse: row.item.inUse,
         medicationName:
           row.item.brandOverride ||
           row.medication.brandName ||
           row.medication.genericName,
-        expiresOn: row.item.expiresOn,
-        inUse: row.item.inUse,
+        quantity: row.item.unitsRemaining,
       }));
+    }),
+
+  // Get sources for a specific medication
+  getSources: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+        includeExpired: z.boolean().default(false),
+        medicationName: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // For now, just get all inventory items for the household
+      // TODO: Implement proper text search for medication names
+      const conditions = [
+        eq(inventoryItems.householdId, input.householdId),
+        isNull(inventoryItems.deletedAt),
+      ];
+
+      if (!input.includeExpired) {
+        conditions.push(
+          gte(
+            inventoryItems.expiresOn,
+            new Date().toISOString().split("T")[0] ?? "",
+          ),
+        );
+      }
+
+      const result = await ctx.db
+        .select({
+          item: inventoryItems,
+          medication: medicationCatalog,
+        })
+        .from(inventoryItems)
+        .innerJoin(
+          medicationCatalog,
+          eq(inventoryItems.medicationId, medicationCatalog.id),
+        )
+        .where(and(...conditions))
+        .orderBy(inventoryItems.inUse, inventoryItems.expiresOn);
+
+      // Filter by medication name on the application side for now
+      const filtered = result.filter((row) => {
+        const itemName = (
+          row.item.brandOverride ||
+          row.medication.brandName ||
+          row.medication.genericName ||
+          ""
+        ).toLowerCase();
+        return itemName.includes(input.medicationName.toLowerCase());
+      });
+
+      return filtered.map((row) => ({
+        expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
+        id: row.item.id,
+        inUse: row.item.inUse,
+        isExpired: row.item.expiresOn
+          ? new Date(row.item.expiresOn) < new Date()
+          : false,
+        isWrongMed: false,
+        lot: row.item.lot || "",
+        name:
+          row.item.brandOverride ||
+          row.medication.brandName ||
+          row.medication.genericName,
+        unitsRemaining: row.item.unitsRemaining || 0,
+      }));
+    }),
+  // List inventory items for a household
+  list: householdProcedure
+    .input(
+      z.object({
+        animalId: z.uuid().optional(),
+        householdId: z.uuid(),
+        includeExpired: z.boolean().default(false),
+        inUseOnly: z.boolean().default(false),
+        medicationId: z.uuid().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const conditions = [
+        eq(inventoryItems.householdId, input.householdId),
+        isNull(inventoryItems.deletedAt),
+      ];
+
+      if (input.medicationId) {
+        conditions.push(eq(inventoryItems.medicationId, input.medicationId));
+      }
+
+      if (input.animalId) {
+        conditions.push(eq(inventoryItems.assignedAnimalId, input.animalId));
+      }
+
+      if (!input.includeExpired) {
+        conditions.push(
+          gte(
+            inventoryItems.expiresOn,
+            new Date().toISOString().split("T")[0] ?? "",
+          ),
+        );
+      }
+
+      if (input.inUseOnly) {
+        conditions.push(eq(inventoryItems.inUse, true));
+      }
+
+      const result = await ctx.db
+        .select({
+          animal: animals,
+          item: inventoryItems,
+          medication: medicationCatalog,
+        })
+        .from(inventoryItems)
+        .innerJoin(
+          medicationCatalog,
+          eq(inventoryItems.medicationId, medicationCatalog.id),
+        )
+        .leftJoin(animals, eq(inventoryItems.assignedAnimalId, animals.id))
+        .where(and(...conditions))
+        .orderBy(inventoryItems.expiresOn, inventoryItems.lot);
+
+      // Transform results to match frontend expectations
+      return result.map((row) => ({
+        assignedAnimalId: row.item.assignedAnimalId,
+        assignedAnimalName: row.animal?.name || null,
+        expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
+        form: row.medication.form,
+        genericName: row.medication.genericName,
+        householdId: row.item.householdId,
+        id: row.item.id,
+        inUse: row.item.inUse,
+        isExpired:
+          row.item.expiresOn && new Date(row.item.expiresOn) < new Date(),
+        isWrongMed: false, // TODO: Implement logic to check if it matches the regimen
+        lot: row.item.lot || "",
+        medicationId: row.item.medicationId,
+        name:
+          row.item.brandOverride ||
+          row.medication.brandName ||
+          row.medication.genericName,
+        notes: row.item.notes,
+        route: row.medication.route,
+        storage: row.item.storage,
+        strength: row.medication.strength,
+        unitsRemaining: row.item.unitsRemaining,
+        unitsTotal: row.item.quantityUnits || 0,
+      }));
+    }),
+
+  // Mark as in use (convenience method for offline queue)
+  markAsInUse: householdProcedure
+    .input(
+      z.object({
+        animalId: z.uuid().optional(),
+        householdId: z.uuid(),
+        id: z.uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updates: Record<string, unknown> = {
+        inUse: true,
+        openedOn: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (input.animalId) {
+        updates.assignedAnimalId = input.animalId;
+      }
+
+      const updated = await ctx.db
+        .update(inventoryItems)
+        .set(updates)
+        .where(
+          and(
+            eq(inventoryItems.id, input.id),
+            eq(inventoryItems.householdId, input.householdId),
+            isNull(inventoryItems.deletedAt),
+          ),
+        )
+        .returning();
+
+      if (!updated[0]) {
+        throw new Error("Inventory item not found or already deleted");
+      }
+
+      return updated[0];
+    }),
+
+  // Set in-use status
+  setInUse: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+        id: z.uuid(),
+        inUse: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updates: Record<string, unknown> = {
+        inUse: input.inUse,
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (input.inUse) {
+        updates.openedOn = new Date().toISOString().split("T")[0];
+      }
+
+      const updated = await ctx.db
+        .update(inventoryItems)
+        .set(updates)
+        .where(
+          and(
+            eq(inventoryItems.id, input.id),
+            eq(inventoryItems.householdId, input.householdId),
+            isNull(inventoryItems.deletedAt),
+          ),
+        )
+        .returning();
+
+      if (!updated[0]) {
+        throw new Error("Inventory item not found or already deleted");
+      }
+
+      return updated[0];
+    }),
+
+  // Update inventory item
+  update: householdProcedure
+    .input(
+      z.object({
+        assignedAnimalId: z.uuid().nullable().optional(),
+        brandOverride: z.string().optional(),
+        expiresOn: z.date().optional(),
+        householdId: z.uuid(),
+        id: z.uuid(),
+        lot: z.string().optional(),
+        notes: z.string().optional(),
+        storage: z.enum(["ROOM", "FRIDGE", "FREEZER", "CONTROLLED"]).optional(),
+        unitsRemaining: z.number().int().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, householdId, expiresOn, ...updateData } = input;
+
+      const updates: Record<string, unknown> = {
+        ...updateData,
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (expiresOn) {
+        updates.expiresOn = expiresOn.toISOString().split("T")[0];
+      }
+
+      const updated = await ctx.db
+        .update(inventoryItems)
+        .set(updates)
+        .where(
+          and(
+            eq(inventoryItems.id, id),
+            eq(inventoryItems.householdId, householdId),
+            isNull(inventoryItems.deletedAt),
+          ),
+        )
+        .returning();
+
+      if (!updated[0]) {
+        throw new Error("Inventory item not found or already deleted");
+      }
+
+      return updated[0];
+    }),
+
+  // Update quantity (used by offline queue)
+  updateQuantity: householdProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+        id: z.uuid(),
+        quantityChange: z.number().int(), // negative for decrement
+        reason: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // First get current quantity
+      const current = await ctx.db
+        .select({ unitsRemaining: inventoryItems.unitsRemaining })
+        .from(inventoryItems)
+        .where(
+          and(
+            eq(inventoryItems.id, input.id),
+            eq(inventoryItems.householdId, input.householdId),
+            isNull(inventoryItems.deletedAt),
+          ),
+        )
+        .limit(1)
+        .execute();
+
+      if (!current[0]) {
+        throw new Error("Inventory item not found or already deleted");
+      }
+
+      const newQuantity =
+        (current[0].unitsRemaining || 0) + input.quantityChange;
+      if (newQuantity < 0) {
+        throw new Error("Insufficient quantity");
+      }
+
+      const updated = await ctx.db
+        .update(inventoryItems)
+        .set({
+          unitsRemaining: newQuantity,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(
+          and(
+            eq(inventoryItems.id, input.id),
+            eq(inventoryItems.householdId, input.householdId),
+            isNull(inventoryItems.deletedAt),
+          ),
+        )
+        .returning();
+
+      return updated[0];
     }),
 });

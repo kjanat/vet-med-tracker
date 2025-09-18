@@ -90,7 +90,7 @@ export function ExportPanel() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-          <Select value={selectedAnimalId} onValueChange={setSelectedAnimalId}>
+          <Select onValueChange={setSelectedAnimalId} value={selectedAnimalId}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue />
             </SelectTrigger>
@@ -105,9 +105,9 @@ export function ExportPanel() {
           </Select>
 
           <Button
-            onClick={handleExportCSV}
-            disabled={isExporting}
             className="w-full gap-2 sm:w-auto"
+            disabled={isExporting}
+            onClick={handleExportCSV}
           >
             <FileText className="h-4 w-4" />
             Export CSV
@@ -119,10 +119,10 @@ export function ExportPanel() {
           <div className="grid gap-2">
             {animals.map((animal) => (
               <Button
-                key={animal.id}
-                variant="outline"
-                onClick={() => handlePrintReport(animal.id)}
                 className="justify-start gap-2"
+                key={animal.id}
+                onClick={() => handlePrintReport(animal.id)}
+                variant="outline"
               >
                 <Printer className="h-4 w-4" />
                 {animal.name} Report (PDF)

@@ -4,45 +4,45 @@
  */
 
 export const STATUS_CONFIGS = {
-  urgent: {
-    badge: "destructive",
-    text: "text-destructive-foreground",
-    bg: "bg-destructive/10",
-    border: "border-destructive/20",
-    icon: "text-destructive",
-    ring: "ring-destructive/20",
-  },
   high: {
     badge: "default",
-    text: "text-primary-foreground",
     bg: "bg-primary/10",
     border: "border-primary/20",
     icon: "text-primary",
     ring: "ring-primary/20",
+    text: "text-primary-foreground",
   },
   normal: {
     badge: "secondary",
-    text: "text-secondary-foreground",
     bg: "bg-secondary/10",
     border: "border-secondary/20",
     icon: "text-secondary-foreground",
     ring: "ring-secondary/20",
-  },
-  success: {
-    badge: "success",
-    text: "text-green-700",
-    bg: "bg-green-50",
-    border: "border-green-200",
-    icon: "text-green-600",
-    ring: "ring-green-200",
+    text: "text-secondary-foreground",
   },
   prn: {
     badge: "info",
-    text: "text-blue-700",
     bg: "bg-blue-50",
     border: "border-blue-200",
     icon: "text-blue-600",
     ring: "ring-blue-200",
+    text: "text-blue-700",
+  },
+  success: {
+    badge: "success",
+    bg: "bg-green-50",
+    border: "border-green-200",
+    icon: "text-green-600",
+    ring: "ring-green-200",
+    text: "text-green-700",
+  },
+  urgent: {
+    badge: "destructive",
+    bg: "bg-destructive/10",
+    border: "border-destructive/20",
+    icon: "text-destructive",
+    ring: "ring-destructive/20",
+    text: "text-destructive-foreground",
   },
 } as const;
 

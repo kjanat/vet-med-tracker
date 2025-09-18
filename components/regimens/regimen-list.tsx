@@ -143,27 +143,27 @@ function transformRegimenData(data: RegimenWithDetails[]): Regimen[] {
     }
 
     return {
-      id: regimen.id,
       animalId: animal.id,
       animalName: animal.name,
+      createdAt: new Date(regimen.createdAt),
+      cutoffMins: regimen.cutoffMinutes,
+      endDate: regimen.endDate ? new Date(regimen.endDate) : undefined,
+      form: medication?.form || "TABLET",
+      highRisk: regimen.highRisk,
+      id: regimen.id,
+      isActive: regimen.active,
+      medicationId: regimen.medicationId,
       medicationName:
         medication?.genericName ||
         medication?.brandName ||
         regimen.name ||
         "Unknown Medication",
-      medicationId: regimen.medicationId,
       route: regimen.route || medication?.route || "ORAL",
-      form: medication?.form || "TABLET",
-      strength: medication?.strength || undefined,
       scheduleType: regimen.scheduleType as "FIXED" | "PRN",
-      timesLocal: regimen.timesLocal || undefined,
       startDate: new Date(regimen.startDate),
-      endDate: regimen.endDate ? new Date(regimen.endDate) : undefined,
-      cutoffMins: regimen.cutoffMinutes,
-      highRisk: regimen.highRisk,
-      isActive: regimen.active,
-      createdAt: new Date(regimen.createdAt),
       status,
+      strength: medication?.strength || undefined,
+      timesLocal: regimen.timesLocal || undefined,
     };
   });
 }
@@ -182,12 +182,12 @@ export function RegimenList() {
     refetch,
   } = trpc.regimen.list.useQuery(
     {
-      householdId: selectedHousehold?.id || "",
-      animalId: selectedAnimalId === "all" ? undefined : selectedAnimalId,
       activeOnly: true,
+      animalId: selectedAnimalId === "all" ? undefined : selectedAnimalId,
+      householdId: selectedHousehold?.id || "",
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
     },
   );
 
@@ -228,27 +228,25 @@ export function RegimenList() {
 
   // tRPC mutations
   const createRegimen = trpc.regimen.create.useMutation({
-    onSuccess: () => {
-      refetch(); // Refresh the list
-    },
     onError: (error) => {
       console.error("Failed to create regimen:", error);
+    },
+    onSuccess: () => {
+      refetch(); // Refresh the list
     },
   });
 
   const updateRegimen = trpc.regimen.update.useMutation({
-    onSuccess: () => {
-      refetch(); // Refresh the list
-    },
     onError: (error) => {
       console.error("Failed to update regimen:", error);
+    },
+    onSuccess: () => {
+      refetch(); // Refresh the list
     },
   });
 
   // Helper functions to reduce cognitive complexity
-  const formatDateForAPI = (date?: Date): string | undefined => {
-    return date?.toISOString().split("T")[0];
-  };
+  const formatDateForAPI = (date?: Date) => date?.toISOString().split("T")[0];
 
   const formatDateForAPIRequired = (date?: Date): string => {
     const isoDate = (date || new Date()).toISOString();
@@ -284,18 +282,18 @@ export function RegimenList() {
       throw new Error("No regimen selected for editing");
     }
     const updateData: RegimenUpdateInput = {
-      id: editingRegimen.id,
+      cutoffMinutes: data.cutoffMins,
+      dose: data.strength || "",
+      highRisk: data.highRisk,
       householdId,
-      name: data.medicationName,
+      id: editingRegimen.id,
       instructions:
         `${data.strength || ""} ${data.form || ""} - ${data.route || ""}`.trim(),
+      name: data.medicationName,
+      requiresCoSign: data.highRisk, // High risk medications require co-sign
+      route: data.route,
       scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
       timesLocal: data.timesLocal,
-      cutoffMinutes: data.cutoffMins,
-      highRisk: data.highRisk,
-      requiresCoSign: data.highRisk, // High risk medications require co-sign
-      dose: data.strength || "",
-      route: data.route,
     };
 
     // Only add dates if they exist
@@ -335,20 +333,20 @@ export function RegimenList() {
     householdId: string,
   ): RegimenCreateInput => {
     const createData: RegimenCreateInput = {
-      householdId,
       animalId: data.animalId || "",
-      medicationId: data.medicationId || undefined,
-      scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
-      startDate: formatDateForAPIRequired(data.startDate),
-      name: data.medicationName,
+      cutoffMinutes: data.cutoffMins || 240,
+      dose: data.strength || "",
+      highRisk: data.highRisk || false,
+      householdId,
       instructions:
         `${data.strength || ""} ${data.form || ""} - ${data.route || ""}`.trim(),
-      timesLocal: data.timesLocal,
-      cutoffMinutes: data.cutoffMins || 240,
-      highRisk: data.highRisk || false,
+      medicationId: data.medicationId || undefined,
+      name: data.medicationName,
       requiresCoSign: data.highRisk || false, // High risk medications require co-sign
-      dose: data.strength || "",
       route: data.route,
+      scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
+      startDate: formatDateForAPIRequired(data.startDate),
+      timesLocal: data.timesLocal,
     };
 
     // Only add endDate if it exists
@@ -367,9 +365,9 @@ export function RegimenList() {
           : "settings_regimens_create",
         {
           detail: {
-            regimenId: editingRegimen?.id,
             animalId: data.animalId,
             medicationName: data.medicationName,
+            regimenId: editingRegimen?.id,
             scheduleType: data.scheduleType,
           },
         },
@@ -407,11 +405,11 @@ export function RegimenList() {
   };
 
   const deleteRegimen = trpc.regimen.delete.useMutation({
-    onSuccess: () => {
-      refetch(); // Refresh the list
-    },
     onError: (error) => {
       console.error("Failed to delete regimen:", error);
+    },
+    onSuccess: () => {
+      refetch(); // Refresh the list
     },
   });
 
@@ -423,8 +421,8 @@ export function RegimenList() {
 
     try {
       await deleteRegimen.mutateAsync({
-        id: regimenId,
         householdId: selectedHousehold.id,
+        id: regimenId,
       });
 
       // Fire instrumentation event
@@ -441,20 +439,20 @@ export function RegimenList() {
   };
 
   const pauseRegimen = trpc.regimen.pause.useMutation({
-    onSuccess: () => {
-      refetch(); // Refresh the list
-    },
     onError: (error) => {
       console.error("Failed to pause regimen:", error);
+    },
+    onSuccess: () => {
+      refetch(); // Refresh the list
     },
   });
 
   const resumeRegimen = trpc.regimen.resume.useMutation({
-    onSuccess: () => {
-      refetch(); // Refresh the list
-    },
     onError: (error) => {
       console.error("Failed to resume regimen:", error);
+    },
+    onSuccess: () => {
+      refetch(); // Refresh the list
     },
   });
 
@@ -472,15 +470,15 @@ export function RegimenList() {
       if (currentlyActive) {
         // Pause the regimen
         await pauseRegimen.mutateAsync({
-          id: regimenId,
           householdId: selectedHousehold.id,
+          id: regimenId,
           reason: "Paused by user", // Default reason, could be made configurable
         });
       } else {
         // Resume the regimen
         await resumeRegimen.mutateAsync({
-          id: regimenId,
           householdId: selectedHousehold.id,
+          id: regimenId,
         });
       }
 
@@ -525,7 +523,7 @@ export function RegimenList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end">
-        <Button onClick={handleCreate} className="gap-2" disabled={isLoading}>
+        <Button className="gap-2" disabled={isLoading} onClick={handleCreate}>
           <Plus className="h-4 w-4" />
           Add Regimen
         </Button>
@@ -534,9 +532,9 @@ export function RegimenList() {
       {/* Animal Filter and Status */}
       <div className="flex items-center justify-between gap-4">
         <Select
-          value={selectedAnimalId}
-          onValueChange={setSelectedAnimalId}
           disabled={isLoading}
+          onValueChange={setSelectedAnimalId}
+          value={selectedAnimalId}
         >
           <SelectTrigger className="w-[200px]">
             <SelectValue />
@@ -556,10 +554,10 @@ export function RegimenList() {
             <AlertTriangle className="h-4 w-4" />
             Failed to load regimens
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
               disabled={isLoading}
+              onClick={() => refetch()}
+              size="sm"
+              variant="outline"
             >
               Retry
             </Button>
@@ -583,7 +581,7 @@ export function RegimenList() {
             if (!animal) return null;
 
             return (
-              <div key={animalId} className="space-y-3">
+              <div className="space-y-3" key={animalId}>
                 <div className="flex items-center gap-3">
                   <AnimalAvatar animal={animal} size="md" />
                   <div>
@@ -599,12 +597,12 @@ export function RegimenList() {
                   {regimens.map((regimen) => (
                     <RegimenCard
                       key={regimen.id}
-                      regimen={regimen}
-                      onEdit={() => handleEdit(regimen)}
                       onArchive={() => handleArchive(regimen.id)}
+                      onEdit={() => handleEdit(regimen)}
                       onTogglePause={() =>
                         handleTogglePause(regimen.id, regimen.isActive)
                       }
+                      regimen={regimen}
                     />
                   ))}
                 </div>
@@ -628,10 +626,10 @@ export function RegimenList() {
 
       {/* Regimen Form */}
       <RegimenForm
-        regimen={editingRegimen}
-        open={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSave={handleSave}
+        open={isFormOpen}
+        regimen={editingRegimen}
       />
     </div>
   );
@@ -663,28 +661,28 @@ function RegimenCard({
           <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center">
             {regimen.highRisk && (
               <Badge
-                variant="destructive"
                 className="whitespace-nowrap text-xs"
+                variant="destructive"
               >
                 <AlertTriangle className="mr-1 h-3 w-3" />
                 High-risk
               </Badge>
             )}
             <Badge
+              className="whitespace-nowrap text-xs"
               variant={
                 regimen.scheduleType === "FIXED" ? "default" : "secondary"
               }
-              className="whitespace-nowrap text-xs"
             >
               {regimen.scheduleType}
             </Badge>
             {regimen.status === "paused" && (
-              <Badge variant="outline" className="whitespace-nowrap text-xs">
+              <Badge className="whitespace-nowrap text-xs" variant="outline">
                 Paused
               </Badge>
             )}
             {regimen.status === "ended" && (
-              <Badge variant="secondary" className="whitespace-nowrap text-xs">
+              <Badge className="whitespace-nowrap text-xs" variant="secondary">
                 Ended
               </Badge>
             )}
@@ -698,7 +696,7 @@ function RegimenCard({
             <p className="mb-1 font-medium text-sm">Schedule:</p>
             <div className="flex flex-wrap gap-1">
               {regimen.timesLocal.map((time) => (
-                <Badge key={time} variant="outline" className="text-xs">
+                <Badge className="text-xs" key={time} variant="outline">
                   {format(new Date(`2000-01-01T${time}`), "h:mm a")}
                 </Badge>
               ))}
@@ -719,28 +717,28 @@ function RegimenCard({
 
         <div className="flex gap-2 pt-2">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={onEdit}
             className="flex-1 bg-transparent"
+            onClick={onEdit}
+            size="sm"
+            variant="outline"
           >
             Edit
           </Button>
           <Button
-            variant="outline"
-            size="sm"
-            onClick={onTogglePause}
             className="gap-1 bg-transparent"
+            onClick={onTogglePause}
+            size="sm"
             title={regimen.isActive ? "Pause regimen" : "Resume regimen"}
+            variant="outline"
           >
             {regimen.isActive ? "Pause" : "Resume"}
           </Button>
           <Button
-            variant="outline"
-            size="sm"
-            onClick={onArchive}
             className="gap-1 bg-transparent"
+            onClick={onArchive}
+            size="sm"
             title="Archive regimen"
+            variant="outline"
           >
             <Archive className="h-3 w-3" />
             Archive

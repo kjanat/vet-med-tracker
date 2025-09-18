@@ -29,17 +29,17 @@ interface AdministrationTimelineWidgetProps {
 }
 
 const chartConfig = {
-  onTime: {
-    label: "On Time",
-    color: "hsl(var(--chart-1))",
-  },
   late: {
-    label: "Late",
     color: "hsl(var(--chart-2))",
+    label: "Late",
   },
   missed: {
-    label: "Missed",
     color: "hsl(var(--chart-3))",
+    label: "Missed",
+  },
+  onTime: {
+    color: "hsl(var(--chart-1))",
+    label: "On Time",
   },
 } satisfies ChartConfig;
 
@@ -71,19 +71,19 @@ function AdministrationTimelineWidgetContent({
       (acc, day) => {
         const dayTotal = day.total ?? day.onTime + day.late + day.missed;
         return {
-          totalOnTime: acc.totalOnTime + day.onTime,
+          activeDays: acc.activeDays + (dayTotal > 0 ? 1 : 0),
+          totalDoses: acc.totalDoses + dayTotal,
           totalLate: acc.totalLate + day.late,
           totalMissed: acc.totalMissed + day.missed,
-          totalDoses: acc.totalDoses + dayTotal,
-          activeDays: acc.activeDays + (dayTotal > 0 ? 1 : 0),
+          totalOnTime: acc.totalOnTime + day.onTime,
         };
       },
       {
-        totalOnTime: 0,
+        activeDays: 0,
+        totalDoses: 0,
         totalLate: 0,
         totalMissed: 0,
-        totalDoses: 0,
-        activeDays: 0,
+        totalOnTime: 0,
       },
     );
   }, [timelineData]);
@@ -125,36 +125,36 @@ function AdministrationTimelineWidgetContent({
       {/* Timeline Chart */}
       <div className={isFullscreen ? "h-96" : "h-64"}>
         <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer height="100%" width="100%">
             <BarChart
               data={chartData}
-              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              margin={{ bottom: 5, left: 5, right: 5, top: 5 }}
             >
               <XAxis
+                axisLine={false}
                 dataKey="dateFormatted"
                 fontSize={12}
                 tickLine={false}
-                axisLine={false}
               />
-              <YAxis fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis axisLine={false} fontSize={12} tickLine={false} />
               <Tooltip content={<ChartTooltipContent />} />
               <Bar
                 dataKey="onTime"
-                stackId="doses"
                 fill="var(--color-onTime)"
                 radius={[0, 0, 0, 0]}
+                stackId="doses"
               />
               <Bar
                 dataKey="late"
-                stackId="doses"
                 fill="var(--color-late)"
                 radius={[0, 0, 0, 0]}
+                stackId="doses"
               />
               <Bar
                 dataKey="missed"
-                stackId="doses"
                 fill="var(--color-missed)"
                 radius={[2, 2, 0, 0]}
+                stackId="doses"
               />
             </BarChart>
           </ResponsiveContainer>

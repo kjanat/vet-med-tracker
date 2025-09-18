@@ -63,13 +63,13 @@ interface DerivedFields {
  * Storage type options with descriptions
  */
 const STORAGE_OPTIONS = [
-  { value: "ROOM", label: "Room Temperature", description: "Store at 15-25°C" },
-  { value: "FRIDGE", label: "Refrigerated", description: "Store at 2-8°C" },
-  { value: "FREEZER", label: "Frozen", description: "Store below 0°C" },
+  { description: "Store at 15-25°C", label: "Room Temperature", value: "ROOM" },
+  { description: "Store at 2-8°C", label: "Refrigerated", value: "FRIDGE" },
+  { description: "Store below 0°C", label: "Frozen", value: "FREEZER" },
   {
-    value: "CONTROLLED",
-    label: "Controlled",
     description: "Special storage requirements",
+    label: "Controlled",
+    value: "CONTROLLED",
   },
 ] as const;
 
@@ -98,17 +98,17 @@ export class InventoryDataTransformer {
     }
 
     return {
-      householdId: household.id,
-      medicationId: formData.medicationId,
-      brandOverride: formData.brand || undefined,
-      lot: formData.lot || undefined,
-      expiresOn: formData.expiresOn,
-      storage: formData.storage,
-      unitsTotal: formData.quantityUnits,
-      unitsRemaining: formData.unitsRemaining,
-      unitType: "units", // TODO: Make this configurable
-      notes: undefined, // TODO: Add notes field to form
       assignedAnimalId: formData.assignedAnimalId || undefined,
+      brandOverride: formData.brand || undefined,
+      expiresOn: formData.expiresOn,
+      householdId: household.id,
+      lot: formData.lot || undefined,
+      medicationId: formData.medicationId,
+      notes: undefined, // TODO: Add notes field to form
+      storage: formData.storage,
+      unitsRemaining: formData.unitsRemaining,
+      unitsTotal: formData.quantityUnits,
+      unitType: "units", // TODO: Make this configurable
     };
   }
 
@@ -120,22 +120,22 @@ export class InventoryDataTransformer {
     expiryDate.setDate(expiryDate.getDate() + (options.expiryDays ?? 730));
 
     return {
-      medicationId: "",
-      name: "",
-      isCustomMedication: false,
-      brand: "",
-      route: "",
-      form: "",
-      strength: "",
-      concentration: "",
-      quantityUnits: options.quantityUnits ?? 1,
-      unitsRemaining: options.quantityUnits ?? 1,
-      lot: "",
-      expiresOn: expiryDate,
-      storage: options.storage ?? "ROOM",
       assignedAnimalId: "",
       barcode: "",
+      brand: "",
+      concentration: "",
+      expiresOn: expiryDate,
+      form: "",
+      isCustomMedication: false,
+      lot: "",
+      medicationId: "",
+      name: "",
+      quantityUnits: options.quantityUnits ?? 1,
+      route: "",
       setInUse: false,
+      storage: options.storage ?? "ROOM",
+      strength: "",
+      unitsRemaining: options.quantityUnits ?? 1,
     };
   }
 
@@ -169,10 +169,10 @@ export class InventoryDataTransformer {
     const storageDescription = storageOption?.description || data.storage;
 
     return {
-      percentRemaining,
       daysUntilExpiry,
       isExpiringSoon,
       isQuantityLow,
+      percentRemaining,
       storageDescription,
     };
   }
@@ -214,20 +214,20 @@ export class InventoryDataTransformer {
   static sanitizeFormData(data: InventoryFormData): InventoryFormData {
     return {
       ...data,
+      assignedAnimalId: data.assignedAnimalId?.trim() || "",
+      barcode: data.barcode?.trim() || "",
+      brand: data.brand?.trim() || "",
+      concentration: data.concentration?.trim() || "",
+      form: data.form?.trim() || "",
+      lot: data.lot?.trim() || "",
       // Trim string fields
       medicationId: data.medicationId?.trim() || "",
       name: data.name?.trim() || "",
-      brand: data.brand?.trim() || "",
-      route: data.route?.trim() || "",
-      form: data.form?.trim() || "",
-      strength: data.strength?.trim() || "",
-      concentration: data.concentration?.trim() || "",
-      lot: data.lot?.trim() || "",
-      assignedAnimalId: data.assignedAnimalId?.trim() || "",
-      barcode: data.barcode?.trim() || "",
 
       // Ensure positive numbers
       quantityUnits: Math.max(0, data.quantityUnits || 1),
+      route: data.route?.trim() || "",
+      strength: data.strength?.trim() || "",
       unitsRemaining: Math.max(0, data.unitsRemaining || 1),
     };
   }
@@ -237,19 +237,19 @@ export class InventoryDataTransformer {
    */
   static createInstrumentationData(data: InventoryFormData) {
     return {
-      medicationId: data.medicationId,
-      medicationName: data.name,
-      quantity: data.quantityUnits,
-      storage: data.storage,
       assignedAnimalId: data.assignedAnimalId || null,
-      isCustomMedication: data.isCustomMedication,
-      hasLotNumber: !!data.lot?.trim(),
-      hasBarcode: !!data.barcode?.trim(),
       daysUntilExpiry: data.expiresOn
         ? Math.ceil(
             (data.expiresOn.getTime() - Date.now()) / (24 * 60 * 60 * 1000),
           )
         : null,
+      hasBarcode: Boolean(data.barcode?.trim()),
+      hasLotNumber: Boolean(data.lot?.trim()),
+      isCustomMedication: data.isCustomMedication,
+      medicationId: data.medicationId,
+      medicationName: data.name,
+      quantity: data.quantityUnits,
+      storage: data.storage,
     };
   }
 
@@ -283,15 +283,15 @@ export class InventoryDataTransformer {
 
     return {
       ...derived,
-      utilizationRate: 100 - derived.percentRemaining,
-      isFullStock: derived.percentRemaining === 100,
-      isEmptyStock: derived.percentRemaining === 0,
-      stockStatus: InventoryDataTransformer.getStockStatus(
-        derived.percentRemaining,
-      ),
       expiryStatus: InventoryDataTransformer.getExpiryStatus(
         derived.daysUntilExpiry,
       ),
+      isEmptyStock: derived.percentRemaining === 0,
+      isFullStock: derived.percentRemaining === 100,
+      stockStatus: InventoryDataTransformer.getStockStatus(
+        derived.percentRemaining,
+      ),
+      utilizationRate: 100 - derived.percentRemaining,
     };
   }
 

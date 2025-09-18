@@ -29,7 +29,7 @@ export function UserMenuDesktop() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <LoginButton variant="outline" size="sm" />
+          <LoginButton size="sm" variant="outline" />
         </SidebarMenuItem>
       </SidebarMenu>
     );
@@ -50,14 +50,14 @@ export function UserMenuDesktop() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
               className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               disabled={isLoading}
+              size="lg"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  src={user.image ?? undefined}
                   alt={user.name || user.email || "User"}
+                  src={user.image ?? undefined}
                 />
                 <AvatarFallback className="rounded-lg">
                   {initials}
@@ -73,17 +73,17 @@ export function UserMenuDesktop() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
+            align="end"
             className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56 rounded-lg"
             side={sidebarIsMobile ? "bottom" : "right"}
-            align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="cursor-default p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
-                    src={user.image ?? undefined}
                     alt={user.name || user.email || "User"}
+                    src={user.image ?? undefined}
                   />
                   <AvatarFallback className="rounded-lg">
                     {initials}
@@ -100,13 +100,13 @@ export function UserMenuDesktop() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/auth/settings" className="cursor-pointer">
+                <Link className="cursor-pointer" href="/auth/settings">
                   <Settings />
                   Settings
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/auth/profile" className="cursor-pointer">
+                <Link className="cursor-pointer" href="/auth/profile">
                   <User />
                   Profile
                 </Link>
@@ -114,8 +114,8 @@ export function UserMenuDesktop() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={logout}
               className="cursor-pointer text-red-600"
+              onClick={logout}
             >
               <LogOut />
               Log out

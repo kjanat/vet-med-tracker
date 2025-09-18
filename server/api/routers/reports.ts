@@ -50,9 +50,9 @@ async function calculateComplianceData(
   const adminQuery = await db
     .select({
       id: administrations.id,
-      status: administrations.status,
       recordedAt: administrations.recordedAt,
       scheduledFor: administrations.scheduledFor,
+      status: administrations.status,
     })
     .from(administrations)
     .where(
@@ -134,12 +134,12 @@ async function calculateComplianceData(
 
   return {
     adherencePct,
-    scheduled: total,
     completed,
-    missed,
     late,
-    veryLate,
+    missed,
+    scheduled: total,
     streak,
+    veryLate,
   };
 }
 
@@ -154,8 +154,8 @@ async function getRegimenSummaries(
   // Get active regimens for the animal with medication details
   const regimensQuery = await db
     .select({
-      regimen: regimens,
       medication: medicationCatalog,
+      regimen: regimens,
     })
     .from(regimens)
     .innerJoin(
@@ -180,8 +180,8 @@ async function getRegimenSummaries(
     // Calculate adherence for this specific regimen
     const adminStats = await db
       .select({
-        total: sql<number>`COUNT(*)`,
         completed: sql<number>`COUNT(CASE WHEN status IN ('ON_TIME', 'LATE', 'VERY_LATE') THEN 1 END)`,
+        total: sql<number>`COUNT(*)`,
       })
       .from(administrations)
       .where(
@@ -208,14 +208,14 @@ async function getRegimenSummaries(
     }
 
     summaries.push({
+      adherence,
       id: regimen.id,
       medicationName:
         medication.genericName || medication.brandName || "Unknown",
-      strength: medication.strength || "",
+      notes: regimen.instructions,
       route: regimen.route || medication.route,
       schedule,
-      adherence,
-      notes: regimen.instructions,
+      strength: medication.strength || "",
     });
   }
 
@@ -233,13 +233,13 @@ async function getNotableEvents(
   // Get administrations with notes, adverse events, or missed doses
   const eventsQuery = await db
     .select({
-      id: administrations.id,
-      recordedAt: administrations.recordedAt,
-      status: administrations.status,
-      notes: administrations.notes,
       adverseEvent: administrations.adverseEvent,
       adverseEventDescription: administrations.adverseEventDescription,
+      id: administrations.id,
       medicationName: sql<string>`COALESCE(${medicationCatalog.genericName}, ${medicationCatalog.brandName}, 'Unknown')`,
+      notes: administrations.notes,
+      recordedAt: administrations.recordedAt,
+      status: administrations.status,
     })
     .from(administrations)
     .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
@@ -281,8 +281,8 @@ async function getNotableEvents(
 
     if (note) {
       events.push({
-        id: event.id,
         date: new Date(event.recordedAt),
+        id: event.id,
         medication: event.medicationName,
         note,
         tags,
@@ -321,8 +321,8 @@ async function getNotableEvents(
 
   for (const pattern of missedPatterns.rows) {
     events.push({
-      id: `missed-pattern-${pattern.dose_date}-${pattern.generic_name}`,
       date: new Date(String(pattern.dose_date)),
+      id: `missed-pattern-${pattern.dose_date}-${pattern.generic_name}`,
       medication: String(pattern.generic_name),
       note: `Multiple missed doses on this day (${pattern.missed_count} doses)`,
       tags: ["Pattern", "Missed Dose"],
@@ -340,24 +340,24 @@ export const reportsRouter = createTRPCRouter({
     .input(
       z.object({
         animalId: z.uuid(),
+        endDate: z.iso.datetime().optional(),
         householdId: z.uuid(),
         startDate: z.iso.datetime().optional(),
-        endDate: z.iso.datetime().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       // Verify animal exists and belongs to household
       const animal = await ctx.db
         .select({
+          allergies: animals.allergies,
+          breed: animals.breed,
+          conditions: animals.conditions,
           id: animals.id,
           name: animals.name,
-          species: animals.species,
-          breed: animals.breed,
-          weightKg: animals.weightKg,
           photoUrl: animals.photoUrl,
+          species: animals.species,
           timezone: animals.timezone,
-          allergies: animals.allergies,
-          conditions: animals.conditions,
+          weightKg: animals.weightKg,
         })
         .from(animals)
         .where(
@@ -410,17 +410,17 @@ export const reportsRouter = createTRPCRouter({
       return {
         animal: {
           ...animal[0],
+          allergies: animal[0].allergies || [],
           // Convert null to undefined for optional fields
           breed: animal[0].breed || undefined,
-          weightKg: animal[0].weightKg ? Number(animal[0].weightKg) : undefined,
-          allergies: animal[0].allergies || [],
           conditions: animal[0].conditions || [],
           // Calculate pending meds (due/overdue count)
           pendingMeds: regimens.filter((r) => r.adherence < 90).length,
+          weightKg: animal[0].weightKg ? Number(animal[0].weightKg) : undefined,
         },
         compliance: complianceData,
-        regimens,
         notableEvents,
+        regimens,
         reportPeriod: {
           from: startDate,
           to: endDate,

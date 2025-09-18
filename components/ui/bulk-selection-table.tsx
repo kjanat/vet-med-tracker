@@ -96,7 +96,7 @@ function BulkSelectionTableInternal<T>({
 
             {/* Data Columns */}
             {columns.map((column) => (
-              <TableHead key={String(column.key)} className={column.className}>
+              <TableHead className={column.className} key={String(column.key)}>
                 {column.title}
               </TableHead>
             ))}
@@ -116,23 +116,23 @@ function BulkSelectionTableInternal<T>({
 
             return (
               <TableRow
-                key={itemId}
-                data-state={selected ? "selected" : undefined}
                 className={computedRowClassName}
+                data-state={selected ? "selected" : undefined}
+                key={itemId}
               >
                 {/* Selection Cell */}
                 <TableCell>
                   <BulkSelectionCheckbox
-                    id={itemId}
                     aria-label={`Select ${itemLabel}`}
+                    id={itemId}
                   />
                 </TableCell>
 
                 {/* Data Cells */}
                 {columns.map((column) => (
                   <TableCell
-                    key={String(column.key)}
                     className={column.className}
+                    key={String(column.key)}
                   >
                     {column.render
                       ? column.render(item, index)
@@ -149,9 +149,9 @@ function BulkSelectionTableInternal<T>({
 
       {/* Floating Action Bar */}
       <FloatingActionBar
+        customActions={customActions}
         onDelete={onDelete}
         onExport={onExport}
-        customActions={customActions}
       />
     </div>
   );

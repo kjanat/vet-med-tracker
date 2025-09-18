@@ -190,11 +190,11 @@ export default function FAQPage() {
       {/* Search */}
       <div className="mx-auto mb-8 max-w-2xl">
         <input
-          type="search"
-          placeholder="Search FAQs..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full rounded-lg border bg-background px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search FAQs..."
+          type="search"
+          value={searchTerm}
         />
       </div>
 
@@ -206,12 +206,12 @@ export default function FAQPage() {
               <h2 className="mb-4 font-semibold text-2xl">
                 {category.category}
               </h2>
-              <Accordion type="single" collapsible className="space-y-4">
+              <Accordion className="space-y-4" collapsible type="single">
                 {category.questions.map((faq, index) => (
                   <AccordionItem
+                    className="rounded-lg border px-4"
                     key={`${category.category}-${index}`}
                     value={`${category.category}-${index}`}
-                    className="rounded-lg border px-4"
                   >
                     <AccordionTrigger className="text-left hover:no-underline">
                       <span className="pr-4">{faq.question}</span>
@@ -230,7 +230,7 @@ export default function FAQPage() {
           <p className="mb-4 text-muted-foreground">
             No questions found matching &quot;{searchTerm}&quot;
           </p>
-          <Button variant="outline" onClick={() => setSearchTerm("")}>
+          <Button onClick={() => setSearchTerm("")} variant="outline">
             Clear Search
           </Button>
         </div>
@@ -246,7 +246,7 @@ export default function FAQPage() {
           <Button asChild>
             <Link href="/help">Visit Help Center</Link>
           </Button>
-          <Button variant="outline" asChild>
+          <Button asChild variant="outline">
             <Link href="mailto:support@vetmedtracker.com">Email Support</Link>
           </Button>
         </div>

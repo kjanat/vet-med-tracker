@@ -121,17 +121,17 @@ export function useAnimalFormState(
   }, []);
 
   return {
+    clearError,
+    closeForm,
+    editingAnimal,
+    error,
+    isDirty,
     // State
     isOpen,
-    editingAnimal,
-    isDirty,
-    error,
 
     // Actions
     openForm,
-    closeForm,
-    setError,
     setDirty: setIsDirty,
-    clearError,
+    setError,
   };
 }

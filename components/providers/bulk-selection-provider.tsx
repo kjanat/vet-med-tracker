@@ -67,34 +67,34 @@ export function BulkSelectionProvider({
   }, []);
 
   const isSelected = useCallback(
-    (id: string) => {
-      return selectedIds.has(id);
-    },
+    (id: string) => selectedIds.has(id),
     [selectedIds],
   );
 
   const selectionCount = selectedIds.size;
 
-  const isAllSelected = useMemo(() => {
-    return availableIds.length > 0 && selectionCount === availableIds.length;
-  }, [availableIds.length, selectionCount]);
+  const isAllSelected = useMemo(
+    () => availableIds.length > 0 && selectionCount === availableIds.length,
+    [availableIds.length, selectionCount],
+  );
 
-  const isPartiallySelected = useMemo(() => {
-    return selectionCount > 0 && !isAllSelected;
-  }, [selectionCount, isAllSelected]);
+  const isPartiallySelected = useMemo(
+    () => selectionCount > 0 && !isAllSelected,
+    [selectionCount, isAllSelected],
+  );
 
   const value = useMemo(
     () => ({
-      selectedIds,
-      toggle,
-      selectAll,
-      clearSelection,
-      isSelected,
-      selectionCount,
       availableIds,
-      setAvailableIds,
+      clearSelection,
       isAllSelected,
       isPartiallySelected,
+      isSelected,
+      selectAll,
+      selectedIds,
+      selectionCount,
+      setAvailableIds,
+      toggle,
     }),
     [
       selectedIds,

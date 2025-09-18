@@ -163,11 +163,11 @@ export default function VetMedPreferencesPage() {
           <div className="space-y-2">
             <Label htmlFor="timezone">Default Timezone</Label>
             <TimezoneCombobox
-              value={preferences.defaultTimezone}
               onChange={(value) =>
                 updatePreferences({ defaultTimezone: value })
               }
               placeholder="Select timezone"
+              value={preferences.defaultTimezone}
             />
           </div>
 
@@ -175,8 +175,8 @@ export default function VetMedPreferencesPage() {
             <div className="flex items-center justify-between space-x-2">
               <Label htmlFor="use24hour">Use 24-hour time format</Label>
               <Switch
-                id="use24hour"
                 checked={preferences.displayPreferences.use24HourTime}
+                id="use24hour"
                 onCheckedChange={(checked) =>
                   updateDisplayPreferences({ use24HourTime: checked })
                 }
@@ -187,12 +187,12 @@ export default function VetMedPreferencesPage() {
               <Label>Temperature Unit</Label>
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={preferences.displayPreferences.temperatureUnit}
                 onChange={(e) =>
                   updateDisplayPreferences({
                     temperatureUnit: e.target.value as "celsius" | "fahrenheit",
                   })
                 }
+                value={preferences.displayPreferences.temperatureUnit}
               >
                 <option value="fahrenheit">Fahrenheit (°F)</option>
                 <option value="celsius">Celsius (°C)</option>
@@ -203,12 +203,12 @@ export default function VetMedPreferencesPage() {
               <Label>Weight Unit</Label>
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={preferences.displayPreferences.weightUnit}
                 onChange={(e) =>
                   updateDisplayPreferences({
                     weightUnit: e.target.value as "kg" | "lbs",
                   })
                 }
+                value={preferences.displayPreferences.weightUnit}
               >
                 <option value="lbs">Pounds (lbs)</option>
                 <option value="kg">Kilograms (kg)</option>
@@ -234,12 +234,12 @@ export default function VetMedPreferencesPage() {
             <Label htmlFor="phone">Preferred Phone Number</Label>
             <Input
               id="phone"
-              type="tel"
-              placeholder="+1 (555) 123-4567"
-              value={preferences.preferredPhoneNumber}
               onChange={(e) =>
                 updatePreferences({ preferredPhoneNumber: e.target.value })
               }
+              placeholder="+1 (555) 123-4567"
+              type="tel"
+              value={preferences.preferredPhoneNumber}
             />
           </div>
 
@@ -252,23 +252,23 @@ export default function VetMedPreferencesPage() {
                 <Label htmlFor="emergency-name">Contact Name</Label>
                 <Input
                   id="emergency-name"
-                  placeholder="Dr. Smith"
-                  value={preferences.emergencyContactName}
                   onChange={(e) =>
                     updatePreferences({ emergencyContactName: e.target.value })
                   }
+                  placeholder="Dr. Smith"
+                  value={preferences.emergencyContactName}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="emergency-phone">Contact Phone</Label>
                 <Input
                   id="emergency-phone"
-                  type="tel"
-                  placeholder="+1 (555) 987-6543"
-                  value={preferences.emergencyContactPhone}
                   onChange={(e) =>
                     updatePreferences({ emergencyContactPhone: e.target.value })
                   }
+                  placeholder="+1 (555) 987-6543"
+                  type="tel"
+                  value={preferences.emergencyContactPhone}
                 />
               </div>
             </div>
@@ -297,8 +297,8 @@ export default function VetMedPreferencesPage() {
                 </p>
               </div>
               <Switch
-                id="email-reminders"
                 checked={preferences.notificationPreferences.emailReminders}
+                id="email-reminders"
                 onCheckedChange={(checked) =>
                   updateNotificationPreferences({ emailReminders: checked })
                 }
@@ -313,8 +313,8 @@ export default function VetMedPreferencesPage() {
                 </p>
               </div>
               <Switch
-                id="sms-reminders"
                 checked={preferences.notificationPreferences.smsReminders}
+                id="sms-reminders"
                 onCheckedChange={(checked) =>
                   updateNotificationPreferences({ smsReminders: checked })
                 }
@@ -329,8 +329,8 @@ export default function VetMedPreferencesPage() {
                 </p>
               </div>
               <Switch
-                id="push-notifications"
                 checked={preferences.notificationPreferences.pushNotifications}
+                id="push-notifications"
                 onCheckedChange={(checked) =>
                   updateNotificationPreferences({ pushNotifications: checked })
                 }
@@ -340,14 +340,14 @@ export default function VetMedPreferencesPage() {
             <div className="space-y-2">
               <Label htmlFor="lead-time">Reminder Lead Time (minutes)</Label>
               <select
-                id="lead-time"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={preferences.notificationPreferences.reminderLeadTime.toString()}
+                id="lead-time"
                 onChange={(e) =>
                   updateNotificationPreferences({
                     reminderLeadTime: parseInt(e.target.value, 10),
                   })
                 }
+                value={preferences.notificationPreferences.reminderLeadTime.toString()}
               >
                 <option value="5">5 minutes before</option>
                 <option value="15">15 minutes before</option>
@@ -362,7 +362,7 @@ export default function VetMedPreferencesPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSavePreferences} disabled={isSaving} size="lg">
+        <Button disabled={isSaving} onClick={handleSavePreferences} size="lg">
           {isSaving ? "Saving..." : "Save Preferences"}
         </Button>
       </div>

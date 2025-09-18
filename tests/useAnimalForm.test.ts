@@ -25,6 +25,24 @@ mock.module("@/hooks/shared/use-toast", () => ({
 
 mock.module("@/server/trpc/client", () => ({
   trpc: {
+    animal: {
+      create: {
+        useMutation: mock(() => ({
+          isPending: false,
+          mutateAsync: mock(),
+          onError: mock(),
+          onSuccess: mock(),
+        })),
+      },
+      update: {
+        useMutation: mock(() => ({
+          isPending: false,
+          mutateAsync: mock(),
+          onError: mock(),
+          onSuccess: mock(),
+        })),
+      },
+    },
     useUtils: () => ({
       animal: {
         list: { invalidate: mock() },
@@ -33,37 +51,19 @@ mock.module("@/server/trpc/client", () => ({
         getAnimals: { invalidate: mock() },
       },
     }),
-    animal: {
-      create: {
-        useMutation: mock(() => ({
-          mutateAsync: mock(),
-          isPending: false,
-          onSuccess: mock(),
-          onError: mock(),
-        })),
-      },
-      update: {
-        useMutation: mock(() => ({
-          mutateAsync: mock(),
-          isPending: false,
-          onSuccess: mock(),
-          onError: mock(),
-        })),
-      },
-    },
   },
 }));
 
 const mockFormState = {
-  isOpen: false,
-  editingAnimal: null,
-  isDirty: false,
-  error: null,
-  setError: mock(),
-  setDirty: mock(),
   clearError: mock(),
-  openForm: mock(),
   closeForm: mock(),
+  editingAnimal: null,
+  error: null,
+  isDirty: false,
+  isOpen: false,
+  openForm: mock(),
+  setDirty: mock(),
+  setError: mock(),
 };
 
 mock.module("@/hooks/forms/useAnimalFormState", () => ({
@@ -72,36 +72,36 @@ mock.module("@/hooks/forms/useAnimalFormState", () => ({
 
 mock.module("@/lib/services/animalDataTransformer", () => ({
   AnimalDataTransformer: {
+    calculateCompleteness: mock(() => 75),
     createDefaultValues: () => ({
-      name: "",
-      species: "",
+      allergies: [],
       breed: "",
-      sex: undefined,
-      neutered: false,
-      dob: undefined,
-      weightKg: undefined,
-      microchipId: "",
+      clinicName: "",
       color: "",
+      conditions: [],
+      dob: undefined,
+      microchipId: "",
+      name: "",
+      neutered: false,
+      notes: "",
+      photoUrl: "",
+      sex: undefined,
+      species: "",
       timezone: "America/New_York",
+      vetEmail: "",
       vetName: "",
       vetPhone: "",
-      vetEmail: "",
-      clinicName: "",
-      notes: "",
-      allergies: [],
-      conditions: [],
-      photoUrl: "",
+      weightKg: undefined,
     }),
     fromAnimalRecord: mock(),
-    toCreatePayload: mock(),
-    toUpdatePayload: mock(),
-    toInstrumentationData: mock(() => ({
-      eventType: "animal_create",
-      detail: { animal: "test" },
-    })),
-    calculateCompleteness: mock(() => 75),
-    isCompleteRecord: mock(() => false),
     hasRequiredFields: mock(() => true),
+    isCompleteRecord: mock(() => false),
+    toCreatePayload: mock(),
+    toInstrumentationData: mock(() => ({
+      detail: { animal: "test" },
+      eventType: "animal_create",
+    })),
+    toUpdatePayload: mock(),
   },
 }));
 
@@ -117,9 +117,9 @@ describe("useAnimalForm", () => {
     mockUseApp.mockClear();
     mockUseApp.mockImplementation(() =>
       createTestAppContext({
+        households: [mockSelectedHousehold],
         selectedHousehold: mockSelectedHousehold,
         selectedHouseholdId: mockSelectedHousehold.id,
-        households: [mockSelectedHousehold],
       }),
     );
   });
@@ -209,14 +209,14 @@ describe("useAnimalForm", () => {
       const { result } = renderHook(() => useAnimalForm(options));
 
       const testData = {
+        allergies: [],
+        breed: "Golden Retriever",
+        conditions: [],
         name: "Buddy",
+        neutered: false,
+        sex: "Male" as const,
         species: "Dog",
         timezone: "America/New_York",
-        breed: "Golden Retriever",
-        sex: "Male" as const,
-        neutered: false,
-        allergies: [],
-        conditions: [],
       };
 
       await act(async () => {
@@ -240,12 +240,12 @@ describe("useAnimalForm", () => {
       const { result } = renderHook(() => useAnimalForm());
 
       const testData = {
-        name: "",
-        species: "",
-        neutered: false,
-        timezone: "",
         allergies: [],
         conditions: [],
+        name: "",
+        neutered: false,
+        species: "",
+        timezone: "",
       };
 
       await act(async () => {
@@ -314,9 +314,9 @@ describe("useAnimalCalculations", () => {
     // Reset mock implementation to ensure consistent state
     mockUseApp.mockImplementation(() =>
       createTestAppContext({
+        households: [mockSelectedHousehold],
         selectedHousehold: mockSelectedHousehold,
         selectedHouseholdId: mockSelectedHousehold.id,
-        households: [mockSelectedHousehold],
       }),
     );
   });
@@ -324,9 +324,9 @@ describe("useAnimalCalculations", () => {
   it("should calculate form completeness", () => {
     const mockForm = {
       watch: mock(() => ({
+        dob: new Date("2020-01-01"),
         name: "Buddy",
         species: "Dog",
-        dob: new Date("2020-01-01"),
         weightKg: 25,
       })),
     };
@@ -383,10 +383,10 @@ describe("useAnimalCalculations", () => {
       watch: mock(() => ({
         allergies: ["Peanuts"],
         conditions: ["Arthritis"],
-        weightKg: 25,
         microchipId: "123456789",
         vetName: "Dr. Smith",
         vetPhone: "555-1234",
+        weightKg: 25,
       })),
     };
 
@@ -402,8 +402,9 @@ describe("useAnimalCalculations", () => {
     };
 
     // Mock high completeness
-    const AnimalDataTransformer =
-      require("@/lib/services/animalDataTransformer").AnimalDataTransformer;
+    const {
+      AnimalDataTransformer,
+    } = require("@/lib/services/animalDataTransformer");
     spyOn(AnimalDataTransformer, "calculateCompleteness").mockReturnValue(85);
 
     const calculations = useAnimalCalculations(completeForm);

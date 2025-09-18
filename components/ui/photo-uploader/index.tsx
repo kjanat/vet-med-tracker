@@ -44,6 +44,8 @@ export function PhotoUploader({
 
   // Simplified upload handler (offline functionality removed)
   const photoUpload = {
+    isOnline: true,
+    stats: { pending: 0 },
     uploadPhoto: async (file: File) => {
       // Simplified: Create a fake URL for demo purposes
       const fakeUrl = URL.createObjectURL(file);
@@ -51,19 +53,17 @@ export function PhotoUploader({
       onUpload?.(fakeUrl, file);
       return fakeUrl;
     },
-    isOnline: true,
-    stats: { pending: 0 },
   };
 
   // File processing
   const { processFile } = useFileProcessor({
     acceptedTypes,
-    maxSizeKB,
     compressionOptions,
+    maxSizeKB,
+    onProgress,
     photoUpload,
     setState,
     toast,
-    onProgress,
   });
 
   // Drag and drop
@@ -96,24 +96,24 @@ export function PhotoUploader({
       <StatusBar photoUpload={photoUpload} />
 
       <UploadDropZone
+        disabled={disabled}
         dropRef={dropRef}
         isDragOver={isDragOver}
-        disabled={disabled}
-        state={state}
         maxSizeKB={maxSizeKB}
-        placeholder={placeholder}
         onClear={handleClear}
         onClick={handleClick}
+        placeholder={placeholder}
+        state={state}
         {...dragHandlers}
       />
 
       <input
-        ref={fileInputRef}
-        type="file"
         accept={acceptedTypes.join(",")}
-        onChange={(e) => void handleFileSelect(e.target.files)}
         className="hidden"
         disabled={disabled}
+        onChange={(e) => void handleFileSelect(e.target.files)}
+        ref={fileInputRef}
+        type="file"
       />
     </div>
   );

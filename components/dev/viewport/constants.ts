@@ -109,14 +109,14 @@ function getDefaultBaseUrl(): string {
 }
 
 export const DEFAULT_VIEWPORT_STATE: ViewportState = {
-  width: 375,
-  height: 667,
+  baseUrl: getDefaultBaseUrl(),
   brand: "Apple",
+  deviceType: "phone",
+  height: 667,
   name: "iPhone SE",
   orientation: "portrait",
   scheme: "system",
-  baseUrl: getDefaultBaseUrl(),
-  deviceType: "phone",
+  width: 375,
 };
 
 export const COLOR_SCHEMES: ColorScheme[] = ["system", "light", "dark"];
@@ -124,7 +124,4 @@ export const COLOR_SCHEMES: ColorScheme[] = ["system", "light", "dark"];
 export const DEVICES_API_URL =
   "https://cdn.jsdelivr.net/gh/bitcomplete/labs-viewports@refs/heads/main/items.json";
 
-export const withSchemeParam = (url: string): string => {
-  // No longer adding URL parameters - theme will be controlled via postMessage
-  return url;
-};
+export const withSchemeParam = (url: string) => url;

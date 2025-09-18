@@ -18,9 +18,9 @@ export function BulkSelectionCheckbox({
 
   return (
     <Checkbox
+      aria-label={ariaLabel || `Select item ${id}`}
       checked={checked}
       onCheckedChange={() => toggle(id)}
-      aria-label={ariaLabel || `Select item ${id}`}
     />
   );
 }

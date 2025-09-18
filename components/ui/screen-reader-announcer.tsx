@@ -61,8 +61,8 @@ export function ScreenReaderAnnouncer({
 
   return (
     <output
-      aria-live={priority}
       aria-atomic="true"
+      aria-live={priority}
       className="sr-only"
       data-testid="screen-reader-announcer"
     >
@@ -87,17 +87,17 @@ export function GlobalScreenReaderProvider({
       {children}
       {/* Persistent live regions for global announcements */}
       <output
-        id="global-announcer-polite"
-        aria-live="polite"
         aria-atomic="true"
+        aria-live="polite"
         className="sr-only"
+        id="global-announcer-polite"
       />
       <div
+        aria-atomic="true"
+        aria-live="assertive"
+        className="sr-only"
         id="global-announcer-assertive"
         role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-        className="sr-only"
       />
     </>
   );
@@ -218,8 +218,8 @@ export function SkipNavigation({
         {links.map((link) => (
           <li key={link.href}>
             <a
-              href={link.href}
               className="inline-block rounded bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              href={link.href}
             >
               {link.label}
             </a>

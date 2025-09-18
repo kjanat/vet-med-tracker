@@ -22,7 +22,7 @@ function MobileUserMenu() {
   const { user, logout, isLoading } = useAuth();
 
   if (!user) {
-    return <LoginButton variant="outline" size="sm" />;
+    return <LoginButton size="sm" variant="outline" />;
   }
 
   const initials = user.name
@@ -38,21 +38,21 @@ function MobileUserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          aria-label={`User menu for ${user.name || user.email || "User"}`}
           className="relative h-9 w-9 rounded-full"
           disabled={isLoading}
-          aria-label={`User menu for ${user.name || user.email || "User"}`}
+          variant="ghost"
         >
           <Avatar className="h-9 w-9">
             <AvatarImage
-              src={user.image ?? undefined}
               alt={user.name || user.email || "User"}
+              src={user.image ?? undefined}
             />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent align="end" className="w-56" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="font-medium text-sm leading-none">
@@ -77,7 +77,7 @@ function MobileUserMenu() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout} className="text-red-600">
+        <DropdownMenuItem className="text-red-600" onClick={logout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

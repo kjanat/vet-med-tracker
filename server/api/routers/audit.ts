@@ -1,23 +1,69 @@
 import { and, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
+
 import { z } from "zod";
 import { auditLog, users } from "@/db/schema";
 import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 
 // Input validation schema for listing audit logs
 const listAuditLogsSchema = z.object({
+  action: z.string().optional(),
+  endDate: z.iso.datetime().optional(),
   householdId: z.uuid(),
   limit: z.number().min(1).max(100).default(50),
   offset: z.number().min(0).default(0),
+  resourceType: z.string().optional(),
+  search: z.string().optional(), // Search in action, resourceType, or details
+  startDate: z.iso.datetime().optional(),
   // Filters
   userId: z.uuid().optional(),
-  action: z.string().optional(),
-  resourceType: z.string().optional(),
-  startDate: z.iso.datetime().optional(),
-  endDate: z.iso.datetime().optional(),
-  search: z.string().optional(), // Search in action, resourceType, or details
 });
 
 export const auditRouter = createTRPCRouter({
+  // Get unique action types for filtering
+  getActionTypes: householdProcedure
+    .input(z.object({ householdId: z.uuid() }))
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.db
+        .selectDistinct({ action: auditLog.action })
+        .from(auditLog)
+        .where(eq(auditLog.householdId, input.householdId))
+        .orderBy(auditLog.action);
+
+      return result
+        .map((r) => r.action)
+        .filter((action): action is string => Boolean(action));
+    }),
+
+  // Get users who have performed actions (for filtering)
+  getActiveUsers: householdProcedure
+    .input(z.object({ householdId: z.uuid() }))
+    .query(async ({ ctx, input }) =>
+      ctx.db
+        .selectDistinct({
+          userEmail: users.email,
+          userId: auditLog.userId,
+          userName: users.name,
+        })
+        .from(auditLog)
+        .innerJoin(users, eq(auditLog.userId, users.id))
+        .where(eq(auditLog.householdId, input.householdId))
+        .orderBy(users.name),
+    ),
+
+  // Get unique resource types for filtering
+  getResourceTypes: householdProcedure
+    .input(z.object({ householdId: z.uuid() }))
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.db
+        .selectDistinct({ resourceType: auditLog.resourceType })
+        .from(auditLog)
+        .where(eq(auditLog.householdId, input.householdId))
+        .orderBy(auditLog.resourceType);
+
+      return result
+        .map((r) => r.resourceType)
+        .filter((type): type is string => Boolean(type));
+    }),
   // List audit logs for a household with filtering and pagination
   list: householdProcedure
     .input(listAuditLogsSchema)
@@ -66,23 +112,23 @@ export const auditRouter = createTRPCRouter({
 
       const result = await ctx.db
         .select({
+          action: auditLog.action,
+          details: auditLog.details,
+          householdId: auditLog.householdId,
           // Audit log fields
           id: auditLog.id,
-          userId: auditLog.userId,
-          householdId: auditLog.householdId,
-          action: auditLog.action,
-          resourceType: auditLog.resourceType,
-          resourceId: auditLog.resourceId,
-          oldValues: auditLog.oldValues,
-          newValues: auditLog.newValues,
-          details: auditLog.details,
           ipAddress: auditLog.ipAddress,
-          userAgent: auditLog.userAgent,
+          newValues: auditLog.newValues,
+          oldValues: auditLog.oldValues,
+          resourceId: auditLog.resourceId,
+          resourceType: auditLog.resourceType,
           sessionId: auditLog.sessionId,
           timestamp: auditLog.timestamp,
+          userAgent: auditLog.userAgent,
+          userEmail: users.email,
+          userId: auditLog.userId,
           // User information
           userName: users.name,
-          userEmail: users.email,
         })
         .from(auditLog)
         .innerJoin(users, eq(auditLog.userId, users.id))
@@ -93,54 +139,8 @@ export const auditRouter = createTRPCRouter({
 
       return {
         entries: result,
-        total: result.length, // This is approximate for now
         hasMore: result.length === input.limit,
+        total: result.length, // This is approximate for now
       };
-    }),
-
-  // Get unique action types for filtering
-  getActionTypes: householdProcedure
-    .input(z.object({ householdId: z.uuid() }))
-    .query(async ({ ctx, input }) => {
-      const result = await ctx.db
-        .selectDistinct({ action: auditLog.action })
-        .from(auditLog)
-        .where(eq(auditLog.householdId, input.householdId))
-        .orderBy(auditLog.action);
-
-      return result
-        .map((r) => r.action)
-        .filter((action): action is string => !!action);
-    }),
-
-  // Get unique resource types for filtering
-  getResourceTypes: householdProcedure
-    .input(z.object({ householdId: z.uuid() }))
-    .query(async ({ ctx, input }) => {
-      const result = await ctx.db
-        .selectDistinct({ resourceType: auditLog.resourceType })
-        .from(auditLog)
-        .where(eq(auditLog.householdId, input.householdId))
-        .orderBy(auditLog.resourceType);
-
-      return result
-        .map((r) => r.resourceType)
-        .filter((type): type is string => !!type);
-    }),
-
-  // Get users who have performed actions (for filtering)
-  getActiveUsers: householdProcedure
-    .input(z.object({ householdId: z.uuid() }))
-    .query(async ({ ctx, input }) => {
-      return ctx.db
-        .selectDistinct({
-          userId: auditLog.userId,
-          userName: users.name,
-          userEmail: users.email,
-        })
-        .from(auditLog)
-        .innerJoin(users, eq(auditLog.userId, users.id))
-        .where(eq(auditLog.householdId, input.householdId))
-        .orderBy(users.name);
     }),
 });

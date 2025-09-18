@@ -29,7 +29,7 @@ export default function DosageCalculatorLoading() {
             <CardContent className="space-y-4">
               {/* Form fields */}
               {Array.from({ length: 6 }, () => (
-                <div key={crypto.randomUUID()} className="space-y-2">
+                <div className="space-y-2" key={crypto.randomUUID()}>
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-10 w-full" />
                 </div>

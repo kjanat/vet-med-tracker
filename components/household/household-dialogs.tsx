@@ -40,7 +40,7 @@ export function EditHouseholdDialog({
   isSaving,
 }: EditHouseholdDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Household Settings</DialogTitle>
@@ -53,14 +53,14 @@ export function EditHouseholdDialog({
             <Label htmlFor="household-name">Household Name</Label>
             <Input
               id="household-name"
-              value={editedName}
               onChange={(e) => onNameChange(e.target.value)}
               placeholder="Enter household name"
+              value={editedName}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="household-timezone">Timezone</Label>
-            <Select value={editedTimezone} onValueChange={onTimezoneChange}>
+            <Select onValueChange={onTimezoneChange} value={editedTimezone}>
               <SelectTrigger id="household-timezone">
                 <SelectValue placeholder="Select timezone" />
               </SelectTrigger>
@@ -112,10 +112,10 @@ export function EditHouseholdDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button onClick={() => onOpenChange(false)} variant="outline">
             Cancel
           </Button>
-          <Button onClick={onSave} disabled={isSaving}>
+          <Button disabled={isSaving} onClick={onSave}>
             Save Changes
           </Button>
         </DialogFooter>
@@ -138,7 +138,7 @@ export function LeaveHouseholdDialog({
   isLeaving,
 }: LeaveHouseholdDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Leave Household</DialogTitle>
@@ -148,10 +148,10 @@ export function LeaveHouseholdDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button onClick={() => onOpenChange(false)} variant="outline">
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onLeave} disabled={isLeaving}>
+          <Button disabled={isLeaving} onClick={onLeave} variant="destructive">
             Leave Household
           </Button>
         </DialogFooter>

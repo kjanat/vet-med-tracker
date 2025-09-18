@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar as CalendarIcon } from "lucide-react";
-import * as React from "react";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -79,16 +79,14 @@ export function DateInput({
   return (
     <div className="flex flex-col gap-2">
       {label && (
-        <Label htmlFor={id} className="px-1">
+        <Label className="px-1" htmlFor={id}>
           {label} {required && "*"}
         </Label>
       )}
       <div className="relative flex gap-2">
         <Input
-          id={id}
-          value={inputValue}
-          placeholder={placeholder}
           className="bg-background pr-10"
+          id={id}
           onChange={(e) => {
             const date = new Date(e.target.value);
             setInputValue(e.target.value);
@@ -103,36 +101,28 @@ export function DateInput({
               setOpen(true);
             }
           }}
+          placeholder={placeholder}
+          value={inputValue}
         />
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover onOpenChange={setOpen} open={open}>
           <PopoverTrigger asChild>
             <Button
+              className="-translate-y-1/2 absolute top-1/2 right-2 size-6"
               id={id ? `${id}-picker` : undefined}
               variant="ghost"
-              className="-translate-y-1/2 absolute top-1/2 right-2 size-6"
             >
               <CalendarIcon className="size-3.5" />
               <span className="sr-only">Select date</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-auto overflow-hidden p-0"
             align="end"
             alignOffset={-8}
+            className="w-auto overflow-hidden p-0"
             sideOffset={10}
           >
             <Calendar
-              mode="single"
-              selected={date}
               captionLayout="dropdown"
-              month={month}
-              onMonthChange={setMonth}
-              onSelect={(date) => {
-                handleDateChange(date);
-                setOpen(false);
-              }}
-              startMonth={fromDate || new Date(new Date().getFullYear(), 0)}
-              endMonth={toDate || new Date(new Date().getFullYear() + 10, 11)}
               disabled={(date) => {
                 // Apply custom disabled function if provided
                 if (disabled?.(date)) {
@@ -144,8 +134,18 @@ export function DateInput({
                   return true;
                 }
 
-                return !!(toDate && date > toDate);
+                return Boolean(toDate && date > toDate);
               }}
+              endMonth={toDate || new Date(new Date().getFullYear() + 10, 11)}
+              mode="single"
+              month={month}
+              onMonthChange={setMonth}
+              onSelect={(date) => {
+                handleDateChange(date);
+                setOpen(false);
+              }}
+              selected={date}
+              startMonth={fromDate || new Date(new Date().getFullYear(), 0)}
             />
           </PopoverContent>
         </Popover>

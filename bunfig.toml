@@ -29,9 +29,6 @@ coverageDir       = "coverage"
 [test.reporter]
 junit = "tests/junit.xml"
 
-[install]
-registry = "https://registry.npmjs.org"
-
 [install.scopes]
 jsr = "https://npm.jsr.io"
 

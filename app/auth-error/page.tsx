@@ -131,11 +131,11 @@ export default function AuthErrorPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-2">
-            <Button onClick={handleRetry} className="w-full">
+            <Button className="w-full" onClick={handleRetry}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Try Again
             </Button>
-            <Button onClick={handleGoHome} variant="outline" className="w-full">
+            <Button className="w-full" onClick={handleGoHome} variant="outline">
               Go to Homepage
             </Button>
           </div>

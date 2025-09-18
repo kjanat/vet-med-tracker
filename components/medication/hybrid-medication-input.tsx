@@ -55,14 +55,14 @@ function useMedicationInput(
   const debouncedQuery = useDebounce(query, 300);
 
   const searchQuery = trpc.medication.search.useQuery(
-    { query: debouncedQuery, limit: 8 },
+    { limit: 8, query: debouncedQuery },
     { enabled: debouncedQuery.length > 1 && open, staleTime: 5 * 60 * 1000 },
   );
 
   const frequentQuery = trpc.medication.getFrequentlyUsed.useQuery(
     { householdId: householdId || "", limit: 5 },
     {
-      enabled: !!householdId && open && debouncedQuery.length <= 1,
+      enabled: Boolean(householdId) && open && debouncedQuery.length <= 1,
       staleTime: 5 * 60 * 1000,
     },
   );
@@ -99,18 +99,18 @@ function useMedicationInput(
   };
 
   return {
-    query,
-    setQuery,
-    open,
-    setOpen,
-    selectedCatalogItem,
     debouncedQuery,
-    searchResults: searchQuery.data,
-    isSearching: searchQuery.isLoading,
     frequentMeds: frequentQuery.data,
-    handleInputChange,
     handleCatalogSelection,
+    handleInputChange,
     handleKeyDown,
+    isSearching: searchQuery.isLoading,
+    open,
+    query,
+    searchResults: searchQuery.data,
+    selectedCatalogItem,
+    setOpen,
+    setQuery,
   };
 }
 
@@ -139,25 +139,25 @@ function MedicationInputField({
   return (
     <div className="relative">
       <Input
-        value={query}
+        aria-controls="medication-listbox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className={cn("pr-8", selectedCatalogItem && "border-primary")}
+        disabled={disabled}
         onChange={(e) => handleInputChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        disabled={disabled}
         required={required}
-        className={cn("pr-8", selectedCatalogItem && "border-primary")}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-controls="medication-listbox"
+        value={query}
       />
       <Button
+        aria-label="Show medication suggestions"
+        className="absolute top-0 right-0 h-full px-2 hover:bg-transparent"
+        disabled={disabled}
+        onClick={() => setOpen(!open)}
+        size="sm"
         type="button"
         variant="ghost"
-        size="sm"
-        className="absolute top-0 right-0 h-full px-2 hover:bg-transparent"
-        onClick={() => setOpen(!open)}
-        disabled={disabled}
-        aria-label="Show medication suggestions"
       >
         <ChevronsUpDown className="h-4 w-4 opacity-50" />
       </Button>
@@ -196,17 +196,17 @@ function MedicationSuggestions({
   if (!showSuggestions && !showCustomOption && !isSearching) return null;
 
   return (
-    <PopoverContent className="w-[400px] p-0" align="start">
-      <Command shouldFilter={false} id="medication-listbox">
+    <PopoverContent align="start" className="w-[400px] p-0">
+      <Command id="medication-listbox" shouldFilter={false}>
         <CommandInput
+          className="border-none"
+          onValueChange={setQuery}
           placeholder="Search catalog medications..."
           value={debouncedQuery}
-          onValueChange={setQuery}
-          className="border-none"
         />
 
         {isSearching && (
-          <CommandItem disabled className="justify-center">
+          <CommandItem className="justify-center" disabled>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Searching catalog...
           </CommandItem>
@@ -226,17 +226,17 @@ function MedicationSuggestions({
                 frequentMeds={frequentMeds}
               />
               <CustomMedicationOption
-                showCustomOption={showCustomOption}
-                query={query}
                 onChange={onChange}
+                query={query}
                 setOpen={setOpen}
+                showCustomOption={showCustomOption}
               />
               <CatalogSuggestions
-                showSuggestions={showSuggestions}
-                showCustomOption={showCustomOption}
-                medicationsToShow={medicationsToShow}
                 handleCatalogSelection={handleCatalogSelection}
+                medicationsToShow={medicationsToShow}
                 selectedCatalogItem={selectedCatalogItem}
+                showCustomOption={showCustomOption}
+                showSuggestions={showSuggestions}
               />
             </CommandGroup>
           </>
@@ -284,12 +284,12 @@ function CustomMedicationOption({
         Custom Medication
       </div>
       <CommandItem
-        value={`custom-${query}`}
+        className="flex items-start"
         onSelect={() => {
           onChange(query.trim(), undefined, true, undefined);
           setOpen(false);
         }}
-        className="flex items-start"
+        value={`custom-${query}`}
       >
         <Plus className="mt-0.5 mr-2 h-4 w-4 text-green-600" />
         <div className="flex flex-col">
@@ -330,10 +330,10 @@ function CatalogSuggestions({
         const isSelected = selectedCatalogItem?.id === medication.id;
         return (
           <CommandItem
-            key={medication.id}
-            value={medication.id}
-            onSelect={() => handleCatalogSelection(medication)}
             className="flex items-start"
+            key={medication.id}
+            onSelect={() => handleCatalogSelection(medication)}
+            value={medication.id}
           >
             <Check
               className={cn(
@@ -386,39 +386,41 @@ export function HybridMedicationInput({
 
   const medicationsToShow =
     debouncedQuery.length > 1 ? searchResults : frequentMeds;
-  const showSuggestions = !!(medicationsToShow && medicationsToShow.length > 0);
+  const showSuggestions = Boolean(
+    medicationsToShow && medicationsToShow.length > 0,
+  );
   const showCustomOption = query.trim().length > 0 && debouncedQuery.length > 1;
 
   return (
     <div className="relative w-full">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover onOpenChange={setOpen} open={open}>
         <PopoverTrigger asChild>
           <MedicationInputField
-            query={query}
+            disabled={disabled}
             handleInputChange={handleInputChange}
             handleKeyDown={handleKeyDown}
+            open={open}
             placeholder={placeholder}
-            disabled={disabled}
+            query={query}
             required={required}
             selectedCatalogItem={selectedCatalogItem}
-            open={open}
             setOpen={setOpen}
           />
         </PopoverTrigger>
 
         <MedicationSuggestions
-          showSuggestions={showSuggestions}
-          showCustomOption={showCustomOption}
-          isSearching={isSearching}
           debouncedQuery={debouncedQuery}
-          setQuery={setQuery}
-          query={query}
-          onChange={onChange}
-          setOpen={setOpen}
           frequentMeds={frequentMeds}
-          medicationsToShow={medicationsToShow}
           handleCatalogSelection={handleCatalogSelection}
+          isSearching={isSearching}
+          medicationsToShow={medicationsToShow}
+          onChange={onChange}
+          query={query}
           selectedCatalogItem={selectedCatalogItem}
+          setOpen={setOpen}
+          setQuery={setQuery}
+          showCustomOption={showCustomOption}
+          showSuggestions={showSuggestions}
         />
       </Popover>
 

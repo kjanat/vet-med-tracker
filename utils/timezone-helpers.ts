@@ -11,23 +11,23 @@ export const IANA_TIMEZONES: readonly string[] =
 
 /** Abbreviations → canonical zone. Keep in UPPER-SNAKE to avoid clashes. */
 export const TZ_ALIASES = {
-  EST: "America/New_York",
-  EDT: "America/New_York",
-  CST: "America/Chicago",
-  CDT: "America/Chicago",
-  MST: "America/Denver",
-  MDT: "America/Denver",
-  PST: "America/Los_Angeles",
-  PDT: "America/Los_Angeles",
-  GMT: "Europe/London",
+  AEDT: "Australia/Sydney",
+  AEST: "Australia/Sydney",
   BST: "Europe/London",
-  CET: "Europe/Paris",
+  CDT: "America/Chicago",
   CEST: "Europe/Paris",
+  CET: "Europe/Paris",
+  CST: "America/Chicago",
+  EDT: "America/New_York",
+  EST: "America/New_York",
+  GMT: "Europe/London",
+  IST: "Asia/Kolkata",
   JST: "Asia/Tokyo",
   KST: "Asia/Seoul",
-  IST: "Asia/Kolkata",
-  AEST: "Australia/Sydney",
-  AEDT: "Australia/Sydney",
+  MDT: "America/Denver",
+  MST: "America/Denver",
+  PDT: "America/Los_Angeles",
+  PST: "America/Los_Angeles",
 } as const;
 
 export type IanaZone = (typeof IANA_TIMEZONES)[number];
@@ -67,28 +67,28 @@ export const BROWSER_ZONE =
 
 /** Optional map of friendly labels. Expand as needed */
 const FRIENDLY = {
-  "America/New_York": "Eastern Time",
+  "America/Anchorage": "Alaska Time",
   "America/Chicago": "Central Time",
   "America/Denver": "Mountain Time",
-  "America/Los_Angeles": "Pacific Time",
-  "America/Phoenix": "Arizona Time",
-  "America/Anchorage": "Alaska Time",
   "America/Honolulu": "Hawaii Time",
-  "Europe/London": "British Time",
-  "Europe/Paris": "Central European Time",
-  "Europe/Berlin": "Central European Time",
-  "Europe/Amsterdam": "Central European Time",
-  "Europe/Madrid": "Central European Time",
-  "Europe/Rome": "Central European Time",
-  "Asia/Tokyo": "Japan Time",
-  "Asia/Shanghai": "China Time",
+  "America/Los_Angeles": "Pacific Time",
+  "America/New_York": "Eastern Time",
+  "America/Phoenix": "Arizona Time",
   "Asia/Hong_Kong": "Hong Kong Time",
-  "Asia/Singapore": "Singapore Time",
-  "Asia/Seoul": "Korea Time",
   "Asia/Kolkata": "India Time",
-  "Australia/Sydney": "Australian Eastern Time",
+  "Asia/Seoul": "Korea Time",
+  "Asia/Shanghai": "China Time",
+  "Asia/Singapore": "Singapore Time",
+  "Asia/Tokyo": "Japan Time",
   "Australia/Melbourne": "Australian Eastern Time",
   "Australia/Perth": "Australian Western Time",
+  "Australia/Sydney": "Australian Eastern Time",
+  "Europe/Amsterdam": "Central European Time",
+  "Europe/Berlin": "Central European Time",
+  "Europe/London": "British Time",
+  "Europe/Madrid": "Central European Time",
+  "Europe/Paris": "Central European Time",
+  "Europe/Rome": "Central European Time",
   "Pacific/Auckland": "New Zealand Time",
 } as const;
 
@@ -96,8 +96,8 @@ const FRIENDLY = {
 export function offsetOf(zone: IanaZone, epoch: Date = new Date()): string {
   // Always let Intl do the heavy lifting
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: zone,
     hourCycle: "h23",
+    timeZone: zone,
     timeZoneName: "shortOffset",
   }).formatToParts(epoch);
 
@@ -108,10 +108,10 @@ export function offsetOf(zone: IanaZone, epoch: Date = new Date()): string {
 /** Get current time in zone */
 export function timeIn(zone: IanaZone, when: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-GB", {
-    timeZone: zone,
-    hourCycle: "h23",
     hour: "2-digit",
+    hourCycle: "h23",
     minute: "2-digit",
+    timeZone: zone,
   }).format(when);
 }
 

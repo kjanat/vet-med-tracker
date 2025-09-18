@@ -26,11 +26,11 @@ export interface CompressionResult {
  * Default compression settings for animal photos
  */
 export const DEFAULT_COMPRESSION_OPTIONS: CompressionOptions = {
-  maxWidth: 1200,
+  format: "image/jpeg",
   maxHeight: 1200,
+  maxWidth: 1200,
   quality: 0.8,
   targetSizeKB: 500,
-  format: "image/jpeg",
 };
 
 /**
@@ -72,8 +72,8 @@ function calculateDimensions(
   }
 
   return {
-    width: Math.round(newWidth),
     height: Math.round(newHeight),
+    width: Math.round(newWidth),
   };
 }
 
@@ -168,8 +168,8 @@ async function compressToTargetSize(
 
     blob = await compressImageWithCanvas(img, {
       ...options,
-      maxWidth: newMaxWidth,
       maxHeight: newMaxHeight,
+      maxWidth: newMaxWidth,
       quality: 0.7, // Use reasonable quality for smaller images
     });
   }
@@ -191,22 +191,22 @@ export async function compressImage(
 
   // Merge options with defaults
   const finalOptions: Required<CompressionOptions> = {
-    maxWidth: options.maxWidth ?? DEFAULT_COMPRESSION_OPTIONS.maxWidth ?? 1200,
+    format:
+      options.format ?? DEFAULT_COMPRESSION_OPTIONS.format ?? "image/jpeg",
     maxHeight:
       options.maxHeight ?? DEFAULT_COMPRESSION_OPTIONS.maxHeight ?? 1200,
+    maxWidth: options.maxWidth ?? DEFAULT_COMPRESSION_OPTIONS.maxWidth ?? 1200,
     quality: options.quality ?? DEFAULT_COMPRESSION_OPTIONS.quality ?? 0.8,
     targetSizeKB:
       options.targetSizeKB ?? DEFAULT_COMPRESSION_OPTIONS.targetSizeKB ?? 500,
-    format:
-      options.format ?? DEFAULT_COMPRESSION_OPTIONS.format ?? "image/jpeg",
   };
 
   try {
     // Load original image
     const img = await loadImageFromFile(file);
     const originalDimensions = {
-      width: img.naturalWidth,
       height: img.naturalHeight,
+      width: img.naturalWidth,
     };
 
     // Compress image
@@ -234,14 +234,14 @@ export async function compressImage(
     URL.revokeObjectURL(img.src);
 
     return {
-      file: compressedFile,
-      originalSize: file.size,
       compressedSize: compressedFile.size,
       compressionRatio,
       dimensions: {
-        original: originalDimensions,
         compressed: compressedDimensions,
+        original: originalDimensions,
       },
+      file: compressedFile,
+      originalSize: file.size,
     };
   } catch (error) {
     throw new Error(
@@ -275,12 +275,12 @@ export function isCompressionSupported(): boolean {
   try {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    return !!(
+    return Boolean(
       ctx &&
-      canvas.toBlob &&
-      window.File &&
-      window.FileReader &&
-      typeof canvas.toBlob === "function"
+        canvas.toBlob &&
+        window.File &&
+        window.FileReader &&
+        typeof canvas.toBlob === "function",
     );
   } catch {
     return false;

@@ -44,7 +44,7 @@ export function MedicationSearch({
   // Search medications
   const { data: searchResults, isLoading: isSearching } =
     trpc.medication.search.useQuery(
-      { query, limit: 10 },
+      { limit: 10, query },
       {
         enabled: query.length > 0 && open,
         staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -55,7 +55,7 @@ export function MedicationSearch({
   const { data: selectedMedication } = trpc.medication.getById.useQuery(
     { id: value || "" },
     {
-      enabled: !!value,
+      enabled: Boolean(value),
       staleTime: 10 * 60 * 1000, // Cache for 10 minutes
     },
   );
@@ -64,7 +64,7 @@ export function MedicationSearch({
   const { data: frequentMeds } = trpc.medication.getFrequentlyUsed.useQuery(
     { householdId: householdId || "", limit: 5 },
     {
-      enabled: !!householdId && open && query.length === 0,
+      enabled: Boolean(householdId) && open && query.length === 0,
       staleTime: 5 * 60 * 1000,
     },
   );
@@ -78,32 +78,32 @@ export function MedicationSearch({
   const medicationsToShow = query.length > 0 ? searchResults : frequentMeds;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          role="combobox"
+          aria-controls="medication-listbox"
           aria-expanded={open}
+          aria-haspopup="listbox"
           aria-label="Select medication"
           aria-required={required}
-          aria-haspopup="listbox"
-          aria-controls="medication-listbox"
-          disabled={disabled}
           className={cn(
             "w-full justify-between",
             !displayValue && "text-muted-foreground",
           )}
+          disabled={disabled}
+          role="combobox"
+          variant="outline"
         >
           <span className="truncate">{displayValue || placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
-        <Command shouldFilter={false} id="medication-listbox">
+      <PopoverContent align="start" className="w-[400px] p-0">
+        <Command id="medication-listbox" shouldFilter={false}>
           <CommandInput
+            onValueChange={setQuery}
             placeholder="Search by generic or brand name..."
             value={query}
-            onValueChange={setQuery}
           />
           <CommandEmpty>
             {query.length === 0
@@ -124,14 +124,14 @@ export function MedicationSearch({
             )}
             {medicationsToShow?.map((medication) => (
               <CommandItem
+                className="flex items-start"
                 key={medication.id}
-                value={medication.id}
                 onSelect={() => {
                   onChange(medication.id, medication);
                   setOpen(false);
                   setQuery("");
                 }}
-                className="flex items-start"
+                value={medication.id}
               >
                 <Check
                   className={cn(

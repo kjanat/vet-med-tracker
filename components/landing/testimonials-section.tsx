@@ -9,28 +9,28 @@ import { SectionHeader } from "./primitives/section-header";
 
 const testimonials = [
   {
-    name: "Sarah M.",
-    role: "Dog Mom to Max & Luna",
+    avatar: "SM",
     content:
       "This app saved my sanity! With two dogs on different medications, I was constantly worried about mixing things up. Now everything is organized and I get reminders right when I need them.",
+    name: "Sarah M.",
     rating: 5,
-    avatar: "SM",
+    role: "Dog Mom to Max & Luna",
   },
   {
-    name: "Dr. James Wilson",
-    role: "Veterinarian",
+    avatar: "JW",
     content:
       "I recommend VetMed Tracker to all my clients with pets on regular medications. The compliance rates have improved dramatically, and the emergency card feature has been a lifesaver.",
+    name: "Dr. James Wilson",
     rating: 5,
-    avatar: "JW",
+    role: "Veterinarian",
   },
   {
-    name: "Emily Chen",
-    role: "Foster Parent",
+    avatar: "EC",
     content:
       "Managing medications for multiple foster cats used to be a nightmare. This app makes it so easy to track who gets what and when. The household feature is perfect for our rescue group.",
+    name: "Emily Chen",
     rating: 5,
-    avatar: "EC",
+    role: "Foster Parent",
   },
 ];
 
@@ -38,24 +38,24 @@ export function TestimonialsSection() {
   return (
     <Section variant="muted">
       <SectionHeader
-        title="Loved by Pet Parents Everywhere"
         description="Join thousands of pet parents who've transformed how they manage their pets' health."
+        title="Loved by Pet Parents Everywhere"
       />
 
       {/* Testimonials grid */}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
         {testimonials.map((testimonial) => (
           <Card
-            key={`testimonial-${testimonial.name.replace(/\s+/g, "-").toLowerCase()}`}
             className="transition-shadow hover:shadow-lg"
+            key={`testimonial-${testimonial.name.replace(/\s+/g, "-").toLowerCase()}`}
           >
             <CardContent className="p-6">
               {/* Rating stars */}
               <div className="mb-4 flex gap-1">
                 {[...Array(testimonial.rating)].map((_, i) => (
                   <Star
-                    key={`star-${testimonial.name}-${i}`}
                     className="h-5 w-5 fill-primary text-primary"
+                    key={`star-${testimonial.name}-${i}`}
                   />
                 ))}
               </div>
@@ -86,10 +86,10 @@ export function TestimonialsSection() {
       <StatsGrid
         className="mt-16"
         stats={[
-          { value: "10,000+", label: "Pet Parents", highlight: true },
-          { value: "50,000+", label: "Pets Tracked", highlight: true },
-          { value: "1M+", label: "Doses Recorded", highlight: true },
-          { value: "99.9%", label: "Uptime", highlight: true },
+          { highlight: true, label: "Pet Parents", value: "10,000+" },
+          { highlight: true, label: "Pets Tracked", value: "50,000+" },
+          { highlight: true, label: "Doses Recorded", value: "1M+" },
+          { highlight: true, label: "Uptime", value: "99.9%" },
         ]}
       />
     </Section>

@@ -30,8 +30,8 @@ export function NotificationsSidebarItem() {
   // Fetch notifications (only unread for sidebar)
   const { data: notifications = [] } = trpc.notifications.list.useQuery({
     householdId: selectedHouseholdId || undefined,
-    unreadOnly: true,
     limit: 10,
+    unreadOnly: true,
   });
 
   // Fetch unread count
@@ -84,7 +84,7 @@ export function NotificationsSidebarItem() {
       <div className="flex items-center justify-between p-4 pb-2">
         <h4 className="font-semibold">Notifications</h4>
         {unreadCount > 0 && (
-          <Badge variant="secondary" className="text-xs">
+          <Badge className="text-xs" variant="secondary">
             {unreadCount} new
           </Badge>
         )}
@@ -116,8 +116,8 @@ export function NotificationsSidebarItem() {
                     </p>
                   </div>
                   <Badge
-                    variant="outline"
                     className={`text-xs ${getPriorityColor(notification.priority)}`}
+                    variant="outline"
                   >
                     {notification.priority}
                   </Badge>
@@ -132,14 +132,14 @@ export function NotificationsSidebarItem() {
       <Separator />
       <div className="p-2">
         <Button
-          variant="ghost"
-          size="sm"
           className="w-full cursor-pointer text-xs"
           onClick={() => {
             setIsOpen(false);
             // In real app, navigate to /admin/record or similar
             window.location.href = "/admin/record";
           }}
+          size="sm"
+          variant="ghost"
         >
           View All & Record Doses
         </Button>
@@ -148,13 +148,13 @@ export function NotificationsSidebarItem() {
   );
 
   const triggerButton = (
-    <SidebarMenuButton size="sm" className="relative cursor-pointer">
+    <SidebarMenuButton className="relative cursor-pointer" size="sm">
       <Bell />
       <span>Notifications</span>
       {unreadCount > 0 && (
         <Badge
-          variant="destructive"
           className="ml-auto flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
+          variant="destructive"
         >
           {unreadCount > 9 ? "9+" : unreadCount}
         </Badge>
@@ -164,9 +164,9 @@ export function NotificationsSidebarItem() {
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <Sheet onOpenChange={setIsOpen} open={isOpen}>
         <SheetTrigger asChild>{triggerButton}</SheetTrigger>
-        <SheetContent side="bottom" className="h-[80vh] p-0">
+        <SheetContent className="h-[80vh] p-0" side="bottom">
           <SheetHeader className="p-4 pb-2">
             <SheetTitle>Notifications</SheetTitle>
           </SheetHeader>
@@ -177,9 +177,9 @@ export function NotificationsSidebarItem() {
   }
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover onOpenChange={setIsOpen} open={isOpen}>
       <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-      <PopoverContent className="w-80 p-0" side="right" align="start">
+      <PopoverContent align="start" className="w-80 p-0" side="right">
         <NotificationContent />
       </PopoverContent>
     </Popover>

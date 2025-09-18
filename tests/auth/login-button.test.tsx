@@ -69,8 +69,8 @@ function renderWithAuth(authState: TestAuthOverrides = {}) {
         <LoginButton />
       </TestAppProvider>,
     ),
-    loginSpy: loginFn,
     contextValue,
+    loginSpy: loginFn,
   };
 }
 
@@ -101,7 +101,7 @@ describe("LoginButton", () => {
 
       render(
         <TestAppProvider value={contextValue}>
-          <LoginButton variant="outline" size="sm" />
+          <LoginButton size="sm" variant="outline" />
         </TestAppProvider>,
       );
 

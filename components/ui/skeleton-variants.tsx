@@ -108,8 +108,8 @@ export function ChartSkeleton({ className }: { className?: string }) {
               "bar-7",
             ].map((key) => (
               <Skeleton
-                key={key}
                 className="flex-1"
+                key={key}
                 style={{
                   height: `${Math.random() * 60 + 40}%`,
                 }}
@@ -134,8 +134,8 @@ export function ListSkeleton({
     <div className={cn("space-y-3", className)}>
       {Array.from({ length: count }, (_, i) => (
         <div
-          key={`list-${i}-${count}`}
           className="flex items-center gap-3 py-2"
+          key={`list-${i}-${count}`}
         >
           <Skeleton className="h-10 w-10 rounded-full" />
           <div className="flex-1 space-y-2">
@@ -153,7 +153,7 @@ export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
   return (
     <tr>
       {Array.from({ length: columns }, (_, i) => (
-        <td key={`col-${i}-${columns}`} className="p-3">
+        <td className="p-3" key={`col-${i}-${columns}`}>
           <Skeleton className="h-4 w-full" />
         </td>
       ))}
@@ -166,7 +166,7 @@ export function FormSkeleton({ fields = 3 }: { fields?: number }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: fields }, (_, i) => (
-        <div key={`field-${i}-${fields}`} className="space-y-2">
+        <div className="space-y-2" key={`field-${i}-${fields}`}>
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-10 w-full" />
         </div>

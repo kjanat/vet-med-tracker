@@ -34,100 +34,100 @@ export function PageHeaderEnhanced({ className }: PageHeaderProps) {
 
   // Page context mappings
   const pageContextMap: Record<string, PageContext | (() => PageContext)> = {
+    "admin/record": {
+      actions: (
+        <Button size="sm" variant="outline">
+          <Syringe className="mr-2 h-4 w-4" />
+          Quick Record
+        </Button>
+      ),
+      description: "Record a medication dose",
+      title: "Record Administration",
+    },
     dashboard: {
-      title: "Dashboard",
       description: "Today's medication schedule and overview",
+      title: "Dashboard",
     },
     "dashboard/history": {
-      title: "Medication History",
       description: "View past medication administrations",
+      title: "Medication History",
+    },
+    insights: {
+      description: "Medication compliance and patterns",
+      title: "Insights",
     },
     "manage/animals": () => ({
-      title: "Manage Animals",
-      description: "Add and manage your animals",
       actions: (
         <Button onClick={() => openAnimalForm()} size="sm">
           <Plus className="mr-2 h-4 w-4" />
           Add Animal
         </Button>
       ),
+      description: "Add and manage your animals",
+      title: "Manage Animals",
     }),
     "manage/animals/emergency": {
-      title: "Emergency Information",
       description: "Critical care information for this animal",
+      title: "Emergency Information",
     },
     "manage/households": {
-      title: "Manage Households",
       description: "Manage household members and settings",
+      title: "Manage Households",
     },
     "manage/users": {
-      title: "Manage Users",
       description: "Manage user roles and permissions",
+      title: "Manage Users",
     },
     "medications/inventory": () => ({
-      title: "Medication Inventory",
-      description: "Track your medication stock",
       actions: (
         <Button onClick={() => openInventoryForm()} size="sm">
           <Plus className="mr-2 h-4 w-4" />
           Add Item
         </Button>
       ),
+      description: "Track your medication stock",
+      title: "Medication Inventory",
     }),
     "medications/regimens": {
-      title: "Medication Regimens",
-      description: "Manage medication schedules",
       actions: (
         <Button size="sm">
           <Plus className="mr-2 h-4 w-4" />
           New Regimen
         </Button>
       ),
-    },
-    "admin/record": {
-      title: "Record Administration",
-      description: "Record a medication dose",
-      actions: (
-        <Button variant="outline" size="sm">
-          <Syringe className="mr-2 h-4 w-4" />
-          Quick Record
-        </Button>
-      ),
+      description: "Manage medication schedules",
+      title: "Medication Regimens",
     },
     reports: {
-      title: "Reports",
-      description:
-        "Select an animal to view their medication compliance report",
       actions: (
-        <Button variant="outline" size="sm">
+        <Button size="sm" variant="outline">
           <FileText className="mr-2 h-4 w-4" />
           Export
         </Button>
       ),
-    },
-    insights: {
-      title: "Insights",
-      description: "Medication compliance and patterns",
+      description:
+        "Select an animal to view their medication compliance report",
+      title: "Reports",
     },
     settings: {
-      title: "Settings",
       description: "Manage your account and preferences",
+      title: "Settings",
     },
     "settings/data-privacy": {
-      title: "Data & Privacy",
       description: "Export your data and manage privacy settings",
-    },
-    "settings/preferences": {
-      title: "Preferences",
-      description: "Customize your app experience and display settings",
-    },
-    "settings/notifications": {
-      title: "Notifications",
-      description: "Configure alerts and notification preferences",
+      title: "Data & Privacy",
     },
     "settings/data-privacy/audit": {
-      title: "Audit Log",
       description: "View system activity and changes",
+      title: "Audit Log",
+    },
+    "settings/notifications": {
+      description: "Configure alerts and notification preferences",
+      title: "Notifications",
+    },
+    "settings/preferences": {
+      description: "Customize your app experience and display settings",
+      title: "Preferences",
     },
   };
 
@@ -165,7 +165,7 @@ export function PageHeaderEnhanced({ className }: PageHeaderProps) {
       <div className="flex h-16 items-center gap-2 px-4">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Separator className="mr-2 h-4" orientation="vertical" />
           <AnimalBreadcrumb />
         </div>
         <div className="ml-auto flex items-center gap-4">

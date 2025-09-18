@@ -40,7 +40,7 @@ export default function AuditLogLoading() {
           "row-9",
           "row-10",
         ].map((key) => (
-          <div key={key} className="grid grid-cols-5 gap-4 border-b p-4">
+          <div className="grid grid-cols-5 gap-4 border-b p-4" key={key}>
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-4 w-20" />

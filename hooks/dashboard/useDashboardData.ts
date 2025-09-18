@@ -17,10 +17,10 @@ export interface Period {
 }
 
 export const PERIOD_OPTIONS: Period[] = [
-  { label: "Last 7 days", value: "7d", days: 7 },
-  { label: "Last 30 days", value: "30d", days: 30 },
-  { label: "Last 3 months", value: "90d", days: 90 },
-  { label: "Last 12 months", value: "12m", days: 365 },
+  { days: 7, label: "Last 7 days", value: "7d" },
+  { days: 30, label: "Last 30 days", value: "30d" },
+  { days: 90, label: "Last 3 months", value: "90d" },
+  { days: 365, label: "Last 12 months", value: "12m" },
 ];
 
 export function getDateRangeFromPeriod(period: Period): DateRange {
@@ -37,13 +37,12 @@ export function useComplianceData(dateRange: DateRange) {
 
   return trpc.admin.list.useQuery(
     {
+      endDate: dateRange.to.toISOString(),
       householdId: selectedHousehold?.id || "",
       startDate: dateRange.from.toISOString(),
-      endDate: dateRange.to.toISOString(),
     },
     {
-      enabled: !!selectedHousehold?.id,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      enabled: Boolean(selectedHousehold?.id),
       select: (data) => {
         if (!data) return null;
 
@@ -66,17 +65,18 @@ export function useComplianceData(dateRange: DateRange) {
           scheduled > 0 ? Math.round((onTime / scheduled) * 100) : 0;
 
         return {
-          scheduled,
           completed,
-          onTime,
-          late,
-          veryLate,
-          missed,
           complianceRate,
+          late,
+          missed,
+          onTime,
           onTimeRate,
           rawData: data,
+          scheduled,
+          veryLate,
         };
       },
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   );
 }
@@ -88,13 +88,12 @@ export function useAdministrationStats(period: Period) {
 
   return trpc.admin.list.useQuery(
     {
+      endDate: dateRange.to.toISOString(),
       householdId: selectedHousehold?.id || "",
       startDate: dateRange.from.toISOString(),
-      endDate: dateRange.to.toISOString(),
     },
     {
-      enabled: !!selectedHousehold?.id,
-      staleTime: 5 * 60 * 1000,
+      enabled: Boolean(selectedHousehold?.id),
       select: (data) => {
         if (!data) return null;
 
@@ -109,9 +108,9 @@ export function useAdministrationStats(period: Period) {
             if (!acc[date]) {
               acc[date] = {
                 date,
-                onTime: 0,
                 late: 0,
                 missed: 0,
+                onTime: 0,
                 total: 0,
               };
             }
@@ -148,6 +147,7 @@ export function useAdministrationStats(period: Period) {
           (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
         );
       },
+      staleTime: 5 * 60 * 1000,
     },
   );
 }
@@ -161,8 +161,7 @@ export function useMedicationDistribution() {
       householdId: selectedHousehold?.id || "",
     },
     {
-      enabled: !!selectedHousehold?.id,
-      staleTime: 10 * 60 * 1000, // 10 minutes - regimens change less frequently
+      enabled: Boolean(selectedHousehold?.id),
       select: (data) => {
         if (!data) return null;
 
@@ -177,9 +176,10 @@ export function useMedicationDistribution() {
         );
 
         return Object.entries(medicationCounts)
-          .map(([name, count]) => ({ name, count }))
+          .map(([name, count]) => ({ count, name }))
           .sort((a, b) => b.count - a.count);
       },
+      staleTime: 10 * 60 * 1000, // 10 minutes - regimens change less frequently
     },
   );
 }
@@ -190,13 +190,12 @@ export function useAnimalActivityData(dateRange: DateRange) {
 
   return trpc.admin.list.useQuery(
     {
+      endDate: dateRange.to.toISOString(),
       householdId: selectedHousehold?.id || "",
       startDate: dateRange.from.toISOString(),
-      endDate: dateRange.to.toISOString(),
     },
     {
-      enabled: !!selectedHousehold?.id,
-      staleTime: 5 * 60 * 1000,
+      enabled: Boolean(selectedHousehold?.id),
       select: (data) => {
         if (!data || !animals.length) return null;
 
@@ -216,17 +215,18 @@ export function useAnimalActivityData(dateRange: DateRange) {
               scheduled > 0 ? Math.round((completed / scheduled) * 100) : 0;
 
             return {
-              id: animal.id,
-              name: animal.name,
-              species: animal.species,
               avatar: animal.avatar,
-              scheduled,
               completed,
               complianceRate,
+              id: animal.id,
+              name: animal.name,
+              scheduled,
+              species: animal.species,
             };
           })
           .sort((a, b) => b.complianceRate - a.complianceRate);
       },
+      staleTime: 5 * 60 * 1000,
     },
   );
 }
@@ -240,8 +240,7 @@ export function useInventoryMetrics() {
       householdId: selectedHousehold?.id || "",
     },
     {
-      enabled: !!selectedHousehold?.id,
-      staleTime: 15 * 60 * 1000, // 15 minutes - inventory changes less frequently
+      enabled: Boolean(selectedHousehold?.id),
       select: (data) => {
         if (!data) return null;
 
@@ -263,17 +262,18 @@ export function useInventoryMetrics() {
         }).length;
 
         return {
-          totalItems,
           activeItems,
-          lowStockItems,
           expiringSoonItems,
+          lowStockItems,
           lowStockPercentage:
             activeItems > 0
               ? Math.round((lowStockItems / activeItems) * 100)
               : 0,
           rawData: data,
+          totalItems,
         };
       },
+      staleTime: 15 * 60 * 1000, // 15 minutes - inventory changes less frequently
     },
   );
 }
@@ -295,8 +295,7 @@ export function useUpcomingDoses() {
       householdId: selectedHousehold?.id || "",
     },
     {
-      enabled: !!selectedHousehold?.id,
-      staleTime: 5 * 60 * 1000,
+      enabled: Boolean(selectedHousehold?.id),
       select: (data) => {
         if (!data) return null;
 
@@ -310,10 +309,10 @@ export function useUpcomingDoses() {
               const weeklyDoses = dailyDoses * 7;
 
               acc.push({
-                regimenId: item.regimen.id,
                 animalName: item.animal.name || "Unknown",
-                medicationName: item.medication?.genericName || "Unknown",
                 dosesThisWeek: weeklyDoses,
+                medicationName: item.medication?.genericName || "Unknown",
+                regimenId: item.regimen.id,
                 scheduleType: item.regimen.scheduleType,
               });
 
@@ -334,11 +333,12 @@ export function useUpcomingDoses() {
         );
 
         return {
-          upcomingDoses,
-          totalUpcomingDoses,
           activeRegimens: data.filter((item) => item.regimen.active).length,
+          totalUpcomingDoses,
+          upcomingDoses,
         };
       },
+      staleTime: 5 * 60 * 1000,
     },
   );
 }
@@ -353,7 +353,7 @@ export function useSuggestionsData(limit = 5) {
       limit,
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
       staleTime: 10 * 60 * 1000, // 10 minutes
     },
   );
@@ -369,16 +369,16 @@ export function useComplianceHeatmapData(
 
   return trpc.insights.getComplianceHeatmap.useQuery(
     {
-      householdId: selectedHousehold?.id || "",
       animalId,
-      regimenId,
+      householdId: selectedHousehold?.id || "",
       range: {
         from: dateRange.from.toISOString(),
         to: dateRange.to.toISOString(),
       },
+      regimenId,
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
       staleTime: 5 * 60 * 1000,
     },
   );

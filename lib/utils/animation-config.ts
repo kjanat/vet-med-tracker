@@ -13,46 +13,45 @@ export const ANIMATION_TIMING = {
 
 // Easing curves
 export const EASING = {
-  linear: "ease-linear",
-  out: "ease-out",
   in: "ease-in",
   inOut: "ease-in-out",
+  linear: "ease-linear",
+  out: "ease-out",
 } as const;
 
 // Common transition combinations
 export const TRANSITIONS = {
+  // Comprehensive transitions for complex state changes
+  all: "transition-all duration-200 ease-in-out",
+  allFast: "transition-all duration-150 ease-out",
   // Button and interactive element transitions
   interactive: "transition-colors duration-200 ease-in-out",
   interactiveFast: "transition-colors duration-150 ease-out",
 
-  // Transform transitions for scale/movement
-  transform: "transition-transform duration-200 ease-out",
-  transformFast: "transition-transform duration-150 ease-out",
-
-  // Comprehensive transitions for complex state changes
-  all: "transition-all duration-200 ease-in-out",
-  allFast: "transition-all duration-150 ease-out",
+  // Layout transitions (width, height, margin, padding)
+  layout: "transition-[width,height,margin,padding] duration-200 ease-linear",
 
   // Opacity transitions for fade effects
   opacity: "transition-opacity duration-300 ease-in-out",
 
-  // Layout transitions (width, height, margin, padding)
-  layout: "transition-[width,height,margin,padding] duration-200 ease-linear",
+  // Transform transitions for scale/movement
+  transform: "transition-transform duration-200 ease-out",
+  transformFast: "transition-transform duration-150 ease-out",
 } as const;
 
 // Card and surface animations
 export const CARD_ANIMATIONS = {
-  hover: "hover:shadow-md transition-all duration-200",
   active: "active:scale-[0.98] transition-transform duration-150 ease-out",
+  hover: "hover:shadow-md transition-all duration-200",
   selected: "ring-2 ring-primary ring-offset-2 shadow-md scale-[1.02]",
   touchManipulation: "touch-manipulation",
 } as const;
 
 // Loading and feedback animations
 export const FEEDBACK_ANIMATIONS = {
-  spin: "animate-spin",
-  pulse: "animate-pulse",
   bounce: "animate-bounce",
+  pulse: "animate-pulse",
+  spin: "animate-spin",
 } as const;
 
 // Modal and overlay animations (using Tailwind's built-in animate utilities)
@@ -72,8 +71,8 @@ export const MODAL_ANIMATIONS = {
 
 // Focus and accessibility animations
 export const FOCUS_ANIMATIONS = {
-  ring: "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
   outline: "focus-visible:outline-hidden",
+  ring: "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
   standard:
     "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 } as const;
@@ -108,15 +107,13 @@ export const getButtonAnimation = (
 
 export const getLoadingAnimation = (
   type: "spin" | "pulse" | "bounce" = "spin",
-) => {
-  return FEEDBACK_ANIMATIONS[type];
-};
+) => FEEDBACK_ANIMATIONS[type];
 
 // Priority indicator animation for urgent items
 export const PRIORITY_ANIMATIONS = {
-  urgent: "animate-pulse",
   high: "animate-none",
   normal: "animate-none",
+  urgent: "animate-pulse",
 } as const;
 
 export type AnimationTiming = keyof typeof ANIMATION_TIMING;

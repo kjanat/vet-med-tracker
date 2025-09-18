@@ -55,7 +55,7 @@ export function OptimizedImage({
           "flex items-center justify-center bg-muted text-muted-foreground",
           className,
         )}
-        style={{ width, height }}
+        style={{ height, width }}
       >
         <span className="text-sm">Failed to load image</span>
       </div>
@@ -67,28 +67,28 @@ export function OptimizedImage({
       {isLoading && (
         <div
           className="absolute inset-0 animate-pulse bg-muted"
-          style={{ width, height }}
+          style={{ height, width }}
         />
       )}
       <Image
-        src={src}
         alt={alt}
-        width={fill ? undefined : width}
-        height={fill ? undefined : height}
-        fill={fill}
-        sizes={sizes}
-        priority={priority}
-        placeholder={placeholder}
         blurDataURL={blurDataURL}
-        onLoad={handleLoad}
-        onError={handleError}
         className={cn(
           "transition-opacity duration-300",
           isLoading ? "opacity-0" : "opacity-100",
         )}
+        fill={fill}
+        height={fill ? undefined : height}
+        onError={handleError}
+        onLoad={handleLoad}
+        placeholder={placeholder}
+        priority={priority}
+        sizes={sizes}
+        src={src}
         style={{
           objectFit: "cover",
         }}
+        width={fill ? undefined : width}
       />
     </div>
   );
@@ -117,7 +117,7 @@ export function OptimizedAvatar({
           "flex items-center justify-center rounded-full bg-muted text-muted-foreground",
           className,
         )}
-        style={{ width: size, height: size }}
+        style={{ height: size, width: size }}
       >
         {fallback || (
           <span className="text-xs">{alt.charAt(0).toUpperCase()}</span>
@@ -128,13 +128,13 @@ export function OptimizedAvatar({
 
   return (
     <OptimizedImage
-      src={src}
       alt={alt}
-      width={size}
-      height={size}
       className={cn("rounded-full", className)}
-      sizes={`${size}px`}
+      height={size}
       onError={() => setHasError(true)}
+      sizes={`${size}px`}
+      src={src}
+      width={size}
     />
   );
 }
@@ -160,21 +160,21 @@ export function OptimizedPhotoGalleryImage({
 
   return (
     <button
-      type="button"
+      aria-label="Open image in full view"
       className={cn("cursor-pointer", className)}
       onClick={onClickAction}
       onKeyDown={handleKeyDown}
-      aria-label="Open image in full view"
+      type="button"
     >
       <OptimizedImage
-        src={src}
         alt={alt}
-        width={300}
-        height={200}
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
-        placeholder="blur"
         blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         className="rounded-lg"
+        height={200}
+        placeholder="blur"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
+        src={src}
+        width={300}
       />
     </button>
   );

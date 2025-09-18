@@ -21,79 +21,79 @@ export const calculationMethodSchema = z.enum([
 
 // Species adjustment schema
 export const speciesAdjustmentSchema = z.object({
-  multiplier: z.number().min(0.1).max(5.0),
-  maxDailyDose: z.number().positive().optional(),
   additionalWarnings: z.array(z.string()).optional(),
   contraindicatedRoutes: z.array(z.string()).optional(),
+  maxDailyDose: z.number().positive().optional(),
+  multiplier: z.number().min(0.1).max(5.0),
 });
 
 // Route adjustment schema
 export const routeAdjustmentSchema = z.object({
-  multiplier: z.number().min(0.1).max(5.0),
   additionalWarnings: z.array(z.string()).optional(),
   maxFrequency: z.number().positive().optional(),
+  multiplier: z.number().min(0.1).max(5.0),
 });
 
 // Age adjustment schema
 export const ageAdjustmentSchema = z.object({
-  multiplier: z.number().min(0.1).max(2.0),
+  additionalWarnings: z.array(z.string()).optional(),
+  maxAgeYears: z.number().min(0).max(30).optional(),
   minAgeMonths: z.number().min(0).max(60).optional(),
   minAgeYears: z.number().min(0).max(25).optional(),
-  maxAgeYears: z.number().min(0).max(30).optional(),
-  additionalWarnings: z.array(z.string()).optional(),
+  multiplier: z.number().min(0.1).max(2.0),
 });
 
 // Breed consideration schema
 export const breedConsiderationSchema = z.object({
-  multiplier: z.number().min(0.1).max(2.0).optional(),
+  additionalWarnings: z.array(z.string()).optional(),
   contraindicatedRoutes: z.array(z.string()).optional(),
   maxReduction: z.number().min(0).max(1).optional(),
-  additionalWarnings: z.array(z.string()).optional(),
+  multiplier: z.number().min(0.1).max(2.0).optional(),
 });
 
 // Medication data schema for dosage calculations
 export const medicationDataSchema = z.object({
-  id: z.uuid(),
-  genericName: z.string().min(1).max(255),
-  brandName: z.string().max(255).optional(),
-  route: z.string().min(1),
-  form: z.string().min(1),
-
-  // Dosage ranges (mg/kg)
-  dosageMinMgKg: z.number().min(0).max(10000).optional(),
-  dosageMaxMgKg: z.number().min(0).max(10000).optional(),
-  dosageTypicalMgKg: z.number().min(0).max(10000).optional(),
-  maxDailyDoseMg: z.number().min(0).max(100000).optional(),
-
-  // Adjustments stored as JSON objects
-  speciesAdjustments: z.record(z.string(), speciesAdjustmentSchema).optional(),
-  routeAdjustments: z.record(z.string(), routeAdjustmentSchema).optional(),
   ageAdjustments: z.record(z.string(), ageAdjustmentSchema).optional(),
+  brandName: z.string().max(255).optional(),
   breedConsiderations: z
     .record(z.string(), breedConsiderationSchema)
     .optional(),
 
   // Medication properties
   concentrationMgMl: z.number().positive().optional(),
-  unitsPerTablet: z.number().positive().optional(),
-  unitType: z.string().default("mg"),
-  typicalFrequencyHours: z.number().min(1).max(168).optional(), // Max once per week
-  maxFrequencyPerDay: z.number().min(1).max(24).optional(),
 
   // Safety information
   contraindications: z.array(z.string()).optional(),
+  dosageMaxMgKg: z.number().min(0).max(10000).optional(),
+
+  // Dosage ranges (mg/kg)
+  dosageMinMgKg: z.number().min(0).max(10000).optional(),
+  dosageTypicalMgKg: z.number().min(0).max(10000).optional(),
+  form: z.string().min(1),
+  genericName: z.string().min(1).max(255),
+  id: z.uuid(),
+  maxDailyDoseMg: z.number().min(0).max(100000).optional(),
+  maxFrequencyPerDay: z.number().min(1).max(24).optional(),
+  route: z.string().min(1),
+  routeAdjustments: z.record(z.string(), routeAdjustmentSchema).optional(),
+
+  // Adjustments stored as JSON objects
+  speciesAdjustments: z.record(z.string(), speciesAdjustmentSchema).optional(),
+  typicalFrequencyHours: z.number().min(1).max(168).optional(), // Max once per week
+  unitsPerTablet: z.number().positive().optional(),
+  unitType: z.string().default("mg"),
   warnings: z.string().optional(),
 });
 
 // Animal information schema
 export const animalInfoSchema = z.object({
-  species: z.string().min(1).max(50),
+  ageMonths: z.number().min(0).max(11).optional(),
+  ageYears: z.number().min(0).max(30).optional(),
   breed: z.string().max(100).optional(),
+  conditions: z.array(z.string()).optional(),
+  species: z.string().min(1).max(50),
   weight: z.number().positive().max(2000), // Max 2000 kg/lbs for safety
   weightUnit: weightUnitSchema,
-  ageYears: z.number().min(0).max(30).optional(),
-  ageMonths: z.number().min(0).max(11).optional(),
-  conditions: z.array(z.string()).optional(),
 });
 
 // Dosage calculation input schema (for direct calculation)
@@ -108,8 +108,8 @@ export const dosageCalculationInputSchema = z.object({
 export const dosageCalculationRequestSchema = z
   .object({
     animal: animalInfoSchema,
-    medicationId: z.uuid().optional(),
     medication: medicationDataSchema.optional(),
+    medicationId: z.uuid().optional(),
     route: z.string().optional(),
     targetUnit: z.enum(["mg", "ml", "tablets"]).default("mg"),
   })
@@ -119,96 +119,78 @@ export const dosageCalculationRequestSchema = z
 
 // Alternative format schema
 export const alternativeFormatSchema = z.object({
+  description: z.string().optional(),
   dose: z.number(),
   unit: z.string(),
-  description: z.string().optional(),
 });
 
 // Daily dosing information schema
 export const dailyInfoSchema = z.object({
-  totalDailyDose: z.number(),
   dosesPerDay: z.number().min(1).max(24),
   timeBetweenDoses: z.string(),
+  totalDailyDose: z.number(),
 });
 
 // Dosage calculation result schema
 export const dosageResultSchema = z.object({
-  // Core calculation results
-  dose: z.number(),
-  unit: z.string(),
-  frequency: z.string().optional(),
-
-  // Safety ranges
-  minDose: z.number(),
-  maxDose: z.number(),
-  typicalDose: z.number().optional(),
-
-  // Safety assessment
-  warnings: z.array(z.string()),
-  safetyLevel: safetyLevelSchema,
+  // Alternative formats
+  alternativeFormats: z.array(alternativeFormatSchema).optional(),
+  appliedAdjustments: z.array(z.string()),
+  baseDoseMgKg: z.number(),
 
   // Calculation details
   calculationMethod: calculationMethodSchema,
-  appliedAdjustments: z.array(z.string()),
-  weightInKg: z.number(),
-  baseDoseMgKg: z.number(),
-  finalDoseMgKg: z.number(),
-
-  // Alternative formats
-  alternativeFormats: z.array(alternativeFormatSchema).optional(),
 
   // Daily dosing information
   dailyInfo: dailyInfoSchema.optional(),
+  // Core calculation results
+  dose: z.number(),
+  finalDoseMgKg: z.number(),
+  frequency: z.string().optional(),
+  maxDose: z.number(),
+
+  // Safety ranges
+  minDose: z.number(),
+  safetyLevel: safetyLevelSchema,
+  typicalDose: z.number().optional(),
+  unit: z.string(),
+
+  // Safety assessment
+  warnings: z.array(z.string()),
+  weightInKg: z.number(),
 });
 
 // Unit conversion schemas
 export const convertWeightInputSchema = z.object({
-  value: z.number().positive(),
   fromUnit: z.enum(["kg", "lbs", "g", "oz"]),
   toUnit: z.enum(["kg", "lbs", "g", "oz"]),
+  value: z.number().positive(),
 });
 
 export const convertVolumeInputSchema = z.object({
-  value: z.number().positive(),
   fromUnit: z.enum(["ml", "L", "tsp", "tbsp", "fl_oz", "cup"]),
   toUnit: z.enum(["ml", "L", "tsp", "tbsp", "fl_oz", "cup"]),
+  value: z.number().positive(),
 });
 
 export const convertDosageInputSchema = z.object({
-  value: z.number().positive(),
+  concentrationMgMl: z.number().positive().optional(),
   fromUnit: z.enum(["mg", "mcg", "IU", "g", "ml"]),
   toUnit: z.enum(["mg", "mcg", "IU", "g", "ml"]),
-  concentrationMgMl: z.number().positive().optional(),
+  value: z.number().positive(),
 });
 
 // Conversion result schema
 export const conversionResultSchema = z.object({
-  value: z.number(),
-  unit: z.string(),
-  originalValue: z.number(),
   originalUnit: z.string(),
+  originalValue: z.number(),
   precision: z.number(),
+  unit: z.string(),
+  value: z.number(),
 });
 
 // Medication catalog update schema for dosage fields
 export const medicationCatalogUpdateSchema = z.object({
-  id: z.uuid(),
-
-  // Dosage calculation fields
-  dosageMinMgKg: z.number().min(0).max(10000).nullable().optional(),
-  dosageMaxMgKg: z.number().min(0).max(10000).nullable().optional(),
-  dosageTypicalMgKg: z.number().min(0).max(10000).nullable().optional(),
-  maxDailyDoseMg: z.number().min(0).max(100000).nullable().optional(),
-
-  // JSON adjustments with validation
-  speciesAdjustments: z
-    .record(z.string(), speciesAdjustmentSchema)
-    .nullable()
-    .optional(),
-  routeAdjustments: z
-    .record(z.string(), routeAdjustmentSchema)
-    .nullable()
-    .optional(),
   ageAdjustments: z
     .record(z.string(), ageAdjustmentSchema)
     .nullable()
@@ -220,13 +202,30 @@ export const medicationCatalogUpdateSchema = z.object({
 
   // Medication properties
   concentrationMgMl: z.number().positive().nullable().optional(),
-  unitsPerTablet: z.number().positive().nullable().optional(),
-  unitType: z.string().max(20).nullable().optional(),
-  typicalFrequencyHours: z.number().min(1).max(168).nullable().optional(),
-  maxFrequencyPerDay: z.number().min(1).max(24).nullable().optional(),
 
   // Safety arrays
   contraindications: z.array(z.string().max(255)).nullable().optional(),
+  dosageMaxMgKg: z.number().min(0).max(10000).nullable().optional(),
+
+  // Dosage calculation fields
+  dosageMinMgKg: z.number().min(0).max(10000).nullable().optional(),
+  dosageTypicalMgKg: z.number().min(0).max(10000).nullable().optional(),
+  id: z.uuid(),
+  maxDailyDoseMg: z.number().min(0).max(100000).nullable().optional(),
+  maxFrequencyPerDay: z.number().min(1).max(24).nullable().optional(),
+  routeAdjustments: z
+    .record(z.string(), routeAdjustmentSchema)
+    .nullable()
+    .optional(),
+
+  // JSON adjustments with validation
+  speciesAdjustments: z
+    .record(z.string(), speciesAdjustmentSchema)
+    .nullable()
+    .optional(),
+  typicalFrequencyHours: z.number().min(1).max(168).nullable().optional(),
+  unitsPerTablet: z.number().positive().nullable().optional(),
+  unitType: z.string().max(20).nullable().optional(),
 });
 
 // Batch dosage calculation schema (for multiple animals/medications)
@@ -235,6 +234,7 @@ export const batchDosageInputSchema = z.object({
 });
 
 export const batchDosageResultSchema = z.object({
+  failedCalculations: z.number(),
   results: z.array(
     z.union([
       dosageResultSchema,
@@ -244,9 +244,8 @@ export const batchDosageResultSchema = z.object({
       }),
     ]),
   ),
-  totalCalculations: z.number(),
   successfulCalculations: z.number(),
-  failedCalculations: z.number(),
+  totalCalculations: z.number(),
 });
 
 // Dosage validation schema (check if a specific dose is safe)
@@ -259,15 +258,15 @@ export const dosageValidationInputSchema = z.object({
 
 export const dosageValidationResultSchema = z.object({
   isValid: z.boolean(),
-  safetyLevel: safetyLevelSchema,
-  warnings: z.array(z.string()),
   recommendations: z.array(z.string()),
+  safetyLevel: safetyLevelSchema,
   suggestedDoseRange: z.object({
-    min: z.number(),
     max: z.number(),
+    min: z.number(),
     typical: z.number(),
     unit: z.string(),
   }),
+  warnings: z.array(z.string()),
 });
 
 // Custom validation functions
@@ -337,12 +336,12 @@ export const dosageCalculationBatchResultSchema = z.object({
   results: z.array(
     z.object({
       animal: animalInfoSchema,
+      error: z.string().optional(),
       medication: medicationDataSchema,
       result: dosageResultSchema.nullable(),
-      success: z.boolean(),
-      error: z.string().optional(),
-      targetUnit: z.enum(["mg", "ml", "tablets"]).optional(),
       route: z.string().optional(),
+      success: z.boolean(),
+      targetUnit: z.enum(["mg", "ml", "tablets"]).optional(),
     }),
   ),
 });

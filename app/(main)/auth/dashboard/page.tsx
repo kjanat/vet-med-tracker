@@ -2,8 +2,7 @@
 
 import { AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import * as React from "react";
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   AnimalFormDialog,
   useAnimalFormDialog,
@@ -165,7 +164,7 @@ export default function DashboardPage() {
       includeUpcoming: true,
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
       refetchInterval: 60000,
     },
   );
@@ -179,7 +178,7 @@ export default function DashboardPage() {
       endDate: `${today}T23:59:59.999Z`,
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
     },
   );
 
@@ -272,8 +271,8 @@ export default function DashboardPage() {
 
   // Transform regimen data for display
   const transformRegimens = useCallback(
-    (regimens: RegimenData[], timezone: string): TransformedRegimen[] => {
-      return regimens.slice(0, 10).map((regimen) => ({
+    (regimens: RegimenData[], timezone: string) =>
+      regimens.slice(0, 10).map((regimen) => ({
         id: regimen.id,
         animalId: regimen.animalId,
         animal: regimen.animalName,
@@ -287,8 +286,7 @@ export default function DashboardPage() {
             ? ("due" as const)
             : ("upcoming" as const),
         route: regimen.route,
-      }));
-    },
+      })),
     [],
   );
 
@@ -356,9 +354,9 @@ export default function DashboardPage() {
             }
           </p>
           <Button
-            size="lg"
             className="w-full sm:w-auto"
             onClick={() => openAnimalForm()}
+            size="lg"
           >
             Add Your First Pet
           </Button>
@@ -385,28 +383,28 @@ export default function DashboardPage() {
       {/* Desktop Productivity Toolbar */}
       <div className="hidden md:block">
         <DesktopProductivityToolbar
-          searchQuery={searchQuery}
+          filters={filters}
+          onFiltersChange={setFilters}
+          onKeyboardShortcutsToggle={() =>
+            setShowKeyboardShortcuts(!showKeyboardShortcuts)
+          }
           onSearchChange={setSearchQuery}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
           onSortChange={(newSortBy, newOrder) => {
             setSortBy(newSortBy as typeof sortBy);
             setSortOrder(newOrder);
           }}
-          filters={filters}
-          onFiltersChange={setFilters}
+          searchQuery={searchQuery}
           selectedCount={0}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
           totalCount={nextActions.length}
-          onKeyboardShortcutsToggle={() =>
-            setShowKeyboardShortcuts(!showKeyboardShortcuts)
-          }
         />
       </div>
 
       {/* Keyboard Shortcuts Overlay */}
       <KeyboardShortcutsOverlay
-        isOpen={showKeyboardShortcuts}
         closeAction={() => setShowKeyboardShortcuts(false)}
+        isOpen={showKeyboardShortcuts}
       />
 
       <div className="space-y-6">
@@ -415,7 +413,7 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">
             Managing {animals.length} animals across all households
           </p>
-          <RecordButton prefilled className="w-full sm:w-auto" />
+          <RecordButton className="w-full sm:w-auto" prefilled />
         </div>
 
         {/* Stats Cards */}
@@ -490,8 +488,8 @@ export default function DashboardPage() {
                 );
                 return (
                   <div
-                    key={action.id}
                     className="flex items-center gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                    key={action.id}
                   >
                     {foundAnimal && (
                       <AnimalAvatar animal={foundAnimal} size="md" />
@@ -502,6 +500,7 @@ export default function DashboardPage() {
                           {action.animal} - {action.medication}
                         </div>
                         <Badge
+                          className="shrink-0"
                           variant={
                             action.status === "overdue"
                               ? "destructive"
@@ -509,7 +508,6 @@ export default function DashboardPage() {
                                 ? "default"
                                 : "secondary"
                           }
-                          className="shrink-0"
                         >
                           {action.status}
                         </Badge>
@@ -519,13 +517,13 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <Button
-                      size="sm"
                       className="w-20 shrink-0"
                       onClick={() =>
                         router.push(
                           `/auth/admin/record?regimenId=${action.id}&from=home`,
                         )
                       }
+                      size="sm"
                     >
                       Record
                     </Button>
@@ -545,7 +543,7 @@ function SingleAnimalView({ animal }: { animal: Animal }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <AnimalAvatar animal={animal} size="lg" showBadge />
+        <AnimalAvatar animal={animal} showBadge size="lg" />
         <div>
           <p className="text-muted-foreground">{animal.species}</p>
         </div>

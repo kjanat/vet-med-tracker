@@ -76,19 +76,19 @@ export function PageErrorBoundary({
         <CardFooter className="flex flex-wrap gap-2">
           <Button
             onClick={() => window.location.reload()}
-            variant="default"
             size="sm"
+            variant="default"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh Page
           </Button>
           {showBackButton && (
-            <Button onClick={() => router.back()} variant="outline" size="sm">
+            <Button onClick={() => router.back()} size="sm" variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Go Back
             </Button>
           )}
-          <Button asChild variant="outline" size="sm">
+          <Button asChild size="sm" variant="outline">
             <Link href="/">
               <Home className="mr-2 h-4 w-4" />
               Go Home
@@ -116,8 +116,8 @@ export function RecordAdminErrorBoundary({
 }) {
   return (
     <PageErrorBoundary
-      pageName="Record Administration"
       customMessage="Unable to load the medication recording page. Your offline records are safe and will sync automatically."
+      pageName="Record Administration"
     >
       {children}
     </PageErrorBoundary>
@@ -131,8 +131,8 @@ export function InventoryErrorBoundary({
 }) {
   return (
     <PageErrorBoundary
-      pageName="Inventory"
       customMessage="Unable to load inventory data. Any pending changes are saved locally."
+      pageName="Inventory"
     >
       {children}
     </PageErrorBoundary>
@@ -146,8 +146,8 @@ export function HistoryErrorBoundary({
 }) {
   return (
     <PageErrorBoundary
-      pageName="History"
       customMessage="Unable to load medication history. Please try again later."
+      pageName="History"
     >
       {children}
     </PageErrorBoundary>
@@ -161,8 +161,8 @@ export function InsightsErrorBoundary({
 }) {
   return (
     <PageErrorBoundary
-      pageName="Insights"
       customMessage="Unable to generate insights and reports. Your data is safe."
+      pageName="Insights"
     >
       {children}
     </PageErrorBoundary>
@@ -176,8 +176,8 @@ export function SettingsErrorBoundary({
 }) {
   return (
     <PageErrorBoundary
-      pageName="Settings"
       customMessage="Unable to load settings. Your preferences are saved."
+      pageName="Settings"
     >
       {children}
     </PageErrorBoundary>

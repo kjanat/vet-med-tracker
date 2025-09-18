@@ -1,7 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
-import { useCallback, useRef, useState } from "react";
+import { type RefObject, useCallback, useRef, useState } from "react";
 
 interface BarcodeScannerOptions {
   onScan: (barcode: string) => void;
@@ -87,11 +86,11 @@ export function useBarcodeScanner({ onScan, onError }: BarcodeScannerOptions) {
   }, [onScan, onError, stopScanning]);
 
   return {
-    isScanning,
     hasPermission,
-    videoRef,
+    isScanning,
     startScanning,
     stopScanning,
+    videoRef,
   };
 }
 

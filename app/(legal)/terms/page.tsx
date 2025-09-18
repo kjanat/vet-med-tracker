@@ -92,7 +92,7 @@ export default function TermsPage() {
           <h2>6. Privacy and Data Protection</h2>
           <p className="mb-4">
             Your use of our Service is also governed by our{" "}
-            <Link href="/privacy" className="text-primary hover:underline">
+            <Link className="text-primary hover:underline" href="/privacy">
               Privacy Policy
             </Link>
             . We are committed to protecting your personal information and your
@@ -178,8 +178,8 @@ export default function TermsPage() {
             <li>
               Email:{" "}
               <a
-                href="mailto:legal@vetmedtracker.com"
                 className="text-primary hover:underline"
+                href="mailto:legal@vetmedtracker.com"
               >
                 legal@vetmedtracker.com
               </a>

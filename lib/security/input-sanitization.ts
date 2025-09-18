@@ -22,9 +22,27 @@ import { type ZodType, z } from "zod";
 
 // Common validation patterns
 export const securityPatterns = {
+  // Command injection (broad; apply only where appropriate)
+  commandInjection: /[;&|`$(){}[\]]/,
+
+  // Email validation (stricter than minimal)
+  email:
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+
+  // Path traversal
+  pathTraversal: /(\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e%5c)/i,
+
+  // Phone number validation
+  phone: /^[\d\s\-()+]+$/,
+
+  // Safe filename pattern
+  safeFilename: /^[a-zA-Z0-9._-]+$/,
   // Basic SQL injection patterns (defense-in-depth; keep conservative)
   sqlInjection:
     /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
+
+  // UUID validation
+  uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
 
   // XSS patterns
   xssPatterns: [
@@ -33,25 +51,6 @@ export const securityPatterns = {
     /on\w+\s*=/gi,
     /<iframe[^>]*>.*?<\/iframe>/gi,
   ],
-
-  // Path traversal
-  pathTraversal: /(\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e%5c)/i,
-
-  // Command injection (broad; apply only where appropriate)
-  commandInjection: /[;&|`$(){}[\]]/,
-
-  // UUID validation
-  uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-
-  // Email validation (stricter than minimal)
-  email:
-    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-
-  // Phone number validation
-  phone: /^[\d\s\-()+]+$/,
-
-  // Safe filename pattern
-  safeFilename: /^[a-zA-Z0-9._-]+$/,
 };
 
 /**
@@ -59,8 +58,8 @@ export const securityPatterns = {
  */
 export function sanitizeHtml(input: string): string {
   return DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [], // Strip all HTML tags
     ALLOWED_ATTR: [],
+    ALLOWED_TAGS: [], // Strip all HTML tags
   });
 }
 
@@ -107,33 +106,8 @@ export function sanitizeFileName(filename: string): string {
  * Enhanced Zod schemas with security validations (Zod v4-ready)
  */
 export const secureSchemas = {
-  // Secure string with XSS protection
-  safeString: (maxLength = 1000) => {
-    const sanitized = z
-      .string()
-      .transform((val) => sanitizeText(val, maxLength));
-    return sanitized
-      .pipe(
-        z
-          .string()
-          .max(maxLength, { message: `String too long (max ${maxLength})` }),
-      )
-      .refine((val) => !securityPatterns.sqlInjection.test(val), {
-        message: "Invalid characters detected",
-      });
-  },
-  // Secure HTML content (sanitize -> validate length)
-  // Strict UUID validation (use built-in)
-  uuid: z.uuid({ message: "Invalid UUID format" }),
-
   // Secure email (normalize -> validate)
   email: z.email({ message: "Invalid email format" }),
-
-  // Secure phone (normalize -> regex)
-  phone: z
-    .string()
-    .trim()
-    .regex(securityPatterns.phone, { message: "Invalid phone number format" }),
 
   // Secure filename (sanitize -> structural checks)
   filename: (() => {
@@ -148,20 +122,17 @@ export const secureSchemas = {
       });
   })(),
 
-  // URL validation with optional host allowlist (returns string)
-  url: (allowedHosts?: string[]) =>
-    z.url({ message: "Invalid URL format" }).refine(
-      (val) => {
-        if (!allowedHosts || allowedHosts.length === 0) return true;
-        try {
-          const u = new URL(val);
-          return allowedHosts.includes(u.hostname);
-        } catch {
-          return false;
-        }
-      },
-      { message: "URL host not allowed" },
-    ),
+  // Array validation with size limits
+  limitedArray: <T>(itemSchema: z.ZodType<T>, maxItems = 100) =>
+    z
+      .array(itemSchema)
+      .max(maxItems, { message: `Too many items (max ${maxItems})` }),
+
+  // Secure phone (normalize -> regex)
+  phone: z
+    .string()
+    .trim()
+    .regex(securityPatterns.phone, { message: "Invalid phone number format" }),
 
   // Numeric validations with bounds (finite by default in v4)
   positiveNumber: (max?: number) => {
@@ -171,12 +142,6 @@ export const secureSchemas = {
     }
     return s;
   },
-
-  // Array validation with size limits
-  limitedArray: <T>(itemSchema: z.ZodType<T>, maxItems = 100) =>
-    z
-      .array(itemSchema)
-      .max(maxItems, { message: `Too many items (max ${maxItems})` }),
 
   // Date validation with reasonable bounds (accepts strings or Dates; returns Date)
   recentDate: (yearsBack = 150, yearsFuture = 10) => {
@@ -195,6 +160,39 @@ export const secureSchemas = {
         message: `Date too far in future (after ${maxDate.getFullYear()})`,
       });
   },
+  // Secure string with XSS protection
+  safeString: (maxLength = 1000) => {
+    const sanitized = z
+      .string()
+      .transform((val) => sanitizeText(val, maxLength));
+    return sanitized
+      .pipe(
+        z
+          .string()
+          .max(maxLength, { message: `String too long (max ${maxLength})` }),
+      )
+      .refine((val) => !securityPatterns.sqlInjection.test(val), {
+        message: "Invalid characters detected",
+      });
+  },
+
+  // URL validation with optional host allowlist (returns string)
+  url: (allowedHosts?: string[]) =>
+    z.url({ message: "Invalid URL format" }).refine(
+      (val) => {
+        if (!allowedHosts || allowedHosts.length === 0) return true;
+        try {
+          const u = new URL(val);
+          return allowedHosts.includes(u.hostname);
+        } catch {
+          return false;
+        }
+      },
+      { message: "URL host not allowed" },
+    ),
+  // Secure HTML content (sanitize -> validate length)
+  // Strict UUID validation (use built-in)
+  uuid: z.uuid({ message: "Invalid UUID format" }),
 };
 
 /**
@@ -311,13 +309,13 @@ export function createSecurityAuditLog(
   // Intentionally minimal; wire into your logger if needed
   console.log(
     JSON.stringify({
+      action,
+      details,
+      ip,
+      severity: "info",
       timestamp: new Date().toISOString(),
       type: "security_audit",
-      action,
       userId,
-      ip,
-      details,
-      severity: "info",
     }),
   );
 }

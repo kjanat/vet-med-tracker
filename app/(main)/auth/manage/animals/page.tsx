@@ -24,7 +24,7 @@ function WelcomeState() {
         <p className="mb-8 text-lg text-muted-foreground">
           Add your first animal to start tracking their medications and health.
         </p>
-        <Button size="lg" onClick={() => openAnimalForm()} className="gap-2">
+        <Button className="gap-2" onClick={() => openAnimalForm()} size="lg">
           <Plus className="h-5 w-5" />
           Add Your First Animal
         </Button>
@@ -101,10 +101,10 @@ function AnimalList({
       <div className="relative max-w-sm">
         <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
         <Input
+          className="pl-10"
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search animals..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
         />
       </div>
 
@@ -112,11 +112,11 @@ function AnimalList({
       {filteredAnimals.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredAnimals.map((animal) => (
-            <Card key={animal.id} className="transition-shadow hover:shadow-md">
+            <Card className="transition-shadow hover:shadow-md" key={animal.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <AnimalAvatar animal={animal} size="lg" showBadge />
+                    <AnimalAvatar animal={animal} showBadge size="lg" />
                     <div>
                       <CardTitle className="text-lg">{animal.name}</CardTitle>
                       <p className="text-muted-foreground text-sm">
@@ -145,18 +145,18 @@ function AnimalList({
                 {/* Actions */}
                 <div className="mt-auto flex gap-2 pt-2">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(animal)}
                     className="flex-1"
+                    onClick={() => handleEdit(animal)}
+                    size="sm"
+                    variant="outline"
                   >
                     Edit
                   </Button>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEmergencyCard(animal.id)}
                     className="gap-1"
+                    onClick={() => handleEmergencyCard(animal.id)}
+                    size="sm"
+                    variant="outline"
                   >
                     <FileText className="h-3 w-3" />
                     Emergency Card
@@ -172,9 +172,9 @@ function AnimalList({
           <p className="text-muted-foreground">
             Try adjusting your search terms or{" "}
             <button
-              type="button"
-              onClick={() => setSearchQuery("")}
               className="text-primary hover:underline"
+              onClick={() => setSearchQuery("")}
+              type="button"
             >
               clear the search
             </button>

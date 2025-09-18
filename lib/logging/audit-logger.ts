@@ -117,12 +117,12 @@ export interface AuditConfig {
  * Default audit configuration
  */
 const DEFAULT_AUDIT_CONFIG: AuditConfig = {
+  criticalEventsOnly: false,
   enableDataChangeTracking: true,
-  trackPreviousValues: true,
   enableGeoLocation: false, // Privacy consideration
   enableUserAgentTracking: true,
   requireReasonForDeletion: true,
-  criticalEventsOnly: false,
+  trackPreviousValues: true,
 };
 
 /**
@@ -204,18 +204,18 @@ export class AuditLogger {
 
     // Create audit entry with proper typing
     const auditEntry: Record<string, unknown> = {
-      eventType: event.eventType,
-      severity,
-      userId: event.userId,
-      householdId: event.householdId,
       animalId: event.animalId,
+      audit: true,
+      eventType: event.eventType,
+      householdId: event.householdId,
+      ipAddress: event.ipAddress,
+      reason: event.reason,
+      sessionId: event.sessionId,
+      severity,
       targetId: event.targetId,
       targetType: event.targetType,
-      ipAddress: event.ipAddress,
       userAgent: event.userAgent,
-      sessionId: event.sessionId,
-      reason: event.reason,
-      audit: true,
+      userId: event.userId,
       ...event.metadata,
     };
 
@@ -260,9 +260,9 @@ export class AuditLogger {
     await this.logEvent(
       {
         eventType,
+        metadata,
         severity: SEVERITY_MAP[eventType],
         userId,
-        metadata,
       },
       correlationId,
     );
@@ -285,17 +285,17 @@ export class AuditLogger {
   ): Promise<void> {
     await this.logEvent(
       {
-        eventType,
-        severity: SEVERITY_MAP[eventType],
-        userId,
-        householdId,
         animalId,
-        targetId: administrationId,
-        targetType: "administration",
+        eventType,
+        householdId,
         metadata: {
           regimenId,
           ...metadata,
         },
+        severity: SEVERITY_MAP[eventType],
+        targetId: administrationId,
+        targetType: "administration",
+        userId,
       },
       correlationId,
     );
@@ -318,14 +318,14 @@ export class AuditLogger {
     await this.logEvent(
       {
         eventType,
-        severity: SEVERITY_MAP[eventType],
-        userId,
         householdId,
+        newValues,
+        previousValues,
+        reason,
+        severity: SEVERITY_MAP[eventType],
         targetId,
         targetType,
-        previousValues,
-        newValues,
-        reason,
+        userId,
       },
       correlationId,
     );
@@ -346,12 +346,12 @@ export class AuditLogger {
     await this.logEvent(
       {
         eventType,
-        severity: SEVERITY_MAP[eventType],
-        userId: userId || "unknown",
         householdId,
         ipAddress,
-        userAgent,
         metadata,
+        severity: SEVERITY_MAP[eventType],
+        userAgent,
+        userId: userId || "unknown",
       },
       correlationId,
     );
@@ -375,17 +375,17 @@ export class AuditLogger {
   ): Promise<void> {
     await this.logEvent(
       {
-        eventType,
-        severity: SEVERITY_MAP[eventType],
-        userId,
-        householdId,
         animalId,
-        targetId: administrationId,
-        targetType: "administration",
+        eventType,
+        householdId,
         metadata: {
           coSignerUserId,
           ...metadata,
         },
+        severity: SEVERITY_MAP[eventType],
+        targetId: administrationId,
+        targetType: "administration",
+        userId,
       },
       correlationId,
     );
@@ -402,9 +402,9 @@ export class AuditLogger {
     await this.logEvent(
       {
         eventType,
+        metadata,
         severity: SEVERITY_MAP[eventType],
         userId: "system",
-        metadata,
       },
       correlationId,
     );
@@ -434,27 +434,42 @@ export const auditLogger = new AuditLogger();
 
 // Convenience functions for common audit events
 export const auditLog = {
-  // Authentication
-  userLogin: (
+  coSignCompleted: (
     userId: string,
+    coSignerUserId: string,
+    householdId: string,
+    animalId: string,
+    administrationId: string,
     metadata?: Record<string, unknown>,
     correlationId?: string,
   ) =>
-    auditLogger.logUserAuth(
-      AuditEventType.USER_LOGIN,
+    auditLogger.logCoSignEvent(
+      AuditEventType.CO_SIGN_COMPLETED,
       userId,
+      householdId,
+      animalId,
+      administrationId,
+      coSignerUserId,
       metadata,
       correlationId,
     ),
 
-  userLogout: (
+  // Co-signing
+  coSignRequired: (
     userId: string,
+    householdId: string,
+    animalId: string,
+    administrationId: string,
     metadata?: Record<string, unknown>,
     correlationId?: string,
   ) =>
-    auditLogger.logUserAuth(
-      AuditEventType.USER_LOGOUT,
+    auditLogger.logCoSignEvent(
+      AuditEventType.CO_SIGN_REQUIRED,
       userId,
+      householdId,
+      animalId,
+      administrationId,
+      undefined,
       metadata,
       correlationId,
     ),
@@ -483,43 +498,20 @@ export const auditLog = {
       correlationId,
     ),
 
-  // Co-signing
-  coSignRequired: (
+  permissionDenied: (
     userId: string,
     householdId: string,
-    animalId: string,
-    administrationId: string,
-    metadata?: Record<string, unknown>,
+    resource: string,
+    action: string,
     correlationId?: string,
   ) =>
-    auditLogger.logCoSignEvent(
-      AuditEventType.CO_SIGN_REQUIRED,
+    auditLogger.logSecurityEvent(
+      AuditEventType.PERMISSION_DENIED,
       userId,
       householdId,
-      animalId,
-      administrationId,
       undefined,
-      metadata,
-      correlationId,
-    ),
-
-  coSignCompleted: (
-    userId: string,
-    coSignerUserId: string,
-    householdId: string,
-    animalId: string,
-    administrationId: string,
-    metadata?: Record<string, unknown>,
-    correlationId?: string,
-  ) =>
-    auditLogger.logCoSignEvent(
-      AuditEventType.CO_SIGN_COMPLETED,
-      userId,
-      householdId,
-      animalId,
-      administrationId,
-      coSignerUserId,
-      metadata,
+      undefined,
+      { action, resource },
       correlationId,
     ),
 
@@ -541,21 +533,28 @@ export const auditLog = {
       metadata,
       correlationId,
     ),
-
-  permissionDenied: (
+  // Authentication
+  userLogin: (
     userId: string,
-    householdId: string,
-    resource: string,
-    action: string,
+    metadata?: Record<string, unknown>,
     correlationId?: string,
   ) =>
-    auditLogger.logSecurityEvent(
-      AuditEventType.PERMISSION_DENIED,
+    auditLogger.logUserAuth(
+      AuditEventType.USER_LOGIN,
       userId,
-      householdId,
-      undefined,
-      undefined,
-      { resource, action },
+      metadata,
+      correlationId,
+    ),
+
+  userLogout: (
+    userId: string,
+    metadata?: Record<string, unknown>,
+    correlationId?: string,
+  ) =>
+    auditLogger.logUserAuth(
+      AuditEventType.USER_LOGOUT,
+      userId,
+      metadata,
       correlationId,
     ),
 };

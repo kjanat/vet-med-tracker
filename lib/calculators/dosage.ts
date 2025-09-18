@@ -281,37 +281,35 @@ export class DosageCalculator {
     const safetyLevel = DosageCalculator.determineSafetyLevel(warnings);
 
     return {
-      dose: targetDose.dose,
-      unit: targetDose.unit,
-      minDose: targetMinDose.dose,
-      maxDose: targetMaxDose.dose,
-      frequencyPerDay: medication.frequencyPerDay,
-      route: route || medication.route,
-      safetyLevel,
-      warnings,
+      // Additional properties for test compatibility
+      alternativeFormats,
+      appliedAdjustments,
+      baseDoseMgKg: baseDosage.typical,
 
       // Flattened properties for backward compatibility
       calculationMethod,
-      appliedAdjustments,
-      weightInKg: roundedWeightInKg,
-      baseDoseMgKg: baseDosage.typical,
-      finalDoseMgKg: roundedFinalDoseMgKg,
-
-      // Additional properties for test compatibility
-      alternativeFormats,
       dailyInfo: pharmacokinetics,
+      dose: targetDose.dose,
+      finalDoseMgKg: roundedFinalDoseMgKg,
+      frequencyPerDay: medication.frequencyPerDay,
+      maxDose: targetMaxDose.dose,
 
       metadata: {
-        calculationMethod,
-        appliedAdjustments,
-        weightInKg: roundedWeightInKg,
-        baseDoseMgKg: baseDosage.typical,
-        finalDoseMgKg: roundedFinalDoseMgKg,
-
         alternativeFormats,
-        safetyMargin,
+        appliedAdjustments,
+        baseDoseMgKg: baseDosage.typical,
+        calculationMethod,
+        finalDoseMgKg: roundedFinalDoseMgKg,
         pharmacokinetics,
+        safetyMargin,
+        weightInKg: roundedWeightInKg,
       },
+      minDose: targetMinDose.dose,
+      route: route || medication.route,
+      safetyLevel,
+      unit: targetDose.unit,
+      warnings,
+      weightInKg: roundedWeightInKg,
     };
   }
 
@@ -352,8 +350,8 @@ export class DosageCalculator {
     }
 
     return {
-      min: medication.dosageMinMgKg || typicalDosage * 0.8,
       max: medication.dosageMaxMgKg || typicalDosage * 1.2,
+      min: medication.dosageMinMgKg || typicalDosage * 0.8,
       typical: typicalDosage,
     };
   }
@@ -386,11 +384,11 @@ export class DosageCalculator {
       string,
       { multiplier: number; reason: string }
     > = {
+      bird: { multiplier: 1.3, reason: "Avian metabolic rate adjustment" },
       cat: { multiplier: 0.9, reason: "Feline hepatic metabolism adjustment" },
       dog: { multiplier: 1.0, reason: "Standard canine dosage" },
-      rabbit: { multiplier: 1.1, reason: "Higher metabolic rate adjustment" },
       ferret: { multiplier: 1.2, reason: "Rapid metabolism adjustment" },
-      bird: { multiplier: 1.3, reason: "Avian metabolic rate adjustment" },
+      rabbit: { multiplier: 1.1, reason: "Higher metabolic rate adjustment" },
       reptile: { multiplier: 0.7, reason: "Lower metabolic rate adjustment" },
     };
 
@@ -532,11 +530,11 @@ export class DosageCalculator {
    */
   private static getSpeciesLifespan(species: string): number {
     const lifespans: Record<string, number> = {
-      dog: 13,
-      cat: 15,
-      rabbit: 8,
-      ferret: 7,
       bird: 10,
+      cat: 15,
+      dog: 13,
+      ferret: 7,
+      rabbit: 8,
       reptile: 15,
     };
 
@@ -561,12 +559,12 @@ export class DosageCalculator {
       string,
       { multiplier: number; reason: string }
     > = {
-      oral: { multiplier: 1.0, reason: "Standard oral bioavailability" },
-      iv: { multiplier: 0.8, reason: "100% bioavailability - reduced dose" },
       im: {
         multiplier: 0.9,
         reason: "High bioavailability - slight reduction",
       },
+      iv: { multiplier: 0.8, reason: "100% bioavailability - reduced dose" },
+      oral: { multiplier: 1.0, reason: "Standard oral bioavailability" },
       sq: { multiplier: 1.0, reason: "Standard subcutaneous dosage" },
       topical: { multiplier: 1.2, reason: "Lower absorption - increased dose" },
     };
@@ -752,9 +750,9 @@ export class DosageCalculator {
     if (medication.concentrationMgMl && medication.concentrationMgMl > 0) {
       const doseML = doseMg / medication.concentrationMgMl;
       alternatives.push({
+        description: "Liquid volume",
         dose: VetUnitConversions.Utils.roundToVetPrecision(doseML, "ml"),
         unit: "mL",
-        description: "Liquid volume",
       });
     }
 
@@ -762,12 +760,12 @@ export class DosageCalculator {
     if (medication.unitsPerTablet && medication.unitsPerTablet > 0) {
       const doseTablets = doseMg / medication.unitsPerTablet;
       alternatives.push({
+        description: "Number of tablets",
         dose: VetUnitConversions.Utils.roundToVetPrecision(
           doseTablets,
           "tablets",
         ),
         unit: "tablets",
-        description: "Number of tablets",
       });
     }
 
@@ -785,11 +783,11 @@ export class DosageCalculator {
     const bufferZone = maxDoseMg - currentDoseMg;
 
     return {
-      percentOfMax: Math.round(percentOfMax),
       bufferZone: VetUnitConversions.Utils.roundToVetPrecision(
         bufferZone,
         "mg",
       ),
+      percentOfMax: Math.round(percentOfMax),
     };
   }
 
@@ -808,12 +806,12 @@ export class DosageCalculator {
     const hoursPerDose = 24 / frequencyPerDay;
 
     return {
+      dosesPerDay: frequencyPerDay,
+      timeBetweenDoses: `${hoursPerDose} hours`,
       totalDailyDose: VetUnitConversions.Utils.roundToVetPrecision(
         totalDailyDose,
         "mg",
       ),
-      dosesPerDay: frequencyPerDay,
-      timeBetweenDoses: `${hoursPerDose} hours`,
     };
   }
 }

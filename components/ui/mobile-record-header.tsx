@@ -33,14 +33,14 @@ export function MobileRecordHeader({
     : null;
 
   const stepTitles = {
-    select: "Select Medication",
     confirm: "Confirm Administration",
+    select: "Select Medication",
     success: "Recording Complete",
   };
 
   const stepProgress = {
-    select: 1,
     confirm: 2,
+    select: 1,
     success: 3,
   };
 
@@ -67,21 +67,21 @@ export function MobileRecordHeader({
         <div className="flex items-center gap-2">
           {step !== "select" ? (
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="h-10 w-10 p-0"
               aria-label="Go back"
+              className="h-10 w-10 p-0"
+              onClick={handleBack}
+              size="sm"
+              variant="ghost"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           ) : (
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancel}
-              className="h-10 w-10 p-0"
               aria-label="Cancel and return to home"
+              className="h-10 w-10 p-0"
+              onClick={handleCancel}
+              size="sm"
+              variant="ghost"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -98,8 +98,8 @@ export function MobileRecordHeader({
               {selectedAnimal && (
                 <AnimalAvatar
                   animal={selectedAnimal}
-                  size="xs"
                   className="shrink-0"
+                  size="xs"
                 />
               )}
               <div className="min-w-0">
@@ -114,18 +114,18 @@ export function MobileRecordHeader({
 
         {/* Right: Progress indicator */}
         <output
-          className="flex items-center gap-1"
           aria-label={`Step ${stepProgress[step]} of 3`}
+          className="flex items-center gap-1"
         >
           {[1, 2, 3].map((num) => (
             <div
-              key={num}
+              aria-hidden="true"
               className={`h-2 w-2 rounded-full transition-colors ${
                 num <= stepProgress[step]
                   ? "bg-primary"
                   : "bg-muted-foreground/30"
               }`}
-              aria-hidden="true"
+              key={num}
             />
           ))}
         </output>

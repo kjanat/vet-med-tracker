@@ -31,14 +31,14 @@ export function LoginButton({
 
   return (
     <Button
-      type="button"
-      onClick={handleLogin}
-      disabled={isLoading}
-      variant={variant}
-      size={size}
       className={className}
+      disabled={isLoading}
+      onClick={handleLogin}
+      size={size}
+      type="button"
+      variant={variant}
     >
-      <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
+      <LogIn aria-hidden="true" className="mr-2 h-4 w-4" />
       Sign In
     </Button>
   );

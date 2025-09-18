@@ -29,7 +29,7 @@ export function ComponentErrorBoundary({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const fallback = (
-    <Alert variant="destructive" className="my-4">
+    <Alert className="my-4" variant="destructive">
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Error in {componentName}</AlertTitle>
       <AlertDescription>
@@ -40,20 +40,20 @@ export function ComponentErrorBoundary({
         <div className="mt-3 flex items-center gap-2">
           {onRetry && (
             <Button
-              onClick={onRetry}
-              variant="outline"
-              size="sm"
               className="h-7 text-xs"
+              onClick={onRetry}
+              size="sm"
+              variant="outline"
             >
               Try Again
             </Button>
           )}
           {showDetails && (
             <Button
-              onClick={() => setIsExpanded(!isExpanded)}
-              variant="ghost"
-              size="sm"
               className="h-7 text-xs"
+              onClick={() => setIsExpanded(!isExpanded)}
+              size="sm"
+              variant="ghost"
             >
               {isExpanded ? (
                 <ChevronDown className="mr-1 h-3 w-3" />
@@ -102,9 +102,9 @@ export function FormErrorBoundary({
 
   return (
     <ComponentErrorBoundary
-      key={key}
       componentName={`${formName} Form`}
       fallbackMessage="The form encountered an error. Your data has not been lost."
+      key={key}
       onRetry={() => setKey(key + 1)}
     >
       {children}

@@ -56,20 +56,20 @@ export function ProgressiveImage({
       {isLoading && <Skeleton className="absolute inset-0 z-10" />}
 
       <Image
-        src={src}
         alt={alt}
-        width={width}
-        height={height}
+        blurDataURL={blurDataURL}
         className={cn(
           "transition-opacity duration-300",
           isLoading ? "opacity-0" : "opacity-100",
           className,
         )}
-        priority={priority}
-        placeholder={placeholder}
-        blurDataURL={blurDataURL}
-        onLoad={handleLoad}
+        height={height}
         onError={handleError}
+        onLoad={handleLoad}
+        placeholder={placeholder}
+        priority={priority}
+        src={src}
+        width={width}
       />
     </div>
   );
@@ -106,7 +106,7 @@ export function ProgressiveAvatar({
           "flex items-center justify-center rounded-full bg-muted font-medium text-muted-foreground",
           className,
         )}
-        style={{ width: size, height: size, fontSize: size * 0.4 }}
+        style={{ fontSize: size * 0.4, height: size, width: size }}
       >
         {initials}
       </div>
@@ -115,21 +115,21 @@ export function ProgressiveAvatar({
 
   return (
     <ProgressiveImage
-      src={src}
       alt={alt}
-      width={size}
-      height={size}
       className={cn("rounded-full", className)}
-      onLoad={() => setImageError(false)}
       fallback={
         <div
           className={cn(
             "flex items-center justify-center rounded-full bg-muted",
             className,
           )}
-          style={{ width: size, height: size }}
+          style={{ height: size, width: size }}
         />
       }
+      height={size}
+      onLoad={() => setImageError(false)}
+      src={src}
+      width={size}
     />
   );
 }
@@ -168,16 +168,16 @@ export function LazyImage({
   }, [ref, isInView, threshold]);
 
   return (
-    <div ref={setRef} className={cn("relative", className)}>
+    <div className={cn("relative", className)} ref={setRef}>
       {!isInView ? (
-        <Skeleton className="h-full w-full" style={{ width, height }} />
+        <Skeleton className="h-full w-full" style={{ height, width }} />
       ) : (
         <ProgressiveImage
-          src={src}
           alt={alt}
-          width={width}
-          height={height}
           className={className}
+          height={height}
+          src={src}
+          width={width}
         />
       )}
     </div>

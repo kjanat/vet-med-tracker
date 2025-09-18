@@ -56,7 +56,7 @@ export function AnimalBreadcrumb() {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink href="#" className="font-normal">
+          <BreadcrumbLink className="font-normal" href="#">
             Animals
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -65,8 +65,8 @@ export function AnimalBreadcrumb() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <BreadcrumbPage
-                className="cursor-pointer transition-colors hover:text-muted-foreground"
                 aria-label={`Switch animal. Current: ${selectedAnimal ? selectedAnimal.name : "All animals"}`}
+                className="cursor-pointer transition-colors hover:text-muted-foreground"
               >
                 {selectedAnimal ? (
                   <span className="flex items-center gap-1.5">
@@ -74,8 +74,8 @@ export function AnimalBreadcrumb() {
                     <span>{selectedAnimal.name}</span>
                     {selectedAnimal.pendingMeds > 0 && (
                       <Badge
-                        variant="destructive"
                         className="ml-0.5 h-4 px-1 text-[10px]"
+                        variant="destructive"
                       >
                         {selectedAnimal.pendingMeds}
                       </Badge>
@@ -86,8 +86,8 @@ export function AnimalBreadcrumb() {
                     <span>All</span>
                     {totalPendingMeds > 0 && (
                       <Badge
-                        variant="secondary"
                         className="ml-0.5 h-4 px-1 text-[10px]"
+                        variant="secondary"
                       >
                         {totalPendingMeds}
                       </Badge>
@@ -98,13 +98,13 @@ export function AnimalBreadcrumb() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
               <DropdownMenuItem
-                onClick={() => handleAnimalSelect(null)}
                 className={cn("cursor-pointer", !selectedAnimal && "bg-accent")}
+                onClick={() => handleAnimalSelect(null)}
               >
                 <div className="flex w-full items-center justify-between">
                   <span>All Animals</span>
                   {totalPendingMeds > 0 && (
-                    <Badge variant="secondary" className="h-4 px-1 text-[10px]">
+                    <Badge className="h-4 px-1 text-[10px]" variant="secondary">
                       {totalPendingMeds}
                     </Badge>
                   )}
@@ -112,20 +112,20 @@ export function AnimalBreadcrumb() {
               </DropdownMenuItem>
               {animals.map((animal) => (
                 <DropdownMenuItem
-                  key={animal.id}
-                  onClick={() => handleAnimalSelect(animal)}
                   className={cn(
                     "cursor-pointer",
                     selectedAnimal?.id === animal.id && "bg-accent",
                   )}
+                  key={animal.id}
+                  onClick={() => handleAnimalSelect(animal)}
                 >
                   <div className="flex w-full items-center gap-2">
                     <AnimalAvatar animal={animal} size="xs" />
                     <span className="flex-1">{animal.name}</span>
                     {animal.pendingMeds > 0 && (
                       <Badge
-                        variant="destructive"
                         className="h-4 px-1 text-[10px]"
+                        variant="destructive"
                       >
                         {animal.pendingMeds}
                       </Badge>

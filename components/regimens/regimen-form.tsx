@@ -67,25 +67,23 @@ interface MedicationOption {
 function getInitialFormData(): Partial<Regimen> {
   return {
     animalId: "",
+    cutoffMins: 60,
+    endDate: undefined,
+    form: "",
+    highRisk: false,
     medicationId: "",
     medicationName: "",
     route: "",
-    form: "",
-    strength: "",
     scheduleType: "FIXED",
-    timesLocal: [],
     startDate: undefined,
-    endDate: undefined,
-    cutoffMins: 60,
-    highRisk: false,
+    strength: "",
+    timesLocal: [],
   };
 }
 
 function checkFormValidity(formData: Partial<Regimen>): boolean {
-  const hasBasicInfo = !!(
-    formData.animalId &&
-    formData.medicationId &&
-    formData.medicationName
+  const hasBasicInfo = Boolean(
+    formData.animalId && formData.medicationId && formData.medicationName,
   );
   const hasValidSchedule =
     formData.scheduleType === "PRN" ||
@@ -93,7 +91,7 @@ function checkFormValidity(formData: Partial<Regimen>): boolean {
       formData.timesLocal &&
       formData.timesLocal.length > 0);
 
-  return !!(hasBasicInfo && hasValidSchedule);
+  return Boolean(hasBasicInfo && hasValidSchedule);
 }
 
 export function RegimenForm({
@@ -115,7 +113,7 @@ export function RegimenForm({
   // Search medications from the database when user types
   const { data: searchResults = [], isLoading: searchLoading } =
     trpc.medication.search.useQuery(
-      { query: medicationSearch, limit: 20 },
+      { limit: 20, query: medicationSearch },
       {
         enabled: medicationSearch.length > 0,
         staleTime: 30000, // Cache for 30 seconds
@@ -142,10 +140,10 @@ export function RegimenForm({
   const handleMedicationSelect = (medication: MedicationOption) => {
     setFormData((prev) => ({
       ...prev,
+      form: medication.form,
       medicationId: medication.id,
       medicationName: medication.brand || medication.generic,
       route: medication.route,
-      form: medication.form,
       strength: medication.strength,
     }));
     setMedicationOpen(false);
@@ -171,18 +169,18 @@ export function RegimenForm({
 
   // Transform search results to MedicationOption format
   const medicationOptions: MedicationOption[] = searchResults.map((med) => ({
-    id: med.id,
-    generic: med.genericName,
     brand: med.brandName || undefined,
-    route: med.route,
     form: med.form,
+    generic: med.genericName,
+    id: med.id,
+    route: med.route,
     strength: med.strength || undefined,
   }));
 
   const isFormValid = checkFormValidity(formData);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-xl md:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{regimen ? "Edit Regimen" : "Add Regimen"}</DialogTitle>
@@ -193,62 +191,62 @@ export function RegimenForm({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
           {/* Animal Selection */}
           <AnimalSelector
             animals={animals}
-            value={formData.animalId}
             onChange={(value) =>
               setFormData((prev) => ({ ...prev, animalId: value }))
             }
+            value={formData.animalId}
           />
 
           {/* Medication Selection */}
           <MedicationSelector
-            medicationName={formData.medicationName}
             medicationDetails={{
-              strength: formData.strength,
-              route: formData.route,
               form: formData.form,
+              route: formData.route,
+              strength: formData.strength,
             }}
+            medicationName={formData.medicationName}
             medicationOpen={medicationOpen}
-            setMedicationOpen={setMedicationOpen}
-            medicationSearch={medicationSearch}
-            setMedicationSearch={setMedicationSearch}
-            searchLoading={searchLoading}
             medicationOptions={medicationOptions}
+            medicationSearch={medicationSearch}
             onSelect={handleMedicationSelect}
+            searchLoading={searchLoading}
+            setMedicationOpen={setMedicationOpen}
+            setMedicationSearch={setMedicationSearch}
           />
 
           {/* Schedule Type */}
           <ScheduleTypeSelector
-            value={formData.scheduleType}
             onChange={(value) =>
               setFormData((prev) => ({ ...prev, scheduleType: value }))
             }
+            value={formData.scheduleType}
           />
 
           {/* Fixed Schedule Times */}
           {formData.scheduleType === "FIXED" && (
             <FixedScheduleTimes
-              timesLocal={formData.timesLocal}
-              newTime={newTime}
-              setNewTime={setNewTime}
               addTime={addTime}
+              newTime={newTime}
               removeTime={removeTime}
+              setNewTime={setNewTime}
+              timesLocal={formData.timesLocal}
             />
           )}
 
           {/* Course Dates */}
           <CourseDatesSelector
-            startDate={formData.startDate}
             endDate={formData.endDate}
-            onStartDateChange={(date) =>
-              setFormData((prev) => ({ ...prev, startDate: date }))
-            }
             onEndDateChange={(date) =>
               setFormData((prev) => ({ ...prev, endDate: date }))
             }
+            onStartDateChange={(date) =>
+              setFormData((prev) => ({ ...prev, startDate: date }))
+            }
+            startDate={formData.startDate}
           />
 
           {/* Settings */}
@@ -256,13 +254,13 @@ export function RegimenForm({
             <div className="space-y-2">
               <Label htmlFor="cutoff">Cutoff Minutes</Label>
               <Select
-                value={formData.cutoffMins?.toString()}
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
                     cutoffMins: Number.parseInt(value, 10),
                   }))
                 }
+                value={formData.cutoffMins?.toString()}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -284,8 +282,8 @@ export function RegimenForm({
 
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="highRisk"
                 checked={formData.highRisk}
+                id="highRisk"
                 onCheckedChange={(checked) =>
                   setFormData((prev) => ({
                     ...prev,
@@ -293,7 +291,7 @@ export function RegimenForm({
                   }))
                 }
               />
-              <Label htmlFor="highRisk" className="text-sm">
+              <Label className="text-sm" htmlFor="highRisk">
                 High-risk medication (requires co-signature)
               </Label>
             </div>
@@ -307,13 +305,13 @@ export function RegimenForm({
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
             <Button
+              onClick={() => onOpenChange(false)}
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || !isFormValid}>
+            <Button disabled={isSubmitting || !isFormValid} type="submit">
               {isSubmitting
                 ? "Saving..."
                 : regimen
@@ -419,11 +417,11 @@ function MedicationSelector({
   return (
     <div className="space-y-2">
       <Label>Medication *</Label>
-      <Popover open={medicationOpen} onOpenChange={setMedicationOpen}>
+      <Popover onOpenChange={setMedicationOpen} open={medicationOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
             className="w-full justify-between bg-transparent"
+            variant="outline"
           >
             {medicationName || "Select medication"}
             <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -432,9 +430,9 @@ function MedicationSelector({
         <PopoverContent className="w-full p-0">
           <Command>
             <CommandInput
+              onValueChange={setMedicationSearch}
               placeholder="Search medications..."
               value={medicationSearch}
-              onValueChange={setMedicationSearch}
             />
             <CommandList>
               <CommandEmpty>{renderSearchEmpty()}</CommandEmpty>
@@ -481,13 +479,13 @@ function CourseDatesSelector({
         <Label htmlFor="startDate">Start Date</Label>
         <Input
           id="startDate"
-          type="date"
-          value={startDate ? startDate.toISOString().split("T")[0] : ""}
           onChange={(e) =>
             onStartDateChange(
               e.target.value ? new Date(e.target.value) : undefined,
             )
           }
+          type="date"
+          value={startDate ? startDate.toISOString().split("T")[0] : ""}
         />
       </div>
 
@@ -495,13 +493,13 @@ function CourseDatesSelector({
         <Label htmlFor="endDate">End Date</Label>
         <Input
           id="endDate"
-          type="date"
-          value={endDate ? endDate.toISOString().split("T")[0] : ""}
           onChange={(e) =>
             onEndDateChange(
               e.target.value ? new Date(e.target.value) : undefined,
             )
           }
+          type="date"
+          value={endDate ? endDate.toISOString().split("T")[0] : ""}
         />
       </div>
     </div>
@@ -541,7 +539,7 @@ function AnimalSelector({
   return (
     <div className="space-y-2">
       <Label htmlFor="animal">Animal *</Label>
-      <Select value={value || ""} onValueChange={onChange}>
+      <Select onValueChange={onChange} value={value || ""}>
         <SelectTrigger>
           <SelectValue placeholder="Select animal" />
         </SelectTrigger>
@@ -620,21 +618,21 @@ function FixedScheduleTimes({
       <Label>Daily Times *</Label>
       <div className="flex gap-2">
         <Input
-          type="time"
-          value={newTime}
           onChange={(e) => setNewTime(e.target.value)}
           placeholder="Add time"
+          type="time"
+          value={newTime}
         />
-        <Button type="button" onClick={addTime} size="sm">
+        <Button onClick={addTime} size="sm" type="button">
           <Plus className="h-4 w-4" />
         </Button>
       </div>
 
       <div className="flex flex-wrap gap-2">
         {timesLocal?.map((time) => (
-          <Badge key={time} variant="secondary" className="gap-1">
+          <Badge className="gap-1" key={time} variant="secondary">
             {format(new Date(`2000-01-01T${time}`), "h:mm a")}
-            <button type="button" onClick={() => removeTime(time)}>
+            <button onClick={() => removeTime(time)} type="button">
               <X className="h-3 w-3" />
             </button>
           </Badge>

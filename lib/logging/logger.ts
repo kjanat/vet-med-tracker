@@ -94,12 +94,14 @@ export interface LoggerConfig {
  * Default configuration
  */
 const DEFAULT_CONFIG: LoggerConfig = {
-  service: "vet-med-tracker",
-  minLevel:
-    process.env.NODE_ENV === "production" ? LogLevel.INFO : LogLevel.DEBUG,
   enableConsole: true,
+  enablePerformanceTracking: true,
   enableStructured: true,
   maskSensitiveData: true,
+  maxMessageLength: 1000,
+  maxMetadataSize: 10000,
+  minLevel:
+    process.env.NODE_ENV === "production" ? LogLevel.INFO : LogLevel.DEBUG,
   sensitiveFields: [
     "password",
     "token",
@@ -123,9 +125,7 @@ const DEFAULT_CONFIG: LoggerConfig = {
     "creditCard",
     "credit_card",
   ],
-  enablePerformanceTracking: true,
-  maxMessageLength: 1000,
-  maxMetadataSize: 10000,
+  service: "vet-med-tracker",
 };
 
 /**
@@ -333,13 +333,13 @@ export class Logger {
 
     const context: LoggingContext = {
       correlationId,
-      requestId,
-      userId,
-      sessionId,
-      operation,
-      startTime: Date.now(),
       metadata,
+      operation,
+      requestId,
+      sessionId,
+      startTime: Date.now(),
       tags: [],
+      userId,
     };
 
     contextStore.set(correlationId, context);
@@ -564,17 +564,17 @@ export class Logger {
     performance?: PerformanceMetrics,
   ): LogEntry {
     const entry: LogEntry = {
-      timestamp: new Date().toISOString(),
+      correlationId: context.correlationId,
+      householdId: context.householdId,
       level,
       message: this.truncateMessage(message),
-      correlationId: context.correlationId,
-      requestId: context.requestId,
-      userId: context.userId,
-      householdId: context.householdId,
-      sessionId: context.sessionId,
-      service: this.config.service,
       operation: context.operation,
+      requestId: context.requestId,
+      service: this.config.service,
+      sessionId: context.sessionId,
       tags: context.tags,
+      timestamp: new Date().toISOString(),
+      userId: context.userId,
     };
 
     // Add duration if available
@@ -619,8 +619,8 @@ export class Logger {
     if ("name" in error && "message" in error) {
       // It's an Error object
       return {
-        name: error.name,
         message: error.message,
+        name: error.name,
         stack: error.stack,
         ...((error as Error & { code?: string }).code && {
           code: (error as Error & { code?: string }).code,
@@ -663,8 +663,8 @@ export class Logger {
 
     return {
       ...metadata,
-      _truncated: true,
       _originalSize: serialized.length,
+      _truncated: true,
     };
   }
 

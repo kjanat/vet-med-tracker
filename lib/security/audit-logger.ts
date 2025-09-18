@@ -108,9 +108,9 @@ class ConsoleAuditLogger implements AuditLogger {
       // Log to structured format for log aggregation systems
       console.log(
         JSON.stringify({
-          service: "vetmed-tracker",
-          level: "audit",
           event: auditEvent,
+          level: "audit",
+          service: "vetmed-tracker",
         }),
       );
     } else {
@@ -118,12 +118,12 @@ class ConsoleAuditLogger implements AuditLogger {
       console.log(
         `[AUDIT] ${auditEvent.timestamp} - ${auditEvent.action} (${auditEvent.outcome})`,
         {
-          id: auditEvent.id,
-          type: auditEvent.type,
-          severity: auditEvent.severity,
-          userId: auditEvent.userId,
           clientIp: auditEvent.clientIp,
+          id: auditEvent.id,
           metadata: auditEvent.metadata,
+          severity: auditEvent.severity,
+          type: auditEvent.type,
+          userId: auditEvent.userId,
         },
       );
     }
@@ -137,16 +137,16 @@ class ConsoleAuditLogger implements AuditLogger {
 
   async logAuth(action: string, context: AuthContext): Promise<void> {
     await this.log({
-      type: "auth",
       action,
-      outcome: context.outcome,
-      userId: context.userId,
-      clientIp: context.clientIp,
-      userAgent: context.userAgent,
-      method: context.method,
-      severity: context.outcome === "failure" ? "medium" : "low",
       category: "authentication",
+      clientIp: context.clientIp,
       metadata: context.metadata,
+      method: context.method,
+      outcome: context.outcome,
+      severity: context.outcome === "failure" ? "medium" : "low",
+      type: "auth",
+      userAgent: context.userAgent,
+      userId: context.userId,
     });
   }
 
@@ -155,18 +155,18 @@ class ConsoleAuditLogger implements AuditLogger {
     context: DataAccessContext,
   ): Promise<void> {
     await this.log({
-      type: "data",
       action,
-      resource: context.resource,
-      outcome: context.outcome,
-      userId: context.userId,
-      severity: context.outcome === "failure" ? "medium" : "low",
       category: "data_access",
       metadata: {
-        householdId: context.householdId,
         animalId: context.animalId,
+        householdId: context.householdId,
         ...context.metadata,
       },
+      outcome: context.outcome,
+      resource: context.resource,
+      severity: context.outcome === "failure" ? "medium" : "low",
+      type: "data",
+      userId: context.userId,
     });
   }
 
@@ -175,15 +175,15 @@ class ConsoleAuditLogger implements AuditLogger {
     context: SecurityContext,
   ): Promise<void> {
     await this.log({
-      type: "security",
       action,
-      outcome: context.outcome as "success" | "failure",
-      userId: context.userId,
-      clientIp: context.clientIp,
-      severity: context.severity,
       category: "security_threat",
-      threatIndicators: [context.threatType],
+      clientIp: context.clientIp,
       metadata: context.details,
+      outcome: context.outcome as "success" | "failure",
+      severity: context.severity,
+      threatIndicators: [context.threatType],
+      type: "security",
+      userId: context.userId,
     });
   }
 
@@ -205,52 +205,67 @@ export const auditLogger: AuditLogger = new ConsoleAuditLogger();
  * Security event types and helpers
  */
 export const SecurityEvents = {
-  // Authentication events
-  LOGIN_SUCCESS: "login_success",
-  LOGIN_FAILURE: "login_failure",
-  LOGOUT: "logout",
-  SESSION_EXPIRED: "session_expired",
-  ACCOUNT_LOCKED: "account_locked",
-
   // Authorization events
   ACCESS_DENIED: "access_denied",
-  PRIVILEGE_ESCALATION_ATTEMPT: "privilege_escalation_attempt",
-  UNAUTHORIZED_RESOURCE_ACCESS: "unauthorized_resource_access",
+  ACCOUNT_LOCKED: "account_locked",
+  CONFIGURATION_CHANGED: "configuration_changed",
+  CSRF_ATTEMPT: "csrf_attempt",
 
   // Data events
   DATA_CREATED: "data_created",
-  DATA_READ: "data_read",
-  DATA_UPDATED: "data_updated",
   DATA_DELETED: "data_deleted",
   DATA_EXPORTED: "data_exported",
+  DATA_READ: "data_read",
+  DATA_UPDATED: "data_updated",
+  ERROR_THRESHOLD_EXCEEDED: "error_threshold_exceeded",
+  HOUSEHOLD_CREATED: "household_created",
+  HOUSEHOLD_UPDATED: "household_updated",
+  LOGIN_FAILURE: "login_failure",
+  // Authentication events
+  LOGIN_SUCCESS: "login_success",
+  LOGOUT: "logout",
+  MALICIOUS_INPUT_DETECTED: "malicious_input_detected",
+  PRIVILEGE_ESCALATION_ATTEMPT: "privilege_escalation_attempt",
 
   // Security threats
   RATE_LIMIT_EXCEEDED: "rate_limit_exceeded",
-  SUSPICIOUS_ACTIVITY: "suspicious_activity",
-  MALICIOUS_INPUT_DETECTED: "malicious_input_detected",
-  SQL_INJECTION_ATTEMPT: "sql_injection_attempt",
-  XSS_ATTEMPT: "xss_attempt",
-  CSRF_ATTEMPT: "csrf_attempt",
+  ROLE_CHANGED: "role_changed",
 
   // System events
   SERVICE_STARTED: "service_started",
   SERVICE_STOPPED: "service_stopped",
-  CONFIGURATION_CHANGED: "configuration_changed",
-  ERROR_THRESHOLD_EXCEEDED: "error_threshold_exceeded",
+  SESSION_EXPIRED: "session_expired",
+  SQL_INJECTION_ATTEMPT: "sql_injection_attempt",
+  SUSPICIOUS_ACTIVITY: "suspicious_activity",
+  UNAUTHORIZED_RESOURCE_ACCESS: "unauthorized_resource_access",
 
   // Admin events
   USER_CREATED: "user_created",
-  USER_UPDATED: "user_updated",
   USER_DELETED: "user_deleted",
-  HOUSEHOLD_CREATED: "household_created",
-  HOUSEHOLD_UPDATED: "household_updated",
-  ROLE_CHANGED: "role_changed",
+  USER_UPDATED: "user_updated",
+  XSS_ATTEMPT: "xss_attempt",
 } as const;
 
 /**
  * Helper functions for common audit scenarios
  */
 export const auditHelpers = {
+  // Log data access events
+  async logDataAccess(
+    action: string,
+    userId: string,
+    resource: string,
+    success: boolean,
+    metadata?: Record<string, unknown>,
+  ) {
+    await auditLogger.logDataAccess(action, {
+      action,
+      metadata,
+      outcome: success ? "success" : "failure",
+      resource,
+      userId,
+    });
+  },
   // Log authentication events
   async logLogin(
     userId: string,
@@ -261,87 +276,11 @@ export const auditHelpers = {
     await auditLogger.logAuth(
       success ? SecurityEvents.LOGIN_SUCCESS : SecurityEvents.LOGIN_FAILURE,
       {
-        userId,
-        outcome: success ? "success" : "failure",
         clientIp,
-        userAgent,
         method: "POST",
-      },
-    );
-  },
-
-  // Log data access events
-  async logDataAccess(
-    action: string,
-    userId: string,
-    resource: string,
-    success: boolean,
-    metadata?: Record<string, unknown>,
-  ) {
-    await auditLogger.logDataAccess(action, {
-      userId,
-      resource,
-      action,
-      outcome: success ? "success" : "failure",
-      metadata,
-    });
-  },
-
-  // Log security threats
-  async logThreat(
-    threatType: string,
-    severity: "low" | "medium" | "high" | "critical",
-    clientIp?: string,
-    userId?: string,
-    details?: Record<string, unknown>,
-  ) {
-    await auditLogger.logSecurityEvent(threatType, {
-      threatType,
-      severity,
-      clientIp,
-      userId,
-      outcome: "detected",
-      details,
-    });
-  },
-
-  // Log rate limiting events
-  async logRateLimitExceeded(
-    clientIp: string,
-    endpoint: string,
-    userId?: string,
-  ) {
-    await auditLogger.logSecurityEvent(SecurityEvents.RATE_LIMIT_EXCEEDED, {
-      threatType: "rate_limiting",
-      severity: "medium",
-      clientIp,
-      userId,
-      outcome: "blocked",
-      details: { endpoint },
-    });
-  },
-
-  // Log input validation failures
-  async logValidationFailure(
-    input: string,
-    validationType: string,
-    clientIp?: string,
-    userId?: string,
-  ) {
-    await auditLogger.logSecurityEvent(
-      SecurityEvents.MALICIOUS_INPUT_DETECTED,
-      {
-        threatType: validationType,
-        severity: "high",
-        clientIp,
+        outcome: success ? "success" : "failure",
+        userAgent,
         userId,
-        outcome: "blocked",
-        details: {
-          inputLength: input.length,
-          validationType,
-          // Don't log the actual input to prevent log injection
-          inputHash: Buffer.from(input).toString("base64").slice(0, 16),
-        },
       },
     );
   },
@@ -357,16 +296,75 @@ export const auditHelpers = {
     await auditLogger.logSecurityEvent(
       SecurityEvents.PRIVILEGE_ESCALATION_ATTEMPT,
       {
-        threatType: "privilege_escalation",
-        severity: "high",
         clientIp,
-        userId,
-        outcome: "blocked",
         details: {
           attemptedAction,
-          requiredRole,
           currentRole,
+          requiredRole,
         },
+        outcome: "blocked",
+        severity: "high",
+        threatType: "privilege_escalation",
+        userId,
+      },
+    );
+  },
+
+  // Log rate limiting events
+  async logRateLimitExceeded(
+    clientIp: string,
+    endpoint: string,
+    userId?: string,
+  ) {
+    await auditLogger.logSecurityEvent(SecurityEvents.RATE_LIMIT_EXCEEDED, {
+      clientIp,
+      details: { endpoint },
+      outcome: "blocked",
+      severity: "medium",
+      threatType: "rate_limiting",
+      userId,
+    });
+  },
+
+  // Log security threats
+  async logThreat(
+    threatType: string,
+    severity: "low" | "medium" | "high" | "critical",
+    clientIp?: string,
+    userId?: string,
+    details?: Record<string, unknown>,
+  ) {
+    await auditLogger.logSecurityEvent(threatType, {
+      clientIp,
+      details,
+      outcome: "detected",
+      severity,
+      threatType,
+      userId,
+    });
+  },
+
+  // Log input validation failures
+  async logValidationFailure(
+    input: string,
+    validationType: string,
+    clientIp?: string,
+    userId?: string,
+  ) {
+    await auditLogger.logSecurityEvent(
+      SecurityEvents.MALICIOUS_INPUT_DETECTED,
+      {
+        clientIp,
+        details: {
+          // Don't log the actual input to prevent log injection
+          inputHash: Buffer.from(input).toString("base64").slice(0, 16),
+          inputLength: input.length,
+          validationType,
+        },
+        outcome: "blocked",
+        severity: "high",
+        threatType: validationType,
+        userId,
       },
     );
   },
@@ -388,29 +386,29 @@ export function createAuditMiddleware() {
 
       // Log successful data access
       await auditLogger.logDataAccess(`trpc_${type}`, {
-        userId: userId || "anonymous",
-        resource: path,
         action: type,
-        outcome: "success",
         householdId: ctx.currentHouseholdId ?? undefined,
         metadata: {
           executionTimeMs: Date.now() - startTime,
         },
+        outcome: "success",
+        resource: path,
+        userId: userId || "anonymous",
       });
 
       return result;
     } catch (error) {
       // Log failed data access
       await auditLogger.logDataAccess(`trpc_${type}`, {
-        userId: userId || "anonymous",
-        resource: path,
         action: type,
-        outcome: "failure",
         householdId: ctx.currentHouseholdId ?? undefined,
         metadata: {
           error: error instanceof Error ? error.message : String(error),
           executionTimeMs: Date.now() - startTime,
         },
+        outcome: "failure",
+        resource: path,
+        userId: userId || "anonymous",
       });
 
       throw error;

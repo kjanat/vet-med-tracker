@@ -4,12 +4,12 @@ import { StackServerApp } from "@stackframe/stack";
 export const stackServerApp = new StackServerApp({
   tokenStore: "nextjs-cookie",
   urls: {
+    afterSignIn: "/",
+    afterSignOut: "/",
+    afterSignUp: "/",
+    error: "/auth-error",
     signIn: "/handler/sign-in",
     signUp: "/handler/sign-up",
-    afterSignIn: "/",
-    afterSignUp: "/",
-    afterSignOut: "/",
-    error: "/auth-error",
   },
 });
 

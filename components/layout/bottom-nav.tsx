@@ -33,15 +33,15 @@ export function BottomNav() {
 
           return (
             <Link
-              key={item.path}
-              href={item.path}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex min-h-[44px] flex-1 flex-col items-center justify-center gap-1 py-3 font-medium text-xs transition-colors",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground",
               )}
-              aria-current={isActive ? "page" : undefined}
+              href={item.path}
+              key={item.path}
             >
               {Icon ? <Icon aria-hidden="true" className="h-5 w-5" /> : null}
               {item.title}

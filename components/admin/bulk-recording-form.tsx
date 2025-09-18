@@ -43,13 +43,13 @@ import { trpc } from "@/server/trpc/client";
 
 // Form validation schema
 const bulkRecordingSchema = z.object({
-  regimenId: z.string().min(1, "Please select a regimen"),
   administeredAt: z.date(),
+  allowOverride: z.boolean(),
+  dose: z.string().optional(),
   inventorySourceId: z.string().optional(),
   notes: z.string().optional(),
+  regimenId: z.string().min(1, "Please select a regimen"),
   site: z.string().optional(),
-  dose: z.string().optional(),
-  allowOverride: z.boolean(),
 });
 
 type BulkRecordingFormData = z.infer<typeof bulkRecordingSchema>;
@@ -90,19 +90,19 @@ export function BulkRecordingForm({
   const [showResults, setShowResults] = useState(false);
 
   const form = useForm<BulkRecordingFormData>({
-    resolver: zodResolver(bulkRecordingSchema),
     defaultValues: {
       administeredAt: new Date(),
       allowOverride: false,
     },
+    resolver: zodResolver(bulkRecordingSchema),
   });
 
   // Get animals and their regimens
   const { data: animalsWithRegimens = [] } =
     trpc.regimen.listByAnimals.useQuery(
       {
-        householdId: selectedHouseholdId || "",
         animalIds: Array.from(selectedIds),
+        householdId: selectedHouseholdId || "",
       },
       {
         enabled:
@@ -161,16 +161,16 @@ export function BulkRecordingForm({
       ].join(":");
 
       const result = await bulkRecordMutation.mutateAsync({
-        householdId: selectedHouseholdId,
-        animalIds: Array.from(selectedIds),
-        regimenId: data.regimenId,
         administeredAt: data.administeredAt.toISOString(),
+        allowOverride: data.allowOverride,
+        animalIds: Array.from(selectedIds),
+        dose: data.dose || undefined,
+        householdId: selectedHouseholdId,
+        idempotencyKey,
         inventorySourceId: data.inventorySourceId || undefined,
         notes: data.notes || undefined,
+        regimenId: data.regimenId,
         site: data.site || undefined,
-        dose: data.dose || undefined,
-        allowOverride: data.allowOverride,
-        idempotencyKey,
       });
 
       setResults(result.results);
@@ -178,25 +178,25 @@ export function BulkRecordingForm({
 
       if (result.summary.failed > 0) {
         toast({
-          title: "Partial Success",
           description: `Recorded ${result.summary.successful} of ${result.summary.total} administrations. ${result.summary.failed} failed.`,
+          title: "Partial Success",
           variant: "default",
         });
       } else {
         toast({
-          title: "Success",
           description: `Successfully recorded ${result.summary.successful} administrations.`,
+          title: "Success",
         });
       }
 
       setShowResults(true);
     } catch (error) {
       toast({
-        title: "Error",
         description:
           error instanceof Error
             ? error.message
             : "Failed to record administrations",
+        title: "Error",
         variant: "destructive",
       });
     } finally {
@@ -241,16 +241,16 @@ export function BulkRecordingForm({
       ].join(":");
 
       const result = await bulkRecordMutation.mutateAsync({
-        householdId: selectedHouseholdId || "",
-        animalIds: failedResults.map((r) => r.animalId),
-        regimenId: data.regimenId,
         administeredAt: data.administeredAt.toISOString(),
+        allowOverride: data.allowOverride,
+        animalIds: failedResults.map((r) => r.animalId),
+        dose: data.dose || undefined,
+        householdId: selectedHouseholdId || "",
+        idempotencyKey,
         inventorySourceId: data.inventorySourceId || undefined,
         notes: data.notes || undefined,
+        regimenId: data.regimenId,
         site: data.site || undefined,
-        dose: data.dose || undefined,
-        allowOverride: data.allowOverride,
-        idempotencyKey,
       });
 
       // Merge retry results with original results
@@ -267,21 +267,21 @@ export function BulkRecordingForm({
       const stillFailed = updatedResults.filter((r) => !r.success).length;
       if (stillFailed === 0) {
         toast({
-          title: "Retry Successful",
           description: "All failed records have been successfully processed.",
+          title: "Retry Successful",
         });
       } else {
         toast({
-          title: "Partial Retry Success",
           description: `${result.summary.successful} records succeeded, ${stillFailed} still failed.`,
+          title: "Partial Retry Success",
           variant: "default",
         });
       }
     } catch (error) {
       toast({
-        title: "Retry Failed",
         description:
           error instanceof Error ? error.message : "Retry operation failed",
+        title: "Retry Failed",
         variant: "destructive",
       });
     } finally {
@@ -290,7 +290,7 @@ export function BulkRecordingForm({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog onOpenChange={handleClose} open={open}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -341,8 +341,8 @@ export function BulkRecordingForm({
               <h3 className="font-medium">Detailed Results</h3>
               {results.map((result) => (
                 <div
-                  key={result.animalId}
                   className="flex items-center justify-between rounded border p-3"
+                  key={result.animalId}
                 >
                   <div className="flex items-center gap-3">
                     {result.success ? (
@@ -374,8 +374,8 @@ export function BulkRecordingForm({
             <div className="flex justify-end gap-2">
               {results.some((r) => !r.success) && (
                 <Button
-                  onClick={retryFailedRecords}
                   disabled={isSubmitting}
+                  onClick={retryFailedRecords}
                   variant="outline"
                 >
                   Retry Failed
@@ -387,8 +387,8 @@ export function BulkRecordingForm({
         ) : (
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-6"
+              onSubmit={form.handleSubmit(handleSubmit)}
             >
               {/* Selected Animals Summary */}
               <Card>
@@ -421,8 +421,8 @@ export function BulkRecordingForm({
                   <FormItem>
                     <FormLabel>Regimen</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
                       defaultValue={field.value}
+                      onValueChange={field.onChange}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -461,10 +461,6 @@ export function BulkRecordingForm({
                     <FormControl>
                       <div className="flex gap-2">
                         <Input
-                          type="date"
-                          value={
-                            field.value ? format(field.value, "yyyy-MM-dd") : ""
-                          }
                           onChange={(e) => {
                             const date = new Date(e.target.value);
                             if (field.value) {
@@ -473,12 +469,12 @@ export function BulkRecordingForm({
                             }
                             field.onChange(date);
                           }}
+                          type="date"
+                          value={
+                            field.value ? format(field.value, "yyyy-MM-dd") : ""
+                          }
                         />
                         <Input
-                          type="time"
-                          value={
-                            field.value ? format(field.value, "HH:mm") : ""
-                          }
                           onChange={(e) => {
                             const [hours, minutes] = e.target.value.split(":");
                             const date = field.value
@@ -490,6 +486,10 @@ export function BulkRecordingForm({
                             );
                             field.onChange(date);
                           }}
+                          type="time"
+                          value={
+                            field.value ? format(field.value, "HH:mm") : ""
+                          }
                         />
                       </div>
                     </FormControl>
@@ -555,20 +555,20 @@ export function BulkRecordingForm({
               {/* Submit Buttons */}
               <div className="flex justify-end gap-2">
                 <Button
+                  disabled={isSubmitting}
+                  onClick={handleClose}
                   type="button"
                   variant="outline"
-                  onClick={handleClose}
-                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
                 <Button
-                  type="submit"
                   disabled={
                     isSubmitting ||
                     selectedIds.size === 0 ||
                     commonRegimens.length === 0
                   }
+                  type="submit"
                 >
                   {isSubmitting ? (
                     <>

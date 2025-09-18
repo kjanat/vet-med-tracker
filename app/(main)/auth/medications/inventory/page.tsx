@@ -79,7 +79,7 @@ function InventoryContent() {
       householdId: selectedHousehold?.id || "",
     },
     {
-      enabled: !!selectedHousehold?.id,
+      enabled: Boolean(selectedHousehold?.id),
     },
   );
 
@@ -90,40 +90,43 @@ function InventoryContent() {
         householdId: selectedHousehold?.id || "",
       },
       {
-        enabled: !!selectedHousehold?.id && items.length > 0,
+        enabled: Boolean(selectedHousehold?.id) && items.length > 0,
       },
     );
 
   // Transform the data to match the InventoryItem interface
-  const inventoryItems: InventoryItem[] = useMemo(() => {
-    return items.map((item) => ({
-      id: item.id,
-      medicationId: item.medicationId || undefined,
-      name: item.name,
-      brand: item.name, // Using name as brand for now
-      genericName: item.genericName,
-      strength: item.strength || "",
-      route: item.route as InventoryItem["route"],
-      form: item.form as InventoryItem["form"],
-      expiresOn: item.expiresOn || new Date(),
-      unitsRemaining: item.unitsRemaining || 0,
-      unitsTotal: item.unitsTotal || 0,
-      lot: item.lot,
-      storage: item.storage as InventoryItem["storage"],
-      inUse: item.inUse,
-      assignedAnimalId: item.assignedAnimalId || undefined,
-      catalogId: item.medicationId || "",
-      assignedAnimalName: item.assignedAnimalName || undefined,
-    }));
-  }, [items]);
+  const inventoryItems: InventoryItem[] = useMemo(
+    () =>
+      items.map((item) => ({
+        id: item.id,
+        medicationId: item.medicationId || undefined,
+        name: item.name,
+        brand: item.name, // Using name as brand for now
+        genericName: item.genericName,
+        strength: item.strength || "",
+        route: item.route as InventoryItem["route"],
+        form: item.form as InventoryItem["form"],
+        expiresOn: item.expiresOn || new Date(),
+        unitsRemaining: item.unitsRemaining || 0,
+        unitsTotal: item.unitsTotal || 0,
+        lot: item.lot,
+        storage: item.storage as InventoryItem["storage"],
+        inUse: item.inUse,
+        assignedAnimalId: item.assignedAnimalId || undefined,
+        catalogId: item.medicationId || "",
+        assignedAnimalName: item.assignedAnimalName || undefined,
+      })),
+    [items],
+  );
 
   // Use real days of supply data from tRPC
   const daysLeftMap = useDaysOfSupply(inventoryItems, daysOfSupplyData);
 
   // Generate alerts
-  const alerts = useMemo(() => {
-    return generateInventoryAlerts(inventoryItems, daysLeftMap);
-  }, [inventoryItems, daysLeftMap]);
+  const alerts = useMemo(
+    () => generateInventoryAlerts(inventoryItems, daysLeftMap),
+    [inventoryItems, daysLeftMap],
+  );
 
   // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
@@ -322,8 +325,8 @@ function InventoryContent() {
         <div className="space-y-2">
           {alerts.lowStock.map((alert) => (
             <Alert
-              key={alert.id}
               className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950"
+              key={alert.id}
             >
               <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               <AlertDescription className="flex items-center justify-between">
@@ -331,10 +334,10 @@ function InventoryContent() {
                   {alert.message}
                 </span>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAlertClick(alert.id)}
                   className="border-orange-200 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900"
+                  onClick={() => handleAlertClick(alert.id)}
+                  size="sm"
+                  variant="outline"
                 >
                   View Item
                 </Button>
@@ -344,8 +347,8 @@ function InventoryContent() {
 
           {alerts.expiringSoon.map((alert) => (
             <Alert
-              key={alert.id}
               className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950"
+              key={alert.id}
             >
               <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
               <AlertDescription className="flex items-center justify-between">
@@ -353,10 +356,10 @@ function InventoryContent() {
                   {alert.message}
                 </span>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAlertClick(alert.id)}
                   className="border-yellow-200 text-yellow-600 hover:bg-yellow-100 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900"
+                  onClick={() => handleAlertClick(alert.id)}
+                  size="sm"
+                  variant="outline"
                 >
                   View Item
                 </Button>
@@ -369,7 +372,7 @@ function InventoryContent() {
       {/* Filters */}
       <div className="flex items-center gap-2">
         {/* Priority dropdown on the left for mobile */}
-        <Select value={sortBy} onValueChange={setSortBy}>
+        <Select onValueChange={setSortBy} value={sortBy}>
           <SelectTrigger className="w-[140px] sm:w-[180px]">
             <SelectValue />
           </SelectTrigger>
@@ -385,45 +388,45 @@ function InventoryContent() {
           <div className="hidden sm:block">
             <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
             <Input
+              className="pl-10"
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search medications..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
             />
           </div>
           <div className="block sm:hidden">
             {showMobileSearch ? (
               <div className="relative">
                 <Input
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                  className="pr-10"
                   onBlur={() => {
                     // Hide search if empty when user taps away
                     if (!searchQuery) {
                       setShowMobileSearch(false);
                     }
                   }}
-                  className="pr-10"
-                  autoFocus
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..."
+                  value={searchQuery}
                 />
                 <Button
-                  variant="ghost"
-                  size="icon"
                   className="absolute top-0 right-0 h-full"
                   onClick={() => {
                     setSearchQuery("");
                     setShowMobileSearch(false);
                   }}
+                  size="icon"
+                  variant="ghost"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
               <Button
-                variant="outline"
-                size="icon"
                 onClick={() => setShowMobileSearch(true)}
+                size="icon"
+                variant="outline"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -447,12 +450,12 @@ function InventoryContent() {
         <div className="grid gap-4">
           {filteredAndSortedItems.map((item) => (
             <InventoryCard
-              key={item.id}
-              item={item}
               daysLeft={daysLeftMap.get(item.id) || null}
-              onUseThis={() => handleSetInUse(item.id, !item.inUse)}
+              item={item}
+              key={item.id}
               onAssign={() => setAssignModalItem(item)}
               onDetails={() => setEditModalItem(item)}
+              onUseThis={() => handleSetInUse(item.id, !item.inUse)}
             />
           ))}
         </div>
@@ -461,18 +464,18 @@ function InventoryContent() {
       {/* Assign Modal */}
       <AssignModal
         item={assignModalItem}
-        open={!!assignModalItem}
-        onOpenChange={(open) => !open && setAssignModalItem(null)}
         onAssign={handleAssign}
+        onOpenChange={(open) => !open && setAssignModalItem(null)}
+        open={Boolean(assignModalItem)}
       />
 
       {/* Edit Modal */}
       <EditItemModal
         item={editModalItem}
-        open={!!editModalItem}
+        onDelete={handleDelete}
         onOpenChange={(open) => !open && setEditModalItem(null)}
         onUpdate={handleUpdate}
-        onDelete={handleDelete}
+        open={Boolean(editModalItem)}
       />
 
       {/* Inventory Form Dialog */}

@@ -73,7 +73,7 @@ export function HouseholdCard({
               {membership.role}
             </Badge>
             {isSelected && (
-              <Badge variant="outline" className="border-primary">
+              <Badge className="border-primary" variant="outline">
                 Active
               </Badge>
             )}
@@ -93,13 +93,13 @@ export function HouseholdCard({
           </div>
           <div className="flex items-center gap-2">
             {!isSelected && (
-              <Button variant="outline" size="sm" onClick={onMakeActive}>
+              <Button onClick={onMakeActive} size="sm" variant="outline">
                 Make Active
               </Button>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button size="icon" variant="ghost">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -115,8 +115,8 @@ export function HouseholdCard({
                 )}
                 {!isOwner && (
                   <DropdownMenuItem
-                    onClick={onLeave}
                     className="text-destructive"
+                    onClick={onLeave}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Leave Household

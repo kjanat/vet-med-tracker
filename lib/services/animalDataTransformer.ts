@@ -23,17 +23,17 @@ export class AnimalDataTransformer {
   static toApiPayload(data: AnimalFormData) {
     return {
       ...data,
-      dob: data.dob ? data.dob.toISOString() : undefined,
-      weightKg: data.weightKg || undefined,
       breed: data.breed || undefined,
-      microchipId: data.microchipId || undefined,
-      color: data.color || undefined,
-      vetName: data.vetName || undefined,
-      vetPhone: data.vetPhone || undefined,
-      vetEmail: data.vetEmail || undefined,
       clinicName: data.clinicName || undefined,
+      color: data.color || undefined,
+      dob: data.dob ? data.dob.toISOString() : undefined,
+      microchipId: data.microchipId || undefined,
       notes: data.notes || undefined,
       photoUrl: data.photoUrl || undefined,
+      vetEmail: data.vetEmail || undefined,
+      vetName: data.vetName || undefined,
+      vetPhone: data.vetPhone || undefined,
+      weightKg: data.weightKg || undefined,
     };
   }
 
@@ -45,24 +45,24 @@ export class AnimalDataTransformer {
    */
   static fromAnimalRecord(animal: Animal): AnimalFormData {
     return {
-      name: animal.name,
-      species: animal.species,
+      allergies: animal.allergies || [],
       breed: animal.breed || "",
-      sex: animal.sex,
-      neutered: animal.neutered || false,
-      dob: animal.dob,
-      weightKg: animal.weightKg,
-      microchipId: animal.microchipId || "",
+      clinicName: animal.clinicName || "",
       color: animal.color || "",
+      conditions: animal.conditions || [],
+      dob: animal.dob,
+      microchipId: animal.microchipId || "",
+      name: animal.name,
+      neutered: animal.neutered || false,
+      notes: animal.notes || "",
+      photoUrl: animal.photo || "",
+      sex: animal.sex,
+      species: animal.species,
       timezone: animal.timezone || BROWSER_ZONE || "America/New_York",
+      vetEmail: animal.vetEmail || "",
       vetName: animal.vetName || "",
       vetPhone: animal.vetPhone || "",
-      vetEmail: animal.vetEmail || "",
-      clinicName: animal.clinicName || "",
-      notes: animal.notes || "",
-      allergies: animal.allergies || [],
-      conditions: animal.conditions || [],
-      photoUrl: animal.photo || "",
+      weightKg: animal.weightKg,
     };
   }
 
@@ -74,24 +74,24 @@ export class AnimalDataTransformer {
    */
   static createDefaultValues(): AnimalFormData {
     return {
-      name: "",
-      species: "",
+      allergies: [],
       breed: "",
-      sex: undefined,
-      neutered: false,
-      dob: undefined,
-      weightKg: undefined,
-      microchipId: "",
+      clinicName: "",
       color: "",
+      conditions: [],
+      dob: undefined,
+      microchipId: "",
+      name: "",
+      neutered: false,
+      notes: "",
+      photoUrl: "",
+      sex: undefined,
+      species: "",
       timezone: BROWSER_ZONE || "America/New_York",
+      vetEmail: "",
       vetName: "",
       vetPhone: "",
-      vetEmail: "",
-      clinicName: "",
-      notes: "",
-      allergies: [],
-      conditions: [],
-      photoUrl: "",
+      weightKg: undefined,
     };
   }
 
@@ -106,10 +106,10 @@ export class AnimalDataTransformer {
 
     return {
       ...basePayload,
-      name: data.name,
-      species: data.species,
       allergies: data.allergies || [],
       conditions: data.conditions || [],
+      name: data.name,
+      species: data.species,
       timezone: data.timezone || BROWSER_ZONE || "America/New_York",
     };
   }
@@ -144,18 +144,18 @@ export class AnimalDataTransformer {
       : "settings_animals_update";
 
     return {
-      eventType,
       detail: {
+        allergyCount: data.allergies?.length || 0,
         animalId: animalId || null,
+        conditionCount: data.conditions?.length || 0,
+        hasBreed: Boolean(data.breed),
+        hasVetInfo: Boolean(data.vetName || data.vetPhone || data.vetEmail),
+        hasWeight: Boolean(data.weightKg),
+        isNew,
         name: data.name,
         species: data.species,
-        isNew,
-        hasBreed: !!data.breed,
-        hasWeight: !!data.weightKg,
-        hasVetInfo: !!(data.vetName || data.vetPhone || data.vetEmail),
-        allergyCount: data.allergies?.length || 0,
-        conditionCount: data.conditions?.length || 0,
       },
+      eventType,
     };
   }
 
@@ -166,7 +166,7 @@ export class AnimalDataTransformer {
    * before attempting API calls.
    */
   static hasRequiredFields(data: AnimalFormData): boolean {
-    return !!(data.name?.trim() && data.species?.trim());
+    return Boolean(data.name?.trim() && data.species?.trim());
   }
 
   /**
@@ -183,20 +183,20 @@ export class AnimalDataTransformer {
     }
 
     // Check for any additional meaningful information beyond required fields
-    const hasAdditionalInfo = !!(
+    const hasAdditionalInfo = Boolean(
       data.breed?.trim() ||
-      data.weightKg ||
-      data.dob ||
-      data.microchipId?.trim() ||
-      data.color?.trim() ||
-      data.vetName?.trim() ||
-      data.vetPhone?.trim() ||
-      data.vetEmail?.trim() ||
-      data.clinicName?.trim() ||
-      data.notes?.trim() ||
-      (data.allergies && data.allergies.length > 0) ||
-      (data.conditions && data.conditions.length > 0) ||
-      data.photoUrl?.trim()
+        data.weightKg ||
+        data.dob ||
+        data.microchipId?.trim() ||
+        data.color?.trim() ||
+        data.vetName?.trim() ||
+        data.vetPhone?.trim() ||
+        data.vetEmail?.trim() ||
+        data.clinicName?.trim() ||
+        data.notes?.trim() ||
+        (data.allergies && data.allergies.length > 0) ||
+        (data.conditions && data.conditions.length > 0) ||
+        data.photoUrl?.trim(),
     );
 
     return hasBasicInfo && hasAdditionalInfo;

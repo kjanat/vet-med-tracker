@@ -121,7 +121,7 @@ export function MobileConfirmLayout({
                 </div>
               </div>
               {selectedRegimen.isHighRisk && (
-                <Badge variant="destructive" className="shrink-0 text-xs">
+                <Badge className="shrink-0 text-xs" variant="destructive">
                   High Risk
                 </Badge>
               )}
@@ -141,11 +141,11 @@ export function MobileConfirmLayout({
                 <Skeleton className="h-12 w-full" />
               ) : (
                 <InventorySourceSelect
-                  sources={relevantSources}
-                  selectedId={inventorySourceId ?? undefined}
-                  onSelect={setInventorySourceId}
                   allowOverride={true}
                   onOverrideChange={setAllowOverride}
+                  onSelect={setInventorySourceId}
+                  selectedId={inventorySourceId ?? undefined}
+                  sources={relevantSources}
                 />
               )}
             </div>
@@ -154,23 +154,23 @@ export function MobileConfirmLayout({
           {/* Site and Media Row */}
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <Label htmlFor="mobile-site" className="font-medium text-base">
+              <Label className="font-medium text-base" htmlFor="mobile-site">
                 Site/Side (Optional)
               </Label>
               <Input
+                className="mt-2 h-12"
                 id="mobile-site"
+                onChange={(e) => setSite(e.target.value)}
                 placeholder="Left ear, right leg..."
                 value={site}
-                onChange={(e) => setSite(e.target.value)}
-                className="mt-2 h-12"
               />
             </div>
             <div>
               <Label className="font-medium text-base">Photo/Video</Label>
               <Button
-                variant="outline"
                 className="mt-2 h-12 w-full bg-transparent"
                 type="button"
+                variant="outline"
               >
                 <Camera className="mr-2 h-5 w-5" />
                 Add Media
@@ -180,15 +180,15 @@ export function MobileConfirmLayout({
 
           {/* Notes */}
           <div>
-            <Label htmlFor="mobile-notes" className="font-medium text-base">
+            <Label className="font-medium text-base" htmlFor="mobile-notes">
               Notes (Optional)
             </Label>
             <Textarea
+              className="mt-2 min-h-[80px]"
               id="mobile-notes"
+              onChange={(e) => setNotes(e.target.value)}
               placeholder="Any observations or notes..."
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="mt-2 min-h-[80px]"
             />
           </div>
 
@@ -203,16 +203,16 @@ export function MobileConfirmLayout({
             <div className="space-y-3 rounded-lg border border-orange-200 bg-orange-50 p-4">
               <div className="flex items-start space-x-3">
                 <Checkbox
-                  id="mobile-cosign"
                   checked={requiresCoSign}
+                  className="mt-0.5"
+                  id="mobile-cosign"
                   onCheckedChange={(checked) =>
                     setRequiresCoSign(checked === true)
                   }
-                  className="mt-0.5"
                 />
                 <Label
-                  htmlFor="mobile-cosign"
                   className="text-sm leading-relaxed"
+                  htmlFor="mobile-cosign"
                 >
                   Requires co-sign (high-risk medication)
                 </Label>
@@ -231,10 +231,10 @@ export function MobileConfirmLayout({
       {/* Fixed Action Button */}
       <div className="shrink-0 border-t bg-background p-4">
         <MedConfirmButton
-          onConfirm={onConfirm}
-          disabled={isDisabled}
-          requiresCoSign={requiresCoSign}
           className="h-14 w-full text-base"
+          disabled={isDisabled}
+          onConfirm={onConfirm}
+          requiresCoSign={requiresCoSign}
         >
           {isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
         </MedConfirmButton>
@@ -258,10 +258,8 @@ function MobileConditionTagSelector({
       <div className="mt-3 flex flex-wrap gap-2">
         {tags.map((tag) => (
           <Button
-            key={tag}
-            variant={conditionTags.includes(tag) ? "default" : "outline"}
-            size="sm"
             className="h-10 px-4"
+            key={tag}
             onClick={() => {
               setConditionTags((prev) =>
                 prev.includes(tag)
@@ -269,7 +267,9 @@ function MobileConditionTagSelector({
                   : [...prev, tag],
               );
             }}
+            size="sm"
             type="button"
+            variant={conditionTags.includes(tag) ? "default" : "outline"}
           >
             <Tag className="mr-2 h-3 w-3" />
             {tag}

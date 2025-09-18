@@ -1,7 +1,6 @@
 "use client";
 // ^-- to make sure we can mount the Provider from a server component
-import type { QueryClient } from "@tanstack/react-query";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import type React from "react";
@@ -48,8 +47,12 @@ export function TRPCProvider(
     trpc.createClient({
       links: [
         httpBatchLink({
-          transformer: superjson,
-          url: getUrl(),
+          fetch(url, options) {
+            return fetch(url, {
+              ...options,
+              credentials: "include", // Include authentication cookies
+            } as RequestInit);
+          },
           headers() {
             const headers: Record<string, string> = {};
 
@@ -65,12 +68,8 @@ export function TRPCProvider(
 
             return headers;
           },
-          fetch(url, options) {
-            return fetch(url, {
-              ...options,
-              credentials: "include", // Include authentication cookies
-            } as RequestInit);
-          },
+          transformer: superjson,
+          url: getUrl(),
         }),
       ],
     }),

@@ -24,24 +24,24 @@ export function Breadcrumbs() {
 
   // Map segments to readable labels
   const segmentLabels: Record<string, string> = {
-    dashboard: "Dashboard",
-    history: "History",
-    manage: "Manage",
-    animals: "Animals",
-    households: "Households",
-    users: "Users",
-    medications: "Medications",
     admin: "Admin",
-    record: "Record Dose",
-    inventory: "Inventory",
-    regimens: "Regimens",
-    insights: "Insights",
-    reports: "Reports",
     animal: "Animal Report",
-    settings: "Settings",
+    animals: "Animals",
     audit: "Audit Log",
-    help: "Help",
+    dashboard: "Dashboard",
     emergency: "Emergency Info",
+    help: "Help",
+    history: "History",
+    households: "Households",
+    insights: "Insights",
+    inventory: "Inventory",
+    manage: "Manage",
+    medications: "Medications",
+    record: "Record Dose",
+    regimens: "Regimens",
+    reports: "Reports",
+    settings: "Settings",
+    users: "Users",
   };
 
   // Build breadcrumb items with proper href
@@ -67,7 +67,7 @@ export function Breadcrumbs() {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link href="/auth/dashboard" className="flex items-center">
+            <Link className="flex items-center" href="/auth/dashboard">
               <Home className="h-4 w-4" />
               <span className="sr-only">Home</span>
             </Link>

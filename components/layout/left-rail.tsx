@@ -24,14 +24,14 @@ export function LeftRail() {
 
           return (
             <Link
-              key={item.title}
-              href={item.path}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
+              href={item.path}
+              key={item.title}
             >
               {IconComponent && typeof IconComponent !== "string" && (
                 <IconComponent className="h-4 w-4" />

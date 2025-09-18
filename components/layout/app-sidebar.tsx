@@ -35,15 +35,31 @@ import { NavUser } from "./nav-user";
 
 // Navigation data for VetMed Tracker
 const data = {
-  navMain: [
+  dashboard: [
     {
-      title: "Dashboard",
+      icon: Clock,
+      name: "Today's Doses",
       url: "/dashboard",
-      icon: Home,
-      isActive: true,
     },
     {
-      title: "Manage",
+      icon: Bell,
+      name: "Overdue",
+      url: "/dashboard?filter=overdue",
+    },
+    {
+      icon: History,
+      name: "Recent History",
+      url: "/dashboard/history",
+    },
+  ],
+  navMain: [
+    {
+      icon: Home,
+      isActive: true,
+      title: "Dashboard",
+      url: "/dashboard",
+    },
+    {
       icon: Users,
       items: [
         {
@@ -59,9 +75,9 @@ const data = {
           url: "/manage/users",
         },
       ],
+      title: "Manage",
     },
     {
-      title: "Medications",
       icon: Pill,
       items: [
         {
@@ -81,10 +97,9 @@ const data = {
           url: "/medications/regimens",
         },
       ],
+      title: "Medications",
     },
     {
-      title: "Insights",
-      url: "/insights",
       icon: TrendingUp,
       items: [
         {
@@ -96,10 +111,10 @@ const data = {
           url: "/reports",
         },
       ],
+      title: "Insights",
+      url: "/insights",
     },
     {
-      title: "Settings",
-      url: "/settings",
       icon: Settings,
       items: [
         {
@@ -115,30 +130,15 @@ const data = {
           url: "/settings/data-privacy",
         },
       ],
+      title: "Settings",
+      url: "/settings",
     },
   ],
   navSecondary: [
     {
+      icon: HelpCircle,
       title: "Support",
       url: "/help",
-      icon: HelpCircle,
-    },
-  ],
-  dashboard: [
-    {
-      name: "Today's Doses",
-      url: "/dashboard",
-      icon: Clock,
-    },
-    {
-      name: "Overdue",
-      url: "/dashboard?filter=overdue",
-      icon: Bell,
-    },
-    {
-      name: "Recent History",
-      url: "/dashboard/history",
-      icon: History,
     },
   ],
 };
@@ -193,7 +193,7 @@ export function AppSidebar({ ...props }: Parameters<typeof Sidebar>[0]) {
               {data.navSecondary.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild size="sm">
-                    <Link href={item.url as Route} className="cursor-pointer">
+                    <Link className="cursor-pointer" href={item.url as Route}>
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>

@@ -91,17 +91,27 @@ export function MedConfirmButton({
     }
   };
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+    },
+    [],
+  );
 
   return (
     <div className="relative">
       <Button
-        type="button"
+        aria-describedby="hold-instruction"
+        aria-label={`Hold for 3 seconds to confirm medication${requiresCoSign ? " (requires co-sign)" : ""}`}
+        aria-live={isHolding ? "polite" : undefined}
+        aria-pressed={isHolding}
+        aria-valuemax={100}
+        aria-valuemin={0}
+        aria-valuenow={progress}
+        aria-valuetext={
+          isHolding ? `Hold progress: ${Math.round(progress)}%` : undefined
+        }
         className={cn(
           "relative overflow-hidden",
           TRANSITIONS.all,
@@ -112,20 +122,11 @@ export function MedConfirmButton({
         )}
         disabled={disabled}
         onPointerDown={startHold}
-        onPointerUp={cancelHold}
         onPointerLeave={cancelHold}
-        onTouchStart={startHold}
+        onPointerUp={cancelHold}
         onTouchEnd={cancelHold}
-        aria-label={`Hold for 3 seconds to confirm medication${requiresCoSign ? " (requires co-sign)" : ""}`}
-        aria-pressed={isHolding}
-        aria-describedby="hold-instruction"
-        aria-live={isHolding ? "polite" : undefined}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={progress}
-        aria-valuetext={
-          isHolding ? `Hold progress: ${Math.round(progress)}%` : undefined
-        }
+        onTouchStart={startHold}
+        type="button"
       >
         {/* Progress bar background */}
         <div
@@ -151,12 +152,12 @@ export function MedConfirmButton({
       {/* Progress indicator */}
       {isHolding && (
         <div
+          aria-label="Hold progress"
+          aria-valuemax={100}
+          aria-valuemin={0}
+          aria-valuenow={progress}
           className="-bottom-1 absolute right-0 left-0 h-1 overflow-hidden rounded-full bg-background"
           role="progressbar"
-          aria-valuenow={progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Hold progress"
         >
           <div
             className="h-full origin-left bg-primary transition-transform duration-75 ease-out"
@@ -168,7 +169,7 @@ export function MedConfirmButton({
       )}
 
       {/* Screen reader instructions */}
-      <div id="hold-instruction" className="sr-only">
+      <div className="sr-only" id="hold-instruction">
         Hold and keep pressed for 3 seconds to confirm medication
         administration.
         {requiresCoSign &&

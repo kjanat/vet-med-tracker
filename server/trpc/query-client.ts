@@ -6,9 +6,6 @@ import {
 export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
-      queries: {
-        staleTime: 30 * 1000,
-      },
       dehydrate: {
         // serializeData: superjson.serialize,
         shouldDehydrateQuery: (query) =>
@@ -17,6 +14,9 @@ export function makeQueryClient() {
       },
       hydrate: {
         // deserializeData: superjson.deserialize,
+      },
+      queries: {
+        staleTime: 30 * 1000,
       },
     },
   });

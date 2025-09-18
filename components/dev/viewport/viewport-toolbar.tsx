@@ -18,8 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import type { ColorScheme } from "./constants";
-import { COLOR_SCHEMES } from "./constants";
+import { COLOR_SCHEMES, type ColorScheme } from "./constants";
 
 interface ViewportToolbarProps {
   brands: string[];
@@ -84,7 +83,7 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
 
           {/* Filters & Theme */}
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={brandFilter} onValueChange={onBrandFilterChange}>
+            <Select onValueChange={onBrandFilterChange} value={brandFilter}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="All Brands" />
               </SelectTrigger>
@@ -98,8 +97,8 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
             </Select>
 
             <Select
-              value={deviceTypeFilter}
               onValueChange={onDeviceTypeFilterChange}
+              value={deviceTypeFilter}
             >
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="All Types" />
@@ -107,9 +106,9 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
               <SelectContent>
                 {deviceTypes.map((type) => (
                   <SelectItem
+                    disabled={type !== "All" && !availableDeviceTypes.has(type)}
                     key={type}
                     value={type}
-                    disabled={type !== "All" && !availableDeviceTypes.has(type)}
                   >
                     {type === "All" ? "All Types" : type}
                   </SelectItem>
@@ -120,30 +119,30 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
             {/* Reset Filters Button */}
             {(brandFilter !== "All" || deviceTypeFilter !== "All") && (
               <Button
+                className="h-8 px-2"
                 onClick={onResetFilters}
                 size="sm"
-                variant="ghost"
-                className="h-8 px-2"
                 title="Reset filters"
+                variant="ghost"
               >
                 <X className="h-3 w-3" />
               </Button>
             )}
 
             <ToggleGroup
-              type="single"
-              value={colorScheme}
+              className="ml-2"
               onValueChange={(value) => {
                 if (value) onColorSchemeChange(value as ColorScheme);
               }}
-              className="ml-2"
+              type="single"
+              value={colorScheme}
             >
               {COLOR_SCHEMES.map((scheme) => (
                 <ToggleGroupItem
-                  key={scheme}
-                  value={scheme}
                   aria-label={`Set color scheme to ${scheme}`}
                   className="capitalize"
+                  key={scheme}
+                  value={scheme}
                 >
                   {scheme}
                 </ToggleGroupItem>
@@ -154,12 +153,12 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
           {/* URL Controls */}
           <div className="flex items-center gap-2">
             <Input
-              type="url"
-              value={urlInput}
+              className="flex-1"
               onChange={(e) => onUrlInputChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Enter URL..."
-              className="flex-1"
+              type="url"
+              value={urlInput}
             />
             <Button onClick={onApplyUrl} size="default">
               Load
@@ -167,23 +166,23 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
 
             {/* Layout Toggle */}
             <ToggleGroup
-              type="single"
-              value={layoutMode}
               onValueChange={(value) => {
                 if (value) onLayoutModeChange(value as "sidebar" | "topbar");
               }}
+              type="single"
+              value={layoutMode}
             >
               <ToggleGroupItem
-                value="sidebar"
                 aria-label="Sidebar layout"
                 title="Sidebar layout"
+                value="sidebar"
               >
                 <LayoutPanelLeft className="h-4 w-4" />
               </ToggleGroupItem>
               <ToggleGroupItem
-                value="topbar"
                 aria-label="Topbar layout"
                 title="Topbar layout"
+                value="topbar"
               >
                 <LayoutPanelTop className="h-4 w-4" />
               </ToggleGroupItem>
@@ -192,16 +191,16 @@ export const ViewportToolbar: React.FC<ViewportToolbarProps> = ({
             <Button
               onClick={onRotate}
               size="icon"
-              variant="outline"
               title="Rotate device"
+              variant="outline"
             >
               <RotateCw className="h-4 w-4" />
             </Button>
             <Button
               onClick={onReset}
               size="icon"
-              variant="outline"
               title="Reset all"
+              variant="outline"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>

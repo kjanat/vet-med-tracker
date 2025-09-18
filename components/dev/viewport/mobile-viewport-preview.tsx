@@ -27,12 +27,12 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 
   // Refs to store touch state without causing re-renders
   const touchStateRef = useRef({
-    startX: 0,
-    startY: 0,
-    initialX: 0,
-    initialY: 0,
     initialDistance: 0,
     initialScale: 1,
+    initialX: 0,
+    initialY: 0,
+    startX: 0,
+    startY: 0,
   });
 
   // Store fit scale in ref to access in handlers
@@ -383,13 +383,14 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
   );
 
   // Cleanup on unmount
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (tapTimeoutRef.current) {
         clearTimeout(tapTimeoutRef.current);
       }
-    };
-  }, []);
+    },
+    [],
+  );
 
   // Send theme updates to iframe
   useEffect(() => {
@@ -415,8 +416,8 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 
               iframe.contentWindow.postMessage(
                 {
-                  type: "theme-change",
                   theme: state.scheme,
+                  type: "theme-change",
                 },
                 targetOrigin,
               );
@@ -573,18 +574,18 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 
   return (
     <section
-      ref={containerRef}
       aria-label="Viewport preview container"
       className="absolute inset-0 overflow-hidden bg-muted/5"
       onDoubleClick={handleDoubleClick}
       onMouseDown={handleMouseDown}
+      onMouseLeave={handleMouseUp}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
       onWheel={handleWheel}
+      ref={containerRef}
       style={{
-        touchAction: scale > 1 ? "none" : "manipulation", // Allow scrolling when not zoomed
         cursor: isMouseDragging ? "grabbing" : scale > 1 ? "grab" : "default",
+        touchAction: scale > 1 ? "none" : "manipulation", // Allow scrolling when not zoomed
       }}
     >
       <div
@@ -594,10 +595,10 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
           (isDragging || isPinching) && "transition-none",
         )}
         style={{
-          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          width: state.width,
           height: state.height,
+          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
           transitionDuration: `${VIEWPORT_CONFIG.transitions.pinchZoom}ms`,
+          width: state.width,
         }}
       >
         {/* Device Frame */}
@@ -614,13 +615,13 @@ export const MobileViewportPreview = memo(function MobileViewportPreview({
 
           {/* Iframe */}
           <iframe
+            className="h-full w-full rounded-xl"
             ref={frameRef}
             src={src}
-            title="Device viewport preview"
-            className="h-full w-full rounded-xl"
             style={{
               pointerEvents: "auto",
             }}
+            title="Device viewport preview"
           />
         </div>
       </div>

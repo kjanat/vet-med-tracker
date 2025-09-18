@@ -34,28 +34,28 @@ function EnhancedAnimalListContent() {
     error,
   } = trpc.animal.list.useQuery(
     { householdId: selectedHouseholdId || "" },
-    { enabled: !!selectedHouseholdId },
+    { enabled: Boolean(selectedHouseholdId) },
   );
 
   // Transform database animals to match Animal interface
   const animals: Animal[] = animalsData.map((animal) => ({
-    id: animal.id,
-    name: animal.name,
-    species: animal.species,
+    allergies: animal.allergies || [],
+    avatar: undefined,
     breed: animal.breed || undefined,
-    sex: (animal.sex as "Male" | "Female") || undefined,
-    neutered: animal.neutered || false,
-    dob: animal.dob ? new Date(animal.dob) : undefined,
-    weightKg: animal.weightKg ? Number(animal.weightKg) : undefined,
-    microchipId: animal.microchipId || undefined,
     color: animal.color || undefined,
+    conditions: animal.conditions || [],
+    dob: animal.dob ? new Date(animal.dob) : undefined,
+    id: animal.id,
+    microchipId: animal.microchipId || undefined,
+    name: animal.name,
+    neutered: animal.neutered || false,
+    pendingMeds: 0,
+    sex: (animal.sex as "Male" | "Female") || undefined,
+    species: animal.species,
     timezone: animal.timezone,
     vetName: animal.vetName || undefined,
     vetPhone: animal.vetPhone || undefined,
-    allergies: animal.allergies || [],
-    conditions: animal.conditions || [],
-    avatar: undefined,
-    pendingMeds: 0,
+    weightKg: animal.weightKg ? Number(animal.weightKg) : undefined,
   }));
 
   // tRPC mutations
@@ -89,10 +89,9 @@ function EnhancedAnimalListContent() {
   const columns: BulkSelectionColumn<Animal>[] = [
     {
       key: "name",
-      title: "Animal",
       render: (animal) => (
         <div className="flex items-center gap-3">
-          <AnimalAvatar animal={animal} size="sm" showBadge />
+          <AnimalAvatar animal={animal} showBadge size="sm" />
           <div>
             <div className="font-medium">{animal.name}</div>
             <div className="text-muted-foreground text-sm">
@@ -103,17 +102,17 @@ function EnhancedAnimalListContent() {
           </div>
         </div>
       ),
+      title: "Animal",
     },
     {
       key: "sex",
-      title: "Sex/Status",
       render: (animal) => (
         <div className="text-sm">
           {animal.sex && (
             <div>
               {animal.sex}
               {animal.neutered && (
-                <Badge variant="secondary" className="ml-1 text-xs">
+                <Badge className="ml-1 text-xs" variant="secondary">
                   Neutered
                 </Badge>
               )}
@@ -121,10 +120,10 @@ function EnhancedAnimalListContent() {
           )}
         </div>
       ),
+      title: "Sex/Status",
     },
     {
       key: "dob",
-      title: "Age",
       render: (animal) =>
         animal.dob ? (
           <div className="text-sm">
@@ -137,25 +136,25 @@ function EnhancedAnimalListContent() {
         ) : (
           <span className="text-muted-foreground text-sm">-</span>
         ),
+      title: "Age",
     },
     {
       key: "weightKg",
-      title: "Weight",
       render: (animal) =>
         animal.weightKg ? (
           <div className="text-sm">{animal.weightKg}kg</div>
         ) : (
           <span className="text-muted-foreground text-sm">-</span>
         ),
+      title: "Weight",
     },
     {
       key: "conditions",
-      title: "Conditions",
       render: (animal) => (
         <div className="flex flex-wrap gap-1">
           {animal.conditions.length > 0 ? (
             animal.conditions.slice(0, 2).map((condition) => (
-              <Badge key={condition} variant="secondary" className="text-xs">
+              <Badge className="text-xs" key={condition} variant="secondary">
                 {condition}
               </Badge>
             ))
@@ -163,21 +162,21 @@ function EnhancedAnimalListContent() {
             <span className="text-muted-foreground text-sm">None</span>
           )}
           {animal.conditions.length > 2 && (
-            <Badge variant="outline" className="text-xs">
-              +{animal.conditions.length - 2}
+            <Badge className="text-xs" variant="outline">
+              Number(){animal.conditions.length - 2}
             </Badge>
           )}
         </div>
       ),
+      title: "Conditions",
     },
     {
       key: "allergies",
-      title: "Allergies",
       render: (animal) => (
         <div className="flex flex-wrap gap-1">
           {animal.allergies.length > 0 ? (
             animal.allergies.slice(0, 2).map((allergy) => (
-              <Badge key={allergy} variant="destructive" className="text-xs">
+              <Badge className="text-xs" key={allergy} variant="destructive">
                 {allergy}
               </Badge>
             ))
@@ -185,36 +184,37 @@ function EnhancedAnimalListContent() {
             <span className="text-muted-foreground text-sm">None</span>
           )}
           {animal.allergies.length > 2 && (
-            <Badge variant="outline" className="text-xs">
-              +{animal.allergies.length - 2}
+            <Badge className="text-xs" variant="outline">
+              Number(){animal.allergies.length - 2}
             </Badge>
           )}
         </div>
       ),
+      title: "Allergies",
     },
     {
       key: "actions",
-      title: "Actions",
       render: (animal) => (
         <div className="flex gap-1">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleEdit(animal)}
             disabled={updateAnimal.isPending}
+            onClick={() => handleEdit(animal)}
+            size="sm"
+            variant="outline"
           >
             Edit
           </Button>
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleEmergencyCard(animal.id)}
             className="gap-1"
+            onClick={() => handleEmergencyCard(animal.id)}
+            size="sm"
+            variant="outline"
           >
             <FileText className="h-3 w-3" />
           </Button>
         </div>
       ),
+      title: "Actions",
     },
   ];
 
@@ -229,27 +229,27 @@ function EnhancedAnimalListContent() {
   };
 
   const prepareAnimalData = (data: Partial<Animal>) => ({
-    name: data.name || "",
-    species: data.species || "",
+    allergies: data.allergies || [],
     breed: data.breed,
-    sex: data.sex,
-    neutered: data.neutered || false,
-    dob: data.dob?.toISOString(),
-    weightKg: data.weightKg,
-    microchipId: data.microchipId,
     color: data.color,
+    conditions: data.conditions || [],
+    dob: data.dob?.toISOString(),
+    microchipId: data.microchipId,
+    name: data.name || "",
+    neutered: data.neutered || false,
+    sex: data.sex,
+    species: data.species || "",
     timezone: data.timezone || "America/New_York",
     vetName: data.vetName,
     vetPhone: data.vetPhone,
-    allergies: data.allergies || [],
-    conditions: data.conditions || [],
+    weightKg: data.weightKg,
   });
 
   const handleSave = async (data: Partial<Animal>) => {
     if (!selectedHouseholdId) {
       toast({
-        title: "Error",
         description: "No household selected",
+        title: "Error",
         variant: "destructive",
       });
       return;
@@ -278,8 +278,8 @@ function EnhancedAnimalListContent() {
       );
 
       toast({
-        title: "Success",
         description: `${editingAnimal ? "Updated" : "Created"} ${data.name}`,
+        title: "Success",
       });
 
       setIsFormOpen(false);
@@ -287,8 +287,8 @@ function EnhancedAnimalListContent() {
     } catch (error) {
       console.error("Error saving animal:", error);
       toast({
-        title: "Error",
         description: `Failed to ${editingAnimal ? "update" : "create"} ${data.name}`,
+        title: "Error",
         variant: "destructive",
       });
     }
@@ -306,14 +306,14 @@ function EnhancedAnimalListContent() {
     try {
       await deleteAnimal.mutateAsync({ id: animal.id });
       toast({
-        title: "Success",
         description: `Deleted ${animal.name}`,
+        title: "Success",
       });
     } catch (error) {
       console.error("Error deleting animal:", error);
       toast({
-        title: "Error",
         description: `Failed to delete ${animal.name}`,
+        title: "Error",
         variant: "destructive",
       });
     }
@@ -342,16 +342,16 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
       );
 
       toast({
-        title: "Success",
         description: `Deleted ${selectedIds.length} animal${
           selectedIds.length > 1 ? "s" : ""
         }`,
+        title: "Success",
       });
     } catch (error) {
       console.error("Error deleting animals:", error);
       toast({
-        title: "Error",
         description: "Failed to delete some animals",
+        title: "Error",
         variant: "destructive",
       });
     }
@@ -398,10 +398,10 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
     URL.revokeObjectURL(url);
 
     toast({
-      title: "Success",
       description: `Exported ${selectedIds.length} animal${
         selectedIds.length > 1 ? "s" : ""
       } to CSV`,
+      title: "Success",
     });
   };
 
@@ -420,7 +420,7 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
               Manage animal profiles and medical information
             </p>
           </div>
-          <Button onClick={handleCreate} className="gap-2">
+          <Button className="gap-2" onClick={handleCreate}>
             <Plus className="h-4 w-4" />
             Add Animal
           </Button>
@@ -443,7 +443,7 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
               Manage animal profiles and medical information
             </p>
           </div>
-          <Button onClick={handleCreate} className="gap-2">
+          <Button className="gap-2" onClick={handleCreate}>
             <Plus className="h-4 w-4" />
             Add Animal
           </Button>
@@ -486,9 +486,9 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
           </p>
         </div>
         <Button
-          onClick={handleCreate}
           className="gap-2"
           disabled={createAnimal.isPending}
+          onClick={handleCreate}
         >
           <Plus className="h-4 w-4" />
           Add Animal
@@ -500,28 +500,28 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
         <div className="relative max-w-sm">
           <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
           <Input
+            className="pl-10"
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search animals..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
           />
         </div>
 
         <div className="flex items-center gap-2">
           <Button
-            variant={viewMode === "cards" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("cards")}
             className="gap-1"
+            onClick={() => setViewMode("cards")}
+            size="sm"
+            variant={viewMode === "cards" ? "default" : "outline"}
           >
             <LayoutGrid className="h-4 w-4" />
             <span className="hidden sm:inline">Cards</span>
           </Button>
           <Button
-            variant={viewMode === "table" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("table")}
             className="gap-1"
+            onClick={() => setViewMode("table")}
+            size="sm"
+            variant={viewMode === "table" ? "default" : "outline"}
           >
             <List className="h-4 w-4" />
             <span className="hidden sm:inline">Table</span>
@@ -540,7 +540,7 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
                 : "No animals yet"}
             </p>
             {!searchQuery && (
-              <Button onClick={handleCreate} className="gap-2">
+              <Button className="gap-2" onClick={handleCreate}>
                 <Plus className="h-4 w-4" />
                 Add Your First Animal
               </Button>
@@ -550,13 +550,13 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredAnimals.map((animal) => (
               <Card
-                key={animal.id}
                 className="transition-shadow hover:shadow-md"
+                key={animal.id}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <AnimalAvatar animal={animal} size="lg" showBadge />
+                      <AnimalAvatar animal={animal} showBadge size="lg" />
                       <div>
                         <CardTitle className="text-lg">{animal.name}</CardTitle>
                         <p className="text-muted-foreground text-sm">
@@ -601,9 +601,9 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
                       <div className="flex flex-wrap gap-1">
                         {animal.conditions.map((condition) => (
                           <Badge
+                            className="text-xs"
                             key={condition}
                             variant="secondary"
-                            className="text-xs"
                           >
                             {condition}
                           </Badge>
@@ -618,9 +618,9 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
                       <div className="flex flex-wrap gap-1">
                         {animal.allergies.map((allergy) => (
                           <Badge
+                            className="text-xs"
                             key={allergy}
                             variant="destructive"
-                            className="text-xs"
                           >
                             {allergy}
                           </Badge>
@@ -631,29 +631,29 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
 
                   <div className="mt-auto flex gap-2 pt-2">
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(animal)}
-                      disabled={updateAnimal.isPending}
                       className="flex-1"
+                      disabled={updateAnimal.isPending}
+                      onClick={() => handleEdit(animal)}
+                      size="sm"
+                      variant="outline"
                     >
                       Edit
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEmergencyCard(animal.id)}
                       className="gap-1"
+                      onClick={() => handleEmergencyCard(animal.id)}
+                      size="sm"
+                      variant="outline"
                     >
                       <FileText className="h-3 w-3" />
                       Emergency Card
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(animal)}
-                      disabled={deleteAnimal.isPending}
                       className="gap-1 text-destructive hover:text-destructive"
+                      disabled={deleteAnimal.isPending}
+                      onClick={() => handleDelete(animal)}
+                      size="sm"
+                      variant="outline"
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -666,26 +666,26 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
       ) : (
         /* Table View with Bulk Selection */
         <BulkSelectionTable
-          data={filteredAnimals}
           columns={columns}
-          getItemId={(animal) => animal.id}
-          getItemLabel={(animal) => animal.name}
-          onDelete={handleBulkDelete}
-          onExport={handleBulkExport}
+          data={filteredAnimals}
           emptyMessage={
             searchQuery
               ? "No animals found matching your search"
               : "No animals yet. Add your first animal to get started."
           }
+          getItemId={(animal) => animal.id}
+          getItemLabel={(animal) => animal.name}
+          onDelete={handleBulkDelete}
+          onExport={handleBulkExport}
         />
       )}
 
       {/* Animal Form */}
       <AnimalForm
         animal={editingAnimal}
-        open={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSave={handleSave}
+        open={isFormOpen}
       />
     </div>
   );

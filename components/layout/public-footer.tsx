@@ -3,28 +3,28 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 
 const footerLinks = {
-  product: [
-    { name: "Features", href: "/#features" as Route },
-    { name: "How It Works", href: "/#demo" as Route },
-    { name: "Pricing", href: "/#pricing" as Route },
-    { name: "Security", href: "/security" as Route },
-  ],
   company: [
-    { name: "About", href: "/about" as Route },
-    { name: "Blog", href: "/blog" as Route },
-    { name: "Contact", href: "/contact" as Route },
-    { name: "Careers", href: "/careers" as Route },
+    { href: "/about" as Route, name: "About" },
+    { href: "/blog" as Route, name: "Blog" },
+    { href: "/contact" as Route, name: "Contact" },
+    { href: "/careers" as Route, name: "Careers" },
   ],
   legal: [
-    { name: "Privacy Policy", href: "/privacy" as Route },
-    { name: "Terms of Service", href: "/terms" as Route },
-    { name: "Cookie Policy", href: "/cookies" as Route },
+    { href: "/privacy" as Route, name: "Privacy Policy" },
+    { href: "/terms" as Route, name: "Terms of Service" },
+    { href: "/cookies" as Route, name: "Cookie Policy" },
+  ],
+  product: [
+    { href: "/#features" as Route, name: "Features" },
+    { href: "/#demo" as Route, name: "How It Works" },
+    { href: "/#pricing" as Route, name: "Pricing" },
+    { href: "/security" as Route, name: "Security" },
   ],
   support: [
-    { name: "Help Center", href: "/help" as Route },
-    { name: "FAQ", href: "/faq" as Route },
-    { name: "Status", href: "/status" as Route },
-    { name: "API Docs", href: "/docs" as Route },
+    { href: "/help" as Route, name: "Help Center" },
+    { href: "/faq" as Route, name: "FAQ" },
+    { href: "/status" as Route, name: "Status" },
+    { href: "/docs" as Route, name: "API Docs" },
   ],
 };
 
@@ -52,8 +52,8 @@ export function PublicFooter() {
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
                   <Link
-                    href={link.href}
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+                    href={link.href}
                   >
                     {link.name}
                   </Link>
@@ -68,8 +68,8 @@ export function PublicFooter() {
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
-                    href={link.href}
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+                    href={link.href}
                   >
                     {link.name}
                   </Link>
@@ -84,8 +84,8 @@ export function PublicFooter() {
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
                   <Link
-                    href={link.href}
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+                    href={link.href}
                   >
                     {link.name}
                   </Link>
@@ -100,8 +100,8 @@ export function PublicFooter() {
               {footerLinks.support.map((link) => (
                 <li key={link.name}>
                   <Link
-                    href={link.href}
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+                    href={link.href}
                   >
                     {link.name}
                   </Link>
@@ -119,20 +119,20 @@ export function PublicFooter() {
             </p>
             <div className="flex hidden gap-6">
               <Link
-                href="https://twitter.com/vetmedtracker"
                 className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+                href="https://twitter.com/vetmedtracker"
               >
                 Twitter
               </Link>
               <Link
-                href="https://github.com/vetmedtracker"
                 className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+                href="https://github.com/vetmedtracker"
               >
                 GitHub
               </Link>
               <Link
-                href="https://linkedin.com/company/vetmedtracker"
                 className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+                href="https://linkedin.com/company/vetmedtracker"
               >
                 LinkedIn
               </Link>

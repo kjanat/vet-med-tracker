@@ -7,36 +7,36 @@ import { SectionHeader } from "./primitives/section-header";
 
 const features = [
   {
-    title: "3-Tap Recording",
+    bgColor: "bg-green-500/10",
+    color: "text-green-600",
     description:
       "Record medications in seconds with our patented 3-tap system. Select, confirm, done.",
     icon: Activity,
-    color: "text-green-600",
-    bgColor: "bg-green-500/10",
+    title: "3-Tap Recording",
   },
   {
-    title: "Multi-Pet Management",
+    bgColor: "bg-blue-500/10",
+    color: "text-blue-600",
     description:
       "Track medications for all your pets in one place. Perfect for multi-pet households.",
     icon: Users,
-    color: "text-blue-600",
-    bgColor: "bg-blue-500/10",
+    title: "Multi-Pet Management",
   },
   {
-    title: "Smart Reminders",
+    bgColor: "bg-purple-500/10",
+    color: "text-purple-600",
     description:
       "Never miss a dose with intelligent reminders that escalate to ensure compliance.",
     icon: Bell,
-    color: "text-purple-600",
-    bgColor: "bg-purple-500/10",
+    title: "Smart Reminders",
   },
   {
-    title: "Inventory Tracking",
+    bgColor: "bg-orange-500/10",
+    color: "text-orange-600",
     description:
       "Know when to refill with automatic inventory tracking and low-stock alerts.",
     icon: Package,
-    color: "text-orange-600",
-    bgColor: "bg-orange-500/10",
+    title: "Inventory Tracking",
   },
 ];
 
@@ -44,16 +44,16 @@ export function FeaturesSection() {
   return (
     <Section id="features" variant="gradient">
       <SectionHeader
-        title="Everything You Need for Peace of Mind"
         description="Built by pet parents, for pet parents. Every feature designed to make medication management effortless."
+        title="Everything You Need for Peace of Mind"
       />
 
       {/* Features grid */}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         {features.map((feature) => (
           <Card
-            key={`feature-${feature.title.replace(/\s+/g, "-").toLowerCase()}`}
             className="p-6 transition-shadow hover:shadow-lg"
+            key={`feature-${feature.title.replace(/\s+/g, "-").toLowerCase()}`}
           >
             <div className="flex items-start gap-4">
               <div

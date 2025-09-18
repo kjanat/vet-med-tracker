@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatErrorMessage, VIEWPORT_CONFIG } from "./config";
-import type {
-  ColorScheme,
-  DeviceItem,
-  DeviceType,
-  ViewportState,
+import {
+  type ColorScheme,
+  DEFAULT_VIEWPORT_STATE,
+  type DeviceItem,
+  type DeviceType,
+  type ViewportState,
 } from "./constants";
-import { DEFAULT_VIEWPORT_STATE } from "./constants";
 
 // Custom hook for fetching and caching device data
 export function useDeviceData() {
@@ -73,24 +73,24 @@ export function useDeviceData() {
     fetchDevices();
   }, [fetchDevices]);
 
-  return { devices, loading, error, retry: () => setRetryCount(0) };
+  return { devices, error, loading, retry: () => setRetryCount(0) };
 }
 
 // Custom hook for window dimensions
 export function useWindowDimensions() {
   const [dimensions, setDimensions] = useState({
-    width: typeof window !== "undefined" ? window.innerWidth : 1200,
     height:
       typeof window !== "undefined"
         ? window.innerHeight
         : VIEWPORT_CONFIG.defaults.windowHeight,
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
   });
 
   useEffect(() => {
     const handleResize = () => {
       setDimensions({
-        width: window.innerWidth,
         height: window.innerHeight,
+        width: window.innerWidth,
       });
     };
 
@@ -148,11 +148,10 @@ export function useDeviceFilters(devices: DeviceItem[]) {
   // Filter devices
   const filteredDevices = useMemo(() => {
     // Helper functions to reduce sort complexity
-    const getDeviceReleaseDate = (device: DeviceItem) => {
-      return device.properties.releaseDate
+    const getDeviceReleaseDate = (device: DeviceItem) =>
+      device.properties.releaseDate
         ? new Date(device.properties.releaseDate).getTime()
         : 0;
-    };
 
     const compareDevices = (a: DeviceItem, b: DeviceItem) => {
       const dateA = getDeviceReleaseDate(a);
@@ -196,15 +195,15 @@ export function useDeviceFilters(devices: DeviceItem[]) {
   }, []);
 
   return {
-    brands,
-    deviceTypes,
     availableDeviceTypes,
     brandFilter,
+    brands,
     deviceTypeFilter,
+    deviceTypes,
     filteredDevices,
+    resetFilters,
     setBrandFilter,
     setDeviceTypeFilter,
-    resetFilters,
   };
 }
 
@@ -230,12 +229,12 @@ export function useViewportState(devices: DeviceItem[]) {
     const { width, height } = device.attributes;
     setState((prev) => ({
       ...prev,
-      width,
-      height,
       brand: device.properties.brand || "Unknown",
+      deviceType: device.properties.deviceType,
+      height,
       name: device.labels.primary,
       orientation: width >= height ? "landscape" : "portrait",
-      deviceType: device.properties.deviceType,
+      width,
     }));
   }, []);
 
@@ -243,9 +242,9 @@ export function useViewportState(devices: DeviceItem[]) {
     // noinspection JSSuspiciousNameCombination
     setState((prev) => ({
       ...prev,
-      width: prev.height,
       height: prev.width,
       orientation: prev.orientation === "portrait" ? "landscape" : "portrait",
+      width: prev.height,
     }));
   }, []);
 
@@ -263,8 +262,8 @@ export function useViewportState(devices: DeviceItem[]) {
 
     setState((prev) => ({
       ...prev,
-      scheme: "system",
       baseUrl: defaultUrl,
+      scheme: "system",
     }));
     setUrlInput(defaultUrl);
   }, [devices, setDevice]);
@@ -278,13 +277,13 @@ export function useViewportState(devices: DeviceItem[]) {
   }, []);
 
   return {
+    applyUrl,
+    handleColorSchemeChange,
+    reset,
+    rotate,
+    setDevice,
+    setUrlInput,
     state,
     urlInput,
-    setDevice,
-    rotate,
-    reset,
-    applyUrl,
-    setUrlInput,
-    handleColorSchemeChange,
   };
 }

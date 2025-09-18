@@ -65,8 +65,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
   // noinspection HtmlRequiredTitleElement
   return (
     <html
-      lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
+      lang="en"
       suppressHydrationWarning
     >
       <head />
@@ -76,8 +76,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <ThemeProvider
               attribute="class"
               defaultTheme="system"
-              enableSystem
               disableTransitionOnChange
+              enableSystem
             >
               <SkipNavigation
                 links={[

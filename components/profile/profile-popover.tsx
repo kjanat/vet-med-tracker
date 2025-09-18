@@ -2,8 +2,7 @@
 
 import { useUser } from "@stackframe/stack";
 import { Edit, Loader2, Mail, MapPin, User as UserIcon } from "lucide-react";
-import * as React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -131,85 +130,85 @@ function ProfileEditForm({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="firstName" className="text-xs">
+          <Label className="text-xs" htmlFor="firstName">
             First Name
           </Label>
           <Input
-            id="firstName"
-            value={profileData.firstName}
-            onChange={(e) => onFieldChange("firstName", e.target.value)}
             className="h-8"
+            id="firstName"
+            onChange={(e) => onFieldChange("firstName", e.target.value)}
             placeholder="John"
+            value={profileData.firstName}
           />
         </div>
         <div>
-          <Label htmlFor="lastName" className="text-xs">
+          <Label className="text-xs" htmlFor="lastName">
             Last Name
           </Label>
           <Input
-            id="lastName"
-            value={profileData.lastName}
-            onChange={(e) => onFieldChange("lastName", e.target.value)}
             className="h-8"
+            id="lastName"
+            onChange={(e) => onFieldChange("lastName", e.target.value)}
             placeholder="Doe"
+            value={profileData.lastName}
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="pronouns" className="text-xs">
+        <Label className="text-xs" htmlFor="pronouns">
           Pronouns
         </Label>
         <Input
-          id="pronouns"
-          value={profileData.pronouns}
-          onChange={(e) => onFieldChange("pronouns", e.target.value)}
           className="h-8"
+          id="pronouns"
+          onChange={(e) => onFieldChange("pronouns", e.target.value)}
           placeholder="they/them, she/her, he/him"
+          value={profileData.pronouns}
         />
       </div>
 
       <div>
-        <Label htmlFor="location" className="text-xs">
+        <Label className="text-xs" htmlFor="location">
           Location
         </Label>
         <Input
-          id="location"
-          value={profileData.location}
-          onChange={(e) => onFieldChange("location", e.target.value)}
           className="h-8"
+          id="location"
+          onChange={(e) => onFieldChange("location", e.target.value)}
           placeholder="New York, NY"
+          value={profileData.location}
         />
       </div>
 
       <div>
-        <Label htmlFor="bio" className="text-xs">
+        <Label className="text-xs" htmlFor="bio">
           Bio
         </Label>
         <Textarea
-          id="bio"
-          value={profileData.bio}
-          onChange={(e) => onFieldChange("bio", e.target.value)}
           className="h-20 resize-none"
+          id="bio"
+          onChange={(e) => onFieldChange("bio", e.target.value)}
           placeholder="Tell us about yourself..."
+          value={profileData.bio}
         />
       </div>
 
       <div className="flex gap-2">
         <Button
-          size="sm"
-          onClick={onSave}
-          disabled={isLoading}
           className="flex-1"
+          disabled={isLoading}
+          onClick={onSave}
+          size="sm"
         >
           {isLoading ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}
           Save
         </Button>
         <Button
+          className="flex-1"
+          onClick={onCancel}
           size="sm"
           variant="outline"
-          onClick={onCancel}
-          className="flex-1"
         >
           Cancel
         </Button>
@@ -257,8 +256,8 @@ function ProfileHeader({
         <div className="-bottom-10 absolute left-6">
           <Avatar className="h-20 w-20 border-4 border-background">
             <AvatarImage
-              src={user?.profileImageUrl || undefined}
               alt={user?.displayName ?? "User avatar"}
+              src={user?.profileImageUrl || undefined}
             />
             <AvatarFallback className="text-lg">{userInitials}</AvatarFallback>
           </Avatar>
@@ -276,7 +275,7 @@ function ProfileHeader({
               </p>
             )}
           </div>
-          <Button variant="ghost" size="icon" onClick={onEditClick}>
+          <Button onClick={onEditClick} size="icon" variant="ghost">
             <Edit className="h-4 w-4" />
           </Button>
         </div>
@@ -309,9 +308,9 @@ export function ProfilePopover({
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
+    bio: "",
     firstName: "",
     lastName: "",
-    bio: "",
     location: "",
     pronouns: "",
   });
@@ -323,12 +322,12 @@ export function ProfilePopover({
   );
 
   const updateProfileMutation = trpc.user.updateProfile.useMutation({
+    onError: (error) => {
+      toast.error(`Failed to update profile: ${error.message}`);
+    },
     onSuccess: () => {
       toast.success("Profile updated successfully!");
       setIsEditing(false);
-    },
-    onError: (error) => {
-      toast.error(`Failed to update profile: ${error.message}`);
     },
   });
 
@@ -336,9 +335,9 @@ export function ProfilePopover({
   React.useEffect(() => {
     if (profile) {
       setProfileData({
+        bio: profile.bio || "",
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
-        bio: profile.bio || "",
         location: profile.location || "",
         pronouns: profile.pronouns || "",
       });
@@ -359,15 +358,12 @@ export function ProfilePopover({
     });
   };
 
-  const getUserInitials = () => {
-    return (
-      user?.displayName
-        ?.split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase() || "U"
-    );
-  };
+  const getUserInitials = () =>
+    user?.displayName
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || "U";
 
   const getDisplayName = () => {
     if (profile?.firstName || profile?.lastName) {
@@ -377,52 +373,52 @@ export function ProfilePopover({
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover onOpenChange={setIsOpen} open={isOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
-        className="w-[400px] p-0"
         align={align}
+        className="w-[400px] p-0"
         side={side}
         sideOffset={8}
       >
         <div className="space-y-4">
           <ProfileHeader
-            user={user}
-            profile={profile}
-            userInitials={getUserInitials()}
             displayName={getDisplayName()}
             onEditClick={() => setIsEditing(!isEditing)}
+            profile={profile}
+            user={user}
+            userInitials={getUserInitials()}
           />
 
           <Separator />
 
           {/* Tabs for different sections */}
           <div className="px-6 pb-4">
-            <Tabs defaultValue="info" className="w-full">
+            <Tabs className="w-full" defaultValue="info">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="info">Info</TabsTrigger>
                 <TabsTrigger value="preferences">Preferences</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="info" className="mt-4 space-y-4">
+              <TabsContent className="mt-4 space-y-4" value="info">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : isEditing ? (
                   <ProfileEditForm
-                    profileData={profileData}
+                    isLoading={updateProfileMutation.isPending}
+                    onCancel={() => setIsEditing(false)}
                     onFieldChange={handleFieldChange}
                     onSave={handleSave}
-                    onCancel={() => setIsEditing(false)}
-                    isLoading={updateProfileMutation.isPending}
+                    profileData={profileData}
                   />
                 ) : (
                   <ProfileDisplay profile={profile} />
                 )}
               </TabsContent>
 
-              <TabsContent value="preferences" className="mt-4 space-y-4">
+              <TabsContent className="mt-4 space-y-4" value="preferences">
                 <div className="space-y-3">
                   <div>
                     <p className="font-medium text-sm">Theme</p>
@@ -445,14 +441,14 @@ export function ProfilePopover({
                 </div>
 
                 <Button
-                  variant="outline"
-                  size="sm"
                   className="w-full"
                   onClick={() => {
                     setIsOpen(false);
                     // Navigate to full settings page
                     window.location.href = "/settings";
                   }}
+                  size="sm"
+                  variant="outline"
                 >
                   <UserIcon className="mr-2 h-3 w-3" />
                   View All Settings

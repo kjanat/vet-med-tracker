@@ -5,12 +5,12 @@
 
 // Layout patterns
 export const layoutPatterns = {
-  flexCenter: "flex items-center justify-center",
   flexBetween: "flex items-center justify-between",
-  flexStart: "flex items-start justify-between",
-  flexEnd: "flex items-end justify-between",
+  flexCenter: "flex items-center justify-center",
   flexCenterGap2: "flex items-center gap-2",
   flexCenterGap4: "flex items-center gap-4",
+  flexEnd: "flex items-end justify-between",
+  flexStart: "flex items-start justify-between",
 } as const;
 
 // Button base patterns
@@ -31,13 +31,10 @@ export const textPatterns = {
 
 // Card patterns
 export const cardPatterns = {
-  fullCard: "w-full max-w-lg",
   cardTitle: "flex items-center gap-2",
+  fullCard: "w-full max-w-lg",
 } as const;
 
 // Common utility to combine patterns
-export const cn = (
-  ...classes: (string | undefined | null | false)[]
-): string => {
-  return classes.filter(Boolean).join(" ");
-};
+export const cn = (...classes: (string | undefined | null | false)[]) =>
+  classes.filter(Boolean).join(" ");

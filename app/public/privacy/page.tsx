@@ -155,8 +155,8 @@ export default function PrivacyPage() {
           <p className="mb-4">
             To exercise these rights, contact us at{" "}
             <a
-              href="mailto:privacy@vetmedtracker.com"
               className="text-primary hover:underline"
+              href="mailto:privacy@vetmedtracker.com"
             >
               privacy@vetmedtracker.com
             </a>
@@ -208,8 +208,8 @@ export default function PrivacyPage() {
           <p className="mb-4">
             We use cookies and similar technologies as described in our{" "}
             <Link
-              href="/public/cookies"
               className="text-primary hover:underline"
+              href="/public/cookies"
             >
               Cookie Policy
             </Link>
@@ -236,8 +236,8 @@ export default function PrivacyPage() {
             <li>
               Email:{" "}
               <a
-                href="mailto:privacy@vetmedtracker.com"
                 className="text-primary hover:underline"
+                href="mailto:privacy@vetmedtracker.com"
               >
                 privacy@vetmedtracker.com
               </a>

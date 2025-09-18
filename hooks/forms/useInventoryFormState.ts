@@ -125,16 +125,16 @@ export function useInventoryFormState(
   }, []);
 
   return {
+    clearError,
+    closeForm,
+    error,
+    isDirty,
     // State
     isOpen,
-    isDirty,
-    error,
 
     // Actions
     openForm,
-    closeForm,
-    setError: setErrorState,
     setDirty: setDirtyState,
-    clearError,
+    setError: setErrorState,
   };
 }

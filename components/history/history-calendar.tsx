@@ -53,7 +53,7 @@ export function HistoryCalendar({
 
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const days = eachDayOfInterval({ end: monthEnd, start: monthStart });
 
   const getDayCount = (day: Date) => counts.find((c) => isSameDay(c.date, day));
   const getDayRecords = (day: Date) =>
@@ -74,16 +74,16 @@ export function HistoryCalendar({
         <h2 className="font-bold text-2xl">{format(month, "MMMM yyyy")}</h2>
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
-            size="icon"
             onClick={() => onMonthChange(subMonths(month, 1))}
+            size="icon"
+            variant="outline"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
-            variant="outline"
-            size="icon"
             onClick={() => onMonthChange(addMonths(month, 1))}
+            size="icon"
+            variant="outline"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -115,8 +115,8 @@ export function HistoryCalendar({
         {/* Day Headers */}
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div
-            key={day}
             className="p-2 text-center font-medium text-muted-foreground text-sm"
+            key={day}
           >
             {day}
           </div>
@@ -132,18 +132,18 @@ export function HistoryCalendar({
             <Sheet key={day.toISOString()}>
               <SheetTrigger asChild>
                 <button
-                  type="button"
                   className={cn(
                     "relative h-16 rounded-lg border p-2 transition-colors hover:bg-accent",
                     !isCurrentMonth && "opacity-50",
                     dayCount && "cursor-pointer",
                   )}
+                  disabled={!dayCount}
                   onClick={() => {
                     if (dayCount) {
                       onSelectDay(day);
                     }
                   }}
-                  disabled={!dayCount}
+                  type="button"
                 >
                   <div className="font-medium text-sm">{format(day, "d")}</div>
                   {dayCount && (
@@ -161,8 +161,8 @@ export function HistoryCalendar({
 
               {dayCount && (
                 <SheetContent
-                  side="right"
                   className="w-full sm:w-[400px] md:w-[540px]"
+                  side="right"
                 >
                   <SheetHeader>
                     <SheetTitle>{format(day, "EEEE, MMMM d, yyyy")}</SheetTitle>
@@ -211,8 +211,8 @@ export function HistoryCalendar({
                       <h4 className="font-medium">Administrations</h4>
                       {dayRecords.map((record) => (
                         <div
-                          key={record.id}
                           className="flex items-center justify-between rounded-lg border p-3"
+                          key={record.id}
                         >
                           <div>
                             <div className="font-medium">

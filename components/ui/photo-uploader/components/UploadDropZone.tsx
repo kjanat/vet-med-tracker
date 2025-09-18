@@ -58,41 +58,41 @@ export function UploadDropZone({
   return (
     <>
       <button
-        type="button"
-        ref={dropRef}
-        className={getClassName()}
-        onClick={onClick}
-        onKeyDown={handleKeyDown}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-        disabled={disabled}
         aria-label="Upload photo by clicking or dragging and dropping"
+        className={getClassName()}
+        disabled={disabled}
+        onClick={onClick}
+        onDragLeave={onDragLeave}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+        onKeyDown={handleKeyDown}
+        ref={dropRef}
+        type="button"
       >
         {/* Clear button */}
         {state.preview && !isLoading && (
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
             className="absolute top-2 right-2 h-8 w-8 rounded-full p-0"
             onClick={onClear}
+            size="sm"
+            type="button"
+            variant="ghost"
           >
             <X className="h-4 w-4" />
           </Button>
         )}
 
         <UploadContent
-          state={state}
-          placeholder={placeholder}
           maxSizeKB={maxSizeKB}
+          placeholder={placeholder}
+          state={state}
         />
       </button>
 
       {state.originalFile && (
         <FileInfo
-          originalFile={state.originalFile}
           compressedFile={state.compressedFile}
+          originalFile={state.originalFile}
         />
       )}
     </>

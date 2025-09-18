@@ -32,9 +32,9 @@ export function HoverPrefetchLink({
   return (
     <Link
       {...props}
-      prefetch={shouldPrefetch}
-      onMouseEnter={() => setShouldPrefetch(true)}
       onFocus={() => setShouldPrefetch(true)}
+      onMouseEnter={() => setShouldPrefetch(true)}
+      prefetch={shouldPrefetch}
     >
       {children}
     </Link>

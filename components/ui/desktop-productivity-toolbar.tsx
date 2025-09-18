@@ -85,17 +85,17 @@ export function DesktopProductivityToolbar({
         <div className="relative">
           <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
           <Input
-            placeholder="Search medications, animals..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
             className="w-64 pl-10"
             data-shortcut="Ctrl+/"
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search medications, animals..."
+            value={searchQuery}
           />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="-translate-y-1/2 absolute top-1/2 right-2 transform">
-                  <Badge variant="outline" className="px-1.5 py-0.5 text-xs">
+                  <Badge className="px-1.5 py-0.5 text-xs" variant="outline">
                     Ctrl+/
                   </Badge>
                 </div>
@@ -107,16 +107,16 @@ export function DesktopProductivityToolbar({
           </TooltipProvider>
         </div>
 
-        <Separator orientation="vertical" className="h-6" />
+        <Separator className="h-6" orientation="vertical" />
 
         {/* Filters */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button className="gap-2" size="sm" variant="outline">
               <Filter className="h-4 w-4" />
               Filters
               {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="text-xs" variant="secondary">
                   {activeFiltersCount}
                 </Badge>
               )}
@@ -179,7 +179,7 @@ export function DesktopProductivityToolbar({
         {/* Sort */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button className="gap-2" size="sm" variant="outline">
               {sortOrder === "asc" ? (
                 <SortAsc className="h-4 w-4" />
               ) : (
@@ -245,19 +245,19 @@ export function DesktopProductivityToolbar({
 
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onBulkAction?.("record", [])}
               className="gap-2"
+              onClick={() => onBulkAction?.("record", [])}
+              size="sm"
+              variant="outline"
             >
               <Plus className="h-4 w-4" />
               Record Selected
             </Button>
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onBulkAction?.("snooze", [])}
               className="gap-2"
+              onClick={() => onBulkAction?.("snooze", [])}
+              size="sm"
+              variant="outline"
             >
               <RotateCcw className="h-4 w-4" />
               Snooze
@@ -272,7 +272,7 @@ export function DesktopProductivityToolbar({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button className="gap-2" size="sm" variant="outline">
                 <Download className="h-4 w-4" />
                 Export
               </Button>
@@ -286,7 +286,7 @@ export function DesktopProductivityToolbar({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button className="gap-2" size="sm" variant="outline">
                 <Upload className="h-4 w-4" />
                 Import
               </Button>
@@ -297,20 +297,20 @@ export function DesktopProductivityToolbar({
           </Tooltip>
         </TooltipProvider>
 
-        <Separator orientation="vertical" className="h-6" />
+        <Separator className="h-6" orientation="vertical" />
 
         {/* Keyboard shortcuts toggle */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
-                size="sm"
+                className="gap-2"
                 onClick={() => {
                   setShowShortcuts(!showShortcuts);
                   onKeyboardShortcutsToggle?.();
                 }}
-                className="gap-2"
+                size="sm"
+                variant="ghost"
               >
                 <Keyboard className="h-4 w-4" />
                 <span className="sr-only">Toggle keyboard shortcuts</span>
@@ -337,24 +337,24 @@ export function KeyboardShortcutsOverlay({
   if (!isOpen) return null;
 
   const shortcuts = [
-    { key: "Ctrl+/", description: "Focus search" },
-    { key: "Ctrl+R", description: "Record medication" },
-    { key: "Ctrl+H", description: "View history" },
-    { key: "Ctrl+I", description: "View insights" },
-    { key: "Ctrl+N", description: "Add new regimen" },
-    { key: "Ctrl+?", description: "Show shortcuts" },
-    { key: "Escape", description: "Close dialogs" },
-    { key: "Enter", description: "Confirm selection" },
-    { key: "Space", description: "Select/deselect item" },
-    { key: "↑/↓", description: "Navigate list" },
-    { key: "D", description: "Toggle due filter" },
-    { key: "O", description: "Toggle overdue filter" },
-    { key: "L", description: "Toggle later filter" },
-    { key: "P", description: "Toggle PRN filter" },
-    { key: "T", description: "Sort by time" },
-    { key: "A", description: "Sort by animal" },
-    { key: "M", description: "Sort by medication" },
-    { key: "S", description: "Sort by status" },
+    { description: "Focus search", key: "Ctrl+/" },
+    { description: "Record medication", key: "Ctrl+R" },
+    { description: "View history", key: "Ctrl+H" },
+    { description: "View insights", key: "Ctrl+I" },
+    { description: "Add new regimen", key: "Ctrl+N" },
+    { description: "Show shortcuts", key: "Ctrl+?" },
+    { description: "Close dialogs", key: "Escape" },
+    { description: "Confirm selection", key: "Enter" },
+    { description: "Select/deselect item", key: "Space" },
+    { description: "Navigate list", key: "↑/↓" },
+    { description: "Toggle due filter", key: "D" },
+    { description: "Toggle overdue filter", key: "O" },
+    { description: "Toggle later filter", key: "L" },
+    { description: "Toggle PRN filter", key: "P" },
+    { description: "Sort by time", key: "T" },
+    { description: "Sort by animal", key: "A" },
+    { description: "Sort by medication", key: "M" },
+    { description: "Sort by status", key: "S" },
   ];
 
   return (
@@ -362,7 +362,7 @@ export function KeyboardShortcutsOverlay({
       <div className="mx-4 w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-semibold text-lg">Keyboard Shortcuts</h3>
-          <Button variant="ghost" size="sm" onClick={closeAction}>
+          <Button onClick={closeAction} size="sm" variant="ghost">
             ×
           </Button>
         </div>
@@ -370,13 +370,13 @@ export function KeyboardShortcutsOverlay({
         <div className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto">
           {shortcuts.map((shortcut) => (
             <div
-              key={shortcut.key}
               className="flex items-center justify-between py-1"
+              key={shortcut.key}
             >
               <span className="text-muted-foreground text-sm">
                 {shortcut.description}
               </span>
-              <Badge variant="outline" className="font-mono text-xs">
+              <Badge className="font-mono text-xs" variant="outline">
                 {shortcut.key}
               </Badge>
             </div>
@@ -386,7 +386,7 @@ export function KeyboardShortcutsOverlay({
         <div className="mt-4 border-t pt-4">
           <p className="text-center text-muted-foreground text-xs">
             Press{" "}
-            <Badge variant="outline" className="text-xs">
+            <Badge className="text-xs" variant="outline">
               Ctrl+?
             </Badge>{" "}
             anytime to toggle this overlay

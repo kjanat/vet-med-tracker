@@ -38,11 +38,11 @@ export function useDragAndDrop({ disabled, onFileDrop }: UseDragAndDropProps) {
   );
 
   return {
-    isDragOver,
     dragHandlers: {
-      onDragOver: handleDragOver,
       onDragLeave: handleDragLeave,
+      onDragOver: handleDragOver,
       onDrop: handleDrop,
     },
+    isDragOver,
   };
 }
