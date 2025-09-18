@@ -16,7 +16,7 @@ import {
   auditHelpers,
   createAuditMiddleware,
 } from "@/lib/security/audit-logger";
-import { stackServerApp } from "@/stack";
+import { stackServerApp } from "@/stack/server";
 
 // Context type definition
 export interface Context {

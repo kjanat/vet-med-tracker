@@ -7,7 +7,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db/drizzle";
 import { getNotificationScheduler } from "@/lib/push-notifications/notification-scheduler";
-import { stackServerApp } from "@/stack";
+import { stackServerApp } from "@/stack/server";
 
 // Lazy initialization to prevent build-time errors
 let scheduler: ReturnType<typeof getNotificationScheduler> | null = null;

@@ -28,6 +28,7 @@
       "@/utils/*": ["utils/*"],
       "@/types/*": ["types/*"],
       "@/db/*": ["db/*"],
+      "@/stack": ["stack/*"],
       "@/server/*": ["server/*"],
       "@/server/trpc/*": ["server/trpc/*"],
       "@/tests/*": ["tests/*"]

@@ -19,7 +19,7 @@ see [this tracking issue](https://github.com/oven-sh/bun/issues/1825).
 bun test
 ```
 
-Tests are written in JavaScript or TypeScript with a Jest-like API. Refer to [Writing tests](./01-writing-tests.md) for
+Tests are written in JavaScript or TypeScript with a Jest-like API. Refer to [Writing tests](01-writing-tests.md) for
 full documentation.
 
 ```ts#math.test.ts
@@ -60,7 +60,7 @@ bun test ./test/specific-file.test.ts
 ```
 
 The test runner runs all tests in a single process. It loads all `--preload` scripts (
-see [Lifecycle](./03-lifecycle-hooks.md) for details), then runs all tests. If a test fails, the test runner
+see [Lifecycle](03-lifecycle-hooks.md) for details), then runs all tests. If a test fails, the test runner
 will exit with a non-zero exit code.
 
 ## CI/CD integration
@@ -168,7 +168,7 @@ These hooks can be defined inside test files, or in a separate file that is prel
 bun test --preload ./setup.ts
 ```
 
-See [Test > Lifecycle](./03-lifecycle-hooks.md) for complete documentation.
+See [Test > Lifecycle](03-lifecycle-hooks.md) for complete documentation.
 
 ## Mocks
 
@@ -197,7 +197,7 @@ Alternatively, you can use `jest.fn()`, it behaves identically.
 + const random = jest.fn(() => Math.random());
 ```
 
-See [Test > Mocks](./04-mocks.md) for complete documentation.
+See [Test > Mocks](04-mocks.md) for complete documentation.
 
 ## Snapshot testing
 
@@ -218,7 +218,7 @@ To update snapshots, use the `--update-snapshots` flag.
 bun test --update-snapshots
 ```
 
-See [Test > Snapshots](./05-snapshots.md) for complete documentation.
+See [Test > Snapshots](05-snapshots.md) for complete documentation.
 
 ## UI & DOM testing
 
@@ -228,7 +228,7 @@ Bun is compatible with popular UI testing libraries:
 - [DOM Testing Library](https://testing-library.com/docs/dom-testing-library/intro/)
 - [React Testing Library](https://testing-library.com/docs/react-testing-library/intro)
 
-See [Test > DOM Testing](./12-dom-testing.md) for complete documentation.
+See [Test > DOM Testing](12-dom-testing.md) for complete documentation.
 
 ## Performance
 

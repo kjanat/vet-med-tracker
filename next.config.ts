@@ -1,10 +1,5 @@
 import type { NextConfig } from "next";
 
-// import bundleAnalyzer from "@next/bundle-analyzer";
-// const withBundleAnalyzer = bundleAnalyzer({
-//   enabled: process.env.ANALYZE === "true",
-// });
-
 const nextConfig: NextConfig = {
   // devIndicators: false,
   allowedDevOrigins: ["192.168.1.2"],
@@ -18,6 +13,9 @@ const nextConfig: NextConfig = {
   compress: process.env.NODE_ENV === "production",
   experimental: {
     reactCompiler: true,
+    turbopackMinify: true,
+    turbopackTreeShaking: false,
+    turbopackSourceMaps: true,
     typedEnv: true,
     useCache: true,
     ppr: "incremental",
@@ -58,7 +56,21 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false, // Temporary for bundle optimization
   },
+  turbopack: {
+    rules: {
+      "*.svg": {
+        loaders: [
+          {
+            loader: "@svgr/webpack",
+            options: {
+              icon: true,
+            },
+          },
+        ],
+        as: "*.js",
+      },
+    },
+  },
 };
 
 export default nextConfig;
-// export default withBundleAnalyzer(nextConfig);

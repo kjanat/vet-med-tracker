@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { stackServerApp } from "./stack";
+import { stackServerApp } from "./stack/server";
 
 /**
  * Security-hardened middleware for VetMed Tracker

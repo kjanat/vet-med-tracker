@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 # Ultra-safe commit message validator
 
 # Disable any inherited shell options that might cause issues

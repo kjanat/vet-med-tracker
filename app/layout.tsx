@@ -1,19 +1,22 @@
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import type { Metadata } from "next";
-import type React from "react";
-import { stackServerApp } from "@/stack";
+import type { ReactNode } from "react";
+import { stackServerApp } from "@/stack/server";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-// import { DebugHouseholdState } from "@/components/debug/debug-household-state";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
 import { TRPCProvider } from "@/server/trpc/client";
 import { inter, jetbrainsMono } from "./fonts";
 
 export const metadata: Metadata = {
-  title: "VetMed Tracker - Pet Medication Management Made Simple",
+  metadataBase: new URL("https://vetmed.kjanat.com"),
+  title: {
+    template: "%s | VetMed",
+    default: "VetMed Tracker",
+  },
   description:
-    "Track pet medications, set reminders, and manage veterinary prescriptions with ease. Never miss a dose with our intuitive medication tracking app.",
+    "Track pet medications, set reminders, and manage veterinary prescriptions with ease.",
   keywords: [
     "pet medication tracker",
     "veterinary medicine management",
@@ -25,13 +28,18 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "VetMed Tracker - Pet Medication Management",
-    description:
-      "Never miss a pet medication dose. Track prescriptions, set reminders, and manage your pet's health with confidence.",
-    type: "website",
-    locale: "en_US",
+    title: "VetMed Tracker",
+    description: "Pet Medication Management",
+    url: "https://vetmed.kjanat.com",
     siteName: "VetMed Tracker",
-    url: "/",
+    images: [
+      {
+        url: "/icon0.svg",
+        alt: "VetMed Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
@@ -42,24 +50,27 @@ export const metadata: Metadata = {
   appleWebApp: {
     title: "VetMed",
   },
+  icons: {
+    icon: "/icon0.svg",
+    shortcut: "/icon0.svg",
+    apple: "/apple-icon.png",
+  },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+type RootLayoutProps = {
+  children: ReactNode;
+};
+
+export default function RootLayout({ children }: RootLayoutProps) {
+  // noinspection HtmlRequiredTitleElement
   return (
     <html
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
       suppressHydrationWarning
     >
-      <head>
-        <meta name="apple-mobile-web-app-title" content="VetMed" />
-        <title>VetMed</title>
-      </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <head />
+      <body className={inter.className}>
         <StackProvider app={stackServerApp}>
           <StackTheme>
             <ThemeProvider
@@ -71,10 +82,11 @@ export default function RootLayout({
               <SkipNavigation
                 links={[
                   { href: "#main-content", label: "Skip to main content" },
-                  { href: "#main-navigation", label: "Skip to navigation" },
                 ]}
               />
-              <TRPCProvider>{children}</TRPCProvider>
+              <TRPCProvider>
+                <main id="main-content">{children}</main>
+              </TRPCProvider>
               <Analytics />
             </ThemeProvider>
           </StackTheme>

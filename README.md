@@ -1,19 +1,22 @@
-<div align="center">
-
 # VetMed Tracker 🐾
-
-A Progressive Web App (PWA) for managing veterinary medications for pets and animals. Track medications, schedules,
-and inventory across multiple households with offline support.
-
-  <a href="https://vetmed-tracker.example.com" target="_blank" rel="noopener noreferrer">
-    <img src="public/web-app-manifest-512x512.png" alt="My Dog" width="300"/>
-  </a>
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.6.0--canary-black)][nextjs]
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)][typescript]
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)][tailwind]
 <!-- [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) -->
 
+A Progressive Web App (PWA) for managing veterinary medications for pets and animals. Track medications, schedules,
+and inventory across multiple households with offline support.
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="app/icon0.svg">
+  <img alt="my dog"
+       src="app/icon0.svg"
+       width="256px"
+       height="256px"
+  />
+</picture>
 </div>
 
 ## ✨ Features

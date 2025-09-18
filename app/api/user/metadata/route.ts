@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { stackServerApp } from "@/stack";
+import { stackServerApp } from "@/stack/server";
 
 // Schema for VetMed preferences
 const VetMedPreferencesSchema = z.object({

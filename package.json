@@ -2,29 +2,27 @@
   "name": "vet-med-tracker",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "next build --turbopack",
-    "build:stats": "next build && bunx @next/bundle-analyzer build",
-    "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
-    "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
-    "db:pull": "drizzle-kit pull --config=drizzle.config.ts",
-    "db:push": "drizzle-kit push --config=drizzle.config.ts",
-    "db:push:force": "drizzle-kit push --config=drizzle.config.ts --force",
-    "db:migrate:prod": "drizzle-kit migrate --config=drizzle.config.ts",
-    "db:migrate:staging": "DATABASE_URL=$STAGING_DATABASE_URL DATABASE_URL_UNPOOLED=$STAGING_DATABASE_URL_UNPOOLED drizzle-kit migrate --config=drizzle.config.ts",
-    "db:rollback": "drizzle-kit rollback --config=drizzle.config.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:pull": "drizzle-kit pull",
+    "db:push": "drizzle-kit push",
+    "db:push:force": "drizzle-kit push --force",
+    "db:rollback": "drizzle-kit rollback",
     "deploy:staging": "bun build && vercel deploy --prebuilt",
     "deploy:production": "bun build && vercel deploy --prebuilt --prod",
-    "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
+    "db:studio": "drizzle-kit studio",
     "dev": "next dev --turbopack",
     "preview": "next build && next start",
     "preview:dev": "vercel dev",
     "start": "next start",
     "typegen": "next typegen",
     "typecheck": "tsc --noEmit",
-    "lint": "biome check --formatter-enabled=false --assist-enabled=false",
-    "lint:fix": "biome check --write",
-    "format": "biome format --write",
+    "lint": "biome lint",
+    "lint:fix": "biome check --fix",
+    "format": "biome format --fix",
     "format:md": "markdownlint-cli2 \"**/*.{md,markdown}\" \"#node_modules\" --fix",
     "puppeteer:install": "puppeteer browsers install",
     "test": "bun test",
@@ -36,10 +34,15 @@
     "perf:audit": "bun build && lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
     "bundle:size": "size-limit",
     "phylopic:curate": "bun scripts/fetch-phylopic-curated.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "grit init && grit install"
   },
+  "trustedDependencies": [
+    "@tailwindcss/oxide"
+  ],
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@neon/serverless": "npm:@jsr/neon__serverless",
     "@neondatabase/serverless": "^1.0.1",
     "@next/env": "canary",
     "@radix-ui/react-accordion": "1.2.12",
@@ -119,12 +122,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
+    "@getgrit/cli": "^0.1.0-alpha.1743007075",
     "@happy-dom/global-registrator": "^18.0.1",
     "@lhci/cli": "^0.15.1",
     "@next/bundle-analyzer": "canary",
     "@percy/playwright": "^1.0.9",
     "@playwright/test": "^1.55.0",
     "@size-limit/preset-app": "^11.2.0",
+    "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
@@ -140,7 +145,9 @@
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.0.2",
     "babel-plugin-react-compiler": "19.1.0-rc.3",
+    "bun-osv-scanner": "^1.0.0",
     "commander": "^14.0.1",
+    "dotenv": "^17.2.2",
     "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.9",
     "glob": "^11.0.3",
@@ -153,6 +160,7 @@
     "postcss": "^8.5.6",
     "postgres": "^3.4.7",
     "puppeteer": "^24.21.0",
+    "shadcn": "^3.3.1",
     "sinon": "^21.0.0",
     "size-limit": "^11.2.0",
     "tailwindcss": "^4.1.13",
@@ -165,8 +173,16 @@
     "node": "22.x"
   },
   "packageManager": "bun@1.2.22",
-  "trustedDependencies": [
-    "@tailwindcss/oxide"
-  ],
-  "type": "module"
+  "lint-staged": {
+    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+      "bunx biome check --staged --write --no-errors-on-unmatched --files-ignore-unknown=true --diagnostic-level=error"
+    ],
+    "*.{md,markdown}": [
+      "bunx markdownlint-cli2 --fix"
+    ],
+    "*.sh": [
+      "shfmt -w",
+      "shellcheck"
+    ]
+  }
 }

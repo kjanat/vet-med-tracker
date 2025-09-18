@@ -1,5 +1,5 @@
 import { pgTable, index, foreignKey, uuid, text, boolean, date, numeric, timestamp, jsonb, unique, integer, time, pgEnum } from "drizzle-orm/pg-core"
-import { sql } from "drizzle-orm"
+// import { sql } from "drizzle-orm"
 
 export const temperatureUnit = pgEnum("temperature_unit", ['celsius', 'fahrenheit'])
 export const vetmedAdminStatus = pgEnum("vetmed_admin_status", ['ON_TIME', 'LATE', 'VERY_LATE', 'MISSED', 'PRN'])

@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "plugins": [
+    ".github/linters/object_assign.grit"
+  ],
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -17,14 +20,13 @@
       "!dist",
       "!build",
       "!node_modules",
-      "!mcp-shim.ts",
       "!playwright-report",
       "!sample-components",
       "!screenshots",
       "!test-results",
       "!.vercel",
-      "!.vscode"
-      /* "!drizzle" */
+      "!.vscode",
+      "!drizzle"
     ]
   },
   "formatter": {
@@ -51,15 +53,15 @@
       "suspicious": {
         "noGlobalIsNan": {
           "level": "warn",
-          "fix": "safe",
-          "options": {}
+          "fix": "safe"
         }
       }
     },
     "domains": {
       "next": "recommended",
       "react": "recommended",
-      "project": "recommended"
+      "project": "recommended",
+      "test": "recommended"
     }
   },
   "javascript": {
@@ -76,7 +78,9 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": "on",
+        "useSortedKeys": "off",
+        "useSortedAttributes": "off"
       }
     }
   },
@@ -100,7 +104,7 @@
       }
     },
     {
-      "includes": ["db/*", "drizzle.config.ts", "drizzle/*"],
+      "includes": ["migrations/*"],
       "formatter": {
         "enabled": false
       },
@@ -132,6 +136,16 @@
       },
       "formatter": {
         "enabled": true
+      }
+    },
+    {
+      "includes": ["**/*.jsonc", "**/*.json", "**/*.config.ts"],
+      "assist": {
+        "actions": {
+          "source": {
+            "useSortedKeys": "off"
+          }
+        }
       }
     }
   ]

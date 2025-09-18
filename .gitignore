@@ -327,3 +327,7 @@ scripts/migrate-*.ts
 scripts/standardize-*.ts
 scripts/finalize-*.sh
 /debug-button.mjs
+*.demo
+
+tests/junit.xml
+renovate.json

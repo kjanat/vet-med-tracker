@@ -1,6 +1,3 @@
 #!/bin/sh
-set -eu
-
-bunx lint-staged
 
 git update-index --again

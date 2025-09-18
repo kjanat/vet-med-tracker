@@ -17,6 +17,14 @@
       "env": {
         "IJ_MCP_SERVER_PORT": "64342"
       }
+    },
+    "shadcn": {
+      "command": "bunx",
+      "args": ["shadcn@latest", "mcp"]
+    },
+    "neon": {
+      "command": "bunx",
+      "args": ["@neondatabase/mcp-server-neon", "start", "${NEON_API_KEY}"]
     }
   }
 }
