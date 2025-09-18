@@ -10,21 +10,28 @@ alwaysApply: false
 This guide covers the specific integration patterns and optimizations for using **Drizzle ORM** with **Neon** serverless Postgres databases. Follow these guidelines to ensure efficient database operations in serverless environments.
 
 ## Dependencies
+
 For Neon with Drizzle ORM integration, include these specific dependencies:
+
 ```bash
 bun add drizzle-orm @neondatabase/serverless dotenv
 bun add -D drizzle-kit
 ```
 
 ## Neon Connection Configuration
+
 - Always use the Neon connection string format:
-```
+
+```bash
 DATABASE_URL=postgres://username:password@ep-instance-id.region.aws.neon.tech/neondb
 ```
+
 - Store this in `.env` or `.env.local` file
 
 ## Neon Connection Setup
+
 When connecting to Neon specifically:
+
 - Use the `neon` client from `@neondatabase/serverless` package
 - Pass the connection string to create the SQL client
 - Use `drizzle` with the `neon-http` adapter specifically
@@ -52,18 +59,23 @@ export const db = drizzle({ client: sql });
 ## Neon Database Considerations
 
 ### Default Settings
+
 - Neon projects come with a ready-to-use database named `neondb`
 - Default role is typically `neondb_owner`
 - Connection strings include the correct endpoint based on your region
 
 ### Serverless Optimization
+
 Neon is optimized for serverless environments:
+
 - Use the HTTP-based `neon-http` adapter instead of node-postgres
 - Take advantage of connection pooling for serverless functions
 - Consider Neon's auto-scaling capabilities when designing schemas
 
 ## Schema Considerations for Neon
+
 When defining schemas for Neon:
+
 - Use Postgres-specific types from `drizzle-orm/pg-core`
 - Leverage Postgres features that Neon supports:
   - JSON/JSONB columns
@@ -101,6 +113,7 @@ export type NewUser = typeof usersTable.$inferInsert;
 ```
 
 ## Drizzle Config for Neon
+
 Neon-specific configuration in `drizzle.config.ts`:
 
 ```typescript
@@ -126,7 +139,9 @@ export default defineConfig({
 ## Neon-Specific Query Optimizations
 
 ### Efficient Queries for Serverless
+
 Optimize for Neon's serverless environment:
+
 - Keep connections short-lived
 - Use prepared statements for repeated queries
 - Batch operations when possible
@@ -152,6 +167,7 @@ export const getUsersByRolePrepared = db.select()
 ```
 
 ### Transaction Handling with Neon
+
 Neon supports transactions through Drizzle:
 
 ```typescript
@@ -177,6 +193,7 @@ export async function createUserWithPosts(user: NewUser, posts: NewPost[]) {
 ```
 
 ## Working with Neon Branches
+
 Neon supports database branching for development and testing:
 
 ```typescript
@@ -200,6 +217,7 @@ export const db = drizzle({ client: sql });
 ```
 
 ## Neon-Specific Error Handling
+
 Handle Neon-specific connection issues:
 
 ```typescript
@@ -232,19 +250,23 @@ export async function getUserSafely(id: number) {
 ## Best Practices for Neon with Drizzle
 
 1. **Connection Management**
-  - Keep connection times short for serverless functions
-  - Use connection pooling for high traffic applications
 
-2. **Neon Features**
-  - Utilize Neon branching for development and testing
-  - Consider Neon's auto-scaling for database design
+- Keep connection times short for serverless functions
+- Use connection pooling for high traffic applications
 
-3. **Query Optimization**
-  - Batch operations when possible
-  - Use prepared statements for repeated queries
-  - Optimize complex joins to minimize data transfer
+1. **Neon Features**
 
-4. **Schema Design**
-  - Leverage Postgres-specific features supported by Neon
-  - Use appropriate indexes for your query patterns
-  - Consider Neon's performance characteristics for large tables
+- Utilize Neon branching for development and testing
+- Consider Neon's auto-scaling for database design
+
+1. **Query Optimization**
+
+- Batch operations when possible
+- Use prepared statements for repeated queries
+- Optimize complex joins to minimize data transfer
+
+1. **Schema Design**
+
+- Leverage Postgres-specific features supported by Neon
+- Use appropriate indexes for your query patterns
+- Consider Neon's performance characteristics for large tables

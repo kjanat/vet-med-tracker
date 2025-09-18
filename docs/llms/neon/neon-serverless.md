@@ -22,6 +22,7 @@ bunx jsr add @neon/serverless
 ```
 
 For projects that depend on pg but want to use Neon:
+
 ```json
 "dependencies": {
   "pg": "npm:@neondatabase/serverless@^0.10.4"
@@ -43,6 +44,7 @@ const sql = neon(process.env.DATABASE_URL);
 ```
 
 Never hardcode credentials:
+
 ```javascript
 // Don't do this
 const sql = neon('postgres://username:password@host.neon.tech/neondb');
@@ -57,6 +59,7 @@ const [post] = await sql`SELECT * FROM posts WHERE id = ${postId}`;
 ```
 
 Don't concatenate strings directly (SQL injection risk):
+
 ```javascript
 // Don't do this
 const [post] = await sql('SELECT * FROM posts WHERE id = ' + postId);

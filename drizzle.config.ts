@@ -1,12 +1,12 @@
-import { config } from "dotenv";
+import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
 
 // Load environment variables
-config({ path: ".env.local" });
+loadEnvConfig(process.cwd());
 
 export default defineConfig({
-  schema: "./db/schema.ts",
-  out: "./migrations",
+  schema: "./db/schema",
+  out: "./db/migrations/generated",
   dialect: "postgresql",
   dbCredentials: {
     // Use unpooled connection for migrations and schema operations
@@ -18,7 +18,7 @@ export default defineConfig({
       return url;
     })(),
   },
-  tablesFilter: ["vetmed_*"], // Prefix all tables with vetmed_
+  // tablesFilter: ["vetmed_*"], // Prefix all tables with vetmed_
   verbose: true,
   strict: true,
   // Optional: Neon project specific tables to include/exclude

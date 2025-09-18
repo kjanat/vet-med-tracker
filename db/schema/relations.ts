@@ -10,7 +10,7 @@ import {
   vetmedNotificationQueue,
   vetmedRegimens,
   vetmedUsers,
-} from "./schema";
+} from "./tables";
 
 export const vetmedAnimalsRelations = relations(
   vetmedAnimals,

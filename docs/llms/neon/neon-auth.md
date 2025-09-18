@@ -231,6 +231,7 @@ type CurrentUser = {
 ## Best Practices for Integration
 
 ### Stack Auth Best Practices
+
 - Use the appropriate methods based on component type:
   - Use hook-based methods (`useXyz`) in Client Components
   - Use promise-based methods (`getXyz`) in Server Components
@@ -238,6 +239,7 @@ type CurrentUser = {
 - Use pre-built UI components whenever possible to ensure proper auth flow handling
 
 ### Neon Auth Best Practices
+
 - Always use `LEFT JOIN` when relating with `neon_auth.users_sync`
   - Ensures queries work even if user records are missing
 - Always filter out users with `deleted_at IS NOT NULL`
@@ -252,12 +254,14 @@ type CurrentUser = {
 1. User authentication happens via Stack Auth UI components
 2. User data is automatically synced to the `neon_auth.users_sync` table
 3. Your application code accesses user information either through:
-  - Stack Auth hooks/methods (in React components)
-  - SQL queries to the `neon_auth.users_sync` table (for data operations)
+
+- Stack Auth hooks/methods (in React components)
+- SQL queries to the `neon_auth.users_sync` table (for data operations)
 
 ## Example: Custom Profile Page with Database Integration
 
 ### Frontend Component
+
 ```tsx
 'use client';
 import { useUser, useStackApp, UserButton } from '@stackframe/stack';
@@ -276,6 +280,7 @@ export default function ProfilePage() {
 ```
 
 ### Database Query for User's Content
+
 ```sql
 -- Get all todos for the currently logged in user
 SELECT 

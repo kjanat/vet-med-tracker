@@ -1,6 +1,6 @@
 {
-  "id": "cf31e5dc-5f17-440d-bba3-b4ed13dc6ce3",
-  "prevId": "a076ccd8-bed5-492f-b230-d0bbba7c36d5",
+  "id": "0a9282d5-e6ff-4a1b-8183-040de18bb27e",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -8,104 +8,6 @@
       "name": "vetmed_administrations",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "regimen_id": {
-          "name": "regimen_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "animal_id": {
-          "name": "animal_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "household_id": {
-          "name": "household_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "caregiver_id": {
-          "name": "caregiver_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "scheduled_for": {
-          "name": "scheduled_for",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "recorded_at": {
-          "name": "recorded_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "vetmed_admin_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "source_item_id": {
-          "name": "source_item_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "site": {
-          "name": "site",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "dose": {
-          "name": "dose",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "media_urls": {
-          "name": "media_urls",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "co_sign_user_id": {
-          "name": "co_sign_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "co_signed_at": {
-          "name": "co_signed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "co_sign_notes": {
-          "name": "co_sign_notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "adverse_event": {
           "name": "adverse_event",
           "type": "boolean",
@@ -119,11 +21,35 @@
           "primaryKey": false,
           "notNull": false
         },
-        "idempotency_key": {
-          "name": "idempotency_key",
-          "type": "text",
+        "animal_id": {
+          "name": "animal_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "caregiver_id": {
+          "name": "caregiver_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "co_signed_at": {
+          "name": "co_signed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "co_sign_notes": {
+          "name": "co_sign_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "co_sign_user_id": {
+          "name": "co_sign_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -131,6 +57,80 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "dose": {
+          "name": "dose",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "household_id": {
+          "name": "household_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "media_urls": {
+          "name": "media_urls",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "regimen_id": {
+          "name": "regimen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_for": {
+          "name": "scheduled_for",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "site": {
+          "name": "site",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_item_id": {
+          "name": "source_item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "vetmed_admin_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
         },
         "updated_at": {
           "name": "updated_at",
@@ -326,30 +326,11 @@
       "name": "vetmed_animals",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "household_id": {
-          "name": "household_id",
-          "type": "uuid",
+        "allergies": {
+          "name": "allergies",
+          "type": "text[]",
           "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "species": {
-          "name": "species",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "breed": {
           "name": "breed",
@@ -357,33 +338,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "sex": {
-          "name": "sex",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "neutered": {
-          "name": "neutered",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "dob": {
-          "name": "dob",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "weight_kg": {
-          "name": "weight_kg",
-          "type": "numeric(5, 2)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "microchip_id": {
-          "name": "microchip_id",
+        "clinic_name": {
+          "name": "clinic_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -394,11 +350,86 @@
           "primaryKey": false,
           "notNull": false
         },
+        "conditions": {
+          "name": "conditions",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dob": {
+          "name": "dob",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "household_id": {
+          "name": "household_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "microchip_id": {
+          "name": "microchip_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "neutered": {
+          "name": "neutered",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "photo_url": {
           "name": "photo_url",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "sex": {
+          "name": "sex",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "species": {
+          "name": "species",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "timezone": {
           "name": "timezone",
@@ -406,6 +437,19 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'America/New_York'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "vet_email": {
+          "name": "vet_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "vet_name": {
           "name": "vet_name",
@@ -419,53 +463,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "vet_email": {
-          "name": "vet_email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "clinic_name": {
-          "name": "clinic_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "allergies": {
-          "name": "allergies",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "conditions": {
-          "name": "conditions",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
+        "weight_kg": {
+          "name": "weight_kg",
+          "type": "numeric(5, 2)",
           "primaryKey": false,
           "notNull": false
         }
@@ -525,18 +525,17 @@
       "name": "vetmed_audit_log",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
+        "action": {
+          "name": "action",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "details": {
+          "name": "details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "household_id": {
           "name": "household_id",
@@ -544,27 +543,16 @@
           "primaryKey": false,
           "notNull": true
         },
-        "action": {
-          "name": "action",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "resource_type": {
-          "name": "resource_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "resource_id": {
-          "name": "resource_id",
+        "id": {
+          "name": "id",
           "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
-        "old_values": {
-          "name": "old_values",
-          "type": "jsonb",
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -574,23 +562,23 @@
           "primaryKey": false,
           "notNull": false
         },
-        "details": {
-          "name": "details",
+        "old_values": {
+          "name": "old_values",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "ip_address": {
-          "name": "ip_address",
-          "type": "text",
+        "resource_id": {
+          "name": "resource_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "user_agent": {
-          "name": "user_agent",
+        "resource_type": {
+          "name": "resource_type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "session_id": {
           "name": "session_id",
@@ -604,6 +592,18 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {
@@ -705,10 +705,247 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.vetmed_cosign_requests": {
+      "name": "vetmed_cosign_requests",
+      "schema": "",
+      "columns": {
+        "administration_id": {
+          "name": "administration_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cosigner_id": {
+          "name": "cosigner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "household_id": {
+          "name": "household_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "requester_id": {
+          "name": "requester_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signature": {
+          "name": "signature",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "signed_at": {
+          "name": "signed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "vetmed_cosign_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cosign_requests_administration_id_idx": {
+          "name": "cosign_requests_administration_id_idx",
+          "columns": [
+            {
+              "expression": "administration_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cosign_requests_requester_id_idx": {
+          "name": "cosign_requests_requester_id_idx",
+          "columns": [
+            {
+              "expression": "requester_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cosign_requests_cosigner_id_idx": {
+          "name": "cosign_requests_cosigner_id_idx",
+          "columns": [
+            {
+              "expression": "cosigner_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cosign_requests_household_id_idx": {
+          "name": "cosign_requests_household_id_idx",
+          "columns": [
+            {
+              "expression": "household_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cosign_requests_status_idx": {
+          "name": "cosign_requests_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "enum_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cosign_requests_expires_at_idx": {
+          "name": "cosign_requests_expires_at_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "timestamptz_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vetmed_cosign_requests_administration_id_vetmed_administrations_id_fk": {
+          "name": "vetmed_cosign_requests_administration_id_vetmed_administrations_id_fk",
+          "tableFrom": "vetmed_cosign_requests",
+          "tableTo": "vetmed_administrations",
+          "columnsFrom": ["administration_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vetmed_cosign_requests_requester_id_vetmed_users_id_fk": {
+          "name": "vetmed_cosign_requests_requester_id_vetmed_users_id_fk",
+          "tableFrom": "vetmed_cosign_requests",
+          "tableTo": "vetmed_users",
+          "columnsFrom": ["requester_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vetmed_cosign_requests_cosigner_id_vetmed_users_id_fk": {
+          "name": "vetmed_cosign_requests_cosigner_id_vetmed_users_id_fk",
+          "tableFrom": "vetmed_cosign_requests",
+          "tableTo": "vetmed_users",
+          "columnsFrom": ["cosigner_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vetmed_cosign_requests_household_id_vetmed_households_id_fk": {
+          "name": "vetmed_cosign_requests_household_id_vetmed_households_id_fk",
+          "tableFrom": "vetmed_cosign_requests",
+          "tableTo": "vetmed_households",
+          "columnsFrom": ["household_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vetmed_cosign_requests_administration_id_unique": {
+          "name": "vetmed_cosign_requests_administration_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["administration_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.vetmed_households": {
       "name": "vetmed_households",
       "schema": "",
       "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
         "id": {
           "name": "id",
           "type": "uuid",
@@ -728,13 +965,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'America/New_York'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
@@ -756,28 +986,15 @@
       "name": "vetmed_inventory_items",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "household_id": {
-          "name": "household_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "medication_id": {
-          "name": "medication_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
         "assigned_animal_id": {
           "name": "assigned_animal_id",
           "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "barcode": {
+          "name": "barcode",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -793,9 +1010,16 @@
           "primaryKey": false,
           "notNull": false
         },
-        "lot": {
-          "name": "lot",
-          "type": "text",
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -805,37 +1029,18 @@
           "primaryKey": false,
           "notNull": true
         },
-        "storage": {
-          "name": "storage",
-          "type": "vetmed_storage",
-          "typeSchema": "public",
+        "household_id": {
+          "name": "household_id",
+          "type": "uuid",
           "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
           "notNull": true,
-          "default": "'ROOM'"
-        },
-        "quantity_units": {
-          "name": "quantity_units",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "units_remaining": {
-          "name": "units_remaining",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "unit_type": {
-          "name": "unit_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "opened_on": {
-          "name": "opened_on",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
+          "default": "gen_random_uuid()"
         },
         "in_use": {
           "name": "in_use",
@@ -844,9 +1049,40 @@
           "notNull": true,
           "default": false
         },
-        "barcode": {
-          "name": "barcode",
+        "is_custom_medication": {
+          "name": "is_custom_medication",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "lot": {
+          "name": "lot",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "medication_id": {
+          "name": "medication_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "medication_name": {
+          "name": "medication_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "opened_on": {
+          "name": "opened_on",
+          "type": "date",
           "primaryKey": false,
           "notNull": false
         },
@@ -862,24 +1098,37 @@
           "primaryKey": false,
           "notNull": false
         },
+        "quantity_units": {
+          "name": "quantity_units",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "storage": {
+          "name": "storage",
+          "type": "vetmed_storage",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ROOM'"
+        },
         "supplier": {
           "name": "supplier",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "notes": {
-          "name": "notes",
-          "type": "text",
+        "units_remaining": {
+          "name": "units_remaining",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
+        "unit_type": {
+          "name": "unit_type",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": false
         },
         "updated_at": {
           "name": "updated_at",
@@ -887,12 +1136,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {
@@ -1002,7 +1245,7 @@
           "tableTo": "vetmed_medication_catalog",
           "columnsFrom": ["medication_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -1016,18 +1259,11 @@
       "name": "vetmed_medication_catalog",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "generic_name": {
-          "name": "generic_name",
-          "type": "text",
+        "age_adjustments": {
+          "name": "age_adjustments",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "brand_name": {
           "name": "brand_name",
@@ -1035,9 +1271,91 @@
           "primaryKey": false,
           "notNull": false
         },
-        "strength": {
-          "name": "strength",
+        "breed_considerations": {
+          "name": "breed_considerations",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "common_dosing": {
+          "name": "common_dosing",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "concentration_mg_ml": {
+          "name": "concentration_mg_ml",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contraindications": {
+          "name": "contraindications",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "controlled_substance": {
+          "name": "controlled_substance",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "dosage_max_mg_kg": {
+          "name": "dosage_max_mg_kg",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dosage_min_mg_kg": {
+          "name": "dosage_min_mg_kg",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dosage_typical_mg_kg": {
+          "name": "dosage_typical_mg_kg",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "form": {
+          "name": "form",
+          "type": "vetmed_form",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "generic_name": {
+          "name": "generic_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "max_daily_dose_mg": {
+          "name": "max_daily_dose_mg",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "max_frequency_per_day": {
+          "name": "max_frequency_per_day",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -1048,38 +1366,42 @@
           "primaryKey": false,
           "notNull": true
         },
-        "form": {
-          "name": "form",
-          "type": "vetmed_form",
-          "typeSchema": "public",
+        "route_adjustments": {
+          "name": "route_adjustments",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "controlled_substance": {
-          "name": "controlled_substance",
-          "type": "boolean",
+        "species_adjustments": {
+          "name": "species_adjustments",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": false
+          "notNull": false
         },
-        "common_dosing": {
-          "name": "common_dosing",
+        "strength": {
+          "name": "strength",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "warnings": {
-          "name": "warnings",
-          "type": "text",
+        "typical_frequency_hours": {
+          "name": "typical_frequency_hours",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
+        "units_per_tablet": {
+          "name": "units_per_tablet",
+          "type": "numeric(10, 4)",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": false
+        },
+        "unit_type": {
+          "name": "unit_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'mg'"
         },
         "updated_at": {
           "name": "updated_at",
@@ -1087,6 +1409,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "warnings": {
+          "name": "warnings",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -1121,6 +1449,29 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "med_catalog_dosage_range_idx": {
+          "name": "med_catalog_dosage_range_idx",
+          "columns": [
+            {
+              "expression": "dosage_min_mg_kg",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "numeric_ops"
+            },
+            {
+              "expression": "dosage_max_mg_kg",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "numeric_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -1134,24 +1485,25 @@
       "name": "vetmed_memberships",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         },
         "household_id": {
           "name": "household_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "role": {
           "name": "role",
@@ -1161,19 +1513,18 @@
           "notNull": true,
           "default": "'CAREGIVER'"
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {
@@ -1246,36 +1597,12 @@
       "name": "vetmed_notification_queue",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
           "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "household_id": {
-          "name": "household_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
+          "default": 0
         },
         "body": {
           "name": "body",
@@ -1283,9 +1610,53 @@
           "primaryKey": false,
           "notNull": true
         },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
         "data": {
           "name": "data",
           "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dismissed_at": {
+          "name": "dismissed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failed_at": {
+          "name": "failed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "household_id": {
+          "name": "household_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "read_at": {
+          "name": "read_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -1301,49 +1672,29 @@
           "primaryKey": false,
           "notNull": false
         },
-        "failed_at": {
-          "name": "failed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "error": {
-          "name": "error",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "attempts": {
-          "name": "attempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "read_at": {
-          "name": "read_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "dismissed_at": {
-          "name": "dismissed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "snoozed_until": {
           "name": "snoozed_until",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
+        "title": {
+          "name": "title",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {
@@ -1426,18 +1777,37 @@
       "name": "vetmed_notifications",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
+        "action_url": {
+          "name": "action_url",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "data": {
+          "name": "data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dismissed": {
+          "name": "dismissed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "dismissed_at": {
+          "name": "dismissed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "household_id": {
           "name": "household_id",
@@ -1445,17 +1815,12 @@
           "primaryKey": false,
           "notNull": true
         },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "message": {
           "name": "message",
@@ -1477,43 +1842,29 @@
           "notNull": true,
           "default": false
         },
-        "dismissed": {
-          "name": "dismissed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "action_url": {
-          "name": "action_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "data": {
-          "name": "data",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
         "read_at": {
           "name": "read_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
-        "dismissed_at": {
-          "name": "dismissed_at",
-          "type": "timestamp with time zone",
+        "title": {
+          "name": "title",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {
@@ -1615,10 +1966,35 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vetmed_regimens": {
-      "name": "vetmed_regimens",
+    "public.vetmed_push_subscriptions": {
+      "name": "vetmed_push_subscriptions",
       "schema": "",
       "columns": {
+        "auth_key": {
+          "name": "auth_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "device_name": {
+          "name": "device_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "endpoint": {
+          "name": "endpoint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "id": {
           "name": "id",
           "type": "uuid",
@@ -1626,40 +2002,185 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "last_used": {
+          "name": "last_used",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "p256dh_key": {
+          "name": "p256dh_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "push_subscription_user_idx": {
+          "name": "push_subscription_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "push_subscription_endpoint_idx": {
+          "name": "push_subscription_endpoint_idx",
+          "columns": [
+            {
+              "expression": "endpoint",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "push_subscription_active_idx": {
+          "name": "push_subscription_active_idx",
+          "columns": [
+            {
+              "expression": "is_active",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "bool_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vetmed_push_subscriptions_user_id_vetmed_users_id_fk": {
+          "name": "vetmed_push_subscriptions_user_id_vetmed_users_id_fk",
+          "tableFrom": "vetmed_push_subscriptions",
+          "tableTo": "vetmed_users",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vetmed_push_subscriptions_endpoint_unique": {
+          "name": "vetmed_push_subscriptions_endpoint_unique",
+          "nullsNotDistinct": false,
+          "columns": ["endpoint"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.vetmed_regimens": {
+      "name": "vetmed_regimens",
+      "schema": "",
+      "columns": {
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
         "animal_id": {
           "name": "animal_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "medication_id": {
-          "name": "medication_id",
-          "type": "uuid",
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         },
-        "name": {
-          "name": "name",
+        "cutoff_minutes": {
+          "name": "cutoff_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 240
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dose": {
+          "name": "dose",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "high_risk": {
+          "name": "high_risk",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "instructions": {
           "name": "instructions",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "schedule_type": {
-          "name": "schedule_type",
-          "type": "vetmed_schedule_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "times_local": {
-          "name": "times_local",
-          "type": "time[]",
           "primaryKey": false,
           "notNull": false
         },
@@ -1669,23 +2190,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "start_date": {
-          "name": "start_date",
-          "type": "date",
+        "is_custom_medication": {
+          "name": "is_custom_medication",
+          "type": "boolean",
           "primaryKey": false,
-          "notNull": true
-        },
-        "end_date": {
-          "name": "end_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "prn_reason": {
-          "name": "prn_reason",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": false
         },
         "max_daily_doses": {
           "name": "max_daily_doses",
@@ -1693,33 +2203,23 @@
           "primaryKey": false,
           "notNull": false
         },
-        "cutoff_minutes": {
-          "name": "cutoff_minutes",
-          "type": "integer",
+        "medication_id": {
+          "name": "medication_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "default": 240
+          "notNull": false
         },
-        "high_risk": {
-          "name": "high_risk",
-          "type": "boolean",
+        "medication_name": {
+          "name": "medication_name",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": false
+          "notNull": false
         },
-        "requires_co_sign": {
-          "name": "requires_co_sign",
-          "type": "boolean",
+        "name": {
+          "name": "name",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "active": {
-          "name": "active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
+          "notNull": false
         },
         "paused_at": {
           "name": "paused_at",
@@ -1733,11 +2233,18 @@
           "primaryKey": false,
           "notNull": false
         },
-        "dose": {
-          "name": "dose",
+        "prn_reason": {
+          "name": "prn_reason",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "requires_co_sign": {
+          "name": "requires_co_sign",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "route": {
           "name": "route",
@@ -1745,12 +2252,24 @@
           "primaryKey": false,
           "notNull": false
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
+        "schedule_type": {
+          "name": "schedule_type",
+          "type": "vetmed_schedule_type",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "times_local": {
+          "name": "times_local",
+          "type": "time[]",
+          "primaryKey": false,
+          "notNull": false
         },
         "updated_at": {
           "name": "updated_at",
@@ -1758,12 +2277,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {
@@ -1848,7 +2361,7 @@
           "tableTo": "vetmed_medication_catalog",
           "columnsFrom": ["medication_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -1862,69 +2375,11 @@
       "name": "vetmed_suggestions",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "household_id": {
-          "name": "household_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "summary": {
-          "name": "summary",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "rationale": {
-          "name": "rationale",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "priority": {
-          "name": "priority",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'medium'"
-        },
-        "estimated_impact": {
-          "name": "estimated_impact",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "vetmed_suggestion_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'pending'"
-        },
         "action": {
           "name": "action",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
-        },
-        "original_values": {
-          "name": "original_values",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
         },
         "applied_at": {
           "name": "applied_at",
@@ -1938,17 +2393,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "reverted_at": {
-          "name": "reverted_at",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false
-        },
-        "reverted_by_user_id": {
-          "name": "reverted_by_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "now()"
         },
         "dismissed_at": {
           "name": "dismissed_at",
@@ -1962,18 +2412,81 @@
           "primaryKey": false,
           "notNull": false
         },
+        "estimated_impact": {
+          "name": "estimated_impact",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "expires_at": {
           "name": "expires_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
+        "household_id": {
+          "name": "household_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "original_values": {
+          "name": "original_values",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "priority": {
+          "name": "priority",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
+          "default": "'medium'"
+        },
+        "rationale": {
+          "name": "rationale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reverted_at": {
+          "name": "reverted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reverted_by_user_id": {
+          "name": "reverted_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "vetmed_suggestion_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "summary": {
+          "name": "summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "updated_at": {
           "name": "updated_at",
@@ -2097,34 +2610,9 @@
       "name": "vetmed_users",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "email": {
-          "name": "email",
+        "bio": {
+          "name": "bio",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "image": {
-          "name": "image",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "email_verified": {
-          "name": "email_verified",
-          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -2135,54 +2623,23 @@
           "notNull": true,
           "default": "now()"
         },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "clerk_user_id": {
-          "name": "clerk_user_id",
-          "type": "text",
+        "default_animal_id": {
+          "name": "default_animal_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "preferred_timezone": {
-          "name": "preferred_timezone",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'America/New_York'"
-        },
-        "preferred_phone_number": {
-          "name": "preferred_phone_number",
-          "type": "text",
+        "default_household_id": {
+          "name": "default_household_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "use_24_hour_time": {
-          "name": "use_24_hour_time",
-          "type": "boolean",
+        "email": {
+          "name": "email",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "temperature_unit": {
-          "name": "temperature_unit",
-          "type": "temperature_unit",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'fahrenheit'"
-        },
-        "weight_unit": {
-          "name": "weight_unit",
-          "type": "weight_unit",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'lbs'"
+          "notNull": true
         },
         "email_reminders": {
           "name": "email_reminders",
@@ -2191,26 +2648,11 @@
           "notNull": false,
           "default": true
         },
-        "sms_reminders": {
-          "name": "sms_reminders",
-          "type": "boolean",
+        "email_verified": {
+          "name": "email_verified",
+          "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "push_notifications": {
-          "name": "push_notifications",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": true
-        },
-        "reminder_lead_time_minutes": {
-          "name": "reminder_lead_time_minutes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'15'"
+          "notNull": false
         },
         "emergency_contact_name": {
           "name": "emergency_contact_name",
@@ -2220,6 +2662,43 @@
         },
         "emergency_contact_phone": {
           "name": "emergency_contact_phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location": {
+          "name": "location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -2237,24 +2716,92 @@
           "primaryKey": false,
           "notNull": false
         },
-        "week_starts_on": {
-          "name": "week_starts_on",
-          "type": "integer",
+        "preferences_backup": {
+          "name": "preferences_backup",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "preferred_phone_number": {
+          "name": "preferred_phone_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "preferred_timezone": {
+          "name": "preferred_timezone",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "default": 0
+          "default": "'America/New_York'"
         },
-        "default_household_id": {
-          "name": "default_household_id",
-          "type": "uuid",
+        "profile_completed_at": {
+          "name": "profile_completed_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
-        "default_animal_id": {
-          "name": "default_animal_id",
-          "type": "uuid",
+        "profile_data": {
+          "name": "profile_data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{}'::jsonb"
+        },
+        "profile_visibility": {
+          "name": "profile_visibility",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{\"name\": true, \"email\": false, \"bio\": true, \"location\": true}'::jsonb"
+        },
+        "pronouns": {
+          "name": "pronouns",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "push_notifications": {
+          "name": "push_notifications",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "reminder_lead_time_minutes": {
+          "name": "reminder_lead_time_minutes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'15'"
+        },
+        "sms_reminders": {
+          "name": "sms_reminders",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "social_links": {
+          "name": "social_links",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{}'::jsonb"
+        },
+        "stack_user_id": {
+          "name": "stack_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "temperature_unit": {
+          "name": "temperature_unit",
+          "type": "temperature_unit",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'fahrenheit'"
         },
         "theme": {
           "name": "theme",
@@ -2263,11 +2810,40 @@
           "notNull": false,
           "default": "'system'"
         },
-        "preferences_backup": {
-          "name": "preferences_backup",
-          "type": "jsonb",
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "use_24_hour_time": {
+          "name": "use_24_hour_time",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "website": {
+          "name": "website",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "week_starts_on": {
+          "name": "week_starts_on",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "weight_unit": {
+          "name": "weight_unit",
+          "type": "weight_unit",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'lbs'"
         }
       },
       "indexes": {},
@@ -2298,10 +2874,10 @@
           "nullsNotDistinct": false,
           "columns": ["email"]
         },
-        "vetmed_users_clerk_user_id_unique": {
-          "name": "vetmed_users_clerk_user_id_unique",
+        "vetmed_users_stack_user_id_unique": {
+          "name": "vetmed_users_stack_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["clerk_user_id"]
+          "columns": ["stack_user_id"]
         }
       },
       "policies": {},
@@ -2314,6 +2890,11 @@
       "name": "vetmed_admin_status",
       "schema": "public",
       "values": ["ON_TIME", "LATE", "VERY_LATE", "MISSED", "PRN"]
+    },
+    "public.vetmed_cosign_status": {
+      "name": "vetmed_cosign_status",
+      "schema": "public",
+      "values": ["pending", "approved", "rejected", "expired"]
     },
     "public.vetmed_form": {
       "name": "vetmed_form",
