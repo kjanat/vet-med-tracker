@@ -132,8 +132,8 @@ export function BulkRecordingDemo() {
                 <h4 className="font-medium">Select Animals</h4>
                 <p className="text-muted-foreground text-sm">
                   Check the boxes next to the animals you want to record
-                  administrations for. Use "Select All" to select all animals at
-                  once.
+                  administrations for. Use &quot;Select All&quot; to select all
+                  animals at once.
                 </p>
               </div>
             </div>
@@ -156,9 +156,9 @@ export function BulkRecordingDemo() {
               <div>
                 <h4 className="font-medium">Record Administrations</h4>
                 <p className="text-muted-foreground text-sm">
-                  Click "Record Administration" to open the bulk recording form.
-                  Fill in the common details and submit to record for all
-                  selected animals.
+                  Click &quot;Record Administration&quot; to open the bulk
+                  recording form. Fill in the common details and submit to
+                  record for all selected animals.
                 </p>
               </div>
             </div>

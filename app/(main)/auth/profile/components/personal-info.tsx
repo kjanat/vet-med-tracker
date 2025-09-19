@@ -495,7 +495,7 @@ export default function PersonalInfoSection() {
               <CardDescription>
                 Adding profile information helps other household members know
                 more about you. All fields are optional - fill in only what
-                you're comfortable sharing.
+                you&apos;re comfortable sharing.
               </CardDescription>
             </CardHeader>
           </Card>

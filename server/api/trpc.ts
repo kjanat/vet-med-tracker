@@ -12,12 +12,13 @@ import {
   type users,
   users as usersTable,
 } from "@/db/schema";
+import {
+  defaultUserPreferences,
+  defaultUserProfile,
+} from "@/db/schema/user-defaults";
 // Connection middleware functionality removed during simplification
 // Error handling infrastructure removed during simplification
-import {
-  auditHelpers,
-  createAuditMiddleware,
-} from "@/lib/security/audit-logger";
+import { auditHelpers, logAuditEvent } from "@/lib/security/audit-logger";
 import { stackServerApp } from "@/stack/server";
 
 // Context type definition
@@ -49,12 +50,11 @@ async function syncStackUserToDatabase(
       .values({
         createdAt: new Date().toISOString(),
         email: stackUser.primaryEmail || "",
-        // Don't auto-populate firstName/lastName - let users choose
-        firstName: null,
         id: crypto.randomUUID(),
         image: stackUser.profileImageUrl || null,
-        lastName: null,
-        name: stackUser.displayName || null,
+        name: stackUser.displayName || stackUser.primaryEmail || null,
+        preferences: structuredClone(defaultUserPreferences),
+        profile: structuredClone(defaultUserProfile),
         stackUserId: stackUser.id,
         updatedAt: new Date().toISOString(),
       })
@@ -204,7 +204,42 @@ export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 
 // Audit middleware for security logging
-const auditMiddleware = createAuditMiddleware();
+const auditMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
+  const startTime = Date.now();
+  const actionMap: Record<string, "READ" | "UPDATE"> = {
+    mutation: "UPDATE",
+    query: "READ",
+    subscription: "READ",
+  };
+  const action = actionMap[type] ?? "READ";
+  const userId = ctx.dbUser?.id ?? undefined;
+
+  try {
+    const result = await next();
+    await logAuditEvent({
+      action,
+      duration: Date.now() - startTime,
+      endpoint: `${type}.${path}`,
+      resourceType: "SYSTEM",
+      success: true,
+      timestamp: new Date(),
+      userId,
+    });
+    return result;
+  } catch (error) {
+    await logAuditEvent({
+      action,
+      duration: Date.now() - startTime,
+      endpoint: `${type}.${path}`,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      resourceType: "SYSTEM",
+      success: false,
+      timestamp: new Date(),
+      userId,
+    });
+    throw error;
+  }
+});
 
 // Base procedures
 export const publicProcedure = t.procedure.use(auditMiddleware);

@@ -85,7 +85,7 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
       <div className="w-80 shrink-0 border-l bg-muted/30">
         <div className="flex h-full flex-col p-6">
           <div className="mb-6">
-            <h3 className="mb-2 font-semibold text-lg">What's Next?</h3>
+            <h3 className="mb-2 font-semibold text-lg">What&apos;s Next?</h3>
             <p className="text-muted-foreground text-sm">
               Choose your next action or return to the home screen to see
               updated medication schedules.

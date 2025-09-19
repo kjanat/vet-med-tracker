@@ -3,7 +3,10 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import webpush from "web-push";
 import { z } from "zod";
 import { notifications, pushSubscriptions } from "@/db/schema";
-import { getVAPIDConfig } from "@/lib/push-notifications/vapid-config";
+import {
+  getPublicVAPIDKey,
+  getVAPIDConfig,
+} from "@/lib/push-notifications/vapid-config";
 import { pushSubscriptionWithDeviceSchema } from "@/lib/schemas/push-notifications";
 import {
   createTRPCRouter,
@@ -227,11 +230,13 @@ export const notificationsRouter = createTRPCRouter({
     }),
 
   getVAPIDPublicKey: protectedProcedure.query(() => {
-    const vapidConfig = getVAPIDConfig();
-    if (!vapidConfig) {
-      throw new Error("VAPID configuration not available");
+    const publicKey = getPublicVAPIDKey();
+
+    if (!publicKey) {
+      return { publicKey: null };
     }
-    return { publicKey: vapidConfig.publicKey };
+
+    return { publicKey };
   }),
   // List notifications for the current user, optionally filtered by household
   list: protectedProcedure

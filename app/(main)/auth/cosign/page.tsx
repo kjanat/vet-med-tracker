@@ -372,7 +372,7 @@ function PendingRequestsContent({
         <CheckCircle className="mb-4 h-12 w-12 text-muted-foreground" />
         <CardTitle className="mb-2">No pending requests</CardTitle>
         <CardDescription>
-          You don't have any pending co-sign requests at this time.
+          You don&apos;t have any pending co-sign requests at this time.
         </CardDescription>
       </CardContent>
     </Card>

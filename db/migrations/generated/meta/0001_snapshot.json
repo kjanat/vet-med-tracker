@@ -1,6 +1,6 @@
 {
-  "id": "0a9282d5-e6ff-4a1b-8183-040de18bb27e",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "9b9f28d2-c838-4cc2-be36-bad8ee47df17",
+  "prevId": "0a9282d5-e6ff-4a1b-8183-040de18bb27e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2610,12 +2610,6 @@
       "name": "vetmed_users",
       "schema": "",
       "columns": {
-        "bio": {
-          "name": "bio",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -2641,34 +2635,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "email_reminders": {
-          "name": "email_reminders",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": true
-        },
         "email_verified": {
           "name": "email_verified",
           "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "emergency_contact_name": {
-          "name": "emergency_contact_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "emergency_contact_phone": {
-          "name": "emergency_contact_phone",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "first_name": {
-          "name": "first_name",
-          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -2681,18 +2650,6 @@
         },
         "image": {
           "name": "image",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_name": {
-          "name": "last_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "location": {
-          "name": "location",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -2716,78 +2673,19 @@
           "primaryKey": false,
           "notNull": false
         },
-        "preferences_backup": {
-          "name": "preferences_backup",
+        "preferences": {
+          "name": "preferences",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'{\"defaultTimezone\":\"America/New_York\",\"preferredPhoneNumber\":null,\"emergencyContactName\":null,\"emergencyContactPhone\":null,\"notificationPreferences\":{\"emailReminders\":true,\"smsReminders\":false,\"pushNotifications\":true,\"reminderLeadTime\":15},\"displayPreferences\":{\"temperatureUnit\":\"fahrenheit\",\"weightUnit\":\"lbs\",\"use24HourTime\":false,\"weekStartsOn\":0,\"theme\":\"system\"},\"defaultHouseholdId\":null,\"defaultAnimalId\":null}'::jsonb"
         },
-        "preferred_phone_number": {
-          "name": "preferred_phone_number",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "preferred_timezone": {
-          "name": "preferred_timezone",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'America/New_York'"
-        },
-        "profile_completed_at": {
-          "name": "profile_completed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "profile_data": {
-          "name": "profile_data",
+        "profile": {
+          "name": "profile",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'{}'::jsonb"
-        },
-        "profile_visibility": {
-          "name": "profile_visibility",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'{\"name\": true, \"email\": false, \"bio\": true, \"location\": true}'::jsonb"
-        },
-        "pronouns": {
-          "name": "pronouns",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "push_notifications": {
-          "name": "push_notifications",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": true
-        },
-        "reminder_lead_time_minutes": {
-          "name": "reminder_lead_time_minutes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'15'"
-        },
-        "sms_reminders": {
-          "name": "sms_reminders",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "social_links": {
-          "name": "social_links",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'{}'::jsonb"
+          "notNull": true,
+          "default": "'{\"firstName\":null,\"lastName\":null,\"bio\":null,\"pronouns\":null,\"location\":null,\"website\":null,\"socialLinks\":{},\"profileVisibility\":{\"name\":true,\"email\":false,\"bio\":true,\"location\":true},\"profileCompletedAt\":null}'::jsonb"
         },
         "stack_user_id": {
           "name": "stack_user_id",
@@ -2795,55 +2693,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "temperature_unit": {
-          "name": "temperature_unit",
-          "type": "temperature_unit",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'fahrenheit'"
-        },
-        "theme": {
-          "name": "theme",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'system'"
-        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "use_24_hour_time": {
-          "name": "use_24_hour_time",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "website": {
-          "name": "website",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "week_starts_on": {
-          "name": "week_starts_on",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
-        },
-        "weight_unit": {
-          "name": "weight_unit",
-          "type": "weight_unit",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'lbs'"
         }
       },
       "indexes": {},

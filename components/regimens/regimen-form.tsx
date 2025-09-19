@@ -408,7 +408,7 @@ function MedicationSelector({
           No medication found
         </p>
         <p className="text-muted-foreground text-xs">
-          Contact admin to add "{medicationSearch}" to the catalog
+          Contact admin to add &quot;{medicationSearch}&quot; to the catalog
         </p>
       </div>
     );

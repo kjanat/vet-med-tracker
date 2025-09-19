@@ -1,9 +1,25 @@
 "use client";
 
+import {
+  Home,
+  History,
+  Package,
+  TrendingUp,
+  Settings,
+} from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navigationConfig } from "@/lib/navigation/config";
 import { cn } from "@/lib/utils/general";
+
+// Mobile navigation items with correct /auth prefixes
+const mobileNavItems = [
+  { icon: Home, path: "/auth/dashboard" as Route, title: "Home" },
+  { icon: History, path: "/auth/dashboard/history" as Route, title: "History" },
+  { icon: Package, path: "/auth/medications/inventory" as Route, title: "Inventory" },
+  { icon: TrendingUp, path: "/auth/insights" as Route, title: "Insights" },
+  { icon: Settings, path: "/auth/settings" as Route, title: "Settings" },
+];
 
 export function LeftRail() {
   const pathname = usePathname();
@@ -15,12 +31,9 @@ export function LeftRail() {
       </div>
 
       <nav className="px-3">
-        {navigationConfig.mobile.map((item) => {
+        {mobileNavItems.map((item) => {
           const isActive = pathname === item.path;
           const IconComponent = item.icon;
-
-          // Skip items without paths
-          if (!item.path) return null;
 
           return (
             <Link
@@ -33,9 +46,7 @@ export function LeftRail() {
               href={item.path}
               key={item.title}
             >
-              {IconComponent && typeof IconComponent !== "string" && (
-                <IconComponent className="h-4 w-4" />
-              )}
+              <IconComponent className="h-4 w-4" />
               {item.title}
             </Link>
           );

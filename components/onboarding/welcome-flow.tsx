@@ -3,7 +3,7 @@
 import { CheckCircle, Clock, Heart, Home } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useUserPreferencesContext } from "@/components/providers/app-provider-consolidated";
+import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -48,7 +48,10 @@ export function WelcomeFlow() {
     updateVetMedPreferences,
     updateHouseholdSettings,
     markOnboardingComplete,
-  } = useUserPreferencesContext();
+    setSelectedHousehold,
+  } = useApp();
+
+  const utils = trpc.useUtils();
 
   const totalSteps = 4;
   const progress = (currentStep / totalSteps) * 100;
@@ -69,19 +72,49 @@ export function WelcomeFlow() {
     }
   };
 
-  const createHouseholdMutation = trpc.household.create.useMutation();
+  const createHouseholdMutation = trpc.household.create.useMutation({
+    onSuccess: async (newHousehold) => {
+      if (newHousehold) {
+        const formattedHousehold = {
+          id: newHousehold.id,
+          name: newHousehold.name,
+          timezone: newHousehold.timezone ?? undefined,
+        };
+
+        setSelectedHousehold(formattedHousehold);
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem("selectedHouseholdId", newHousehold.id);
+        }
+
+        await utils.household.getAnimals.invalidate({
+          householdId: newHousehold.id,
+        });
+        await utils.household.getPendingMeds.invalidate({
+          householdId: newHousehold.id,
+        });
+      }
+
+      await utils.household.list.invalidate();
+    },
+  });
 
   const completeOnboarding = async () => {
     setIsLoading(true);
     try {
       // Create household in database - household variable unused but preserved for future use
-      const _household = await createHouseholdMutation.mutateAsync({
+      const newHousehold = await createHouseholdMutation.mutateAsync({
         name: data.householdName,
         timezone: data.timezone,
       });
 
+      if (!newHousehold) {
+        throw new Error("Household creation failed");
+      }
+
       // Update VetMed preferences
       await updateVetMedPreferences({
+        defaultHouseholdId: newHousehold.id,
         defaultTimezone: data.timezone,
         displayPreferences: {
           temperatureUnit: "fahrenheit",
@@ -145,7 +178,7 @@ export function WelcomeFlow() {
               </div>
               <CardTitle>Welcome to VetMed Tracker!</CardTitle>
               <CardDescription>
-                Let's set up your profile to provide the best medication
+                Let&apos;s set up your profile to provide the best medication
                 tracking experience for your pets.
               </CardDescription>
             </CardHeader>
@@ -164,7 +197,7 @@ export function WelcomeFlow() {
                 />
                 <p className="text-muted-foreground text-sm">
                   This helps us personalize your experience and organize your
-                  pets' information.
+                  pets&apos; information.
                 </p>
               </div>
             </CardContent>
@@ -206,7 +239,8 @@ export function WelcomeFlow() {
                   value={data.preferredPhoneNumber}
                 />
                 <p className="text-muted-foreground text-sm">
-                  We'll use this for SMS reminders if you enable them later.
+                  We&apos;ll use this for SMS reminders if you enable them
+                  later.
                 </p>
               </div>
             </CardContent>
@@ -235,7 +269,7 @@ export function WelcomeFlow() {
                   onChange={(e) =>
                     updateData({ veterinarianName: e.target.value })
                   }
-                  placeholder="Dr. Johnson's Animal Hospital"
+                  placeholder="Dr. Johnson&apos;s Animal Hospital"
                   value={data.veterinarianName}
                 />
               </div>
@@ -268,7 +302,7 @@ export function WelcomeFlow() {
               <div className="mb-4 flex justify-center">
                 <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
               </div>
-              <CardTitle>You're All Set!</CardTitle>
+              <CardTitle>You&apos;re All Set!</CardTitle>
               <CardDescription>
                 Your VetMed Tracker profile is ready. You can always update
                 these settings later.

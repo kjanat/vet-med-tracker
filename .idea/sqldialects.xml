@@ -2,15 +2,6 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0000_exotic_echo.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0001_lively_black_crow.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0002_easy_strong_guy.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0002_performance_indexes.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0003_magenta_umar.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0004_elite_roxanne_simpson.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0005_brainy_whistler.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0006_illegal_red_skull.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/migrations/0007_loose_titanium_man.sql" dialect="PostgreSQL" />
     <file url="PROJECT" dialect="PostgreSQL" />
   </component>
   <component name="SqlResolveMappings">

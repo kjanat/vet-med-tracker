@@ -20,6 +20,102 @@ export type TargetUnit = "mg" | "ml" | "tablets";
 export type AnimalInfo = Animal;
 export type MedicationData = Medication;
 
+const DEFAULT_DOSAGE_RANGE = {
+  maxMultiplier: 1.2,
+  minMultiplier: 0.8,
+} as const;
+
+const DAYS_PER_WEEK = 7;
+const DAYS_PER_MONTH_APPROX = 30;
+const DAYS_PER_YEAR = 365;
+const HOURS_PER_DAY = 24;
+
+const AGE_THRESHOLDS_DAYS = {
+  juvenile: 120, // < 4 months
+  neonatal: 60, // < 2 months
+} as const;
+
+const WEIGHT_THRESHOLD_KG = {
+  max: 50,
+  min: 1,
+} as const;
+
+const SPECIES_LIFESPAN_YEARS: Record<string, number> = {
+  bird: 10,
+  cat: 15,
+  dog: 13,
+  ferret: 7,
+  rabbit: 8,
+  reptile: 15,
+};
+const DEFAULT_SPECIES_LIFESPAN_YEARS = 10;
+
+const SPECIES_BASELINE_MULTIPLIERS: Record<
+  string,
+  { multiplier: number; reason: string }
+> = {
+  bird: { multiplier: 1.3, reason: "Avian metabolic rate adjustment" },
+  cat: { multiplier: 0.9, reason: "Feline hepatic metabolism adjustment" },
+  dog: { multiplier: 1.0, reason: "Standard canine dosage" },
+  ferret: { multiplier: 1.2, reason: "Rapid metabolism adjustment" },
+  rabbit: { multiplier: 1.1, reason: "Higher metabolic rate adjustment" },
+  reptile: { multiplier: 0.7, reason: "Lower metabolic rate adjustment" },
+};
+
+const ROUTE_BASELINE_MULTIPLIERS: Record<
+  string,
+  { multiplier: number; reason: string }
+> = {
+  im: { multiplier: 0.9, reason: "High bioavailability - slight reduction" },
+  iv: { multiplier: 0.8, reason: "100% bioavailability - reduced dose" },
+  oral: { multiplier: 1.0, reason: "Standard oral bioavailability" },
+  sq: { multiplier: 1.0, reason: "Standard subcutaneous dosage" },
+  topical: { multiplier: 1.2, reason: "Lower absorption - increased dose" },
+};
+
+const BREED_GROUP_ADJUSTMENTS = {
+  giant: {
+    adjustment: {
+      multiplier: 0.9,
+      reason: "Giant breed dose adjustment",
+    },
+    breeds: ["great dane", "mastiff", "saint bernard", "newfoundland"],
+  },
+  sighthound: {
+    adjustment: {
+      multiplier: 0.8,
+      reason: "Sighthound metabolism adjustment",
+    },
+    breeds: ["greyhound", "whippet", "saluki", "afghan", "borzoi"],
+  },
+  toy: {
+    adjustment: {
+      multiplier: 1.1,
+      reason: "Toy breed metabolism adjustment",
+    },
+    breeds: ["chihuahua", "yorkshire", "pomeranian", "maltese"],
+  },
+} as const;
+
+const AGE_MULTIPLIERS = {
+  adult: { multiplier: 1.0, reason: "Adult dose - no age adjustment" },
+  geriatric: {
+    multiplier: 0.85,
+    reason: "Geriatric dose reduction for reduced metabolism",
+  },
+  juvenile: {
+    multiplier: 0.8,
+    reason: "Juvenile dose adjustment",
+  },
+  neonatal: {
+    multiplier: 0.6,
+    reason: "Pediatric dose reduction for immature metabolism",
+  },
+} as const;
+
+const UNAPPROVED_SPECIES_MULTIPLIER = 0.8;
+const GERIATRIC_THRESHOLD_RATIO = 0.75;
+
 export interface Animal {
   species: string;
   weight: number;
@@ -350,8 +446,12 @@ export class DosageCalculator {
     }
 
     return {
-      max: medication.dosageMaxMgKg || typicalDosage * 1.2,
-      min: medication.dosageMinMgKg || typicalDosage * 0.8,
+      max:
+        medication.dosageMaxMgKg ||
+        typicalDosage * DEFAULT_DOSAGE_RANGE.maxMultiplier,
+      min:
+        medication.dosageMinMgKg ||
+        typicalDosage * DEFAULT_DOSAGE_RANGE.minMultiplier,
       typical: typicalDosage,
     };
   }
@@ -374,25 +474,15 @@ export class DosageCalculator {
       )
     ) {
       return {
-        multiplier: 0.8,
+        multiplier: UNAPPROVED_SPECIES_MULTIPLIER,
         reason: "Species not specifically approved - reduced dosage",
       };
     }
 
     // Species-specific multipliers based on veterinary standards
-    const speciesMultipliers: Record<
-      string,
-      { multiplier: number; reason: string }
-    > = {
-      bird: { multiplier: 1.3, reason: "Avian metabolic rate adjustment" },
-      cat: { multiplier: 0.9, reason: "Feline hepatic metabolism adjustment" },
-      dog: { multiplier: 1.0, reason: "Standard canine dosage" },
-      ferret: { multiplier: 1.2, reason: "Rapid metabolism adjustment" },
-      rabbit: { multiplier: 1.1, reason: "Higher metabolic rate adjustment" },
-      reptile: { multiplier: 0.7, reason: "Lower metabolic rate adjustment" },
-    };
-
-    for (const [key, adjustment] of Object.entries(speciesMultipliers)) {
+    for (const [key, adjustment] of Object.entries(
+      SPECIES_BASELINE_MULTIPLIERS,
+    )) {
       if (normalizedSpecies.includes(key)) {
         return adjustment;
       }
@@ -418,42 +508,12 @@ export class DosageCalculator {
 
     // Breed-specific considerations (primarily for dogs)
     if (normalizedSpecies?.includes("dog")) {
-      // Sighthound adjustments (sensitive to anesthetics and some medications)
-      const sighthounds = [
-        "greyhound",
-        "whippet",
-        "saluki",
-        "afghan",
-        "borzoi",
-      ];
-      if (sighthounds.some((s) => normalizedBreed.includes(s))) {
-        return {
-          multiplier: 0.8,
-          reason: "Sighthound metabolism adjustment",
-        };
-      }
-
-      // Giant breed adjustments
-      const giantBreeds = [
-        "great dane",
-        "mastiff",
-        "saint bernard",
-        "newfoundland",
-      ];
-      if (giantBreeds.some((g) => normalizedBreed.includes(g))) {
-        return {
-          multiplier: 0.9,
-          reason: "Giant breed dose adjustment",
-        };
-      }
-
-      // Toy breed adjustments
-      const toyBreeds = ["chihuahua", "yorkshire", "pomeranian", "maltese"];
-      if (toyBreeds.some((t) => normalizedBreed.includes(t))) {
-        return {
-          multiplier: 1.1,
-          reason: "Toy breed metabolism adjustment",
-        };
+      for (const { breeds, adjustment } of Object.values(
+        BREED_GROUP_ADJUSTMENTS,
+      )) {
+        if (breeds.some((b) => normalizedBreed.includes(b))) {
+          return adjustment;
+        }
       }
     }
 
@@ -477,19 +537,19 @@ export class DosageCalculator {
           ageInDays = animal.age.value;
           break;
         case "weeks":
-          ageInDays = animal.age.value * 7;
+          ageInDays = animal.age.value * DAYS_PER_WEEK;
           break;
         case "months":
-          ageInDays = animal.age.value * 30;
+          ageInDays = animal.age.value * DAYS_PER_MONTH_APPROX;
           break;
         case "years":
-          ageInDays = animal.age.value * 365;
+          ageInDays = animal.age.value * DAYS_PER_YEAR;
           break;
       }
     } else if (animal.ageYears) {
-      ageInDays = animal.ageYears * 365;
+      ageInDays = animal.ageYears * DAYS_PER_YEAR;
     } else if (animal.ageMonths) {
-      ageInDays = animal.ageMonths * 30;
+      ageInDays = animal.ageMonths * DAYS_PER_MONTH_APPROX;
     }
 
     if (ageInDays === null) {
@@ -497,55 +557,38 @@ export class DosageCalculator {
     }
 
     // Pediatric adjustments (young animals)
-    if (ageInDays < 60) {
+    if (ageInDays < AGE_THRESHOLDS_DAYS.neonatal) {
       // Under 2 months
-      return {
-        multiplier: 0.6,
-        reason: "Pediatric dose reduction for immature metabolism",
-      };
-    } else if (ageInDays < 120) {
+      return AGE_MULTIPLIERS.neonatal;
+    } else if (ageInDays < AGE_THRESHOLDS_DAYS.juvenile) {
       // 2-4 months
-      return {
-        multiplier: 0.8,
-        reason: "Juvenile dose adjustment",
-      };
+      return AGE_MULTIPLIERS.juvenile;
     }
 
     // Geriatric adjustments (older animals - species dependent)
     const speciesLifespan = DosageCalculator.getSpeciesLifespan(animal.species);
-    const geriatricThreshold = speciesLifespan * 0.75 * 365; // 75% of lifespan
+    const geriatricThreshold =
+      speciesLifespan * GERIATRIC_THRESHOLD_RATIO * DAYS_PER_YEAR;
 
     if (ageInDays > geriatricThreshold) {
-      return {
-        multiplier: 0.85,
-        reason: "Geriatric dose reduction for reduced metabolism",
-      };
+      return AGE_MULTIPLIERS.geriatric;
     }
 
-    return { multiplier: 1.0, reason: "Adult dose - no age adjustment" };
+    return AGE_MULTIPLIERS.adult;
   }
 
   /**
    * Get typical lifespan for species (in years)
    */
   private static getSpeciesLifespan(species: string): number {
-    const lifespans: Record<string, number> = {
-      bird: 10,
-      cat: 15,
-      dog: 13,
-      ferret: 7,
-      rabbit: 8,
-      reptile: 15,
-    };
-
     const normalizedSpecies = species.toLowerCase();
-    for (const [key, lifespan] of Object.entries(lifespans)) {
+    for (const [key, lifespan] of Object.entries(SPECIES_LIFESPAN_YEARS)) {
       if (normalizedSpecies.includes(key)) {
         return lifespan;
       }
     }
 
-    return 10; // Default lifespan
+    return DEFAULT_SPECIES_LIFESPAN_YEARS;
   }
 
   /**
@@ -555,22 +598,10 @@ export class DosageCalculator {
     _medication: Medication,
     route: string,
   ): { multiplier: number; reason: string } {
-    const routeMultipliers: Record<
-      string,
-      { multiplier: number; reason: string }
-    > = {
-      im: {
-        multiplier: 0.9,
-        reason: "High bioavailability - slight reduction",
-      },
-      iv: { multiplier: 0.8, reason: "100% bioavailability - reduced dose" },
-      oral: { multiplier: 1.0, reason: "Standard oral bioavailability" },
-      sq: { multiplier: 1.0, reason: "Standard subcutaneous dosage" },
-      topical: { multiplier: 1.2, reason: "Lower absorption - increased dose" },
-    };
-
     const normalizedRoute = route.toLowerCase();
-    for (const [key, adjustment] of Object.entries(routeMultipliers)) {
+    for (const [key, adjustment] of Object.entries(
+      ROUTE_BASELINE_MULTIPLIERS,
+    )) {
       if (normalizedRoute.includes(key)) {
         return adjustment;
       }
@@ -670,9 +701,9 @@ export class DosageCalculator {
     }
 
     // Weight-based warnings
-    if (weightInKg < 1) {
+    if (weightInKg < WEIGHT_THRESHOLD_KG.min) {
       warnings.push("Very small animal - consider dose reduction");
-    } else if (weightInKg > 50) {
+    } else if (weightInKg > WEIGHT_THRESHOLD_KG.max) {
       warnings.push("Large animal - verify dose scaling appropriateness");
     }
 
@@ -803,7 +834,7 @@ export class DosageCalculator {
     timeBetweenDoses: string;
   } {
     const totalDailyDose = doseMg * frequencyPerDay;
-    const hoursPerDose = 24 / frequencyPerDay;
+    const hoursPerDose = HOURS_PER_DAY / frequencyPerDay;
 
     return {
       dosesPerDay: frequencyPerDay,

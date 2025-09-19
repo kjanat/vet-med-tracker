@@ -71,6 +71,46 @@ export const vetmedStorage = pgEnum("vetmed_storage", [
 ]);
 export const weightUnit = pgEnum("weight_unit", ["kg", "lbs"]);
 
+export interface UserNotificationPreferencesSchema {
+  emailReminders: boolean;
+  smsReminders: boolean;
+  pushNotifications: boolean;
+  reminderLeadTime: number;
+}
+
+export interface UserDisplayPreferencesSchema {
+  temperatureUnit: "celsius" | "fahrenheit";
+  weightUnit: "kg" | "lbs";
+  use24HourTime: boolean;
+  weekStartsOn: 0 | 1;
+  theme: "system" | "light" | "dark";
+}
+
+export interface UserPreferencesSchema {
+  defaultTimezone: string;
+  preferredPhoneNumber: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  notificationPreferences: UserNotificationPreferencesSchema;
+  displayPreferences: UserDisplayPreferencesSchema;
+  defaultHouseholdId: string | null;
+  defaultAnimalId: string | null;
+  legacyBackup?: Record<string, unknown> | null;
+}
+
+export interface UserProfileSchema {
+  firstName: string | null;
+  lastName: string | null;
+  bio: string | null;
+  pronouns: string | null;
+  location: string | null;
+  website: string | null;
+  socialLinks: Record<string, unknown>;
+  profileVisibility: Record<string, boolean>;
+  profileCompletedAt: string | null;
+  legacyProfileData?: Record<string, unknown> | null;
+}
+
 export const vetmedAnimals = pgTable(
   "vetmed_animals",
   {
@@ -865,60 +905,40 @@ export const vetmedPushSubscriptions = pgTable(
 export const vetmedUsers = pgTable(
   "vetmed_users",
   {
-    // Flexible profile fields (all optional)
-    bio: text(),
     createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
     defaultAnimalId: uuid("default_animal_id"),
     defaultHouseholdId: uuid("default_household_id"),
     email: text().notNull(),
-    emailReminders: boolean("email_reminders").default(true),
     emailVerified: timestamp("email_verified", {
       mode: "string",
       withTimezone: true,
     }),
-    emergencyContactName: text("emergency_contact_name"),
-    emergencyContactPhone: text("emergency_contact_phone"),
-    firstName: text("first_name"),
     id: uuid().defaultRandom().primaryKey().notNull(),
     image: text(),
-    lastName: text("last_name"),
-    location: text(),
     name: text(),
     onboardingComplete: boolean("onboarding_complete").default(false),
     onboardingCompletedAt: timestamp("onboarding_completed_at", {
       mode: "string",
       withTimezone: true,
     }),
-    preferencesBackup: jsonb("preferences_backup"),
-    preferredPhoneNumber: text("preferred_phone_number"),
-
-    // Preferences
-    preferredTimezone: text("preferred_timezone").default("America/New_York"),
-    profileCompletedAt: timestamp("profile_completed_at", {
-      mode: "string",
-      withTimezone: true,
-    }),
-    profileData: jsonb("profile_data").default(sql`'{}'::jsonb`), // Extensible custom fields
-    profileVisibility: jsonb("profile_visibility").default(
-      sql`'{"name": true, "email": false, "bio": true, "location": true}'::jsonb`,
-    ),
-    pronouns: text(),
-    pushNotifications: boolean("push_notifications").default(true),
-    reminderLeadTimeMinutes: text("reminder_lead_time_minutes").default("15"),
-    smsReminders: boolean("sms_reminders").default(false),
-    socialLinks: jsonb("social_links").default(sql`'{}'::jsonb`),
-    stackUserId: text("stack_user_id"), // renamed from clerk_user_id
-    temperatureUnit: temperatureUnit("temperature_unit").default("fahrenheit"),
-    theme: text("theme").default("system"), // system, light, dark
+    preferences: jsonb("preferences")
+      .$type<UserPreferencesSchema>()
+      .default(
+        sql`'{"defaultTimezone":"America/New_York","preferredPhoneNumber":null,"emergencyContactName":null,"emergencyContactPhone":null,"notificationPreferences":{"emailReminders":true,"smsReminders":false,"pushNotifications":true,"reminderLeadTime":15},"displayPreferences":{"temperatureUnit":"fahrenheit","weightUnit":"lbs","use24HourTime":false,"weekStartsOn":0,"theme":"system"},"defaultHouseholdId":null,"defaultAnimalId":null}'::jsonb`,
+      )
+      .notNull(),
+    profile: jsonb("profile")
+      .$type<UserProfileSchema>()
+      .default(
+        sql`'{"firstName":null,"lastName":null,"bio":null,"pronouns":null,"location":null,"website":null,"socialLinks":{},"profileVisibility":{"name":true,"email":false,"bio":true,"location":true},"profileCompletedAt":null}'::jsonb`,
+      )
+      .notNull(),
+    stackUserId: text("stack_user_id"),
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    use24HourTime: boolean("use_24_hour_time").default(false),
-    website: text(),
-    weekStartsOn: integer("week_starts_on").default(0), // 0 = Sunday, 1 = Monday
-    weightUnit: weightUnit("weight_unit").default("lbs"),
   },
   (table) => [
     unique("vetmed_users_email_unique").on(table.email),

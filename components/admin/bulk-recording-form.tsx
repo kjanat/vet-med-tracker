@@ -511,7 +511,7 @@ export function BulkRecordingForm({
                       <Input placeholder="Override default dose" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Leave empty to use the regimen's default dose
+                      Leave empty to use the regimen&apos;s default dose
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

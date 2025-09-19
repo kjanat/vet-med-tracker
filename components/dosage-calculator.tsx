@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { MedicationSearch } from "@/components/medication/medication-search";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
@@ -44,81 +43,23 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/shared/use-toast";
-import type { DosageResult, SafetyLevel } from "@/lib/schemas/dosage";
+import type { DosageResult } from "@/lib/schemas/dosage";
+import * as DosageFormatService from "@/lib/services/dosage-format.service";
+import {
+  addCalculation,
+  type CalculationHistoryItem,
+  createHistoryItem,
+  loadHistory,
+} from "@/lib/services/dosage-history.service";
+import { openPrintWindow } from "@/lib/services/dosage-print.service";
+import {
+  ADMINISTRATION_ROUTES,
+  canCalculate,
+  type DosageCalculatorForm,
+  dosageCalculatorSchema,
+  getDefaultValues,
+} from "@/lib/services/dosage-validation.service";
 import { trpc } from "@/server/trpc/client";
-
-// Form schema for dosage calculation
-const dosageCalculatorSchema = z.object({
-  animalId: z.string().min(1, "Please select an animal"),
-  customAdjustment: z.string().optional(),
-  medicationId: z.string().min(1, "Please select a medication"),
-  route: z.string().optional(),
-  targetUnit: z.enum(["mg", "ml", "tablets"]),
-  weight: z.number().positive("Weight must be positive"),
-  weightUnit: z.enum(["kg", "lbs"]),
-});
-
-type DosageCalculatorForm = z.infer<typeof dosageCalculatorSchema>;
-
-// Routes commonly used in veterinary medicine
-const ADMINISTRATION_ROUTES = [
-  { label: "Oral (PO)", value: "oral" },
-  { label: "Intramuscular (IM)", value: "intramuscular" },
-  { label: "Intravenous (IV)", value: "intravenous" },
-  { label: "Subcutaneous (SC)", value: "subcutaneous" },
-  { label: "Topical", value: "topical" },
-  { label: "Rectal (PR)", value: "rectal" },
-  { label: "Ophthalmic", value: "ophthalmic" },
-  { label: "Otic", value: "otic" },
-];
-
-// Safety level colors and messages
-const SAFETY_CONFIG: Record<
-  SafetyLevel,
-  {
-    color: string;
-    bgColor: string;
-    textColor: string;
-    label: string;
-    icon: string;
-  }
-> = {
-  caution: {
-    bgColor: "rgb(254, 252, 232)", // yellow-50
-    color: "rgb(234, 179, 8)", // yellow-500
-    icon: "⚠",
-    label: "Use Caution",
-    textColor: "rgb(161, 98, 7)", // yellow-700
-  },
-  danger: {
-    bgColor: "rgb(254, 242, 242)", // red-50
-    color: "rgb(239, 68, 68)", // red-500
-    icon: "!",
-    label: "Dangerous",
-    textColor: "rgb(185, 28, 28)", // red-700
-  },
-  safe: {
-    bgColor: "rgb(240, 253, 244)", // green-50
-    color: "rgb(34, 197, 94)", // green-500
-    icon: "✓",
-    label: "Safe Dose",
-    textColor: "rgb(21, 128, 61)", // green-700
-  },
-};
-
-// Calculation history item
-interface CalculationHistoryItem {
-  id: string;
-  timestamp: Date;
-  animalName: string;
-  medicationName: string;
-  weight: number;
-  weightUnit: "kg" | "lbs";
-  dose: number;
-  unit: string;
-  safetyLevel: SafetyLevel;
-  route?: string;
-}
 
 export function DosageCalculator() {
   const { animals, selectedAnimal, selectedHousehold } = useApp();
@@ -138,15 +79,7 @@ export function DosageCalculator() {
 
   // Form management
   const form = useForm<DosageCalculatorForm>({
-    defaultValues: {
-      animalId: selectedAnimal?.id || "",
-      customAdjustment: "",
-      medicationId: "",
-      route: "",
-      targetUnit: "mg",
-      weight: 0,
-      weightUnit: "kg",
-    },
+    defaultValues: getDefaultValues(selectedAnimal?.id),
     resolver: zodResolver(dosageCalculatorSchema),
   });
 
@@ -160,21 +93,10 @@ export function DosageCalculator() {
     }
   }, [selectedAnimal, setValue, watchedValues.animalId]);
 
-  // Load calculation history from localStorage
+  // Load calculation history on mount
   useEffect(() => {
-    const saved = localStorage.getItem("dosage-calculation-history");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const history = parsed.map((item: CalculationHistoryItem) => ({
-          ...item,
-          timestamp: new Date(item.timestamp),
-        }));
-        setCalculationHistory(history);
-      } catch (error) {
-        console.warn("Failed to parse calculation history:", error);
-      }
-    }
+    const history = loadHistory();
+    setCalculationHistory(history);
   }, []);
 
   // tRPC query for dosage calculation
@@ -191,11 +113,11 @@ export function DosageCalculator() {
       targetUnit: watchedValues.targetUnit,
     },
     {
-      enabled: Boolean(
-        watchedValues.animalId &&
-          watchedValues.medicationId &&
-          watchedValues.weight > 0 &&
-          animals.find((a) => a.id === watchedValues.animalId),
+      enabled: canCalculate(
+        watchedValues.animalId,
+        watchedValues.medicationId,
+        watchedValues.weight,
+        animals,
       ),
       retry: false,
     },
@@ -207,8 +129,6 @@ export function DosageCalculator() {
     setIsCalculating(dosageCalculationQuery.isLoading);
   }, [dosageCalculationQuery.data, dosageCalculationQuery.isLoading]);
 
-  // The calculation is now handled automatically by tRPC query above
-
   // Save calculation to history
   const saveCalculation = useCallback(() => {
     if (!calculationResult || !selectedMedication) return;
@@ -218,29 +138,24 @@ export function DosageCalculator() {
     );
     if (!selectedAnimalData) return;
 
-    const historyItem: CalculationHistoryItem = {
-      animalName: selectedAnimalData.name,
-      dose: calculationResult.dose,
-      id: Date.now().toString(),
-      medicationName:
-        selectedMedication.genericName +
-        (selectedMedication.brandName
-          ? ` (${selectedMedication.brandName})`
-          : ""),
-      route: watchedValues.route,
-      safetyLevel: calculationResult.safetyLevel,
-      timestamp: new Date(),
-      unit: calculationResult.unit,
-      weight: watchedValues.weight,
-      weightUnit: watchedValues.weightUnit,
-    };
-
-    const newHistory = [historyItem, ...calculationHistory.slice(0, 19)]; // Keep last 20
-    setCalculationHistory(newHistory);
-    localStorage.setItem(
-      "dosage-calculation-history",
-      JSON.stringify(newHistory),
+    const medicationName = DosageFormatService.formatMedicationName(
+      selectedMedication.genericName,
+      selectedMedication.brandName,
     );
+
+    const historyItem = createHistoryItem(
+      selectedAnimalData.name,
+      medicationName,
+      calculationResult.dose,
+      calculationResult.unit,
+      calculationResult.safetyLevel,
+      watchedValues.weight,
+      watchedValues.weightUnit,
+      watchedValues.route,
+    );
+
+    const newHistory = addCalculation(calculationHistory, historyItem);
+    setCalculationHistory(newHistory);
 
     toast({
       description: "Added to calculation history",
@@ -258,10 +173,10 @@ export function DosageCalculator() {
 
   // Reset form
   const resetCalculator = useCallback(() => {
-    reset();
+    reset(getDefaultValues(selectedAnimal?.id));
     setCalculationResult(null);
     setSelectedMedication(null);
-  }, [reset]);
+  }, [reset, selectedAnimal?.id]);
 
   // Print calculation
   const printCalculation = useCallback(() => {
@@ -272,99 +187,35 @@ export function DosageCalculator() {
     );
     if (!selectedAnimalData) return;
 
-    // Create printable content
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+    const success = openPrintWindow({
+      animalName: selectedAnimalData.name,
+      animalSpecies: selectedAnimalData.species,
+      brandName: selectedMedication.brandName,
+      calculationResult,
+      medicationName: selectedMedication.genericName,
+      route: watchedValues.route,
+      weight: watchedValues.weight,
+      weightUnit: watchedValues.weightUnit,
+    });
 
-    const safetyConfig = SAFETY_CONFIG[calculationResult.safetyLevel];
-
-    const printContent = `
-      <html>
-        <head>
-          <title>Dosage Calculation - ${selectedAnimalData.name}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-            .result { background: ${safetyConfig.bgColor}; border: 2px solid ${safetyConfig.color}; 
-                     padding: 15px; margin: 20px 0; border-radius: 8px; }
-            .dose { font-size: 24px; font-weight: bold; color: ${safetyConfig.textColor}; }
-            .details { margin: 20px 0; }
-            .warning { color: ${safetyConfig.textColor}; font-weight: bold; }
-            @media print { body { margin: 0; } }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>VetMed Tracker - Dosage Calculation</h1>
-            <p>Generated on ${new Date().toLocaleString()}</p>
-          </div>
-          
-          <div class="details">
-            <h2>Patient Information</h2>
-            <p><strong>Animal:</strong> ${selectedAnimalData.name} (${selectedAnimalData.species})</p>
-            <p><strong>Weight:</strong> ${watchedValues.weight} ${watchedValues.weightUnit}</p>
-          </div>
-          
-          <div class="details">
-            <h2>Medication</h2>
-            <p><strong>Name:</strong> ${selectedMedication.genericName}${selectedMedication.brandName ? ` (${selectedMedication.brandName})` : ""}</p>
-            <p><strong>Route:</strong> ${watchedValues.route || "Not specified"}</p>
-          </div>
-          
-          <div class="result">
-            <h2>Calculated Dose</h2>
-            <div class="dose">${calculationResult.dose} ${calculationResult.unit}</div>
-            <p><strong>Safety Level:</strong> <span class="warning">${safetyConfig.label}</span></p>
-            <p><strong>Range:</strong> ${calculationResult.minDose} - ${calculationResult.maxDose} ${calculationResult.unit}</p>
-          </div>
-          
-          ${
-            calculationResult.warnings.length > 0
-              ? `
-            <div class="details">
-              <h3>Warnings</h3>
-              <ul>
-                ${calculationResult.warnings.map((warning) => `<li class="warning">${warning}</li>`).join("")}
-              </ul>
-            </div>
-          `
-              : ""
-          }
-          
-          <div class="details">
-            <h3>Calculation Details</h3>
-            <p><strong>Method:</strong> ${calculationResult.calculationMethod}</p>
-            <p><strong>Base dose:</strong> ${calculationResult.baseDoseMgKg} mg/kg</p>
-            <p><strong>Final dose:</strong> ${calculationResult.finalDoseMgKg} mg/kg</p>
-            ${
-              calculationResult.appliedAdjustments.length > 0
-                ? `
-              <p><strong>Adjustments:</strong> ${calculationResult.appliedAdjustments.join(", ")}</p>
-            `
-                : ""
-            }
-          </div>
-          
-          <script>window.print();</script>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-  }, [calculationResult, selectedMedication, animals, watchedValues]);
+    if (!success) {
+      toast({
+        description:
+          "Could not open print window. Please check your popup blocker.",
+        title: "Print Failed",
+        variant: "destructive",
+      });
+    }
+  }, [calculationResult, selectedMedication, animals, watchedValues, toast]);
 
   // Render safety indicator
   const renderSafetyIndicator = useMemo(() => {
-    if (!calculationResult) return null;
+    if (!DosageFormatService.isValidCalculationResult(calculationResult)) {
+      return null;
+    }
 
-    const config = SAFETY_CONFIG[calculationResult.safetyLevel];
-    const percentage = Math.min(
-      100,
-      ((calculationResult.dose - calculationResult.minDose) /
-        (calculationResult.maxDose - calculationResult.minDose)) *
-        100,
-    );
+    const safetyData =
+      DosageFormatService.prepareSafetyIndicatorData(calculationResult);
 
     return (
       <Card>
@@ -372,23 +223,23 @@ export function DosageCalculator() {
           <CardTitle className="flex items-center gap-2">
             <div
               className="flex h-4 w-4 items-center justify-center rounded-full font-bold text-white text-xs"
-              style={{ backgroundColor: config.color }}
+              style={{ backgroundColor: safetyData.config.color }}
             >
-              {config.icon}
+              {safetyData.config.icon}
             </div>
-            {config.label}
+            {safetyData.config.label}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div
             className="rounded-lg p-4"
-            style={{ backgroundColor: config.bgColor }}
+            style={{ backgroundColor: safetyData.config.bgColor }}
           >
             <div
               className="font-bold text-2xl"
-              style={{ color: config.textColor }}
+              style={{ color: safetyData.config.textColor }}
             >
-              {calculationResult.dose} {calculationResult.unit}
+              {safetyData.dose} {safetyData.unit}
             </div>
             <div className="mt-1 text-muted-foreground text-sm">
               Calculated dose
@@ -398,45 +249,42 @@ export function DosageCalculator() {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>
-                Min: {calculationResult.minDose} {calculationResult.unit}
+                Min: {safetyData.minDose} {safetyData.unit}
               </span>
               <span>
-                Max: {calculationResult.maxDose} {calculationResult.unit}
+                Max: {safetyData.maxDose} {safetyData.unit}
               </span>
             </div>
             <div className="relative">
               <Progress
                 className="h-3"
-                style={{
-                  backgroundColor: config.bgColor,
-                }}
-                value={percentage}
+                style={{ backgroundColor: safetyData.config.bgColor }}
+                value={safetyData.percentage}
               />
               <div
                 className="absolute top-0 left-0 h-3 rounded-full transition-all"
                 style={{
-                  backgroundColor: config.color,
-                  width: `${percentage}%`,
+                  backgroundColor: safetyData.config.color,
+                  width: `${safetyData.percentage}%`,
                 }}
               />
             </div>
           </div>
 
-          {calculationResult.alternativeFormats &&
-            calculationResult.alternativeFormats.length > 0 && (
-              <div className="space-y-2">
-                <Separator />
-                <div className="font-medium text-sm">Alternative Formats:</div>
-                {calculationResult.alternativeFormats.map((format) => (
-                  <div
-                    className="text-muted-foreground text-sm"
-                    key={`${format.dose}-${format.unit}`}
-                  >
-                    {format.dose} {format.unit} - {format.description}
-                  </div>
-                ))}
-              </div>
-            )}
+          {safetyData.alternativeFormats.length > 0 && (
+            <div className="space-y-2">
+              <Separator />
+              <div className="font-medium text-sm">Alternative Formats:</div>
+              {safetyData.alternativeFormats.map((format) => (
+                <div
+                  className="text-muted-foreground text-sm"
+                  key={`${format.dose}-${format.unit}`}
+                >
+                  {format.dose} {format.unit} - {format.description}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -722,9 +570,13 @@ export function DosageCalculator() {
 
                   {/* Warnings and Safety Information */}
                   {calculationResult.warnings.length > 0 && (
-                    <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
+                    <Card
+                      className={`${DosageFormatService.getSafetyClasses("caution").border} ${DosageFormatService.getSafetyClasses("caution").background}`}
+                    >
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+                        <CardTitle
+                          className={`flex items-center gap-2 ${DosageFormatService.getSafetyClasses("caution").text}`}
+                        >
                           <TrendingUp className="h-5 w-5" />
                           Safety Warnings
                         </CardTitle>
@@ -733,7 +585,7 @@ export function DosageCalculator() {
                         <ul className="space-y-1">
                           {calculationResult.warnings.map((warning) => (
                             <li
-                              className="text-sm text-yellow-700 dark:text-yellow-300"
+                              className={`text-sm ${DosageFormatService.getSafetyClasses("caution").text}`}
                               key={warning}
                             >
                               • {warning}
@@ -753,10 +605,9 @@ export function DosageCalculator() {
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <div className="font-medium">Method</div>
-                          <div className="text-muted-foreground capitalize">
-                            {calculationResult.calculationMethod.replace(
-                              "_",
-                              " ",
+                          <div className="text-muted-foreground">
+                            {DosageFormatService.formatCalculationMethod(
+                              calculationResult.calculationMethod,
                             )}
                           </div>
                         </div>
@@ -786,7 +637,9 @@ export function DosageCalculator() {
                             Applied Adjustments
                           </div>
                           <div className="text-muted-foreground text-sm">
-                            {calculationResult.appliedAdjustments.join(", ")}
+                            {DosageFormatService.formatAdjustments(
+                              calculationResult.appliedAdjustments,
+                            )}
                           </div>
                         </div>
                       )}
@@ -850,19 +703,54 @@ export function DosageCalculator() {
                 Calculation History
               </CardTitle>
               <CardDescription>
-                Recent dosage calculations (coming soon)
+                Recent dosage calculations ({calculationHistory.length} saved)
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="py-8 text-center">
-                <Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">
-                  History feature coming soon
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  Your calculations will be saved here for easy reference
-                </p>
-              </div>
+              {calculationHistory.length > 0 ? (
+                <div className="space-y-4">
+                  {calculationHistory.map((item) => (
+                    <div
+                      className="flex items-center justify-between rounded-lg border p-4"
+                      key={item.id}
+                    >
+                      <div className="space-y-1">
+                        <div className="font-medium">
+                          {item.animalName} - {item.medicationName}
+                        </div>
+                        <div className="text-muted-foreground text-sm">
+                          {DosageFormatService.formatDose(item.dose, item.unit)}{" "}
+                          •{" "}
+                          {DosageFormatService.formatWeight(
+                            item.weight,
+                            item.weightUnit,
+                          )}{" "}
+                          • {DosageFormatService.formatRoute(item.route)} •{" "}
+                          {item.timestamp.toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div
+                        className={`rounded-full px-2 py-1 font-medium text-xs ${DosageFormatService.getSafetyClasses(item.safetyLevel).background} ${DosageFormatService.getSafetyClasses(item.safetyLevel).text}`}
+                      >
+                        {
+                          DosageFormatService.getSafetyConfig(item.safetyLevel)
+                            .label
+                        }
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center">
+                  <Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    No calculations saved yet
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    Your calculations will be saved here for easy reference
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

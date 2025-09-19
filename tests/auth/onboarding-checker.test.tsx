@@ -105,7 +105,7 @@ describe("OnboardingChecker", () => {
     it("should show onboarding for new user without preferences", async () => {
       const userWithoutPreferences = createMockUser();
       mockUseUser.mockReturnValue(userWithoutPreferences);
-      mockUsePathname.mockReturnValue("/dashboard");
+      mockUsePathname.mockReturnValue("/auth/dashboard");
 
       render(<OnboardingChecker>{mockChildren}</OnboardingChecker>);
 
@@ -241,7 +241,7 @@ describe("OnboardingChecker", () => {
         id: "user-123",
       };
       mockUseUser.mockReturnValue(newUser);
-      mockUsePathname.mockReturnValue("/dashboard");
+      mockUsePathname.mockReturnValue("/auth/dashboard");
 
       rerender(<OnboardingChecker>{mockChildren}</OnboardingChecker>);
 
@@ -257,7 +257,7 @@ describe("OnboardingChecker", () => {
         id: "user-123",
       };
       mockUseUser.mockReturnValue(newUser);
-      mockUsePathname.mockReturnValue("/dashboard");
+      mockUsePathname.mockReturnValue("/auth/dashboard");
 
       const { rerender } = render(
         <OnboardingChecker>{mockChildren}</OnboardingChecker>,
@@ -286,7 +286,7 @@ describe("OnboardingChecker", () => {
         id: "user-123",
       };
       mockUseUser.mockReturnValue(userWithNullMetadata);
-      mockUsePathname.mockReturnValue("/dashboard");
+      mockUsePathname.mockReturnValue("/auth/dashboard");
 
       render(<OnboardingChecker>{mockChildren}</OnboardingChecker>);
 
@@ -302,7 +302,7 @@ describe("OnboardingChecker", () => {
         id: "user-123",
       };
       mockUseUser.mockReturnValue(userWithEmptyMetadata);
-      mockUsePathname.mockReturnValue("/dashboard");
+      mockUsePathname.mockReturnValue("/auth/dashboard");
 
       render(<OnboardingChecker>{mockChildren}</OnboardingChecker>);
 
@@ -322,7 +322,7 @@ describe("OnboardingChecker", () => {
         id: "user-123",
       };
       mockUseUser.mockReturnValue(userWithFalsyPrefs);
-      mockUsePathname.mockReturnValue("/dashboard");
+      mockUsePathname.mockReturnValue("/auth/dashboard");
 
       render(<OnboardingChecker>{mockChildren}</OnboardingChecker>);
 

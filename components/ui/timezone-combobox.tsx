@@ -9,8 +9,10 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Popover,
   PopoverContent,
@@ -29,21 +31,31 @@ import {
 } from "@/utils/timezone-helpers";
 
 interface TimezoneComboboxProps {
+  id?: string;
   value?: string;
   onChange: (timezone: string) => void;
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  ariaLabelledBy?: string;
 }
 
+const MAX_VISIBLE_TIMEZONES = 5;
+const TIMEZONE_ITEM_HEIGHT_PX = 44;
+const GROUP_HEADER_OFFSET_PX = 32;
+const MAX_POPOVER_HEIGHT_PX =
+  MAX_VISIBLE_TIMEZONES * TIMEZONE_ITEM_HEIGHT_PX + GROUP_HEADER_OFFSET_PX;
+
 export function TimezoneCombobox({
+  id,
   value,
   onChange,
   placeholder = "Select timezone...",
   required = false,
   disabled = false,
   className,
+  ariaLabelledBy,
 }: TimezoneComboboxProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -100,8 +112,10 @@ export function TimezoneCombobox({
     // Avoid hydration mismatch by not rendering time-dependent content on server
     return (
       <Button
+        aria-labelledby={ariaLabelledBy}
         className={cn("w-full justify-between", className)}
         disabled={disabled}
+        id={id}
         variant="outline"
       >
         <span className="text-muted-foreground">{placeholder}</span>
@@ -118,6 +132,7 @@ export function TimezoneCombobox({
           aria-expanded={open}
           aria-haspopup="listbox"
           aria-label="Select timezone"
+          aria-labelledby={ariaLabelledBy}
           aria-required={required}
           className={cn(
             "w-full justify-between",
@@ -125,6 +140,7 @@ export function TimezoneCombobox({
             className,
           )}
           disabled={disabled}
+          id={id}
           role="combobox"
           variant="outline"
         >
@@ -155,110 +171,112 @@ export function TimezoneCombobox({
             placeholder="Search timezones..."
             value={query}
           />
-          <CommandEmpty>
-            {query.length === 0
-              ? "Type to search timezones..."
-              : "No timezones found."}
-          </CommandEmpty>
+          <CommandList>
+            <CommandEmpty>
+              {query.length === 0
+                ? "Type to search timezones..."
+                : "No timezones found."}
+            </CommandEmpty>
 
-          {/* Browser detection option */}
-          {BROWSER_ZONE && (
-            <>
-              <CommandGroup>
-                <CommandItem
-                  className="flex items-center gap-2"
-                  onSelect={handleDetectBrowser}
-                >
-                  <Globe className="h-4 w-4" />
-                  <span>Detect from browser</span>
-                  <span className="ml-auto text-muted-foreground text-sm">
-                    {BROWSER_ZONE}
+            {/* Browser detection option */}
+            {BROWSER_ZONE && (
+              <>
+                <CommandGroup>
+                  <CommandItem
+                    className="flex items-center gap-2"
+                    onSelect={handleDetectBrowser}
+                  >
+                    <Globe className="h-4 w-4" />
+                    <span>Detect from browser</span>
+                    <span className="ml-auto text-muted-foreground text-sm">
+                      {BROWSER_ZONE}
+                    </span>
+                  </CommandItem>
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            )}
+
+            {/* Common timezones */}
+            {showCommon && (
+              <>
+                <CommandGroup heading="Common timezones">
+                  {commonZones.slice(0, 10).map((zone) => {
+                    const display = getTimezoneDisplay(zone as IanaZone);
+                    return (
+                      <CommandItem
+                        className="flex items-start"
+                        key={zone}
+                        onSelect={handleSelect}
+                        value={zone}
+                      >
+                        <Check
+                          className={cn(
+                            "mt-0.5 mr-2 h-4 w-4",
+                            currentValue === zone ? "opacity-100" : "opacity-0",
+                          )}
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            {zone?.split("/").slice(-1)[0]?.replace(/_/g, " ")}
+                          </span>
+                          <span className="text-muted-foreground text-sm">
+                            {zone}
+                            <span className="hidden sm:inline">
+                              {" • "}
+                              {display.offset}, {display.time}
+                            </span>
+                          </span>
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            )}
+
+            {/* All timezones or search results */}
+            <CommandGroup heading={query ? "Search results" : "All timezones"}>
+              {zones.slice(0, query ? undefined : 50).map((zone) => {
+                const display = getTimezoneDisplay(zone as IanaZone);
+                return (
+                  <CommandItem
+                    className="flex items-start"
+                    key={zone}
+                    onSelect={handleSelect}
+                    value={zone}
+                  >
+                    <Check
+                      className={cn(
+                        "mt-0.5 mr-2 h-4 w-4",
+                        currentValue === zone ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {zone?.split("/").slice(-1)[0]?.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-muted-foreground text-sm">
+                        {zone}
+                        <span className="hidden sm:inline">
+                          {" • "}
+                          {display.offset}, {display.time}
+                        </span>
+                      </span>
+                    </div>
+                  </CommandItem>
+                );
+              })}
+              {!query && zones.length > 50 && (
+                <CommandItem disabled>
+                  <span className="text-muted-foreground text-sm">
+                    Type to search {zones.length - 50} more timezones...
                   </span>
                 </CommandItem>
-              </CommandGroup>
-              <CommandSeparator />
-            </>
-          )}
-
-          {/* Common timezones */}
-          {showCommon && (
-            <>
-              <CommandGroup heading="Common timezones">
-                {commonZones.slice(0, 10).map((zone) => {
-                  const display = getTimezoneDisplay(zone as IanaZone);
-                  return (
-                    <CommandItem
-                      className="flex items-start"
-                      key={zone}
-                      onSelect={handleSelect}
-                      value={zone}
-                    >
-                      <Check
-                        className={cn(
-                          "mt-0.5 mr-2 h-4 w-4",
-                          currentValue === zone ? "opacity-100" : "opacity-0",
-                        )}
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-medium">
-                          {zone?.split("/").slice(-1)[0]?.replace(/_/g, " ")}
-                        </span>
-                        <span className="text-muted-foreground text-sm">
-                          {zone}
-                          <span className="hidden sm:inline">
-                            {" • "}
-                            {display.offset}, {display.time}
-                          </span>
-                        </span>
-                      </div>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-              <CommandSeparator />
-            </>
-          )}
-
-          {/* All timezones or search results */}
-          <CommandGroup heading={query ? "Search results" : "All timezones"}>
-            {zones.slice(0, query ? undefined : 50).map((zone) => {
-              const display = getTimezoneDisplay(zone as IanaZone);
-              return (
-                <CommandItem
-                  className="flex items-start"
-                  key={zone}
-                  onSelect={handleSelect}
-                  value={zone}
-                >
-                  <Check
-                    className={cn(
-                      "mt-0.5 mr-2 h-4 w-4",
-                      currentValue === zone ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  <div className="flex flex-col">
-                    <span className="font-medium">
-                      {zone?.split("/").slice(-1)[0]?.replace(/_/g, " ")}
-                    </span>
-                    <span className="text-muted-foreground text-sm">
-                      {zone}
-                      <span className="hidden sm:inline">
-                        {" • "}
-                        {display.offset}, {display.time}
-                      </span>
-                    </span>
-                  </div>
-                </CommandItem>
-              );
-            })}
-            {!query && zones.length > 50 && (
-              <CommandItem disabled>
-                <span className="text-muted-foreground text-sm">
-                  Type to search {zones.length - 50} more timezones...
-                </span>
-              </CommandItem>
-            )}
-          </CommandGroup>
+              )}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>

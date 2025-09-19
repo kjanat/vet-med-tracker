@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, RefreshCw } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,10 +13,39 @@ import {
 } from "@/components/ui/card";
 
 export default function AuthErrorPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const errorCode = searchParams.get("errorCode");
+  const message = searchParams.get("message");
+  const details = searchParams.get("details");
 
-  const getErrorInfo = () => {
+  // Helper function to handle Stack Auth specific errors
+  const handleStackAuthError = () => {
+    let parsedDetails = null;
+    try {
+      parsedDetails = details ? JSON.parse(details) : null;
+    } catch (e) {
+      console.warn("Failed to parse error details:", e);
+    }
+
+    const email = parsedDetails?.contact_channel_value;
+    const canVerifyEmail = parsedDetails?.would_work_if_email_was_verified;
+
+    return {
+      title: "Email Already in Use",
+      description: canVerifyEmail
+        ? `The email "${email}" is already associated with another account, but it's not verified. Please sign in with your original method and verify your email to use this sign-in option.`
+        : `The email "${email}" is already associated with another account. Please sign in with your original method.`,
+      icon: AlertCircle,
+      color: "text-yellow-600",
+      showVerificationHelp: canVerifyEmail,
+      email: email,
+    };
+  };
+
+  // Helper function to handle generic errors
+  const handleGenericError = () => {
     switch (error) {
       case "configuration":
         return {
@@ -25,6 +54,7 @@ export default function AuthErrorPage() {
             "There's an issue with the authentication configuration. Please contact support.",
           icon: AlertCircle,
           color: "text-red-600",
+          showVerificationHelp: false,
         };
       case "network":
         return {
@@ -33,16 +63,29 @@ export default function AuthErrorPage() {
             "Unable to connect to the authentication service. Please check your connection.",
           icon: AlertCircle,
           color: "text-yellow-600",
+          showVerificationHelp: false,
         };
       default:
         return {
-          title: "Authentication Error",
+          title: message ? "Authentication Error" : "Authentication Error",
           description:
+            message ||
             "An unexpected error occurred during authentication. Please try again.",
           icon: AlertCircle,
           color: "text-red-600",
+          showVerificationHelp: false,
         };
     }
+  };
+
+  const getErrorInfo = () => {
+    // Handle Stack Auth specific error codes
+    if (errorCode === "CONTACT_CHANNEL_ALREADY_USED_FOR_AUTH_BY_SOMEONE_ELSE") {
+      return handleStackAuthError();
+    }
+
+    // Handle generic errors
+    return handleGenericError();
   };
 
   const errorInfo = getErrorInfo();
@@ -110,7 +153,7 @@ export default function AuthErrorPage() {
   const handleRetry = () => {
     clearAuthCookies();
     // Redirect to sign in
-    window.location.href = "/handler/sign-in";
+    router.push("/handler/sign-in");
   };
 
   const handleGoHome = () => {
@@ -131,14 +174,52 @@ export default function AuthErrorPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-2">
-            <Button className="w-full" onClick={handleRetry}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Try Again
-            </Button>
-            <Button className="w-full" onClick={handleGoHome} variant="outline">
-              Go to Homepage
-            </Button>
+            {errorInfo.showVerificationHelp ? (
+              <>
+                <Button
+                  className="w-full"
+                  onClick={() => router.push("/handler/sign-in")}
+                >
+                  Sign In with Original Method
+                </Button>
+                <Button
+                  className="w-full"
+                  onClick={handleGoHome}
+                  variant="outline"
+                >
+                  Go to Homepage
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button className="w-full" onClick={handleRetry}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Try Again
+                </Button>
+                <Button
+                  className="w-full"
+                  onClick={handleGoHome}
+                  variant="outline"
+                >
+                  Go to Homepage
+                </Button>
+              </>
+            )}
           </div>
+
+          {errorInfo.showVerificationHelp && (
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertTitle className="text-yellow-800">
+                Email Verification Required
+              </AlertTitle>
+              <AlertDescription className="text-yellow-700">
+                To use this sign-in method, you need to verify your email
+                address first. Sign in with your original method, then check
+                your email for a verification link.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {error === "configuration" && (
             <Alert variant="destructive">
@@ -147,6 +228,19 @@ export default function AuthErrorPage() {
               <AlertDescription>
                 If this issue persists, please contact support with error code:{" "}
                 <code className="font-mono">AUTH_CONFIG_ERROR</code>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {errorCode && (
+            <Alert className="border-gray-200 bg-gray-50">
+              <AlertCircle className="h-4 w-4 text-gray-600" />
+              <AlertTitle className="text-gray-800">Error Details</AlertTitle>
+              <AlertDescription className="text-gray-700">
+                Error Code:{" "}
+                <code className="rounded bg-gray-200 px-1 font-mono">
+                  {errorCode}
+                </code>
               </AlertDescription>
             </Alert>
           )}

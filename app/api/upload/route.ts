@@ -346,7 +346,7 @@ async function processAndStoreFile(file: File, userId: string) {
     "file_uploaded",
     userId,
     "animal_photo",
-    true,
+    fileName,
     {
       fileName: file.name,
       fileSize: file.size,

@@ -6,7 +6,7 @@
 import { db } from "@/db/drizzle";
 import { getNotificationScheduler } from "./notification-scheduler";
 
-let isInitialized = false;
+let isInitialized: boolean = false;
 
 /**
  * Initialize the notification scheduler

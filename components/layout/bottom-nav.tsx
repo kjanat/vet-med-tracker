@@ -1,10 +1,26 @@
 "use client";
 
+import {
+  Home,
+  History,
+  Package,
+  TrendingUp,
+  Settings,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navigationConfig } from "@/lib/navigation/config";
 import { cn } from "@/lib/utils/general";
+
+// Mobile navigation items with correct /auth prefixes
+const mobileNavItems = [
+  { icon: Home, path: "/auth/dashboard" as Route, title: "Home" },
+  { icon: History, path: "/auth/dashboard/history" as Route, title: "History" },
+  { icon: Package, path: "/auth/medications/inventory" as Route, title: "Inventory" },
+  { icon: TrendingUp, path: "/auth/insights" as Route, title: "Insights" },
+  { icon: Settings, path: "/auth/settings" as Route, title: "Settings" },
+];
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -15,21 +31,14 @@ export function BottomNav() {
       className="fixed right-0 bottom-0 left-0 z-50 border-t bg-background/95 pb-safe shadow-lg backdrop-blur-md supports-backdrop-filter:bg-background/80"
     >
       <div className="flex">
-        {navigationConfig.mobile.map((item) => {
-          // Skip items without a URL path (e.g., dialog-only actions)
-          if (!item.path) return null;
-
-          // Consider nested routes active (e.g., /settings/profile for /settings)
+        {mobileNavItems.map((item) => {
+          // Consider nested routes active (e.g., /auth/settings/profile for /auth/settings)
           const isActive =
-            item.path === "/"
-              ? pathname === "/"
+            item.path === "/auth/dashboard"
+              ? pathname === "/auth/dashboard"
               : pathname === item.path || pathname.startsWith(`${item.path}/`);
 
-          // Only render the icon if it is a valid component (not a string)
-          const Icon =
-            item.icon && typeof item.icon !== "string"
-              ? (item.icon as LucideIcon)
-              : undefined;
+          const Icon = item.icon as LucideIcon;
 
           return (
             <Link
@@ -43,7 +52,7 @@ export function BottomNav() {
               href={item.path}
               key={item.path}
             >
-              {Icon ? <Icon aria-hidden="true" className="h-5 w-5" /> : null}
+              <Icon aria-hidden="true" className="h-5 w-5" />
               {item.title}
             </Link>
           );

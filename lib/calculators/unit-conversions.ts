@@ -21,6 +21,34 @@ export interface ConversionResult {
   precision: number;
 }
 
+const POUNDS_PER_KILOGRAM = 2.20462;
+const KILOGRAMS_PER_POUND = 1 / POUNDS_PER_KILOGRAM;
+const GRAMS_PER_KILOGRAM = 1_000;
+const MILLIGRAMS_PER_GRAM = 1_000;
+const OUNCES_PER_POUND = 16;
+const POUNDS_PER_OUNCE = 1 / OUNCES_PER_POUND;
+
+const MILLILITERS_PER_LITER = 1_000;
+const MILLILITERS_PER_TEASPOON = 4.92892;
+const MILLILITERS_PER_TABLESPOON = 14.7868;
+const MILLILITERS_PER_FLUID_OUNCE = 29.5735;
+const MILLILITERS_PER_CUP = 236.588;
+
+const MICROGRAMS_PER_MILLIGRAM = 1_000;
+
+const PRECISION_ZERO_DECIMAL = 0;
+const PRECISION_ONE_DECIMAL = 1;
+const PRECISION_TWO_DECIMALS = 2;
+const PRECISION_THREE_DECIMALS = 3;
+
+const MAX_SAFE_WEIGHT_KG = 1_000;
+const MAX_SAFE_WEIGHT_GRAMS = MAX_SAFE_WEIGHT_KG * GRAMS_PER_KILOGRAM;
+const MAX_SAFE_WEIGHT_LBS = 2_000;
+const MAX_SAFE_VOLUME_LITERS = 100;
+const MAX_SAFE_VOLUME_ML = MAX_SAFE_VOLUME_LITERS * MILLILITERS_PER_LITER;
+const MAX_SAFE_DOSAGE_GRAMS = 100;
+const MAX_SAFE_DOSAGE_MG = MAX_SAFE_DOSAGE_GRAMS * GRAMS_PER_KILOGRAM;
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace VetUnitConversions {
   /**
@@ -29,9 +57,9 @@ export namespace VetUnitConversions {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace Weight {
     // Constants
-    const KG_TO_LBS = 2.20462;
-    const G_TO_KG = 0.001;
-    const OZ_TO_LBS = 0.0625;
+    const KG_TO_LBS = POUNDS_PER_KILOGRAM;
+    const G_TO_KG = 1 / GRAMS_PER_KILOGRAM;
+    const OZ_TO_LBS = POUNDS_PER_OUNCE;
 
     /**
      * Convert any weight unit to kilograms
@@ -41,11 +69,11 @@ export namespace VetUnitConversions {
         case "kg":
           return value;
         case "lbs":
-          return value / KG_TO_LBS;
+          return value * KILOGRAMS_PER_POUND;
         case "g":
           return value * G_TO_KG;
         case "oz":
-          return (value * OZ_TO_LBS) / KG_TO_LBS;
+          return value * OZ_TO_LBS * KILOGRAMS_PER_POUND;
         default:
           throw new Error(`Unsupported weight unit: ${unit}`);
       }
@@ -111,11 +139,11 @@ export namespace VetUnitConversions {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace Volume {
     // Constants
-    const ML_TO_L = 0.001;
-    const TSP_TO_ML = 4.92892;
-    const TBSP_TO_ML = 14.7868;
-    const FL_OZ_TO_ML = 29.5735;
-    const CUP_TO_ML = 236.588;
+    const ML_TO_L = 1 / MILLILITERS_PER_LITER;
+    const TSP_TO_ML = MILLILITERS_PER_TEASPOON;
+    const TBSP_TO_ML = MILLILITERS_PER_TABLESPOON;
+    const FL_OZ_TO_ML = MILLILITERS_PER_FLUID_OUNCE;
+    const CUP_TO_ML = MILLILITERS_PER_CUP;
 
     /**
      * Convert any volume unit to milliliters
@@ -205,8 +233,8 @@ export namespace VetUnitConversions {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace Dosage {
     // Constants
-    const MG_TO_MCG = 1000;
-    const G_TO_MG = 1000;
+    const MG_TO_MCG = MICROGRAMS_PER_MILLIGRAM;
+    const G_TO_MG = MILLIGRAMS_PER_GRAM;
 
     /**
      * Convert any dosage unit to milligrams
@@ -271,12 +299,17 @@ export namespace VetUnitConversions {
           throw new Error(`Unsupported dosage unit: ${targetUnit}`);
       }
 
+      const precision =
+        targetUnit === "mcg"
+          ? PRECISION_ZERO_DECIMAL
+          : PRECISION_THREE_DECIMALS;
+
       return {
         originalUnit: "mg",
         originalValue: value,
-        precision: targetUnit === "mcg" ? 0 : 3,
+        precision,
         unit: targetUnit,
-        value: Number(convertedValue.toFixed(targetUnit === "mcg" ? 0 : 3)),
+        value: Number(convertedValue.toFixed(precision)),
       };
     }
 
@@ -312,19 +345,19 @@ export namespace VetUnitConversions {
       switch (unit) {
         case "kg":
         case "lbs":
-          return Number(value.toFixed(2));
+          return Number(value.toFixed(PRECISION_TWO_DECIMALS));
         case "g":
-          return Number(value.toFixed(1));
+          return Number(value.toFixed(PRECISION_ONE_DECIMAL));
         case "mg":
-          return Number(value.toFixed(1));
+          return Number(value.toFixed(PRECISION_ONE_DECIMAL));
         case "mcg":
-          return Number(value.toFixed(0));
+          return Number(value.toFixed(PRECISION_ZERO_DECIMAL));
         case "ml":
-          return Number(value.toFixed(2));
+          return Number(value.toFixed(PRECISION_TWO_DECIMALS));
         case "L":
-          return Number(value.toFixed(3));
+          return Number(value.toFixed(PRECISION_THREE_DECIMALS));
         default:
-          return Number(value.toFixed(2));
+          return Number(value.toFixed(PRECISION_TWO_DECIMALS));
       }
     }
 
@@ -360,9 +393,19 @@ export namespace VetUnitConversions {
       toUnit: string,
     ): boolean {
       // Weight safety checks
-      if (fromUnit === "kg" && toUnit === "g" && value > 1000) return false; // > 1000kg animal
-      if (fromUnit === "g" && toUnit === "kg" && value > 1000000) return false; // > 1000kg in grams
-      if (fromUnit === "lbs" && value > 2000) return false; // > 2000 lbs animal
+      if (fromUnit === "kg" && toUnit === "g" && value > MAX_SAFE_WEIGHT_KG) {
+        return false;
+      }
+      if (
+        fromUnit === "g" &&
+        toUnit === "kg" &&
+        value > MAX_SAFE_WEIGHT_GRAMS
+      ) {
+        return false;
+      }
+      if (fromUnit === "lbs" && value > MAX_SAFE_WEIGHT_LBS) {
+        return false;
+      }
       return true;
     }
 
@@ -372,8 +415,16 @@ export namespace VetUnitConversions {
       toUnit: string,
     ): boolean {
       // Volume safety checks
-      if (fromUnit === "L" && toUnit === "ml" && value > 100) return false; // > 100L
-      if (fromUnit === "ml" && value > 100000) return false; // > 100L in ml
+      if (
+        fromUnit === "L" &&
+        toUnit === "ml" &&
+        value > MAX_SAFE_VOLUME_LITERS
+      ) {
+        return false;
+      }
+      if (fromUnit === "ml" && value > MAX_SAFE_VOLUME_ML) {
+        return false;
+      }
       return true;
     }
 
@@ -383,8 +434,16 @@ export namespace VetUnitConversions {
       toUnit: string,
     ): boolean {
       // Dosage safety checks
-      if (fromUnit === "g" && toUnit === "mg" && value > 100) return false; // > 100g dose
-      if (fromUnit === "mg" && value > 100000) return false; // > 100g in mg
+      if (
+        fromUnit === "g" &&
+        toUnit === "mg" &&
+        value > MAX_SAFE_DOSAGE_GRAMS
+      ) {
+        return false;
+      }
+      if (fromUnit === "mg" && value > MAX_SAFE_DOSAGE_MG) {
+        return false;
+      }
       return true;
     }
 

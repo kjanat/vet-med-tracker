@@ -33,7 +33,7 @@ export default function ErrorPage({
           <h1 className="font-semibold text-2xl">Something went wrong!</h1>
           <p className="text-muted-foreground">
             We encountered an unexpected error while processing your request.
-            Don't worry, your pet's medication data is safe.
+            Don&apos;t worry, your pet&apos;s medication data is safe.
           </p>
         </div>
 

@@ -3,6 +3,7 @@
 import { useUser } from "@stackframe/stack";
 import { ArrowLeft, Camera, Tag } from "lucide-react";
 import Image from "next/image";
+import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
 import { Suspense, useEffect, useState } from "react";
@@ -244,7 +245,7 @@ function SelectionStep({
             : "Select a medication to record"}
         </p>
         {searchParams.get("from") === "home" && (
-          <Button onClick={() => router.push("/")} variant="ghost">
+          <Button onClick={() => router.push("/auth/dashboard" as Route)} variant="ghost">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
@@ -744,7 +745,7 @@ function SuccessStep({
           Adjust Reminder
         </Button>
 
-        <Button className="w-full" onClick={() => router.push("/")}>
+        <Button className="w-full" onClick={() => router.push("/auth/dashboard" as Route)}>
           Back to Home
         </Button>
       </div>
@@ -983,7 +984,7 @@ function RenderMobileLayout({
           state.setStep("select");
         }
       }}
-      onCancel={() => router.push("/")}
+      onCancel={() => router.push("/auth/dashboard" as Route)}
       onRegimenSelect={handleRegimenSelect}
       regimensError={regimensError}
       regimensLoading={regimensLoading}
@@ -996,7 +997,7 @@ function RenderMobileLayout({
           isOnline={isOnline}
           medicationName={state.selectedRegimen?.medicationName}
           onRecordAnother={() => resetRecordState(state)}
-          onReturnHome={() => router.push("/")}
+          onReturnHome={() => router.push("/auth/dashboard" as Route)}
           recordedAt={new Date().toISOString()}
         />
       )}
@@ -1071,7 +1072,7 @@ function RenderTabletLayout({
           state.setStep("select");
         }
       }}
-      onCancel={() => router.push("/")}
+      onCancel={() => router.push("/auth/dashboard" as Route)}
       onRegimenSelect={handleRegimenSelect}
       regimensError={regimensError}
       regimensLoading={regimensLoading}
@@ -1084,7 +1085,7 @@ function RenderTabletLayout({
           isOnline={isOnline}
           medicationName={state.selectedRegimen?.medicationName}
           onRecordAnother={() => resetRecordState(state)}
-          onReturnHome={() => router.push("/")}
+          onReturnHome={() => router.push("/auth/dashboard" as Route)}
           recordedAt={new Date().toISOString()}
         />
       )}

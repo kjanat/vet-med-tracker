@@ -1,4 +1,3 @@
-import { Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,13 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
 
 interface EditHouseholdDialogProps {
   open: boolean;
@@ -59,56 +52,16 @@ export function EditHouseholdDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="household-timezone">Timezone</Label>
-            <Select onValueChange={onTimezoneChange} value={editedTimezone}>
-              <SelectTrigger id="household-timezone">
-                <SelectValue placeholder="Select timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="America/New_York">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Eastern Time (New York)
-                  </div>
-                </SelectItem>
-                <SelectItem value="America/Chicago">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Central Time (Chicago)
-                  </div>
-                </SelectItem>
-                <SelectItem value="America/Denver">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Mountain Time (Denver)
-                  </div>
-                </SelectItem>
-                <SelectItem value="America/Los_Angeles">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Pacific Time (Los Angeles)
-                  </div>
-                </SelectItem>
-                <SelectItem value="Europe/London">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    GMT (London)
-                  </div>
-                </SelectItem>
-                <SelectItem value="Europe/Paris">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    CET (Paris)
-                  </div>
-                </SelectItem>
-                <SelectItem value="Asia/Tokyo">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    JST (Tokyo)
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="household-timezone" id="household-timezone-label">
+              Timezone
+            </Label>
+            <TimezoneCombobox
+              ariaLabelledBy="household-timezone-label"
+              id="household-timezone"
+              onChange={onTimezoneChange}
+              placeholder="Select timezone"
+              value={editedTimezone}
+            />
           </div>
         </div>
         <DialogFooter>
@@ -143,8 +96,8 @@ export function LeaveHouseholdDialog({
         <DialogHeader>
           <DialogTitle>Leave Household</DialogTitle>
           <DialogDescription>
-            Are you sure you want to leave this household? You'll need to be
-            invited back to regain access.
+            Are you sure you want to leave this household? You&apos;ll need to
+            be invited back to regain access.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

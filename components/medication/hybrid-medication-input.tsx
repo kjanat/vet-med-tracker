@@ -293,7 +293,7 @@ function CustomMedicationOption({
       >
         <Plus className="mt-0.5 mr-2 h-4 w-4 text-green-600" />
         <div className="flex flex-col">
-          <span className="font-medium">Add "{query.trim()}"</span>
+          <span className="font-medium">Add &quot;{query.trim()}&quot;</span>
           <span className="text-muted-foreground text-sm">
             Custom medication (not in catalog)
           </span>

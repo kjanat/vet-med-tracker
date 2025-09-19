@@ -1,54 +1,73 @@
 import type {
   AppContextType,
   User,
-  UserProfile,
 } from "@/components/providers/app-provider-consolidated";
+import type { UserProfile } from "@/types/app-state";
 
 const BASE_USER: User = {
-  bio: null,
   createdAt: "2024-01-01T00:00:00Z",
   defaultAnimalId: null,
   defaultHouseholdId: null,
   email: "john@example.com",
-  emailReminders: true,
   emailVerified: null,
-  emergencyContactName: null,
-  emergencyContactPhone: null,
+  id: "user-123",
+  image: "https://example.com/avatar.jpg",
+  name: "John Doe",
+  onboardingComplete: false,
+  onboardingCompletedAt: null,
+  preferences: {
+    defaultAnimalId: null,
+    defaultHouseholdId: null,
+    defaultTimezone: "UTC",
+    displayPreferences: {
+      temperatureUnit: "fahrenheit",
+      theme: "light",
+      use24HourTime: false,
+      weekStartsOn: 0,
+      weightUnit: "lbs",
+    },
+    emergencyContactName: null,
+    emergencyContactPhone: null,
+    legacyBackup: null,
+    notificationPreferences: {
+      emailReminders: true,
+      pushNotifications: true,
+      reminderLeadTime: 15,
+      smsReminders: false,
+    },
+    preferredPhoneNumber: null,
+  },
+  profile: {
+    bio: null,
+    firstName: null,
+    lastName: null,
+    legacyProfileData: {},
+    location: null,
+    profileCompletedAt: null,
+    profileVisibility: {
+      bio: true,
+      email: false,
+      location: true,
+      name: true,
+    },
+    pronouns: null,
+    socialLinks: {},
+    website: null,
+  },
+  stackUserId: null,
+  updatedAt: "2024-01-01T00:00:00Z",
+};
+
+const BASE_PROFILE: UserProfile = {
+  availableHouseholds: [],
+  bio: null,
+  currentHouseholdId: null,
+  email: "john@example.com",
   firstName: null,
   id: "user-123",
   image: "https://example.com/avatar.jpg",
   lastName: null,
   location: null,
-  name: "John Doe",
-  onboardingComplete: false,
-  onboardingCompletedAt: null,
-  preferencesBackup: null,
-  preferredPhoneNumber: null,
-  preferredTimezone: "UTC",
-  profileCompletedAt: null,
-  profileData: {},
-  profileVisibility: { bio: true, email: false, location: true, name: true },
-  pronouns: null,
-  pushNotifications: true,
-  reminderLeadTimeMinutes: "15",
-  smsReminders: false,
-  socialLinks: {},
-  stackUserId: null,
-  temperatureUnit: "fahrenheit",
-  theme: "light",
-  updatedAt: "2024-01-01T00:00:00Z",
-  use24HourTime: false,
-  website: null,
-  weekStartsOn: 0,
-  weightUnit: "lbs",
-};
-
-const BASE_PROFILE: UserProfile = {
-  availableHouseholds: [],
-  currentHouseholdId: null,
-  email: "john@example.com",
-  id: "user-123",
-  image: "https://example.com/avatar.jpg",
   name: "John Doe",
   onboarding: {
     complete: false,
@@ -69,6 +88,7 @@ const BASE_PROFILE: UserProfile = {
     use24HourTime: false,
     weightUnit: "lbs",
   },
+  pronouns: null,
   stackUserId: null,
 };
 
@@ -118,21 +138,22 @@ export function createTestUserProfile(
       ...(user
         ? {
             emailReminders:
-              user.emailReminders ?? BASE_PROFILE.preferences.emailReminders,
+              user.preferences.notificationPreferences.emailReminders,
             phoneNumber:
-              user.preferredPhoneNumber ?? BASE_PROFILE.preferences.phoneNumber,
+              user.preferences.preferredPhoneNumber ??
+              BASE_PROFILE.preferences.phoneNumber,
             pushNotifications:
-              user.pushNotifications ??
-              BASE_PROFILE.preferences.pushNotifications,
-            smsReminders:
-              user.smsReminders ?? BASE_PROFILE.preferences.smsReminders,
+              user.preferences.notificationPreferences.pushNotifications,
+            reminderLeadTime:
+              user.preferences.notificationPreferences.reminderLeadTime.toString(),
+            smsReminders: user.preferences.notificationPreferences.smsReminders,
             temperatureUnit:
-              user.temperatureUnit ?? BASE_PROFILE.preferences.temperatureUnit,
-            timezone:
-              user.preferredTimezone ?? BASE_PROFILE.preferences.timezone,
-            use24HourTime:
-              user.use24HourTime ?? BASE_PROFILE.preferences.use24HourTime,
-            weightUnit: user.weightUnit ?? BASE_PROFILE.preferences.weightUnit,
+              user.preferences.displayPreferences.temperatureUnit,
+            theme: user.preferences.displayPreferences.theme,
+            timezone: user.preferences.defaultTimezone,
+            use24HourTime: user.preferences.displayPreferences.use24HourTime,
+            weekStartsOn: user.preferences.displayPreferences.weekStartsOn,
+            weightUnit: user.preferences.displayPreferences.weightUnit,
           }
         : {}),
     },
@@ -144,11 +165,20 @@ export function createTestUserProfile(
     ...overrides,
     availableHouseholds:
       overrides.availableHouseholds ?? baseProfile.availableHouseholds,
+    bio: overrides.bio ?? user?.profile.bio ?? baseProfile.bio,
+    firstName:
+      overrides.firstName ?? user?.profile.firstName ?? baseProfile.firstName,
+    lastName:
+      overrides.lastName ?? user?.profile.lastName ?? baseProfile.lastName,
+    location:
+      overrides.location ?? user?.profile.location ?? baseProfile.location,
     onboarding: {
       ...baseProfile.onboarding,
       ...overrides.onboarding,
     },
     preferences: mergedPreferences,
+    pronouns:
+      overrides.pronouns ?? user?.profile.pronouns ?? baseProfile.pronouns,
   };
 }
 

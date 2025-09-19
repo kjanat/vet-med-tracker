@@ -331,3 +331,6 @@ scripts/finalize-*.sh
 
 tests/junit.xml
 renovate.json
+
+# Vapid
+vapid_*.pem

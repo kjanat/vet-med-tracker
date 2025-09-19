@@ -204,7 +204,7 @@ export function useRecordParams() {
    * Navigates to the return URL if set, otherwise to default
    */
   const navigateToReturn = useCallback(
-    (defaultPath = "/dashboard") => {
+    (defaultPath = "/auth/dashboard") => {
       const returnUrl = params.returnTo || defaultPath;
       router.push(returnUrl as Route);
     },

@@ -2,6 +2,7 @@
 
 import { Database, Download, FileText, Shield, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -27,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function DataPanel() {
+  const router = useRouter();
   const { selectedHousehold, user } = useApp();
   const [isExporting, setIsExporting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -302,7 +304,7 @@ export function DataPanel() {
             <Button
               className="gap-2"
               onClick={() => {
-                window.location.href = "/settings/data-privacy/audit";
+                router.push("/auth/settings/data-privacy/audit");
               }}
             >
               <FileText className="h-4 w-4" />

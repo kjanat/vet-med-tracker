@@ -1,0 +1,3 @@
+-- Baseline migration placeholder.
+-- Original Drizzle baseline file was not checked into the repository.
+-- This no-op migration satisfies the migrator so later migrations can run.

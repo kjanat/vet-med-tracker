@@ -1,25 +1,66 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { animals, households, memberships, users } from "@/db/schema";
+import {
+  animals,
+  households,
+  memberships,
+  type UserPreferencesSchema,
+  type UserProfileSchema,
+  users,
+} from "@/db/schema";
+import {
+  defaultUserPreferences,
+  defaultUserProfile,
+} from "@/db/schema/user-defaults";
 import type { VetMedPreferences } from "@/hooks/shared/use-user-preferences";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
-// Stub for updating user preferences - this would update Stack Auth metadata in production
-async function updateUserPreferences(
-  stackUserId: string,
-  preferences: {
-    vetMedPreferences?: Partial<VetMedPreferences>;
-    householdSettings?: Record<string, unknown>;
-  },
-  _dbContext: {
-    userId: string;
-    householdId: string | null;
-  },
-) {
-  // In production, this would update Stack Auth user metadata
-  // For now, we'll just log the update
-  console.log("Updating preferences for user:", stackUserId, preferences);
-  return true;
+// Helper function to merge user preferences
+function mergeUserPreferences(
+  currentPreferences: UserPreferencesSchema | null,
+  vetPrefs: Partial<VetMedPreferences> | undefined,
+  dbUser: { defaultAnimalId: string | null; defaultHouseholdId: string | null }
+): UserPreferencesSchema {
+  const current: UserPreferencesSchema = currentPreferences
+    ? structuredClone(currentPreferences)
+    : structuredClone(defaultUserPreferences);
+
+  return {
+    ...current,
+    defaultAnimalId:
+      vetPrefs?.defaultAnimalId ??
+      current.defaultAnimalId ??
+      dbUser.defaultAnimalId ??
+      null,
+    defaultHouseholdId:
+      vetPrefs?.defaultHouseholdId ??
+      current.defaultHouseholdId ??
+      dbUser.defaultHouseholdId ??
+      null,
+    defaultTimezone:
+      vetPrefs?.defaultTimezone ?? current.defaultTimezone,
+    displayPreferences: {
+      ...current.displayPreferences,
+      ...(vetPrefs?.displayPreferences ?? {}),
+    },
+    emergencyContactName:
+      vetPrefs?.emergencyContactName ??
+      current.emergencyContactName,
+    emergencyContactPhone:
+      vetPrefs?.emergencyContactPhone ??
+      current.emergencyContactPhone,
+    legacyBackup: current.legacyBackup ?? null,
+    notificationPreferences: {
+      ...current.notificationPreferences,
+      ...(vetPrefs?.notificationPreferences ?? {}),
+      reminderLeadTime:
+        vetPrefs?.notificationPreferences?.reminderLeadTime ??
+        current.notificationPreferences.reminderLeadTime,
+    },
+    preferredPhoneNumber:
+      vetPrefs?.preferredPhoneNumber ??
+      current.preferredPhoneNumber,
+  };
 }
 
 export const userRouter = createTRPCRouter({
@@ -112,49 +153,74 @@ export const userRouter = createTRPCRouter({
   }),
 
   // Get user profile
-  getProfile: protectedProcedure.query(async ({ ctx }) => ({
-    availableHouseholds: ctx.availableHouseholds,
-    bio: ctx.dbUser.bio,
-    currentHouseholdId: ctx.currentHouseholdId,
-    email: ctx.dbUser.email,
-    // Flexible profile fields
-    firstName: ctx.dbUser.firstName,
-    id: ctx.dbUser.id,
-    image: ctx.dbUser.image,
-    lastName: ctx.dbUser.lastName,
-    location: ctx.dbUser.location,
-    name: ctx.dbUser.name,
-    onboarding: {
-      complete: ctx.dbUser.onboardingComplete,
-      completedAt: ctx.dbUser.onboardingCompletedAt,
-    },
-    preferences: {
-      defaultAnimalId: ctx.dbUser.defaultAnimalId,
-      defaultHouseholdId: ctx.dbUser.defaultHouseholdId,
-      emailReminders: ctx.dbUser.emailReminders,
-      emergencyContact: {
-        name: ctx.dbUser.emergencyContactName,
-        phone: ctx.dbUser.emergencyContactPhone,
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const preferences: UserPreferencesSchema = ctx.dbUser.preferences
+      ? structuredClone(ctx.dbUser.preferences)
+      : structuredClone(defaultUserPreferences);
+    const profile: UserProfileSchema = ctx.dbUser.profile
+      ? structuredClone(ctx.dbUser.profile)
+      : structuredClone(defaultUserProfile);
+
+    const displayPreferences = {
+      ...defaultUserPreferences.displayPreferences,
+      ...preferences.displayPreferences,
+    };
+
+    const notificationPreferences = {
+      ...defaultUserPreferences.notificationPreferences,
+      ...preferences.notificationPreferences,
+    };
+
+    const profileVisibility = {
+      ...defaultUserProfile.profileVisibility,
+      ...profile.profileVisibility,
+    };
+
+    return {
+      availableHouseholds: ctx.availableHouseholds,
+      bio: profile.bio,
+      currentHouseholdId: ctx.currentHouseholdId,
+      email: ctx.dbUser.email,
+      firstName: profile.firstName,
+      id: ctx.dbUser.id,
+      image: ctx.dbUser.image,
+      lastName: profile.lastName,
+      location: profile.location,
+      name: ctx.dbUser.name,
+      onboarding: {
+        complete: ctx.dbUser.onboardingComplete,
+        completedAt: ctx.dbUser.onboardingCompletedAt,
       },
-      phoneNumber: ctx.dbUser.preferredPhoneNumber,
-      pushNotifications: ctx.dbUser.pushNotifications,
-      reminderLeadTime: ctx.dbUser.reminderLeadTimeMinutes,
-      smsReminders: ctx.dbUser.smsReminders,
-      temperatureUnit: ctx.dbUser.temperatureUnit,
-      theme: ctx.dbUser.theme,
-      timezone: ctx.dbUser.preferredTimezone,
-      use24HourTime: ctx.dbUser.use24HourTime,
-      weekStartsOn: ctx.dbUser.weekStartsOn,
-      weightUnit: ctx.dbUser.weightUnit,
-    },
-    profileCompletedAt: ctx.dbUser.profileCompletedAt,
-    profileData: ctx.dbUser.profileData as Record<string, unknown>,
-    profileVisibility: ctx.dbUser.profileVisibility as Record<string, boolean>,
-    pronouns: ctx.dbUser.pronouns,
-    socialLinks: ctx.dbUser.socialLinks as Record<string, unknown>,
-    stackUserId: ctx.dbUser.stackUserId,
-    website: ctx.dbUser.website,
-  })),
+      preferences: {
+        defaultAnimalId:
+          preferences.defaultAnimalId ?? ctx.dbUser.defaultAnimalId,
+        defaultHouseholdId:
+          preferences.defaultHouseholdId ?? ctx.dbUser.defaultHouseholdId,
+        emailReminders: notificationPreferences.emailReminders,
+        emergencyContact: {
+          name: preferences.emergencyContactName,
+          phone: preferences.emergencyContactPhone,
+        },
+        phoneNumber: preferences.preferredPhoneNumber,
+        pushNotifications: notificationPreferences.pushNotifications,
+        reminderLeadTime: notificationPreferences.reminderLeadTime.toString(),
+        smsReminders: notificationPreferences.smsReminders,
+        temperatureUnit: displayPreferences.temperatureUnit,
+        theme: displayPreferences.theme,
+        timezone: preferences.defaultTimezone,
+        use24HourTime: displayPreferences.use24HourTime,
+        weekStartsOn: displayPreferences.weekStartsOn,
+        weightUnit: displayPreferences.weightUnit,
+      },
+      profileCompletedAt: profile.profileCompletedAt,
+      profileData: profile.legacyProfileData ?? {},
+      profileVisibility,
+      pronouns: profile.pronouns,
+      socialLinks: profile.socialLinks ?? {},
+      stackUserId: ctx.dbUser.stackUserId,
+      website: profile.website,
+    };
+  }),
 
   // Check if user needs onboarding
   needsOnboarding: protectedProcedure.query(async ({ ctx }) => {
@@ -206,24 +272,37 @@ export const userRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Update preferences in database
       if (!ctx.dbUser.stackUserId) {
         throw new Error("User must have a Stack Auth ID to update preferences");
       }
-      await updateUserPreferences(
-        ctx.dbUser.stackUserId,
-        {
-          householdSettings: input.householdSettings,
-          vetMedPreferences: input.vetMedPreferences as
-            | Partial<VetMedPreferences>
-            | undefined,
-        },
-        {
-          householdId:
-            ctx.currentHouseholdId || ctx.availableHouseholds[0]?.id || "",
-          userId: ctx.dbUser.id,
-        },
+
+      const vetPrefs = input.vetMedPreferences as
+        | Partial<VetMedPreferences>
+        | undefined;
+
+      const mergedPreferences = mergeUserPreferences(
+        ctx.dbUser.preferences,
+        vetPrefs,
+        ctx.dbUser
       );
+
+      const updatePayload: Partial<typeof users.$inferInsert> = {
+        preferences: mergedPreferences,
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (vetPrefs?.defaultHouseholdId !== undefined) {
+        updatePayload.defaultHouseholdId = vetPrefs.defaultHouseholdId ?? null;
+      }
+
+      if (vetPrefs?.defaultAnimalId !== undefined) {
+        updatePayload.defaultAnimalId = vetPrefs.defaultAnimalId ?? null;
+      }
+
+      await ctx.db
+        .update(users)
+        .set(updatePayload)
+        .where(eq(users.id, ctx.dbUser.id));
 
       return { success: true };
     }),
@@ -268,31 +347,38 @@ export const userRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { db, dbUser } = ctx;
 
-      // Update user profile in database
+      const currentProfile: UserProfileSchema = dbUser.profile
+        ? structuredClone(dbUser.profile)
+        : structuredClone(defaultUserProfile);
+
+      const profileVisibility = input.profileVisibility
+        ? {
+            ...currentProfile.profileVisibility,
+            ...input.profileVisibility,
+          }
+        : (currentProfile.profileVisibility ??
+          defaultUserProfile.profileVisibility);
+
+      const mergedProfile: UserProfileSchema = {
+        ...currentProfile,
+        bio: input.bio ?? currentProfile.bio,
+        firstName: input.firstName ?? currentProfile.firstName,
+        lastName: input.lastName ?? currentProfile.lastName,
+        legacyProfileData: currentProfile.legacyProfileData ?? null,
+        location: input.location ?? currentProfile.location,
+        profileCompletedAt:
+          currentProfile.profileCompletedAt || new Date().toISOString(),
+        profileVisibility,
+        pronouns: input.pronouns ?? currentProfile.pronouns,
+        socialLinks: input.socialLinks ?? currentProfile.socialLinks ?? {},
+        website: input.website ?? currentProfile.website,
+      };
+
       const [updatedUser] = await db
         .update(users)
         .set({
-          bio: input.bio !== undefined ? input.bio : dbUser.bio,
-          firstName:
-            input.firstName !== undefined ? input.firstName : dbUser.firstName,
-          lastName:
-            input.lastName !== undefined ? input.lastName : dbUser.lastName,
-          location:
-            input.location !== undefined ? input.location : dbUser.location,
-          profileCompletedAt:
-            dbUser.profileCompletedAt || new Date().toISOString(),
-          profileVisibility:
-            input.profileVisibility !== undefined
-              ? input.profileVisibility
-              : dbUser.profileVisibility,
-          pronouns:
-            input.pronouns !== undefined ? input.pronouns : dbUser.pronouns,
-          socialLinks:
-            input.socialLinks !== undefined
-              ? input.socialLinks
-              : dbUser.socialLinks,
+          profile: mergedProfile,
           updatedAt: new Date().toISOString(),
-          website: input.website !== undefined ? input.website : dbUser.website,
         })
         .where(eq(users.id, dbUser.id))
         .returning();

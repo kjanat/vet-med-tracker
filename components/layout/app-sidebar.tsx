@@ -33,23 +33,23 @@ import { NavDashboard } from "./nav-dashboard";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 
-// Navigation data for VetMed Tracker
+// Navigation data for VetMed Tracker with correct /auth prefixes
 const data = {
   dashboard: [
     {
       icon: Clock,
       name: "Today's Doses",
-      url: "/dashboard",
+      url: "/auth/dashboard" as Route,
     },
     {
       icon: Bell,
       name: "Overdue",
-      url: "/dashboard?filter=overdue",
+      url: "/auth/dashboard?filter=overdue" as Route,
     },
     {
       icon: History,
       name: "Recent History",
-      url: "/dashboard/history",
+      url: "/auth/dashboard/history" as Route,
     },
   ],
   navMain: [
@@ -57,22 +57,22 @@ const data = {
       icon: Home,
       isActive: true,
       title: "Dashboard",
-      url: "/dashboard",
+      url: "/auth/dashboard" as Route,
     },
     {
       icon: Users,
       items: [
         {
           title: "Animals",
-          url: "/manage/animals",
+          url: "/auth/manage/animals" as Route,
         },
         {
           title: "Households",
-          url: "/manage/households",
+          url: "/auth/manage/households" as Route,
         },
         {
           title: "Users",
-          url: "/manage/users",
+          url: "/auth/manage/users" as Route,
         },
       ],
       title: "Manage",
@@ -82,19 +82,19 @@ const data = {
       items: [
         {
           title: "Record Dose",
-          url: "/admin/record",
+          url: "/auth/admin/record" as Route,
         },
         {
           title: "Dosage Calculator",
-          url: "/medications/dosage-calculator",
+          url: "/auth/medications/dosage-calculator" as Route,
         },
         {
           title: "Inventory",
-          url: "/medications/inventory",
+          url: "/auth/medications/inventory" as Route,
         },
         {
           title: "Regimens",
-          url: "/medications/regimens",
+          url: "/auth/medications/regimens" as Route,
         },
       ],
       title: "Medications",
@@ -104,41 +104,41 @@ const data = {
       items: [
         {
           title: "History",
-          url: "/dashboard/history",
+          url: "/auth/dashboard/history" as Route,
         },
         {
           title: "Animal Reports",
-          url: "/reports",
+          url: "/auth/reports" as Route,
         },
       ],
       title: "Insights",
-      url: "/insights",
+      url: "/auth/insights" as Route,
     },
     {
       icon: Settings,
       items: [
         {
           title: "Preferences",
-          url: "/settings/preferences",
+          url: "/auth/settings/preferences" as Route,
         },
         {
           title: "Notifications",
-          url: "/settings/notifications",
+          url: "/auth/settings/notifications" as Route,
         },
         {
           title: "Data & Privacy",
-          url: "/settings/data-privacy",
+          url: "/auth/settings/data-privacy" as Route,
         },
       ],
       title: "Settings",
-      url: "/settings",
+      url: "/auth/settings" as Route,
     },
   ],
   navSecondary: [
     {
       icon: HelpCircle,
       title: "Support",
-      url: "/help",
+      url: "/help" as Route, // Public route, no /auth prefix
     },
   ],
 };

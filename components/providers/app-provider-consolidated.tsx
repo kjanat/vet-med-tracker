@@ -13,6 +13,10 @@ import {
   useRef,
 } from "react";
 import type { vetmedAnimals, vetmedHouseholds, vetmedUsers } from "@/db/schema";
+import {
+  defaultUserPreferences,
+  defaultUserProfile,
+} from "@/db/schema/user-defaults";
 // Offline database functionality removed during simplification
 import { trpc } from "@/server/trpc/client";
 
@@ -74,6 +78,8 @@ export interface UserProfile {
       name: string | null;
       phone: string | null;
     };
+    theme?: string | null;
+    weekStartsOn?: number | null;
   };
   onboarding: {
     complete: boolean | null;
@@ -528,6 +534,8 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   const stackUser = useUser();
   const _isLoaded = true; // Stack Auth loads synchronously
   const utils = trpc.useUtils();
+  const { mutateAsync: persistPreferences } =
+    trpc.user.updatePreferences.useMutation();
 
   // Refs for cleanup
   const timeoutRefs = useRef<Map<string, number>>(new Map());
@@ -554,49 +562,20 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // Convert Stack user to internal user format
   const convertStackUser = useCallback(
     (stackUser: StackUserForConversion): User => ({
-      // New flexible profile fields (all optional, defaults)
-      bio: null,
       createdAt: new Date().toISOString(),
       defaultAnimalId: null,
       defaultHouseholdId: null,
       email: stackUser.primaryEmail || "",
-      emailReminders: null,
       emailVerified: null,
-      emergencyContactName: null,
-      emergencyContactPhone: null,
-      firstName: null, // Let users set this themselves
       id: stackUser.id,
       image: stackUser.profileImageUrl || null,
-      lastName: null, // Let users set this themselves
-      location: null,
       name: stackUser.displayName || stackUser.primaryEmail || "Unknown",
       onboardingComplete: null,
       onboardingCompletedAt: null,
-      preferencesBackup: null,
-      preferredPhoneNumber: null,
-      preferredTimezone: null,
-      profileCompletedAt: null,
-      profileData: {},
-      profileVisibility: {
-        bio: true,
-        email: false,
-        location: true,
-        name: true,
-      },
-      pronouns: null,
-      pushNotifications: null,
-      reminderLeadTimeMinutes: null,
-      smsReminders: null,
-      socialLinks: {},
+      preferences: structuredClone(defaultUserPreferences),
+      profile: structuredClone(defaultUserProfile),
       stackUserId: stackUser.id,
-      temperatureUnit: null,
-      theme: null,
       updatedAt: new Date().toISOString(),
-      use24HourTime: null,
-      website: null,
-      // Add missing fields to match schema
-      weekStartsOn: null,
-      weightUnit: null,
     }),
     [],
   );
@@ -915,7 +894,11 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
     async (updates: Partial<VetMedPreferences>) => {
       if (!stackUser) throw new Error("User not loaded");
 
-      const newPreferences = { ...state.preferences, ...updates };
+      const newPreferences = {
+        ...defaultVetMedPreferences,
+        ...state.preferences,
+        ...updates,
+      };
 
       await stackUser.update({
         clientMetadata: {
@@ -936,8 +919,35 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.warn("Failed to sync preferences to backend:", error);
       }
+
+      const cachedHouseholds = utils.household.list.getData();
+
+      try {
+        await persistPreferences({
+          vetMedPreferences: {
+            defaultAnimalId: newPreferences.defaultAnimalId,
+            defaultHouseholdId:
+              newPreferences.defaultHouseholdId ||
+              cachedHouseholds?.[0]?.id ||
+              undefined,
+            defaultTimezone: newPreferences.defaultTimezone,
+            displayPreferences: newPreferences.displayPreferences,
+            emergencyContactName: newPreferences.emergencyContactName,
+            emergencyContactPhone: newPreferences.emergencyContactPhone,
+            notificationPreferences: newPreferences.notificationPreferences,
+            preferredPhoneNumber: newPreferences.preferredPhoneNumber,
+          },
+        });
+      } catch (error) {
+        console.warn("Failed to persist preferences to database:", error);
+      }
     },
-    [stackUser, state.preferences],
+    [
+      stackUser,
+      state.preferences,
+      persistPreferences,
+      utils.household.list.getData,
+    ],
   );
 
   const updateHouseholdSettings = useCallback(

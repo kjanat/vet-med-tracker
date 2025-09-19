@@ -1,6 +1,12 @@
 "use client";
 
+import {
+  Database,
+  Bell,
+  Settings2,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import {
@@ -9,11 +15,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getSettingsTabs } from "@/lib/navigation/utils";
+
+// Settings tabs with correct /auth prefixes
+const settingsTabs = [
+  {
+    title: "Data & Privacy",
+    description: "Export your data and manage privacy settings",
+    icon: Database,
+    path: "/auth/settings/data-privacy" as Route,
+  },
+  {
+    title: "Notifications",
+    description: "Configure alerts and notification preferences",
+    icon: Bell,
+    path: "/auth/settings/notifications" as Route,
+  },
+  {
+    title: "Preferences",
+    description: "Customize your app experience and display settings",
+    icon: Settings2,
+    path: "/auth/settings/preferences" as Route,
+  },
+];
 
 export default function SettingsPage() {
   const { selectedHousehold } = useApp();
-  const settingsTabs = getSettingsTabs();
 
   return (
     <div className="space-y-6">
@@ -25,30 +51,12 @@ export default function SettingsPage() {
         {settingsTabs.map((tab) => {
           const Icon = tab.icon as LucideIcon;
 
-          // Skip tabs without valid paths
-          if (!tab.path) {
-            return (
-              <Card
-                className="h-full cursor-not-allowed opacity-50"
-                key={tab.title}
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {Icon && <Icon className="h-5 w-5" />}
-                    {tab.title} (Coming Soon)
-                  </CardTitle>
-                  <CardDescription>{tab.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            );
-          }
-
           return (
             <Link href={tab.path} key={tab.path}>
               <Card className="h-full transition-colors hover:bg-accent">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    {Icon && <Icon className="h-5 w-5" />}
+                    <Icon className="h-5 w-5" />
                     {tab.title}
                   </CardTitle>
                   <CardDescription>{tab.description}</CardDescription>
