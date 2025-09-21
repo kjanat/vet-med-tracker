@@ -94,7 +94,7 @@ function AuditLogContent() {
 
   const handleExport = () => {
     // TODO: Implement export functionality
-    console.log("Exporting audit log...");
+    // Export functionality to be implemented
   };
 
   // Show loading state

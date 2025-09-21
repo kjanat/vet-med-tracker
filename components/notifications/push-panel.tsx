@@ -182,7 +182,7 @@ export function PushPanel() {
         // Then unsubscribe locally
         await subscription.unsubscribe();
 
-        console.log("Unsubscribed from push notifications");
+        // Successfully unsubscribed from push notifications
         toast({
           description: "You will no longer receive push notifications",
           title: "Unsubscribed",

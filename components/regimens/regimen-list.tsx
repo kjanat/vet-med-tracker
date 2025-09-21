@@ -335,10 +335,7 @@ export function RegimenList() {
     );
 
     if (scheduleOptimization.warnings.length > 0) {
-      console.log(
-        "Schedule optimization suggestions:",
-        scheduleOptimization.warnings,
-      );
+      // Schedule optimization suggestions available
     }
   };
 
@@ -379,9 +376,7 @@ export function RegimenList() {
       setEditingRegimen(null);
 
       // Show success toast
-      console.log(
-        `${editingRegimen ? "Updated" : "Created"} regimen for ${data.medicationName}`,
-      );
+      // Regimen saved successfully
     } catch (error) {
       console.error("Failed to save regimen:", error);
     }
@@ -415,7 +410,7 @@ export function RegimenList() {
         }),
       );
 
-      console.log("Regimen archived successfully");
+      // Regimen archived successfully
     } catch (error) {
       console.error("Failed to archive regimen:", error);
     }
@@ -477,9 +472,7 @@ export function RegimenList() {
         ),
       );
 
-      console.log(
-        `Regimen ${currentlyActive ? "paused" : "resumed"} successfully`,
-      );
+      // Regimen status updated successfully
     } catch (error) {
       console.error(
         `Failed to ${currentlyActive ? "pause" : "resume"} regimen:`,

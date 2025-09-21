@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 import {
   type FormOptions,
   type Household,
@@ -7,6 +7,9 @@ import {
 } from "@/lib/services/inventoryDataTransformer";
 
 describe("InventoryDataTransformer", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
   const validHousehold: Household = {
     id: "household-123",
     name: "Test Household",
@@ -23,20 +26,21 @@ describe("InventoryDataTransformer", () => {
     lot: "LOT123",
     medicationId: "med-123",
     name: "Test Medication",
+    notes: "",
     quantityUnits: 30,
     route: "oral",
     setInUse: false,
     storage: "ROOM",
     strength: "10mg",
     unitsRemaining: 25,
+    unitType: "tablets",
   };
 
   describe("toApiPayload", () => {
     it("should convert form data to API payload", () => {
-      const result = InventoryDataTransformer.toApiPayload(
-        validFormData,
-        validHousehold,
-      );
+      const result = InventoryDataTransformer.toApiPayload(validFormData, {
+        ...validHousehold,
+      });
 
       expect(result.householdId).toBe("household-123");
       expect(result.medicationId).toBe("med-123");
@@ -46,7 +50,7 @@ describe("InventoryDataTransformer", () => {
       expect(result.storage).toBe("ROOM");
       expect(result.unitsTotal).toBe(30);
       expect(result.unitsRemaining).toBe(25);
-      expect(result.unitType).toBe("units");
+      expect(result.unitType).toBe("tablets");
       expect(result.assignedAnimalId).toBe(undefined);
     });
 
@@ -60,7 +64,7 @@ describe("InventoryDataTransformer", () => {
 
       const result = InventoryDataTransformer.toApiPayload(
         dataWithEmptyFields,
-        validHousehold,
+        { ...validHousehold },
       );
 
       expect(result.brandOverride).toBe(undefined);
@@ -80,7 +84,9 @@ describe("InventoryDataTransformer", () => {
       const invalidFormData = { ...validFormData, medicationId: "" };
 
       expect(() => {
-        InventoryDataTransformer.toApiPayload(invalidFormData, validHousehold);
+        InventoryDataTransformer.toApiPayload(invalidFormData, {
+          ...validHousehold,
+        });
       }).toThrow("Medication ID is required for API payload");
     });
 
@@ -90,10 +96,9 @@ describe("InventoryDataTransformer", () => {
         assignedAnimalId: "animal-456",
       };
 
-      const result = InventoryDataTransformer.toApiPayload(
-        dataWithAnimal,
-        validHousehold,
-      );
+      const result = InventoryDataTransformer.toApiPayload(dataWithAnimal, {
+        ...validHousehold,
+      });
 
       expect(result.assignedAnimalId).toBe("animal-456");
     });
@@ -120,7 +125,6 @@ describe("InventoryDataTransformer", () => {
       expect(result.setInUse).toBe(false);
 
       // Check expiry date is 730 days from now (default)
-      const _now = new Date();
       const expectedExpiry = new Date();
       expectedExpiry.setDate(expectedExpiry.getDate() + 730);
       const daysDiff =
@@ -143,7 +147,6 @@ describe("InventoryDataTransformer", () => {
       expect(result.unitsRemaining).toBe(10);
 
       // Check expiry date is 365 days from now
-      const _now = new Date();
       const expectedExpiry = new Date();
       expectedExpiry.setDate(expectedExpiry.getDate() + 365);
       const daysDiff =
@@ -244,14 +247,13 @@ describe("InventoryDataTransformer", () => {
     it("should create fresh defaults with current timestamp", () => {
       const result1 = InventoryDataTransformer.createFreshDefaults();
       // Small delay to ensure different timestamps
-      const _result2 = InventoryDataTransformer.createFreshDefaults();
+      InventoryDataTransformer.createFreshDefaults();
 
       expect(result1.medicationId).toBe("");
       expect(result1.storage).toBe("ROOM");
       expect(result1.quantityUnits).toBe(1);
 
       // Both should have expiry dates approximately 730 days from now
-      const _now = new Date();
       const expectedExpiry = new Date();
       expectedExpiry.setDate(expectedExpiry.getDate() + 730);
 

@@ -1,3 +1,5 @@
+import { db } from "@/db/drizzle";
+import { auditLogs } from "@/db/schema";
 import { logger } from "@/lib/logging/logger";
 
 type ActionType =
@@ -54,7 +56,24 @@ function formatAuditLogMessage(entry: AuditEntry): string {
  */
 export async function logAuditEvent(entry: AuditEntry): Promise<void> {
   try {
-    // TODO: Store in audit log table when database schema is ready
+    // Store in audit log table
+    await db.insert(auditLogs).values({
+      action: entry.action,
+      clientIp: entry.clientIp,
+      duration: entry.duration,
+      endpoint: entry.endpoint,
+      errorMessage: entry.errorMessage,
+      // Map householdId from metadata if available
+      householdId: (entry.metadata?.householdId as string) || undefined,
+      metadata: entry.metadata,
+      resourceId: entry.resourceId,
+      resourceType: entry.resourceType,
+      sessionId: entry.sessionId,
+      success: entry.success,
+      userAgent: entry.userAgent,
+      userId: entry.userId,
+    });
+
     const logMessage: string = formatAuditLogMessage(entry);
 
     // Shared payload for both success and failure
@@ -291,7 +310,6 @@ export async function auditSystemEvent(
 
 /**
  * Query audit logs with filters
- * TODO: Implement when audit log table is added to database schema
  */
 export async function queryAuditLogs(filters: {
   userId?: string;
@@ -302,9 +320,60 @@ export async function queryAuditLogs(filters: {
   limit?: number;
   offset?: number;
 }): Promise<AuditEntry[]> {
-  // Stub implementation - return empty array until database schema is ready
-  await logger.info("queryAuditLogs called", { filters });
-  return [];
+  try {
+    const { and, eq, gte, lte, desc } = await import("drizzle-orm");
+
+    const conditions = [];
+
+    if (filters.userId) {
+      conditions.push(eq(auditLogs.userId, filters.userId));
+    }
+    if (filters.resourceType) {
+      conditions.push(eq(auditLogs.resourceType, filters.resourceType));
+    }
+    if (filters.action) {
+      conditions.push(eq(auditLogs.action, filters.action));
+    }
+    if (filters.startDate) {
+      conditions.push(gte(auditLogs.createdAt, filters.startDate));
+    }
+    if (filters.endDate) {
+      conditions.push(lte(auditLogs.createdAt, filters.endDate));
+    }
+
+    const query = db
+      .select()
+      .from(auditLogs)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(filters.limit || 100)
+      .offset(filters.offset || 0);
+
+    const results = await query;
+
+    return results.map((row) => ({
+      action: row.action as ActionType,
+      clientIp: row.clientIp || undefined,
+      duration: row.duration || undefined,
+      endpoint: row.endpoint || undefined,
+      errorMessage: row.errorMessage || undefined,
+      id: row.id,
+      metadata: (row.metadata as Record<string, unknown>) || undefined,
+      resourceId: row.resourceId || undefined,
+      resourceType: row.resourceType as ResourceType,
+      sessionId: row.sessionId || undefined,
+      success: row.success,
+      timestamp: row.createdAt,
+      userAgent: row.userAgent || undefined,
+      userId: row.userId || undefined,
+    }));
+  } catch (error) {
+    await logger.warn("Failed to query audit logs", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      filters,
+    });
+    return [];
+  }
 }
 
 /**

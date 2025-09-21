@@ -64,11 +64,7 @@ export async function POST(req: NextRequest) {
     // For example, update user preferences that affect medication scheduling
     if (validatedData.vetMedPreferences?.defaultTimezone) {
       // Update user's timezone in the database for medication scheduling
-      console.log(
-        `Updating timezone for user ${user.id} to:`,
-        validatedData.vetMedPreferences.defaultTimezone,
-      );
-
+      // Updating user timezone for medication scheduling
       // TODO: Update database with timezone information
       // await db.users.update({
       //   where: { stackUserId: user.id },
@@ -78,11 +74,7 @@ export async function POST(req: NextRequest) {
 
     if (validatedData.householdSettings?.primaryHouseholdName) {
       // Sync household name to database
-      console.log(
-        `Updating household name for user ${user.id}:`,
-        validatedData.householdSettings.primaryHouseholdName,
-      );
-
+      // Updating household name for user
       // TODO: Create or update household in database
       // await db.households.upsert({
       //   where: { primaryUserId: user.id },

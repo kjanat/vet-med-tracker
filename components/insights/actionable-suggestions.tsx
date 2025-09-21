@@ -140,7 +140,7 @@ export function ActionableSuggestions() {
         setRevertTimers((prev) => new Map([...prev, [suggestion.id, timer]]));
 
         // Show success message
-        console.log(`Applied: ${suggestion.summary}`, result.changes);
+        // Suggestion applied successfully
       }
     } catch (error) {
       console.error("Failed to apply suggestion:", error);
@@ -151,7 +151,7 @@ export function ActionableSuggestions() {
     if (!selectedHousehold?.id) return;
 
     try {
-      console.log("Reverting suggestion:", suggestionId);
+      // Reverting suggestion
 
       // Clear timer
       const timer = revertTimers.get(suggestionId);
@@ -177,7 +177,7 @@ export function ActionableSuggestions() {
           return next;
         });
 
-        console.log("Suggestion reverted", result.changes);
+        // Suggestion reverted successfully
       }
     } catch (error) {
       console.error("Failed to revert suggestion:", error);

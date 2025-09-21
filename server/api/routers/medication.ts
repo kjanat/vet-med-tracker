@@ -95,7 +95,7 @@ export const medicationRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { query, limit } = input;
 
-      return await ctx.db
+      return ctx.db
         .select()
         .from(medicationCatalog)
         .where(

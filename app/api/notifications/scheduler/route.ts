@@ -20,7 +20,7 @@ function getScheduler() {
 }
 
 // Force dynamic rendering and disable caching for the status endpoint
-// TODO: Uncomment the following:
+// Note: These exports are commented out due to conflict with experimental.cacheComponents
 // export const dynamic = "force-dynamic";
 // export const revalidate = 0;
 

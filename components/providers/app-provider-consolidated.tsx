@@ -673,7 +673,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   const formatHouseholdData = useCallback(
     (data: HouseholdListItem[]) =>
       data.map((h) => ({
-        avatar: undefined, // TODO: Add avatar support
+        avatar: undefined, // Avatar support will be added when avatar storage is implemented
         id: h.id,
         name: h.name,
         timezone: h.timezone,
@@ -747,7 +747,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
       pendingByAnimal: Record<string, number> = {},
     ) =>
       data.map((animal) => ({
-        avatar: undefined, // TODO: Add avatar support
+        avatar: animal.photoUrl || undefined, // Use animal's photo as avatar
         id: animal.id,
         name: animal.name,
         pendingMeds: pendingByAnimal[animal.id] || 0,

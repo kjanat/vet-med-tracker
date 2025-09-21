@@ -20,6 +20,85 @@ import {
 } from "@/server/api/trpc";
 
 export const householdRouter = createTRPCRouter({
+  // Clear all history data for the household
+  clearHistory: ownerProcedure
+    .input(
+      z.object({
+        householdId: z.uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { householdId } = input;
+
+      // Verify household exists and user has owner access
+      const household = await ctx.db
+        .select()
+        .from(households)
+        .where(eq(households.id, householdId))
+        .limit(1);
+
+      if (!household[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Household not found",
+        });
+      }
+
+      // Get count of data that will be affected
+      const [adminCount, auditCount, notificationCount] = await Promise.all([
+        ctx.db
+          .select({ count: count() })
+          .from(administrations)
+          .where(eq(administrations.householdId, householdId)),
+        ctx.db
+          .select({ count: count() })
+          .from(auditLog)
+          .where(eq(auditLog.householdId, householdId)),
+        ctx.db
+          .select({ count: count() })
+          .from(notificationQueue)
+          .where(eq(notificationQueue.householdId, householdId)),
+      ]);
+
+      // Delete all administrations (keep animals, regimens, and medications intact)
+      await ctx.db
+        .delete(administrations)
+        .where(eq(administrations.householdId, householdId));
+
+      // Clear notification queue for this household
+      await ctx.db
+        .delete(notificationQueue)
+        .where(eq(notificationQueue.householdId, householdId));
+
+      // Clear audit logs for this household (if requested)
+      await ctx.db
+        .delete(auditLog)
+        .where(eq(auditLog.householdId, householdId));
+
+      // Log this critical action
+      await ctx.db.insert(auditLog).values({
+        action: "HOUSEHOLD_HISTORY_CLEARED",
+        details: {
+          administrationsDeleted: adminCount[0]?.count || 0,
+          auditLogsDeleted: auditCount[0]?.count || 0,
+          notificationsDeleted: notificationCount[0]?.count || 0,
+        },
+        householdId,
+        resourceId: householdId,
+        resourceType: "household",
+        userId: ctx.dbUser.id,
+      });
+
+      return {
+        message: "Household history cleared successfully",
+        success: true,
+        summary: {
+          administrationsDeleted: adminCount[0]?.count || 0,
+          auditLogsDeleted: auditCount[0]?.count || 0,
+          notificationsDeleted: notificationCount[0]?.count || 0,
+        },
+      };
+    }),
   // Create a new household
   create: protectedProcedure
     .input(

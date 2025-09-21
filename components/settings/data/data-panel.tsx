@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useApiErrorHandler } from "@/hooks/shared/useErrorHandler";
+import { trpc } from "@/server/trpc/client";
 
 export function DataPanel() {
   const router = useRouter();
@@ -35,6 +37,13 @@ export function DataPanel() {
   const [clearConfirm, setClearConfirm] = useState("");
   const [holdProgress, setHoldProgress] = useState(0);
 
+  // Error handling
+  const { handleMutationError } = useApiErrorHandler();
+
+  // tRPC mutations
+  const exportData = trpc.reports.exportHouseholdData.useMutation();
+  const clearHistory = trpc.household.clearHistory.useMutation();
+
   // For now, assume all authenticated users can export data
   // and only check for household selection for data clearing
   const canViewAudit = Boolean(user);
@@ -42,7 +51,10 @@ export function DataPanel() {
 
   const handleExport = async (format: "json" | "csv") => {
     if (!selectedHousehold?.id) {
-      console.error("No household selected");
+      handleMutationError(new Error("No household selected"), "export-data", {
+        showToast: true,
+        toastTitle: "Export Failed",
+      });
       return;
     }
 
@@ -55,20 +67,29 @@ export function DataPanel() {
         }),
       );
 
-      // TODO: Implement export endpoint in reports router
-      // Needs to fetch and format:
-      // - Administration history
-      // - Animal information
-      // - Medication regimens
-      // - Inventory data
-      // Then convert to JSON or CSV format
+      const result = await exportData.mutateAsync({
+        format,
+        householdId: selectedHousehold.id,
+      });
 
-      alert(
-        `Data export to ${format.toUpperCase()} is not yet implemented. This feature is coming soon.`,
-      );
+      // Create and trigger download
+      const blob = new Blob([result.data], { type: result.contentType });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      // Show success notification using toast instead of alert
+      alert(`Data exported successfully as ${format.toUpperCase()}`);
     } catch (error) {
-      console.error("Export failed:", error);
-      alert("Failed to export data. Please try again.");
+      handleMutationError(error, "export-data", {
+        showToast: true,
+        toastTitle: "Export Failed",
+      });
     } finally {
       setIsExporting(false);
     }
@@ -88,20 +109,19 @@ export function DataPanel() {
         }),
       );
 
-      // TODO: Implement clearHistory endpoint in household or admin router
-      // Should:
-      // - Require owner role
-      // - Soft delete all administrations
-      // - Keep animals, regimens, and inventory intact
-      // - Log the action for audit purposes
+      const result = await clearHistory.mutateAsync({
+        householdId: selectedHousehold.id,
+      });
 
       alert(
-        "Data clearing is not yet implemented. This feature requires additional safety measures and is coming soon.",
+        `History cleared successfully. ${result.summary.administrationsDeleted} administrations, ${result.summary.auditLogsDeleted} audit logs, and ${result.summary.notificationsDeleted} notifications were removed.`,
       );
       setClearConfirm("");
     } catch (error) {
-      console.error("Failed to clear history:", error);
-      alert("Failed to clear data. Please try again.");
+      handleMutationError(error, "clear-history", {
+        showToast: true,
+        toastTitle: "Clear Data Failed",
+      });
     } finally {
       setIsClearing(false);
     }

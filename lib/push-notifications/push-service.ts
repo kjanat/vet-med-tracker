@@ -41,7 +41,12 @@ export class PushNotificationService {
   constructor() {
     this.vapidConfig = getVAPIDConfig();
     if (this.vapidConfig) {
-      this.setupWebPush();
+      try {
+        this.setupWebPush();
+      } catch (error) {
+        console.error("Failed to setup WebPush with VAPID config:", error);
+        this.vapidConfig = null; // Disable push notifications if setup fails
+      }
     }
   }
 

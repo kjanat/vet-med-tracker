@@ -7,6 +7,7 @@ import {
   createFailureAudit,
   logAuditEvent,
 } from "@/lib/security/audit-logger";
+import { ResponseHelpers } from "@/lib/utils/api-response";
 import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 
 // Input validation schemas
@@ -52,12 +53,18 @@ export const animalRouter = createTRPCRouter({
           .values(newAnimal)
           .returning();
 
+        const animal = ResponseHelpers.validateDbResult(
+          result,
+          "create",
+          "animal",
+        );
+
         // Create audit log entry for successful animal creation
         await auditDatabaseOperation(
           ctx.dbUser.id,
           "CREATE",
           "ANIMAL",
-          result[0]?.id,
+          animal.id,
           {
             animalName: input.name,
             householdId: ctx.householdId,
@@ -65,7 +72,7 @@ export const animalRouter = createTRPCRouter({
           },
         );
 
-        return result[0];
+        return ResponseHelpers.created(animal, "animal").data;
       } catch (error) {
         // Log failed animal creation attempt
         await logAuditEvent(

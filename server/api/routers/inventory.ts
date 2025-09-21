@@ -123,11 +123,6 @@ export const inventoryRouter = createTRPCRouter({
       ) as typeof inventoryItems.$inferInsert;
 
       try {
-        console.log(
-          "Attempting to insert inventory item with cleanValues:",
-          JSON.stringify(cleanValues, null, 2),
-        );
-
         const newItem = await ctx.db
           .insert(inventoryItems)
           .values(cleanValues)

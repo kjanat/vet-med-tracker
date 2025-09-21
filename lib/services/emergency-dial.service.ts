@@ -69,31 +69,53 @@ export class EmergencyDialService {
   /**
    * Log emergency contact dial for audit trail
    */
-  private static logEmergencyDial(
+  private static async logEmergencyDial(
     contactName: string,
     phoneNumber: string,
-  ): void {
-    console.log(
-      `Emergency dial initiated - Contact: ${contactName}, Phone: ${phoneNumber.replace(/\d(?=\d{4})/g, "*")}`,
-    );
-
-    // In production, this would integrate with audit logging service
-    // For now, we log to console for debugging
+  ): Promise<void> {
+    try {
+      await fetch("/api/audit/emergency-dial", {
+        body: JSON.stringify({
+          contactName,
+          phoneNumber,
+          timestamp: new Date().toISOString(),
+          type: "emergency_contact",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to log emergency dial event:", error);
+      // Don't throw - emergency calling should not be blocked by logging failures
+    }
   }
 
   /**
    * Log veterinarian dial for audit trail
    */
-  private static logVeterinarianDial(
+  private static async logVeterinarianDial(
     vetName: string,
     phoneNumber: string,
-  ): void {
-    console.log(
-      `Veterinarian dial initiated - Vet: ${vetName}, Phone: ${phoneNumber.replace(/\d(?=\d{4})/g, "*")}`,
-    );
-
-    // In production, this would integrate with audit logging service
-    // For now, we log to console for debugging
+  ): Promise<void> {
+    try {
+      await fetch("/api/audit/emergency-dial", {
+        body: JSON.stringify({
+          contactName: vetName,
+          phoneNumber,
+          timestamp: new Date().toISOString(),
+          type: "veterinarian",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Failed to log veterinarian dial event:", error);
+      // Don't throw - emergency calling should not be blocked by logging failures
+    }
   }
 
   /**

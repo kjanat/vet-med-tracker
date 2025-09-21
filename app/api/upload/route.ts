@@ -1,3 +1,4 @@
+import { type PutBlobResult, put } from "@vercel/blob";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auditHelpers } from "@/lib/security/audit-logger";
@@ -30,6 +31,7 @@ const _uploadErrorSchema = z.object({
 
 const _uploadSuccessSchema = z.object({
   url: z.string(),
+  downloadUrl: z.string(),
   fileName: z.string(),
   size: z.number(),
   contentType: z.string(),
@@ -210,27 +212,29 @@ function generateFileName(
 }
 
 /**
- * Mock file storage - In production, this would save to cloud storage (S3, Cloudinary, etc.)
- * For now, we'll return a mock URL structure
+ * Store file to Vercel Blob storage
  */
 async function storeFile(
-  _file: File,
+  file: File,
   fileName: string,
-): Promise<{ url: string }> {
-  // TODO: Implement actual file storage
-  // This would typically upload to:
-  // - AWS S3
-  // - Cloudinary
-  // - Vercel Blob
-  // - Google Cloud Storage
-  // etc.
+): Promise<{ url: string; downloadUrl: string }> {
+  try {
+    // Upload to Vercel Blob with the generated filename
+    const blob: PutBlobResult = await put(fileName, file, {
+      access: "public",
+      addRandomSuffix: false, // We already have unique naming
+    });
 
-  // For now, return a mock URL
-  const mockBaseUrl =
-    process.env.NEXT_PUBLIC_UPLOAD_URL || "https://storage.example.com";
-  return {
-    url: `${mockBaseUrl}/${fileName}`,
-  };
+    return {
+      url: blob.url,
+      downloadUrl: blob.downloadUrl,
+    };
+  } catch (error) {
+    console.error("Vercel Blob upload error:", error);
+    throw new Error(
+      `Failed to upload file to storage: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
 }
 
 // Helper for authentication check
@@ -340,7 +344,7 @@ async function extractAndValidateFile(
 // Helper for processing and storing file
 async function processAndStoreFile(file: File, userId: string) {
   const fileName = generateFileName(file.name, userId, file.type);
-  const { url } = await storeFile(file, fileName);
+  const { url, downloadUrl } = await storeFile(file, fileName);
 
   await auditHelpers.logDataAccess(
     "file_uploaded",
@@ -352,10 +356,12 @@ async function processAndStoreFile(file: File, userId: string) {
       fileSize: file.size,
       contentType: file.type,
       storedAs: fileName,
+      blobUrl: url,
+      downloadUrl,
     },
   );
 
-  return { url, fileName };
+  return { url, downloadUrl, fileName };
 }
 
 // Helper for error handling
@@ -367,6 +373,63 @@ async function handleUploadError(
   console.error("Upload error:", error);
 
   const user = await stackServerApp.getUser();
+
+  // Handle specific Vercel Blob errors
+  if (error instanceof Error) {
+    const errorMessage = error.message.toLowerCase();
+
+    // Check for common Vercel Blob error patterns
+    if (
+      errorMessage.includes("blob store") ||
+      errorMessage.includes("storage")
+    ) {
+      await auditHelpers.logThreat(
+        "blob_storage_error",
+        "high",
+        clientIp,
+        user?.id,
+        {
+          error: error.message,
+          stack: error.stack,
+          type: "vercel_blob_failure",
+        },
+      );
+
+      return withCors(
+        request,
+        createErrorResponse(
+          "File storage service temporarily unavailable",
+          503,
+          "STORAGE_UNAVAILABLE",
+        ),
+      );
+    }
+
+    // Check for quota/size limits
+    if (errorMessage.includes("quota") || errorMessage.includes("limit")) {
+      await auditHelpers.logThreat(
+        "storage_quota_exceeded",
+        "medium",
+        clientIp,
+        user?.id,
+        {
+          error: error.message,
+          type: "quota_limit",
+        },
+      );
+
+      return withCors(
+        request,
+        createErrorResponse(
+          "Storage quota exceeded. Please try again later or contact support.",
+          507,
+          "QUOTA_EXCEEDED",
+        ),
+      );
+    }
+  }
+
+  // General error logging
   await auditHelpers.logThreat("upload_error", "medium", clientIp, user?.id, {
     error: error instanceof Error ? error.message : String(error),
     stack: error instanceof Error ? error.stack : undefined,
@@ -414,13 +477,17 @@ export async function POST(request: NextRequest) {
     );
 
     // Process and store file
-    const { url, fileName } = await processAndStoreFile(file, user.id);
+    const { url, downloadUrl, fileName } = await processAndStoreFile(
+      file,
+      user.id,
+    );
 
     // Return success response
     return withCors(
       request,
       createSuccessResponse({
         url,
+        downloadUrl,
         fileName,
         size: file.size,
         contentType: file.type,

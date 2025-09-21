@@ -3,7 +3,7 @@
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 import Link from "next/link";
 // import { useRouter } from "next/navigation"; // Uncomment when needed
-import { Component, type ErrorInfo, type ReactNode } from "react";
+import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,

@@ -47,6 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useBarcodeScanner } from "@/hooks/inventory/useBarcodeScanner";
 import {
   type InventoryFormData,
@@ -85,12 +86,14 @@ export function AddItemModal({
       lot: undefined,
       medicationId: undefined,
       name: "",
+      notes: "",
       quantityUnits: 1,
       route: "",
       setInUse: false,
       storage: "ROOM",
       strength: undefined,
       unitsRemaining: 1,
+      unitType: "units",
     },
     resolver: zodResolver(inventoryFormSchema),
   });
@@ -113,7 +116,7 @@ export function AddItemModal({
         );
 
         // TODO: Call server to resolve catalog info
-        console.log("Scanned barcode:", barcode);
+        // TODO: Process scanned barcode
       },
     });
 
@@ -480,7 +483,7 @@ export function AddItemModal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="quantityUnits"
@@ -532,6 +535,45 @@ export function AddItemModal({
                               }
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="unitType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Unit Type *</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select unit type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="units">Units</SelectItem>
+                              <SelectItem value="tablets">Tablets</SelectItem>
+                              <SelectItem value="capsules">Capsules</SelectItem>
+                              <SelectItem value="ml">
+                                Milliliters (ml)
+                              </SelectItem>
+                              <SelectItem value="mg">
+                                Milligrams (mg)
+                              </SelectItem>
+                              <SelectItem value="g">Grams (g)</SelectItem>
+                              <SelectItem value="doses">Doses</SelectItem>
+                              <SelectItem value="applications">
+                                Applications
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -662,6 +704,24 @@ export function AddItemModal({
                       )}
                     />
                   )}
+
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Additional notes about this medication (optional)"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   {form.watch("barcode") && (
                     <div className="space-y-2">

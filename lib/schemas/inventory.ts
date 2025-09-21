@@ -13,6 +13,7 @@ export const inventoryFormSchema = z
     lot: z.string().optional(),
     medicationId: z.uuid().optional(), // Made optional for hybrid approach
     name: z.string().min(1, "Medication name is required"), // Primary field for hybrid
+    notes: z.string().optional(),
     quantityUnits: z
       .number()
       .int("Quantity must be a whole number")
@@ -25,6 +26,7 @@ export const inventoryFormSchema = z
       .number()
       .int("Units remaining must be a whole number")
       .min(0, "Units remaining cannot be negative"),
+    unitType: z.string().min(1, "Unit type is required"),
   })
   .refine((data) => data.unitsRemaining <= data.quantityUnits, {
     message: "Units remaining cannot exceed total quantity",

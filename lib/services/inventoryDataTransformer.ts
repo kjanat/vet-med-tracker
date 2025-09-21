@@ -103,11 +103,11 @@ export class InventoryDataTransformer {
       householdId: household.id,
       lot: formData.lot || undefined,
       medicationId: formData.medicationId,
-      notes: undefined, // TODO: Add notes field to form
+      notes: formData.notes || undefined,
       storage: formData.storage,
       unitsRemaining: formData.unitsRemaining,
       unitsTotal: formData.quantityUnits,
-      unitType: "units", // TODO: Make this configurable
+      unitType: formData.unitType,
     };
   }
 
@@ -129,12 +129,14 @@ export class InventoryDataTransformer {
       lot: "",
       medicationId: "",
       name: "",
+      notes: "",
       quantityUnits: options.quantityUnits ?? 1,
       route: "",
       setInUse: false,
       storage: options.storage ?? "ROOM",
       strength: "",
       unitsRemaining: options.quantityUnits ?? 1,
+      unitType: options.unitType ?? "tablets",
     };
   }
 
@@ -222,12 +224,14 @@ export class InventoryDataTransformer {
       // Trim string fields
       medicationId: data.medicationId?.trim() || "",
       name: data.name?.trim() || "",
+      notes: data.notes?.trim() || "",
 
       // Ensure positive numbers
       quantityUnits: Math.max(0, data.quantityUnits || 1),
       route: data.route?.trim() || "",
       strength: data.strength?.trim() || "",
       unitsRemaining: Math.max(0, data.unitsRemaining || 1),
+      unitType: data.unitType?.trim() || "tablets",
     };
   }
 

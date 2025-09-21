@@ -338,13 +338,10 @@ class MedicalAdministrationTracker {
    * Update compliance metrics
    */
   private static updateComplianceMetrics(
-    administration: AdministrationEvent,
+    _administration: AdministrationEvent,
   ): void {
     // In a real implementation, this would update persistent metrics
-    // For now, we'll just log for debugging
-    console.log(
-      `Compliance updated for ${administration.animalName}: ${administration.status}`,
-    );
+    // Update compliance metrics here
   }
 
   /**

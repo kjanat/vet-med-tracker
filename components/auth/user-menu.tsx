@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/shared/useResponsive";
+import { getUserInitials } from "@/lib/utils/avatar-utils";
 import { LoginButton } from "./login-button";
 import { UserMenuDesktop } from "./user-menu-desktop";
 
@@ -25,14 +26,7 @@ function MobileUserMenu() {
     return <LoginButton size="sm" variant="outline" />;
   }
 
-  const initials = user.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : user.email?.[0]?.toUpperCase() || "U";
+  const initials = getUserInitials(user.name, user.email);
 
   return (
     <DropdownMenu>

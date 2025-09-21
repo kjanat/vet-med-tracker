@@ -247,14 +247,14 @@ function HistoryContent() {
 
   const handleLoadMore = () => {
     // Implement pagination
-    console.log("Loading more records...");
+    // TODO: Implement pagination
   };
 
-  const handleSelectDay = (day: Date) => {
+  const handleSelectDay = (_day: Date) => {
     // Update filters to show only that day
     // const dayStr = day.toISOString().slice(0, 10)
     // setFilters({ ...filters, from: dayStr, to: dayStr, view: "list" })
-    console.log("Selected day:", day);
+    // TODO: Update filters to show only selected day
   };
 
   // Initial loading state (when households are still loading)

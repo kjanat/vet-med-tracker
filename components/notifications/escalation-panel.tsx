@@ -39,7 +39,7 @@ export function EscalationPanel() {
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
-      console.log("Saving notification preferences:", prefs);
+      // Saving notification preferences
 
       // Fire instrumentation event
       window.dispatchEvent(
@@ -56,7 +56,7 @@ export function EscalationPanel() {
       //   escalationRole: prefs.escalationRole
       // })
 
-      console.log("Notification preferences saved");
+      // Notification preferences saved successfully
     } catch (error) {
       console.error("Failed to save preferences:", error);
     } finally {

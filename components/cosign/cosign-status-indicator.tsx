@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
+import type React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

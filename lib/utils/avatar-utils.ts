@@ -28,3 +28,25 @@ export function getAvatarColor(name: string): string {
   const index = Math.abs(hash) % colors.length;
   return colors[index] || colors[0] || "#9CA3AF";
 }
+
+/**
+ * Generate user initials from name or email
+ * @param name - User's display name
+ * @param email - User's email address
+ * @returns User initials (up to 2 characters)
+ */
+export function getUserInitials(
+  name?: string | null,
+  email?: string | null,
+): string {
+  if (name) {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }
+
+  return email?.[0]?.toUpperCase() || "U";
+}

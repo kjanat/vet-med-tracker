@@ -7,6 +7,7 @@
  */
 
 import dynamic from "next/dynamic";
+import type React from "react";
 import { Suspense } from "react";
 
 // Loading fallback components

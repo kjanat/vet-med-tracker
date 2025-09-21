@@ -19,6 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { getUserInitials } from "@/lib/utils/avatar-utils";
 import { LoginButton } from "./login-button";
 
 export function UserMenuDesktop() {
@@ -35,14 +36,7 @@ export function UserMenuDesktop() {
     );
   }
 
-  const initials = user.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : user.email?.[0]?.toUpperCase() || "U";
+  const initials = getUserInitials(user.name, user.email);
 
   return (
     <SidebarMenu>

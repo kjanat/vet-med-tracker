@@ -39,33 +39,7 @@ export function DebugHouseholdState() {
     }
   }, []);
 
-  useEffect(() => {
-    console.log("=== DEBUG HOUSEHOLD STATE ===");
-    console.log("isAuthenticated:", isAuthenticated);
-    console.log("user:", user);
-    console.log("households from app:", households);
-    console.log("selectedHousehold:", selectedHousehold);
-    console.log("householdData from API:", householdData);
-    if (householdData && householdData.length > 0) {
-      console.log(
-        "API household IDs:",
-        householdData.map((h) => h.id),
-      );
-    }
-    console.log("API loading:", isLoading);
-    console.log("API error:", error);
-    console.log("localStorage selectedHouseholdId:", localStorageValue);
-    console.log("============================");
-  }, [
-    isAuthenticated,
-    user,
-    households,
-    selectedHousehold,
-    householdData,
-    isLoading,
-    error,
-    localStorageValue,
-  ]);
+  // Debug component provides visual debugging - no console logs needed in production
 
   return (
     <div className="fixed right-4 bottom-4 max-w-md rounded-lg bg-black/80 p-4 text-white text-xs">

@@ -163,7 +163,7 @@ function InventoryContent() {
         householdId: selectedHousehold.id,
         inUse,
       });
-      console.log(inUse ? "Now in use" : "No longer in use");
+      // Status updated successfully
     } catch (error) {
       console.error("Failed to update in-use status:", error);
     }
@@ -199,7 +199,7 @@ function InventoryContent() {
         householdId: selectedHousehold.id,
         animalId,
       });
-      console.log(`Assigned item to ${animalId || "no animal"}`);
+      // Item assigned successfully
     } catch (error) {
       console.error("Failed to assign item:", error);
     }
@@ -219,7 +219,7 @@ function InventoryContent() {
         unitsRemaining: data.unitsRemaining,
         notes: data.notes,
       });
-      console.log("Item updated successfully");
+      // Item updated successfully
     } catch (error) {
       console.error("Failed to update item:", error);
     }
@@ -233,7 +233,7 @@ function InventoryContent() {
         id,
         householdId: selectedHousehold.id,
       });
-      console.log("Item deleted successfully");
+      // Item deleted successfully
     } catch (error) {
       console.error("Failed to delete item:", error);
     }
@@ -241,7 +241,7 @@ function InventoryContent() {
 
   const handleAlertClick = (alertId: string) => {
     // Scroll to item or highlight it
-    console.log("Alert clicked:", alertId);
+    // Handle alert click
 
     if (typeof window !== "undefined") {
       window.dispatchEvent(

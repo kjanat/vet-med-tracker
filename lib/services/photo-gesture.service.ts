@@ -5,6 +5,7 @@
  * and mobile interaction patterns for the photo gallery.
  */
 
+import type React from "react";
 import type { LightboxState } from "./photo-viewer.service";
 
 export interface SwipeState {

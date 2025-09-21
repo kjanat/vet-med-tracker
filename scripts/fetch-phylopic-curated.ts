@@ -163,7 +163,7 @@ async function fetchCuratedImagesForNode(
   }
 }
 
-async function main() {
+async function main(DELAY_MS: number) {
   console.log(
     `🎲 PhyloPic Curator: Randomly selecting ${SILHOUETTES_PER_ANIMAL} silhouettes per animal type`,
   );
@@ -189,7 +189,7 @@ async function main() {
 
   for (const [animalType, nodeId] of Object.entries(ANIMAL_NODES)) {
     await fetchCuratedImagesForNode(nodeId, animalType);
-    await new Promise((r) => setTimeout(r, 1500)); // polite delay
+    await new Promise((r) => setTimeout(r, DELAY_MS)); // polite delay
   }
 
   // Build index.json
@@ -215,4 +215,6 @@ async function main() {
   console.log(JSON.stringify(index, null, 2));
 }
 
-main().catch(console.error);
+const SET_DELAY = 1500;
+
+main(SET_DELAY).catch(console.error);

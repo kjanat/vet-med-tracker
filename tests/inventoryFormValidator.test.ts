@@ -13,12 +13,14 @@ describe.skip("InventoryFormValidator", () => {
     lot: "LOT123",
     medicationId: "med-123",
     name: "Test Medication",
+    notes: "",
     quantityUnits: 10,
     route: "oral",
     setInUse: false,
     storage: "ROOM" as const,
     strength: "10mg",
     unitsRemaining: 8,
+    unitType: "tablets",
   };
 
   const validContext = {

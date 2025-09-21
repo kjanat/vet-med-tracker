@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   administrations,
   animals,
+  households,
   medicationCatalog,
   regimens,
 } from "@/db/schema";
@@ -426,5 +427,171 @@ export const reportsRouter = createTRPCRouter({
           to: endDate,
         },
       };
+    }),
+  // Export household data in JSON or CSV format
+  exportHouseholdData: householdProcedure
+    .input(
+      z.object({
+        format: z.enum(["json", "csv"]),
+        householdId: z.uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { householdId, format } = input;
+
+      // Verify household access
+      const household = await ctx.db
+        .select({
+          id: households.id,
+          name: households.name,
+          timezone: households.timezone,
+        })
+        .from(households)
+        .where(eq(households.id, householdId))
+        .limit(1);
+
+      if (!household[0]) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Household not found",
+        });
+      }
+
+      // Get all animals in the household
+      const householdAnimals = await ctx.db
+        .select()
+        .from(animals)
+        .where(
+          and(eq(animals.householdId, householdId), isNull(animals.deletedAt)),
+        );
+
+      // Get all regimens with medication details
+      const regimensWithMeds = await ctx.db
+        .select({
+          medication: medicationCatalog,
+          regimen: regimens,
+        })
+        .from(regimens)
+        .innerJoin(
+          medicationCatalog,
+          eq(regimens.medicationId, medicationCatalog.id),
+        )
+        .innerJoin(animals, eq(regimens.animalId, animals.id))
+        .where(
+          and(eq(animals.householdId, householdId), isNull(regimens.deletedAt)),
+        );
+
+      // Get all administrations
+      const allAdministrations = await ctx.db
+        .select({
+          administration: administrations,
+          animalName: animals.name,
+          medicationName: sql<string>`COALESCE(${medicationCatalog.genericName}, ${medicationCatalog.brandName}, 'Unknown')`,
+        })
+        .from(administrations)
+        .innerJoin(animals, eq(administrations.animalId, animals.id))
+        .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
+        .innerJoin(
+          medicationCatalog,
+          eq(regimens.medicationId, medicationCatalog.id),
+        )
+        .where(
+          and(
+            eq(animals.householdId, householdId),
+            eq(administrations.householdId, householdId),
+          ),
+        )
+        .orderBy(desc(administrations.recordedAt));
+
+      // Build export data structure
+      const exportData = {
+        administrations: allAdministrations.map(
+          ({ administration, animalName, medicationName }) => ({
+            ...administration,
+            animalName,
+            createdAt: administration.createdAt.toISOString(),
+            medicationName,
+            // Convert dates to timezone-aware display
+            recordedAt: administration.recordedAt.toISOString(),
+            scheduledFor: administration.scheduledFor?.toISOString() || null,
+            updatedAt: administration.updatedAt.toISOString(),
+          }),
+        ),
+        animals: householdAnimals.map((animal) => ({
+          ...animal,
+          // Convert timezone dates to local display
+          createdAt: animal.createdAt.toISOString(),
+          deletedAt: animal.deletedAt?.toISOString() || null,
+          updatedAt: animal.updatedAt.toISOString(),
+        })),
+        exportedAt: new Date().toISOString(),
+        household: household[0],
+        regimens: regimensWithMeds.map(({ regimen, medication }) => ({
+          ...regimen,
+          // Convert dates
+          createdAt: regimen.createdAt.toISOString(),
+          deletedAt: regimen.deletedAt?.toISOString() || null,
+          endDate: regimen.endDate?.toISOString() || null,
+          medication,
+          pausedAt: regimen.pausedAt?.toISOString() || null,
+          startDate: regimen.startDate?.toISOString() || null,
+          updatedAt: regimen.updatedAt.toISOString(),
+        })),
+      };
+
+      if (format === "json") {
+        return {
+          contentType: "application/json",
+          data: JSON.stringify(exportData, null, 2),
+          filename: `vetmed-export-${householdId}-${new Date().toISOString().split("T")[0]}.json`,
+        };
+      } else {
+        // CSV format - flatten administrations with context
+        const csvRows = [
+          [
+            "Date",
+            "Animal",
+            "Medication",
+            "Status",
+            "Dose",
+            "Site",
+            "Notes",
+            "Adverse Event",
+            "Caregiver ID",
+          ],
+        ];
+
+        for (const {
+          administration,
+          animalName,
+          medicationName,
+        } of allAdministrations) {
+          csvRows.push([
+            new Date(administration.recordedAt).toLocaleDateString(),
+            animalName,
+            medicationName,
+            administration.status,
+            administration.dose || "",
+            administration.site || "",
+            administration.notes || "",
+            administration.adverseEvent ? "Yes" : "No",
+            administration.caregiverId || "",
+          ]);
+        }
+
+        const csvContent = csvRows
+          .map((row) =>
+            row
+              .map((field) => `"${String(field).replace(/"/g, '""')}"`)
+              .join(","),
+          )
+          .join("\n");
+
+        return {
+          contentType: "text/csv",
+          data: csvContent,
+          filename: `vetmed-export-${householdId}-${new Date().toISOString().split("T")[0]}.csv`,
+        };
+      }
     }),
 });
