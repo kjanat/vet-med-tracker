@@ -47,7 +47,7 @@ function UpcomingDosesWidgetContent({
 
       return {
         count: Math.max(0, dailyCount),
-        date: date.toISOString().split("T")[0],
+        date: date.toISOString().slice(0, 10),
         dayName: date.toLocaleDateString("en-US", { weekday: "short" }),
         fullDate: date.toLocaleDateString("en-US", {
           day: "numeric",

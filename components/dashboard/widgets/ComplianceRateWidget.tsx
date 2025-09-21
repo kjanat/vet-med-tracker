@@ -79,7 +79,7 @@ function ComplianceRateWidgetContent({
 
       sampleData.push({
         complianceRate: Math.round(complianceRate),
-        date: date.toISOString().split("T")[0],
+        date: date.toISOString().slice(0, 10),
         onTimeRate: Math.round(onTimeRate),
       });
     }

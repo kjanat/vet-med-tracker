@@ -147,7 +147,33 @@ export default function PersonalInfoSection() {
   );
 
   // Load current profile data
-  const { data: currentProfile, isLoading } = trpc.user.getProfile.useQuery();
+  const { data: rawCurrentProfile, isLoading } =
+    trpc.user.getProfile.useQuery();
+
+  // Transform API response to match UserProfile interface
+  const currentProfile = rawCurrentProfile
+    ? {
+        ...rawCurrentProfile,
+        onboarding: {
+          ...rawCurrentProfile.onboarding,
+          completedAt: rawCurrentProfile.onboarding.completedAt
+            ? new Date(rawCurrentProfile.onboarding.completedAt)
+            : null,
+        },
+        availableHouseholds: rawCurrentProfile.availableHouseholds.map(
+          (household) => ({
+            ...household,
+            createdAt: new Date(household.createdAt),
+            updatedAt: new Date(household.updatedAt),
+            membership: {
+              ...household.membership,
+              createdAt: new Date(household.membership.createdAt),
+              updatedAt: new Date(household.membership.updatedAt),
+            },
+          }),
+        ),
+      }
+    : undefined;
 
   useEffect(() => {
     if (currentProfile) {

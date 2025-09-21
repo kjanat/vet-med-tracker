@@ -42,8 +42,7 @@ interface TabletRecordLayoutProps {
   selectedRegimen: DueRegimen | null;
   dueRegimens?: DueRegimen[];
   regimensLoading: boolean;
-  regimensError: Error | null;
-  isOnline: boolean;
+  regimensError: { message: string } | null;
   onRegimenSelect: (regimen: DueRegimen) => void;
   onBack?: () => void;
   onCancel?: () => void;
@@ -82,7 +81,6 @@ export function TabletRecordLayout({
   dueRegimens,
   regimensLoading,
   regimensError,
-  isOnline,
   onRegimenSelect,
   onBack,
   onCancel,
@@ -155,15 +153,6 @@ export function TabletRecordLayout({
 
           {/* Quick stats */}
           <StatsDisplay stats={stats} />
-
-          {!isOnline && (
-            <Alert className="mb-4">
-              <AlertDescription className="text-sm">
-                You&apos;re offline. Recordings will be saved and synced when
-                connection is restored.
-              </AlertDescription>
-            </Alert>
-          )}
 
           {regimensError && (
             <Alert className="mb-4" variant="destructive">

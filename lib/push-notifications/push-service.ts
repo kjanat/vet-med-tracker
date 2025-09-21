@@ -259,7 +259,7 @@ export class PushNotificationService {
       const db = (await import("@/db/drizzle")).db;
       await db
         .update(pushSubscriptions)
-        .set({ lastUsed: new Date().toISOString() })
+        .set({ lastUsed: new Date() })
         .where(eq(pushSubscriptions.id, subscriptionId));
     } catch (error) {
       console.error(

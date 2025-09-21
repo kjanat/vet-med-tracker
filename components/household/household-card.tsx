@@ -21,7 +21,7 @@ interface HouseholdCardProps {
     household: {
       id: string;
       name: string;
-      createdAt: string;
+      createdAt: Date;
       timezone?: string | null;
       _count?: {
         members?: number;
@@ -58,8 +58,7 @@ export function HouseholdCard({
                 {membership.household.name}
               </CardTitle>
               <CardDescription>
-                Created{" "}
-                {new Date(membership.household.createdAt).toLocaleDateString()}
+                Created {membership.household.createdAt.toLocaleDateString()}
                 {membership.household.timezone && (
                   <span className="ml-2">
                     • {membership.household.timezone}

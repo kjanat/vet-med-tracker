@@ -48,7 +48,7 @@ async function syncStackUserToDatabase(
     const [dbUser] = await db
       .insert(usersTable)
       .values({
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
         email: stackUser.primaryEmail || "",
         id: crypto.randomUUID(),
         image: stackUser.profileImageUrl || null,
@@ -56,7 +56,7 @@ async function syncStackUserToDatabase(
         preferences: structuredClone(defaultUserPreferences),
         profile: structuredClone(defaultUserProfile),
         stackUserId: stackUser.id,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       })
       .onConflictDoUpdate({
         set: {
@@ -64,7 +64,7 @@ async function syncStackUserToDatabase(
           // Don't overwrite existing firstName/lastName if the user has set them
           image: stackUser.profileImageUrl || null,
           name: stackUser.displayName || null,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         },
         target: usersTable.stackUserId,
       })

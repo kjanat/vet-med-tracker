@@ -19,7 +19,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 function mergeUserPreferences(
   currentPreferences: UserPreferencesSchema | null,
   vetPrefs: Partial<VetMedPreferences> | undefined,
-  dbUser: { defaultAnimalId: string | null; defaultHouseholdId: string | null }
+  dbUser: { defaultAnimalId: string | null; defaultHouseholdId: string | null },
 ): UserPreferencesSchema {
   const current: UserPreferencesSchema = currentPreferences
     ? structuredClone(currentPreferences)
@@ -37,18 +37,15 @@ function mergeUserPreferences(
       current.defaultHouseholdId ??
       dbUser.defaultHouseholdId ??
       null,
-    defaultTimezone:
-      vetPrefs?.defaultTimezone ?? current.defaultTimezone,
+    defaultTimezone: vetPrefs?.defaultTimezone ?? current.defaultTimezone,
     displayPreferences: {
       ...current.displayPreferences,
       ...(vetPrefs?.displayPreferences ?? {}),
     },
     emergencyContactName:
-      vetPrefs?.emergencyContactName ??
-      current.emergencyContactName,
+      vetPrefs?.emergencyContactName ?? current.emergencyContactName,
     emergencyContactPhone:
-      vetPrefs?.emergencyContactPhone ??
-      current.emergencyContactPhone,
+      vetPrefs?.emergencyContactPhone ?? current.emergencyContactPhone,
     legacyBackup: current.legacyBackup ?? null,
     notificationPreferences: {
       ...current.notificationPreferences,
@@ -58,8 +55,7 @@ function mergeUserPreferences(
         current.notificationPreferences.reminderLeadTime,
     },
     preferredPhoneNumber:
-      vetPrefs?.preferredPhoneNumber ??
-      current.preferredPhoneNumber,
+      vetPrefs?.preferredPhoneNumber ?? current.preferredPhoneNumber,
   };
 }
 
@@ -283,12 +279,12 @@ export const userRouter = createTRPCRouter({
       const mergedPreferences = mergeUserPreferences(
         ctx.dbUser.preferences,
         vetPrefs,
-        ctx.dbUser
+        ctx.dbUser,
       );
 
       const updatePayload: Partial<typeof users.$inferInsert> = {
         preferences: mergedPreferences,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       };
 
       if (vetPrefs?.defaultHouseholdId !== undefined) {
@@ -378,7 +374,7 @@ export const userRouter = createTRPCRouter({
         .update(users)
         .set({
           profile: mergedProfile,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(users.id, dbUser.id))
         .returning();

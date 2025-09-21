@@ -74,7 +74,7 @@ export class RegimenCalculator {
   async getActiveRegimens(householdId: string): Promise<RegimenSchedule[]> {
     const db = (await import("@/db/drizzle")).db;
 
-    const todayString = new Date().toISOString().split("T")[0];
+    const todayString = new Date().toISOString().slice(0, 10);
 
     const result = await db
       .select({
@@ -308,14 +308,14 @@ export class RegimenCalculator {
 
     for (const dose of doses) {
       // Check if this specific dose time has been administered
-      const windowStartStr = DateTime.fromJSDate(dose.scheduledTime)
+      const windowStart = DateTime.fromJSDate(dose.scheduledTime)
         .minus({ minutes: 15 })
-        .toISO();
-      const windowEndStr = DateTime.fromJSDate(dose.scheduledTime)
+        .toJSDate();
+      const windowEnd = DateTime.fromJSDate(dose.scheduledTime)
         .plus({ minutes: 15 })
-        .toISO();
+        .toJSDate();
 
-      if (!windowStartStr || !windowEndStr) {
+      if (!windowStart || !windowEnd) {
         // Skip if DateTime conversion failed
         continue;
       }
@@ -327,8 +327,8 @@ export class RegimenCalculator {
           and(
             eq(administrations.regimenId, dose.regimenId),
             eq(administrations.animalId, dose.animalId),
-            gte(administrations.recordedAt, windowStartStr),
-            lte(administrations.recordedAt, windowEndStr),
+            gte(administrations.recordedAt, windowStart),
+            lte(administrations.recordedAt, windowEnd),
           ),
         )
         .limit(1);

@@ -122,10 +122,10 @@ export function useHistoryFilters() {
 
       const updates: Record<string, string> = {};
       if (!searchParams.get("from")) {
-        updates.from = thirtyDaysAgo.toISOString().split("T")[0] || "";
+        updates.from = thirtyDaysAgo.toISOString().slice(0, 10) || "";
       }
       if (!searchParams.get("to")) {
-        updates.to = now.toISOString().split("T")[0] || "";
+        updates.to = now.toISOString().slice(0, 10) || "";
       }
 
       const queryString = createQueryString(updates);

@@ -1,14 +1,15 @@
 "use client";
 
 import { useUser } from "@stackframe/stack";
+import type { TRPCClientErrorLike } from "@trpc/client";
 import { ArrowLeft, Camera, Tag } from "lucide-react";
-import Image from "next/image";
 import type { Route } from "next";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import type React from "react";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { RecordAdminErrorBoundary } from "@/components/error-boundary-page";
+import { RecordAdminErrorBoundary } from "@/components/error-handling/error-boundary-page";
+import type { AppContextType } from "@/components/providers/app-provider-consolidated";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
@@ -36,172 +37,169 @@ import { TabletConfirmLayout } from "@/components/ui/tablet-confirm-layout";
 import { TabletRecordLayout } from "@/components/ui/tablet-record-layout";
 import { TabletSuccessLayout } from "@/components/ui/tablet-success-layout";
 import { Textarea } from "@/components/ui/textarea";
-// Offline queue functionality removed during simplification
 import { useResponsive } from "@/hooks/shared/useResponsive";
+import {
+  AdminRecordDataService,
+  type MutationCallbacks,
+} from "@/lib/services/admin-record-data.service";
+import {
+  AdminRecordUIService,
+  type LayoutProps,
+} from "@/lib/services/admin-record-ui.service";
+// Import the new services
+import {
+  AdminRecordValidationService,
+  type DueRegimen,
+} from "@/lib/services/admin-record-validation.service";
+import {
+  AdminRecordWorkflowService,
+  type WorkflowState,
+} from "@/lib/services/admin-record-workflow.service";
+import {
+  NavigationService,
+  type RouterLike,
+} from "@/lib/services/navigation.service";
+import type { AppRouter } from "@/server/api/routers/_app";
 import { trpc } from "@/server/trpc/client";
 import type { InventorySource } from "@/types/inventory";
-import { adminKey } from "@/utils/idempotency";
-import { formatTimeLocal, localDayISO } from "@/utils/tz";
 
-type RecordStep = "select" | "confirm" | "success";
+type RegimenQueryError = TRPCClientErrorLike<AppRouter> | null;
+type AnimalsList = AppContextType["animals"];
+type AdminCreateMutation = ReturnType<typeof trpc.admin.create.useMutation>;
+type InventoryUpdateMutation = ReturnType<
+  typeof trpc.inventory.updateQuantity.useMutation
+>;
 
-type RecordState = ReturnType<typeof useRecordState>;
+type AdminRecordDataResult = {
+  dueRegimens: DueRegimen[] | undefined;
+  regimensLoading: boolean;
+  regimensError: RegimenQueryError;
+  inventorySources: InventorySource[];
+  inventoryLoading: boolean;
+  createAdminMutation: AdminCreateMutation;
+  updateInventoryMutation: InventoryUpdateMutation;
+  callbacks: MutationCallbacks;
+};
 
-interface DueRegimen {
-  id: string;
-  animalId: string;
-  animalName: string;
-  animalSpecies?: string;
-  animalPhotoUrl?: string | null;
-  medicationName: string;
-  brandName?: string | null;
-  route: string;
-  form: string;
-  strength: string;
-  dose?: string;
-  targetTime?: string;
-  isPRN: boolean;
-  isHighRisk: boolean;
-  requiresCoSign: boolean;
-  compliance: number;
-  section: "due" | "later" | "prn";
-  isOverdue?: boolean;
-  minutesUntilDue?: number;
-  instructions?: string | null;
-  prnReason?: string | null;
-  lastAdministration?: {
-    id: string;
-    recordedAt: string;
-    status: string;
-  } | null;
-}
+const DASHBOARD_ROUTE: Route = "/auth/dashboard";
 
-function useRecordState() {
-  const [step, setStep] = useState<RecordStep>("select");
-  const [selectedRegimen, setSelectedRegimen] = useState<DueRegimen | null>(
-    null,
+// Custom hook for workflow state management
+function useWorkflowState() {
+  const [state, setState] = useState<WorkflowState>(
+    AdminRecordWorkflowService.createInitialState(),
   );
-  const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(null);
-  const [inventorySourceId, setInventorySourceId] = useState<string | null>(
-    null,
-  );
-  const [allowOverride, setAllowOverride] = useState(false);
-  const [requiresCoSign, setRequiresCoSign] = useState(false);
-  const [notes, setNotes] = useState("");
-  const [site, setSite] = useState("");
-  const [conditionTags, setConditionTags] = useState<string[]>([]);
-  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateState = (updates: Partial<WorkflowState>) => {
+    setState((prev) => ({ ...prev, ...updates }));
+  };
+
+  const selectRegimen = (regimen: DueRegimen) => {
+    setState((prev) => AdminRecordWorkflowService.selectRegimen(prev, regimen));
+  };
+
+  const transitionToStep = (step: WorkflowState["step"]) => {
+    setState((prev) => AdminRecordWorkflowService.transitionToStep(prev, step));
+  };
+
+  const resetWorkflow = () => {
+    setState(AdminRecordWorkflowService.createInitialState());
+  };
 
   return {
-    step,
-    setStep,
-    selectedRegimen,
-    setSelectedRegimen,
-    selectedAnimalId,
-    setSelectedAnimalId,
-    inventorySourceId,
-    setInventorySourceId,
-    allowOverride,
-    setAllowOverride,
-    requiresCoSign,
-    setRequiresCoSign,
-    notes,
-    setNotes,
-    site,
-    setSite,
-    conditionTags,
-    setConditionTags,
-    photoUrls,
-    setPhotoUrls,
-    isSubmitting,
-    setIsSubmitting,
+    state,
+    updateState,
+    selectRegimen,
+    transitionToStep,
+    resetWorkflow,
   };
 }
 
-// Custom hook to handle data fetching
-function useRecordData(
-  state: ReturnType<typeof useRecordState>,
+// Custom hook for data operations
+function useAdminRecordData(
+  state: WorkflowState,
   selectedHousehold: { id: string } | null,
   refreshPendingMeds: () => void,
-) {
+): AdminRecordDataResult {
   const utils = trpc.useUtils();
 
-  // Fetch due regimens from API
-  const {
-    data: dueRegimens,
-    isLoading: regimensLoading,
-    error: regimensError,
-  } = trpc.regimen.listDue.useQuery(
-    {
-      householdId: selectedHousehold?.id,
-      animalId: state.selectedAnimalId || undefined,
-      includeUpcoming: true,
-    },
+  // Fetch due regimens
+  const regimenQuery = trpc.regimen.listDue.useQuery(
+    AdminRecordDataService.createRegimenQueryOptions(
+      selectedHousehold?.id,
+      state.selectedAnimalId || undefined,
+    ),
     {
       enabled: Boolean(selectedHousehold?.id),
-      refetchInterval: 60000, // Refresh every minute
     },
   );
 
-  // Create record administration mutation
-  const createAdminMutation = trpc.admin.create.useMutation({
-    onSuccess: async () => {
-      // Invalidate due regimens to refresh the list
-      await utils.regimen.listDue.invalidate();
-      // Refresh pending medication counts in app provider
-      refreshPendingMeds();
-      state.setStep("success");
+  // Fetch inventory sources
+  const inventoryQueryOptions =
+    AdminRecordDataService.createInventoryQueryOptions(
+      selectedHousehold?.id,
+      state.selectedRegimen?.medicationName,
+      state.allowOverride,
+    );
+  const inventoryQuery = trpc.inventory.getSources.useQuery(
+    {
+      householdId: inventoryQueryOptions.householdId || "",
+      medicationName: inventoryQueryOptions.medicationName || "",
+      includeExpired: inventoryQueryOptions.includeExpired,
     },
-    onError: (error) => {
-      console.error("Failed to record administration:", error);
-      toast.error("Failed to record administration");
+    {
+      enabled:
+        Boolean(state.selectedRegimen) &&
+        Boolean(selectedHousehold?.id) &&
+        Boolean(inventoryQueryOptions.householdId) &&
+        Boolean(inventoryQueryOptions.medicationName),
     },
-  });
+  );
 
-  // Inventory update mutation
-  const updateInventoryMutation = trpc.inventory.updateQuantity.useMutation({
-    onSuccess: async () => {
+  // Create administration mutation
+  const createAdminMutation = trpc.admin.create.useMutation();
+
+  // Update inventory mutation
+  const updateInventoryMutation = trpc.inventory.updateQuantity.useMutation();
+
+  // Mutation callbacks
+  const callbacks: MutationCallbacks = {
+    onAdminSuccess: async () => {
+      await AdminRecordDataService.invalidateRelatedData(utils, {
+        refreshPendingMeds,
+      });
+    },
+    onAdminError: (error) => {
+      const errorInfo = AdminRecordDataService.categorizeError(error);
+      console.error("Failed to record administration:", error);
+      toast.error(errorInfo.userMessage);
+    },
+    onInventorySuccess: async () => {
       await utils.inventory.getSources.invalidate();
       await utils.inventory.getHouseholdInventory.invalidate();
     },
-    onError: (error) => {
+    onInventoryError: (error) => {
+      const errorInfo = AdminRecordDataService.categorizeError(error);
       console.error("Failed to update inventory:", error);
-      toast.error("Failed to update inventory");
+      toast.error(errorInfo.userMessage);
     },
-  });
+  };
 
-  // Fetch inventory sources when a regimen is selected
-  const { data: inventorySources, isLoading: inventoryLoading } =
-    trpc.inventory.getSources.useQuery(
-      {
-        householdId: selectedHousehold?.id || "",
-        medicationName: state.selectedRegimen?.medicationName || "",
-        includeExpired: state.allowOverride,
-      },
-      {
-        enabled:
-          Boolean(state.selectedRegimen) && Boolean(selectedHousehold?.id),
-      },
-    );
+  const regimensError: RegimenQueryError = regimenQuery.error ?? null;
+  const inventorySources = inventoryQuery.data ?? [];
 
   return {
-    dueRegimens,
-    regimensLoading,
-    regimensError:
-      regimensError instanceof Error
-        ? regimensError
-        : regimensError
-          ? new Error(regimensError.message)
-          : null,
+    dueRegimens: regimenQuery.data,
+    regimensLoading: regimenQuery.isLoading,
+    regimensError,
+    inventorySources,
+    inventoryLoading: inventoryQuery.isLoading,
     createAdminMutation,
     updateInventoryMutation,
-    inventorySources,
-    inventoryLoading,
+    callbacks,
   };
 }
 
-// Component for the selection step
+// Selection Step Component
 function SelectionStep({
   state,
   dueRegimens,
@@ -209,31 +207,28 @@ function SelectionStep({
   regimensError,
   selectedHousehold,
   animals,
-  isOnline,
   searchParams,
   router,
-  handleRegimenSelect,
+  onRegimenSelect,
 }: {
-  state: ReturnType<typeof useRecordState>;
+  state: WorkflowState;
   dueRegimens?: DueRegimen[];
   regimensLoading: boolean;
-  regimensError: Error | null;
+  regimensError: RegimenQueryError;
   selectedHousehold: { id: string } | null;
-  animals: Array<{
-    id: string;
-    name: string;
-    species: string;
-    pendingMeds: number;
-    avatar?: string;
-  }>;
-  isOnline: boolean;
+  animals: AnimalsList;
   searchParams: ReturnType<typeof useSearchParams>;
   router: ReturnType<typeof useRouter>;
-  handleRegimenSelect: (regimen: DueRegimen) => void;
+  onRegimenSelect: (regimen: DueRegimen) => void;
 }) {
-  const groupedRegimens = getGroupedRegimens(
+  const groupedRegimens = AdminRecordWorkflowService.groupRegimens(
     dueRegimens || [],
     state.selectedAnimalId,
+  );
+
+  const navigationContext = AdminRecordDataService.createNavigationContext(
+    router as RouterLike,
+    searchParams,
   );
 
   return (
@@ -244,24 +239,16 @@ function SelectionStep({
             ? `Recording for ${animals.find((a) => a.id === state.selectedAnimalId)?.name}`
             : "Select a medication to record"}
         </p>
-        {searchParams.get("from") === "home" && (
-          <Button onClick={() => router.push("/auth/dashboard" as Route)} variant="ghost">
+        {navigationContext.canGoBack && (
+          <Button
+            onClick={() => router.push(navigationContext.backUrl as Route)}
+            variant="ghost"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
         )}
       </div>
-
-      {!isOnline && (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardContent className="pt-6">
-            <p className="text-sm text-yellow-800">
-              You&apos;re offline. Recordings will be saved and synced when
-              connection is restored.
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       {regimensError && (
         <Alert variant="destructive">
@@ -278,9 +265,9 @@ function SelectionStep({
             <Skeleton className="h-4 w-64" />
           </CardHeader>
           <CardContent className="space-y-3">
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-20 w-full" />
+            {AdminRecordUIService.createLoadingDisplay().map((item) => (
+              <Skeleton className={`${item.height} w-full`} key={item.id} />
+            ))}
           </CardContent>
         </Card>
       ) : !selectedHousehold ? (
@@ -291,43 +278,56 @@ function SelectionStep({
         </Alert>
       ) : (
         <MedicationSections
-          dueRegimens={dueRegimens}
           groupedRegimens={groupedRegimens}
-          handleRegimenSelect={handleRegimenSelect}
+          onRegimenSelect={onRegimenSelect}
         />
       )}
     </div>
   );
 }
 
-// Component for medication sections
+// Medication Sections Component
 function MedicationSections({
   groupedRegimens,
-  dueRegimens,
-  handleRegimenSelect,
+  onRegimenSelect,
 }: {
-  groupedRegimens: ReturnType<typeof getGroupedRegimens>;
-  dueRegimens?: DueRegimen[];
-  handleRegimenSelect: (regimen: DueRegimen) => void;
+  groupedRegimens: ReturnType<typeof AdminRecordWorkflowService.groupRegimens>;
+  onRegimenSelect: (regimen: DueRegimen) => void;
 }) {
+  const groupsWithCounts = {
+    due: { regimens: groupedRegimens.due, count: groupedRegimens.due.length },
+    later: {
+      regimens: groupedRegimens.later,
+      count: groupedRegimens.later.length,
+    },
+    prn: { regimens: groupedRegimens.prn, count: groupedRegimens.prn.length },
+  };
+
   return (
     <div className="space-y-6">
-      {groupedRegimens.due.length > 0 && (
+      {groupsWithCounts.due.count > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               Due Now
-              <Badge variant="destructive">{groupedRegimens.due.length}</Badge>
+              <Badge
+                variant={AdminRecordUIService.getSectionBadgeVariant(
+                  "due",
+                  groupsWithCounts.due.count,
+                )}
+              >
+                {groupsWithCounts.due.count}
+              </Badge>
             </CardTitle>
             <CardDescription>
               Medications that are due or overdue
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {groupedRegimens.due.map((regimen) => (
+            {groupsWithCounts.due.regimens.map((regimen) => (
               <RegimenCard
                 key={regimen.id}
-                onSelect={handleRegimenSelect}
+                onSelect={onRegimenSelect}
                 regimen={regimen}
               />
             ))}
@@ -335,22 +335,29 @@ function MedicationSections({
         </Card>
       )}
 
-      {groupedRegimens.later.length > 0 && (
+      {groupsWithCounts.later.count > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               Later Today
-              <Badge variant="secondary">{groupedRegimens.later.length}</Badge>
+              <Badge
+                variant={AdminRecordUIService.getSectionBadgeVariant(
+                  "later",
+                  groupsWithCounts.later.count,
+                )}
+              >
+                {groupsWithCounts.later.count}
+              </Badge>
             </CardTitle>
             <CardDescription>
               Upcoming medications scheduled for today
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {groupedRegimens.later.map((regimen) => (
+            {groupsWithCounts.later.regimens.map((regimen) => (
               <RegimenCard
                 key={regimen.id}
-                onSelect={handleRegimenSelect}
+                onSelect={onRegimenSelect}
                 regimen={regimen}
               />
             ))}
@@ -358,22 +365,29 @@ function MedicationSections({
         </Card>
       )}
 
-      {groupedRegimens.prn.length > 0 && (
+      {groupsWithCounts.prn.count > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               PRN (As Needed)
-              <Badge variant="outline">{groupedRegimens.prn.length}</Badge>
+              <Badge
+                variant={AdminRecordUIService.getSectionBadgeVariant(
+                  "prn",
+                  groupsWithCounts.prn.count,
+                )}
+              >
+                {groupsWithCounts.prn.count}
+              </Badge>
             </CardTitle>
             <CardDescription>
               Medications that can be given as needed
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {groupedRegimens.prn.map((regimen) => (
+            {groupsWithCounts.prn.regimens.map((regimen) => (
               <RegimenCard
                 key={regimen.id}
-                onSelect={handleRegimenSelect}
+                onSelect={onRegimenSelect}
                 regimen={regimen}
               />
             ))}
@@ -381,7 +395,7 @@ function MedicationSections({
         </Card>
       )}
 
-      {dueRegimens && dueRegimens.length === 0 && (
+      {Object.values(groupsWithCounts).every((group) => group.count === 0) && (
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
@@ -394,208 +408,7 @@ function MedicationSections({
   );
 }
 
-// Helper function to handle URL parameters
-function useURLParams(
-  state: RecordState,
-  dueRegimens: DueRegimen[] | undefined,
-) {
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const animalId = searchParams.get("animalId");
-    const regimenId = searchParams.get("regimenId");
-
-    if (animalId) {
-      state.setSelectedAnimalId(animalId);
-    }
-
-    if (regimenId && dueRegimens) {
-      const regimen = dueRegimens.find((r) => r.id === regimenId);
-      if (regimen) {
-        state.setSelectedRegimen(regimen);
-        state.setSelectedAnimalId(regimen.animalId);
-        state.setStep("confirm");
-      }
-    }
-  }, [searchParams, dueRegimens, state]);
-}
-
-// Offline administration functionality removed during simplification
-
-// Helper function to handle online administration
-async function handleOnlineAdministration(
-  state: RecordState,
-  selectedHousehold: { id: string } | null,
-  timezone: string,
-  createAdminMutation: ReturnType<typeof trpc.admin.create.useMutation>,
-  updateInventoryMutation: ReturnType<
-    typeof trpc.inventory.updateQuantity.useMutation
-  >,
-) {
-  if (!state.selectedRegimen || !selectedHousehold) return;
-
-  const payload = createAdminPayload(state, selectedHousehold.id, timezone);
-  await createAdminMutation.mutateAsync(payload);
-
-  if (state.inventorySourceId) {
-    await updateInventoryMutation.mutateAsync({
-      id: state.inventorySourceId,
-      householdId: selectedHousehold.id,
-      quantityChange: -1,
-      reason: `Administration for ${state.selectedRegimen.animalName}`,
-    });
-  }
-}
-
-// Helper function to reset the state
-function resetRecordState(state: RecordState) {
-  state.setStep("select");
-  state.setSelectedRegimen(null);
-  state.setSelectedAnimalId(null);
-  state.setInventorySourceId(null);
-  state.setNotes("");
-  state.setSite("");
-  state.setConditionTags([]);
-  state.setPhotoUrls([]);
-}
-
-function RecordContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { animals, selectedHousehold, selectedAnimal, refreshPendingMeds } =
-    useApp();
-  const isOnline = true; // Simplified: Always assume online connection
-  const state = useRecordState();
-  const { isMobile, isTablet } = useResponsive();
-
-  const {
-    dueRegimens,
-    regimensLoading,
-    regimensError,
-    createAdminMutation,
-    updateInventoryMutation,
-    inventorySources,
-    inventoryLoading,
-  } = useRecordData(state, selectedHousehold, refreshPendingMeds);
-
-  // Handle URL params for pre-filling
-  useURLParams(state, dueRegimens);
-
-  // Get timezone from animal or household context
-  const timezone =
-    selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
-
-  const handleRegimenSelect = (regimen: DueRegimen) => {
-    state.setSelectedRegimen(regimen);
-    state.setSelectedAnimalId(regimen.animalId);
-    state.setRequiresCoSign(regimen.isHighRisk);
-    state.setStep("confirm");
-  };
-
-  const handleConfirm = async () => {
-    if (!state.selectedRegimen || !selectedHousehold) return;
-
-    state.setIsSubmitting(true);
-
-    try {
-      await handleOnlineAdministration(
-        state,
-        selectedHousehold,
-        timezone,
-        createAdminMutation,
-        updateInventoryMutation,
-      );
-    } catch (error) {
-      console.error("Failed to record administration:", error);
-      toast.error("Failed to record administration");
-    } finally {
-      state.setIsSubmitting(false);
-    }
-  };
-
-  const isSubmitting =
-    state.isSubmitting ||
-    createAdminMutation.isPending ||
-    updateInventoryMutation.isPending;
-
-  // Use mobile layout on mobile devices
-  if (isMobile) {
-    return (
-      <RenderMobileLayout
-        animals={animals}
-        dueRegimens={dueRegimens}
-        handleConfirm={handleConfirm}
-        handleRegimenSelect={handleRegimenSelect}
-        inventoryLoading={inventoryLoading}
-        inventorySources={inventorySources || []}
-        isOnline={isOnline}
-        isSubmitting={isSubmitting}
-        regimensError={regimensError}
-        regimensLoading={regimensLoading}
-        resetRecordState={resetRecordState}
-        router={router}
-        state={state}
-      />
-    );
-  }
-
-  // Use tablet layout on tablet devices
-  if (isTablet) {
-    return (
-      <RenderTabletLayout
-        animals={animals}
-        dueRegimens={dueRegimens}
-        handleConfirm={handleConfirm}
-        handleRegimenSelect={handleRegimenSelect}
-        inventoryLoading={inventoryLoading}
-        inventorySources={inventorySources || []}
-        isOnline={isOnline}
-        isSubmitting={isSubmitting}
-        regimensError={regimensError}
-        regimensLoading={regimensLoading}
-        resetRecordState={resetRecordState}
-        router={router}
-        state={state}
-      />
-    );
-  }
-
-  // Desktop layout (original)
-  if (state.step === "success") {
-    return (
-      <SuccessStep isOnline={isOnline} router={router} timezone={timezone} />
-    );
-  }
-
-  if (state.step === "confirm" && state.selectedRegimen) {
-    return (
-      <ConfirmStep
-        animals={animals}
-        handleConfirm={handleConfirm}
-        inventoryLoading={inventoryLoading}
-        inventorySources={inventorySources || []}
-        isSubmitting={isSubmitting}
-        state={state}
-      />
-    );
-  }
-
-  return (
-    <SelectionStep
-      animals={animals}
-      dueRegimens={dueRegimens}
-      handleRegimenSelect={handleRegimenSelect}
-      isOnline={isOnline}
-      regimensError={regimensError}
-      regimensLoading={regimensLoading}
-      router={router}
-      searchParams={searchParams}
-      selectedHousehold={selectedHousehold}
-      state={state}
-    />
-  );
-}
-
+// Regimen Card Component
 function RegimenCard({
   regimen,
   onSelect,
@@ -604,6 +417,14 @@ function RegimenCard({
   onSelect: (regimen: DueRegimen) => void;
 }) {
   const { selectedAnimal, selectedHousehold } = useApp();
+  const timezone =
+    selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
+
+  const displayRegimen = AdminRecordUIService.formatRegimenForDisplay(
+    regimen,
+    timezone,
+  );
+
   const animal = {
     id: regimen.animalId,
     name: regimen.animalName,
@@ -611,13 +432,6 @@ function RegimenCard({
     avatar: regimen.animalPhotoUrl ?? undefined,
     pendingMeds: 0,
   };
-
-  // Get timezone from animal or household context
-  const timezone =
-    selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
-  const timeDisplay = regimen.targetTime
-    ? formatTimeLocal(new Date(regimen.targetTime), timezone)
-    : "As needed";
 
   return (
     <button
@@ -632,124 +446,24 @@ function RegimenCard({
             {regimen.animalName} - {regimen.medicationName} {regimen.strength}
           </div>
           <div className="text-muted-foreground text-sm">
-            {regimen.route} • {regimen.form} • {timeDisplay}
+            {regimen.route} • {regimen.form} • {displayRegimen.timeDisplay}
             {regimen.dose && ` • ${regimen.dose}`}
           </div>
           <div className="text-muted-foreground text-xs">
-            {regimen.compliance}% compliance
+            {displayRegimen.complianceDisplay}
             {regimen.isHighRisk && " • High-risk medication"}
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        {regimen.isOverdue && <Badge variant="destructive">Overdue</Badge>}
-        {regimen.isPRN && <Badge variant="outline">PRN</Badge>}
-        {regimen.isHighRisk && <Badge variant="secondary">High-risk</Badge>}
+        {displayRegimen.statusBadges.map((badge, index) => (
+          <Badge key={`${badge.text}-${index}`} variant={badge.variant}>
+            {badge.text}
+          </Badge>
+        ))}
       </div>
     </button>
-  );
-}
-
-// Helper functions to reduce complexity
-function createAdminPayload(
-  state: ReturnType<typeof useRecordState>,
-  householdId: string,
-  timezone: string,
-) {
-  if (!state.selectedRegimen) throw new Error("No regimen selected");
-
-  const now = new Date();
-  const localDay = localDayISO(now, timezone);
-  const idempotencyKey = adminKey(
-    state.selectedRegimen.animalId,
-    state.selectedRegimen.id,
-    localDay,
-    state.selectedRegimen.isPRN ? undefined : 0,
-  );
-
-  return {
-    idempotencyKey,
-    householdId,
-    animalId: state.selectedRegimen.animalId,
-    regimenId: state.selectedRegimen.id,
-    administeredAt: now.toISOString(),
-    inventorySourceId: state.inventorySourceId || undefined,
-    notes: state.notes || undefined,
-    site: state.site || undefined,
-    conditionTags:
-      state.conditionTags.length > 0 ? state.conditionTags : undefined,
-    mediaUrls: state.photoUrls.length > 0 ? state.photoUrls : undefined,
-    requiresCoSign: state.requiresCoSign,
-    allowOverride: state.allowOverride,
-    // Optional fields for proper status calculation
-    dose: state.selectedRegimen.dose,
-    status: state.selectedRegimen.isPRN ? ("PRN" as const) : undefined,
-  };
-}
-
-function getGroupedRegimens(
-  regimens: DueRegimen[],
-  selectedAnimalId: string | null,
-) {
-  const filteredRegimens = selectedAnimalId
-    ? regimens.filter((r) => r.animalId === selectedAnimalId)
-    : regimens;
-
-  return {
-    due: filteredRegimens.filter((r) => r.section === "due"),
-    later: filteredRegimens.filter((r) => r.section === "later"),
-    prn: filteredRegimens.filter((r) => r.section === "prn"),
-  };
-}
-
-// Success Step Component
-function SuccessStep({
-  isOnline,
-  router,
-  timezone = "UTC",
-}: {
-  isOnline: boolean;
-  router: ReturnType<typeof useRouter>;
-  timezone?: string;
-}) {
-  return (
-    <div className="mx-auto max-w-md space-y-6">
-      <div className="space-y-4 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-            ✓
-          </div>
-        </div>
-
-        <div>
-          <h1 className="font-bold text-2xl text-green-700">
-            Recorded Successfully
-          </h1>
-          <p className="text-muted-foreground">
-            Recorded at {formatTimeLocal(new Date(), timezone)} by You
-            {!isOnline && " (will sync when online)"}
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <Button
-          className="w-full bg-transparent"
-          onClick={() => {
-            // TODO: Open reminder adjustment sheet
-            console.log("Adjust reminder");
-          }}
-          variant="outline"
-        >
-          Adjust Reminder
-        </Button>
-
-        <Button className="w-full" onClick={() => router.push("/auth/dashboard" as Route)}>
-          Back to Home
-        </Button>
-      </div>
-    </div>
   );
 }
 
@@ -759,43 +473,70 @@ function ConfirmStep({
   animals,
   inventorySources,
   inventoryLoading,
-  handleConfirm,
+  onConfirm,
   isSubmitting,
+  onStateUpdate,
 }: {
-  state: ReturnType<typeof useRecordState>;
-  animals: Array<{
-    id: string;
-    name: string;
-    species: string;
-    pendingMeds: number;
-    avatar?: string;
-  }>;
+  state: WorkflowState;
+  animals: AnimalsList;
   inventorySources: InventorySource[];
-  inventoryLoading?: boolean;
-  handleConfirm: () => Promise<void>;
-  isSubmitting?: boolean;
+  inventoryLoading: boolean;
+  onConfirm: () => Promise<void>;
+  isSubmitting: boolean;
+  onStateUpdate: (updates: Partial<WorkflowState>) => void;
 }) {
   const user = useUser();
   const { selectedHousehold } = useApp();
   const animal = animals.find((a) => a.id === state.selectedAnimalId);
-  const relevantSources = inventorySources.filter((s) =>
-    s.name
-      .toLowerCase()
-      .includes(state.selectedRegimen?.medicationName.toLowerCase() || ""),
+
+  // Format inventory sources for display
+  const formattedSources =
+    AdminRecordUIService.formatInventorySourcesForDisplay(
+      inventorySources,
+      state.selectedRegimen?.medicationName || "",
+      state.allowOverride,
+    );
+
+  // Validate current state
+  const validation = AdminRecordValidationService.validateComplete(
+    {
+      selectedRegimen: state.selectedRegimen,
+      inventorySourceId: state.inventorySourceId,
+      allowOverride: state.allowOverride,
+      requiresCoSign: state.requiresCoSign,
+      notes: state.notes,
+      site: state.site,
+      conditionTags: state.conditionTags,
+      photoUrls: state.photoUrls,
+    },
+    inventorySources,
   );
 
-  const isDisabled =
-    isSubmitting ||
-    (relevantSources.some(
-      (s) => s.id === state.inventorySourceId && (s.isExpired || s.isWrongMed),
-    ) &&
-      !state.allowOverride);
+  const inventoryValidation = AdminRecordDataService.validateInventorySelection(
+    state.inventorySourceId,
+    inventorySources,
+    state.allowOverride,
+  );
+
+  const _canSubmit = AdminRecordWorkflowService.canSubmit(state);
+  const isDisabled = AdminRecordUIService.shouldDisableSubmit(
+    isSubmitting,
+    !validation.isValid,
+    !inventoryValidation.canSubmit,
+    state.allowOverride,
+  );
+
+  const submitButtonText = AdminRecordUIService.getSubmitButtonText(
+    isSubmitting,
+    state.requiresCoSign,
+    !validation.isValid,
+  );
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center gap-4">
         <Button
-          onClick={() => state.setStep("select")}
+          onClick={() => onStateUpdate({ step: "select" })}
           size="icon"
           variant="ghost"
         >
@@ -803,6 +544,31 @@ function ConfirmStep({
         </Button>
         <h1 className="font-bold text-2xl">Confirm Administration</h1>
       </div>
+
+      {/* Validation Messages */}
+      {validation.warnings.length > 0 && (
+        <Alert>
+          <AlertDescription>
+            <ul className="list-inside list-disc space-y-1">
+              {validation.warnings.map((warning) => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {validation.errors.length > 0 && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            <ul className="list-inside list-disc space-y-1">
+              {validation.errors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>
@@ -827,10 +593,14 @@ function ConfirmStep({
             ) : (
               <InventorySourceSelect
                 allowOverride={true}
-                onOverrideChange={state.setAllowOverride}
-                onSelect={state.setInventorySourceId}
+                onOverrideChange={(override) =>
+                  onStateUpdate({ allowOverride: override })
+                }
+                onSelect={(sourceId) =>
+                  onStateUpdate({ inventorySourceId: sourceId })
+                }
                 selectedId={state.inventorySourceId ?? undefined}
-                sources={relevantSources}
+                sources={formattedSources}
               />
             )}
           </div>
@@ -840,7 +610,7 @@ function ConfirmStep({
               <Label htmlFor="site">Site/Side (Optional)</Label>
               <Input
                 id="site"
-                onChange={(e) => state.setSite(e.target.value)}
+                onChange={(e) => onStateUpdate({ site: e.target.value })}
                 placeholder="Left ear, right leg..."
                 value={state.site}
               />
@@ -851,7 +621,7 @@ function ConfirmStep({
                 animalId={state.selectedAnimalId || ""}
                 householdId={selectedHousehold?.id || ""}
                 photoUrls={state.photoUrls}
-                setPhotoUrls={state.setPhotoUrls}
+                setPhotoUrls={(photoUrls) => onStateUpdate({ photoUrls })}
                 userId={user?.id || ""}
               />
             </div>
@@ -861,7 +631,7 @@ function ConfirmStep({
             <Label htmlFor="notes">Notes (Optional)</Label>
             <Textarea
               id="notes"
-              onChange={(e) => state.setNotes(e.target.value)}
+              onChange={(e) => onStateUpdate({ notes: e.target.value })}
               placeholder="Any observations or notes..."
               value={state.notes}
             />
@@ -869,7 +639,7 @@ function ConfirmStep({
 
           <ConditionTagSelector
             conditionTags={state.conditionTags}
-            setConditionTags={state.setConditionTags}
+            setConditionTags={(tags) => onStateUpdate({ conditionTags: tags })}
           />
 
           {state.selectedRegimen?.isHighRisk && (
@@ -878,7 +648,7 @@ function ConfirmStep({
                 checked={state.requiresCoSign}
                 id="cosign"
                 onCheckedChange={(checked) =>
-                  state.setRequiresCoSign(checked === true)
+                  onStateUpdate({ requiresCoSign: checked === true })
                 }
               />
               <Label className="text-sm" htmlFor="cosign">
@@ -892,13 +662,78 @@ function ConfirmStep({
           <MedConfirmButton
             className="w-full"
             disabled={isDisabled}
-            onConfirm={handleConfirm}
+            onConfirm={onConfirm}
             requiresCoSign={state.requiresCoSign}
           >
-            {isSubmitting ? "Recording..." : "Hold to Confirm (3s)"}
+            {submitButtonText}
           </MedConfirmButton>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// Success Step Component
+function SuccessStep({
+  state,
+  onReturnHome,
+  onRecordAnother,
+  timezone = "UTC",
+}: {
+  state: WorkflowState;
+  onReturnHome: () => void;
+  onRecordAnother: () => void;
+  timezone?: string;
+}) {
+  const router = useRouter();
+  const successMessage = AdminRecordUIService.createSuccessMessage(
+    state.selectedRegimen?.animalName,
+    state.selectedRegimen?.medicationName,
+    new Date().toISOString(),
+    timezone,
+  );
+
+  return (
+    <div className="mx-auto max-w-md space-y-6">
+      <div className="space-y-4 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
+            ✓
+          </div>
+        </div>
+
+        <div>
+          <h1 className="font-bold text-2xl text-green-700">
+            {successMessage.title}
+          </h1>
+          <p className="text-muted-foreground">{successMessage.subtitle}</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <Button
+          className="w-full bg-transparent"
+          onClick={() => {
+            const url = "/auth/settings/reminders";
+            NavigationService.navigateWithContext(url, router as RouterLike);
+          }}
+          variant="outline"
+        >
+          Adjust Reminder
+        </Button>
+
+        <Button
+          className="w-full bg-transparent"
+          onClick={onRecordAnother}
+          variant="outline"
+        >
+          Record Another
+        </Button>
+
+        <Button className="w-full" onClick={onReturnHome}>
+          Back to Home
+        </Button>
+      </div>
     </div>
   );
 }
@@ -909,29 +744,31 @@ function ConditionTagSelector({
   setConditionTags,
 }: {
   conditionTags: string[];
-  setConditionTags: React.Dispatch<React.SetStateAction<string[]>>;
+  setConditionTags: (tags: string[]) => void;
 }) {
-  const tags = ["Normal", "Improved", "No Change", "Worse", "Side Effects"];
+  const formattedTags = AdminRecordUIService.formatConditionTags(conditionTags);
+
+  const toggleTag = (tagName: string) => {
+    setConditionTags(
+      conditionTags.includes(tagName)
+        ? conditionTags.filter((t) => t !== tagName)
+        : [...conditionTags, tagName],
+    );
+  };
 
   return (
     <div>
       <Label>Condition Tags</Label>
       <div className="mt-2 flex flex-wrap gap-2">
-        {tags.map((tag) => (
+        {formattedTags.map((tag) => (
           <Button
-            key={tag}
-            onClick={() => {
-              setConditionTags((prev) =>
-                prev.includes(tag)
-                  ? prev.filter((t) => t !== tag)
-                  : [...prev, tag],
-              );
-            }}
+            key={tag.name}
+            onClick={() => toggleTag(tag.name)}
             size="sm"
-            variant={conditionTags.includes(tag) ? "default" : "outline"}
+            variant={tag.variant}
           >
             <Tag className="mr-1 h-3 w-3" />
-            {tag}
+            {tag.name}
           </Button>
         ))}
       </div>
@@ -939,183 +776,7 @@ function ConditionTagSelector({
   );
 }
 
-// Helper component for mobile layout rendering
-function RenderMobileLayout({
-  state,
-  animals,
-  dueRegimens,
-  regimensLoading,
-  regimensError,
-  isOnline,
-  inventorySources,
-  inventoryLoading,
-  isSubmitting,
-  handleRegimenSelect,
-  handleConfirm,
-  router,
-  resetRecordState,
-}: {
-  state: ReturnType<typeof useRecordState>;
-  animals: Array<{
-    id: string;
-    name: string;
-    species: string;
-    pendingMeds: number;
-    avatar?: string;
-  }>;
-  dueRegimens?: DueRegimen[];
-  regimensLoading: boolean;
-  regimensError: Error | null;
-  isOnline: boolean;
-  inventorySources: InventorySource[];
-  inventoryLoading: boolean;
-  isSubmitting: boolean;
-  handleRegimenSelect: (regimen: DueRegimen) => void;
-  handleConfirm: () => Promise<void>;
-  router: ReturnType<typeof useRouter>;
-  resetRecordState: (state: RecordState) => void;
-}) {
-  return (
-    <MobileRecordLayout
-      dueRegimens={dueRegimens}
-      isOnline={isOnline}
-      onBack={() => {
-        if (state.step === "confirm") {
-          state.setStep("select");
-        }
-      }}
-      onCancel={() => router.push("/auth/dashboard" as Route)}
-      onRegimenSelect={handleRegimenSelect}
-      regimensError={regimensError}
-      regimensLoading={regimensLoading}
-      selectedRegimen={state.selectedRegimen}
-      step={state.step}
-    >
-      {state.step === "success" && (
-        <MobileSuccessLayout
-          animalName={state.selectedRegimen?.animalName}
-          isOnline={isOnline}
-          medicationName={state.selectedRegimen?.medicationName}
-          onRecordAnother={() => resetRecordState(state)}
-          onReturnHome={() => router.push("/auth/dashboard" as Route)}
-          recordedAt={new Date().toISOString()}
-        />
-      )}
-      {state.step === "confirm" && state.selectedRegimen && (
-        <MobileConfirmLayout
-          allowOverride={state.allowOverride}
-          animals={animals}
-          conditionTags={state.conditionTags}
-          inventoryLoading={inventoryLoading}
-          inventorySourceId={state.inventorySourceId}
-          inventorySources={inventorySources}
-          isSubmitting={isSubmitting}
-          notes={state.notes}
-          onConfirm={handleConfirm}
-          requiresCoSign={state.requiresCoSign}
-          selectedRegimen={state.selectedRegimen}
-          setAllowOverride={state.setAllowOverride}
-          setConditionTags={state.setConditionTags}
-          setInventorySourceId={state.setInventorySourceId}
-          setNotes={state.setNotes}
-          setRequiresCoSign={state.setRequiresCoSign}
-          setSite={state.setSite}
-          site={state.site}
-        />
-      )}
-    </MobileRecordLayout>
-  );
-}
-
-// Helper component for tablet layout rendering
-function RenderTabletLayout({
-  state,
-  animals,
-  dueRegimens,
-  regimensLoading,
-  regimensError,
-  isOnline,
-  inventorySources,
-  inventoryLoading,
-  isSubmitting,
-  handleRegimenSelect,
-  handleConfirm,
-  router,
-  resetRecordState,
-}: {
-  state: ReturnType<typeof useRecordState>;
-  animals: Array<{
-    id: string;
-    name: string;
-    species: string;
-    pendingMeds: number;
-    avatar?: string;
-  }>;
-  dueRegimens?: DueRegimen[];
-  regimensLoading: boolean;
-  regimensError: Error | null;
-  isOnline: boolean;
-  inventorySources: InventorySource[];
-  inventoryLoading: boolean;
-  isSubmitting: boolean;
-  handleRegimenSelect: (regimen: DueRegimen) => void;
-  handleConfirm: () => Promise<void>;
-  router: ReturnType<typeof useRouter>;
-  resetRecordState: (state: RecordState) => void;
-}) {
-  return (
-    <TabletRecordLayout
-      dueRegimens={dueRegimens}
-      isOnline={isOnline}
-      onBack={() => {
-        if (state.step === "confirm") {
-          state.setStep("select");
-        }
-      }}
-      onCancel={() => router.push("/auth/dashboard" as Route)}
-      onRegimenSelect={handleRegimenSelect}
-      regimensError={regimensError}
-      regimensLoading={regimensLoading}
-      selectedRegimen={state.selectedRegimen}
-      step={state.step}
-    >
-      {state.step === "success" && (
-        <TabletSuccessLayout
-          animalName={state.selectedRegimen?.animalName}
-          isOnline={isOnline}
-          medicationName={state.selectedRegimen?.medicationName}
-          onRecordAnother={() => resetRecordState(state)}
-          onReturnHome={() => router.push("/auth/dashboard" as Route)}
-          recordedAt={new Date().toISOString()}
-        />
-      )}
-      {state.step === "confirm" && state.selectedRegimen && (
-        <TabletConfirmLayout
-          allowOverride={state.allowOverride}
-          animals={animals}
-          conditionTags={state.conditionTags}
-          inventoryLoading={inventoryLoading}
-          inventorySourceId={state.inventorySourceId}
-          inventorySources={inventorySources}
-          isSubmitting={isSubmitting}
-          notes={state.notes}
-          onConfirm={handleConfirm}
-          requiresCoSign={state.requiresCoSign}
-          selectedRegimen={state.selectedRegimen}
-          setAllowOverride={state.setAllowOverride}
-          setConditionTags={state.setConditionTags}
-          setInventorySourceId={state.setInventorySourceId}
-          setNotes={state.setNotes}
-          setRequiresCoSign={state.setRequiresCoSign}
-          setSite={state.setSite}
-          site={state.site}
-        />
-      )}
-    </TabletRecordLayout>
-  );
-}
-
-// Photo Evidence Uploader Component for multiple photos
+// Photo Evidence Uploader Component
 function PhotoEvidenceUploader({
   photoUrls,
   setPhotoUrls,
@@ -1124,20 +785,21 @@ function PhotoEvidenceUploader({
   animalId,
 }: {
   photoUrls: string[];
-  setPhotoUrls: React.Dispatch<React.SetStateAction<string[]>>;
+  setPhotoUrls: (urls: string[]) => void;
   householdId: string;
   userId: string;
   animalId: string;
 }) {
   const [currentUpload, setCurrentUpload] = useState<string | null>(null);
+  const uploadStatus = AdminRecordUIService.getPhotoUploadStatus(photoUrls);
 
   const handlePhotoUpload = (url: string, _file: File) => {
-    setPhotoUrls((prev) => [...prev, url]);
+    setPhotoUrls([...photoUrls, url]);
     setCurrentUpload(null);
   };
 
   const handleRemovePhoto = (indexToRemove: number) => {
-    setPhotoUrls((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setPhotoUrls(photoUrls.filter((_, index) => index !== indexToRemove));
   };
 
   const handleStartUpload = () => {
@@ -1145,7 +807,6 @@ function PhotoEvidenceUploader({
     setCurrentUpload(uploadId);
   };
 
-  // Don't show uploader if we don't have required IDs
   if (!householdId || !userId) {
     return (
       <div className="rounded-lg border-2 border-muted-foreground/25 border-dashed p-4 text-center">
@@ -1185,8 +846,8 @@ function PhotoEvidenceUploader({
         </div>
       )}
 
-      {/* Show uploader for new photos (limit to 4 photos) */}
-      {photoUrls.length < 4 && !currentUpload && (
+      {/* Show uploader for new photos */}
+      {uploadStatus.canAddMore && !currentUpload && (
         <Button
           className="w-full bg-transparent"
           onClick={handleStartUpload}
@@ -1227,13 +888,269 @@ function PhotoEvidenceUploader({
         </div>
       )}
 
-      {photoUrls.length >= 4 && (
+      {!uploadStatus.canAddMore && (
         <p className="text-center text-muted-foreground text-xs">
-          Maximum 4 photos per administration
+          {uploadStatus.statusText}
         </p>
       )}
     </div>
   );
+}
+
+// Main Content Component
+function RecordContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { animals, selectedHousehold, selectedAnimal, refreshPendingMeds } =
+    useApp();
+  const { isMobile, isTablet } = useResponsive();
+
+  const { state, updateState, selectRegimen, transitionToStep, resetWorkflow } =
+    useWorkflowState();
+
+  const {
+    dueRegimens,
+    regimensLoading,
+    regimensError,
+    inventorySources,
+    inventoryLoading,
+    createAdminMutation,
+    updateInventoryMutation,
+    callbacks,
+  } = useAdminRecordData(state, selectedHousehold, refreshPendingMeds);
+
+  // Handle URL parameters
+  useEffect(() => {
+    if (!dueRegimens) return;
+
+    const urlParams = AdminRecordDataService.processUrlParams(searchParams);
+    if (urlParams.animalId || urlParams.regimenId) {
+      const newState = AdminRecordWorkflowService.applyUrlParams(
+        state,
+        urlParams,
+        dueRegimens,
+      );
+      if (newState !== state) {
+        updateState(newState);
+      }
+    }
+  }, [searchParams, dueRegimens, state, updateState]);
+
+  const timezone =
+    selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
+
+  const handleRegimenSelect = (regimen: DueRegimen) => {
+    selectRegimen(regimen);
+    transitionToStep("confirm");
+  };
+
+  const handleConfirm = async () => {
+    if (!state.selectedRegimen || !selectedHousehold) return;
+
+    updateState({ isSubmitting: true });
+
+    try {
+      await AdminRecordDataService.submitAdministration(
+        state,
+        selectedHousehold.id,
+        timezone,
+        { createAdminMutation, updateInventoryMutation },
+        {
+          ...callbacks,
+          onAdminSuccess: async () => {
+            await callbacks.onAdminSuccess();
+            transitionToStep("success");
+          },
+        },
+      );
+    } catch (error) {
+      callbacks.onAdminError(error);
+    } finally {
+      updateState({ isSubmitting: false });
+    }
+  };
+
+  const isSubmitting =
+    state.isSubmitting ||
+    createAdminMutation.isPending ||
+    updateInventoryMutation.isPending;
+
+  const layoutProps: LayoutProps = {
+    isMobile,
+    isTablet,
+    isDesktop: !isMobile && !isTablet,
+  };
+  const layoutComponent = AdminRecordUIService.getLayoutComponent(layoutProps);
+
+  // Use mobile/tablet layouts if needed
+  if (layoutComponent === "mobile") {
+    return (
+      <MobileRecordLayout
+        dueRegimens={dueRegimens}
+        onBack={() => {
+          if (state.step === "confirm") {
+            transitionToStep("select");
+          }
+        }}
+        onCancel={() => router.push(DASHBOARD_ROUTE)}
+        onRegimenSelect={handleRegimenSelect}
+        regimensError={regimensError}
+        regimensLoading={regimensLoading}
+        selectedRegimen={state.selectedRegimen}
+        step={state.step}
+      >
+        {state.step === "success" && (
+          <MobileSuccessLayout
+            animalName={state.selectedRegimen?.animalName}
+            medicationName={state.selectedRegimen?.medicationName}
+            onRecordAnother={resetWorkflow}
+            onReturnHome={() => router.push(DASHBOARD_ROUTE)}
+            recordedAt={new Date().toISOString()}
+          />
+        )}
+        {state.step === "confirm" && state.selectedRegimen && (
+          <MobileConfirmLayout
+            allowOverride={state.allowOverride}
+            animals={animals}
+            conditionTags={state.conditionTags}
+            inventoryLoading={inventoryLoading}
+            inventorySourceId={state.inventorySourceId}
+            inventorySources={inventorySources}
+            isSubmitting={isSubmitting}
+            notes={state.notes}
+            onConfirm={handleConfirm}
+            requiresCoSign={state.requiresCoSign}
+            selectedRegimen={state.selectedRegimen}
+            setAllowOverride={(allowOverride) => updateState({ allowOverride })}
+            setConditionTags={(conditionTags) =>
+              updateState({
+                conditionTags:
+                  typeof conditionTags === "function"
+                    ? conditionTags(state.conditionTags)
+                    : conditionTags,
+              })
+            }
+            setInventorySourceId={(inventorySourceId) =>
+              updateState({ inventorySourceId })
+            }
+            setNotes={(notes) => updateState({ notes })}
+            setRequiresCoSign={(requiresCoSign) =>
+              updateState({ requiresCoSign })
+            }
+            setSite={(site) => updateState({ site })}
+            site={state.site}
+          />
+        )}
+      </MobileRecordLayout>
+    );
+  }
+
+  if (layoutComponent === "tablet") {
+    return (
+      <TabletRecordLayout
+        dueRegimens={dueRegimens}
+        onBack={() => {
+          if (state.step === "confirm") {
+            transitionToStep("select");
+          }
+        }}
+        onCancel={() => router.push(DASHBOARD_ROUTE)}
+        onRegimenSelect={handleRegimenSelect}
+        regimensError={regimensError}
+        regimensLoading={regimensLoading}
+        selectedRegimen={state.selectedRegimen}
+        step={state.step}
+      >
+        {state.step === "success" && (
+          <TabletSuccessLayout
+            animalName={state.selectedRegimen?.animalName}
+            medicationName={state.selectedRegimen?.medicationName}
+            onRecordAnother={resetWorkflow}
+            onReturnHome={() => router.push(DASHBOARD_ROUTE)}
+            recordedAt={new Date().toISOString()}
+          />
+        )}
+        {state.step === "confirm" && state.selectedRegimen && (
+          <TabletConfirmLayout
+            allowOverride={state.allowOverride}
+            animals={animals}
+            conditionTags={state.conditionTags}
+            inventoryLoading={inventoryLoading}
+            inventorySourceId={state.inventorySourceId}
+            inventorySources={inventorySources}
+            isSubmitting={isSubmitting}
+            notes={state.notes}
+            onConfirm={handleConfirm}
+            requiresCoSign={state.requiresCoSign}
+            selectedRegimen={state.selectedRegimen}
+            setAllowOverride={(allowOverride) => updateState({ allowOverride })}
+            setConditionTags={(conditionTags) =>
+              updateState({
+                conditionTags:
+                  typeof conditionTags === "function"
+                    ? conditionTags(state.conditionTags)
+                    : conditionTags,
+              })
+            }
+            setInventorySourceId={(inventorySourceId) =>
+              updateState({ inventorySourceId })
+            }
+            setNotes={(notes) => updateState({ notes })}
+            setRequiresCoSign={(requiresCoSign) =>
+              updateState({ requiresCoSign })
+            }
+            setSite={(site) => updateState({ site })}
+            site={state.site}
+          />
+        )}
+      </TabletRecordLayout>
+    );
+  }
+
+  // Desktop layout
+  switch (state.step) {
+    case "success":
+      return (
+        <SuccessStep
+          onRecordAnother={resetWorkflow}
+          onReturnHome={() => router.push(DASHBOARD_ROUTE)}
+          state={state}
+          timezone={timezone}
+        />
+      );
+
+    case "confirm":
+      if (!state.selectedRegimen) {
+        transitionToStep("select");
+        return null;
+      }
+      return (
+        <ConfirmStep
+          animals={animals}
+          inventoryLoading={inventoryLoading}
+          inventorySources={inventorySources}
+          isSubmitting={isSubmitting}
+          onConfirm={handleConfirm}
+          onStateUpdate={updateState}
+          state={state}
+        />
+      );
+
+    default:
+      return (
+        <SelectionStep
+          animals={animals}
+          dueRegimens={dueRegimens}
+          onRegimenSelect={handleRegimenSelect}
+          regimensError={regimensError}
+          regimensLoading={regimensLoading}
+          router={router}
+          searchParams={searchParams}
+          selectedHousehold={selectedHousehold}
+          state={state}
+        />
+      );
+  }
 }
 
 export default function RecordPage() {

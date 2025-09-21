@@ -57,15 +57,6 @@ export function useApp(): AppContextType {
   const preferences = usePreferences();
   const accessibility = useAccessibility();
 
-  // Simulate the offline functionality (simplified since offline features were removed)
-  const offlineState = useMemo(
-    () => ({
-      isOffline: !navigator.onLine,
-      pendingSyncCount: 0,
-    }),
-    [],
-  );
-
   // =============================================================================
   // COMBINED CONTEXT VALUE
   // =============================================================================
@@ -101,9 +92,6 @@ export function useApp(): AppContextType {
       isAuthenticated: auth.isAuthenticated,
       isFirstTimeUser: preferences.isFirstTimeUser,
 
-      // Offline state (simplified)
-      isOffline: offlineState.isOffline,
-
       // Loading states (combined)
       loading: {
         animals: household.loading.animals,
@@ -114,7 +102,7 @@ export function useApp(): AppContextType {
       login: auth.login,
       logout: auth.logout,
       markOnboardingComplete: preferences.markOnboardingComplete,
-      pendingSyncCount: offlineState.pendingSyncCount,
+      pendingSyncCount: 0,
 
       // Preferences state
       preferences: preferences.preferences,
@@ -136,7 +124,7 @@ export function useApp(): AppContextType {
       user: auth.user,
       userProfile: auth.userProfile,
     }),
-    [auth, household, preferences, accessibility, offlineState],
+    [auth, household, preferences, accessibility],
   );
 }
 
@@ -150,7 +138,6 @@ export function useAppLegacy() {
   return {
     animals: context.animals,
     households: context.households,
-    isOffline: context.isOffline,
     pendingSyncCount: context.pendingSyncCount,
     refreshPendingMeds: context.refreshPendingMeds,
     selectedAnimal: context.selectedAnimal,

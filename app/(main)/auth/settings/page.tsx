@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  Database,
-  Bell,
-  Settings2,
-} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Bell, Database, Settings2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useApp } from "@/components/providers/app-provider-consolidated";
@@ -16,25 +12,32 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+type SettingsTab = {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  path: Route;
+};
+
 // Settings tabs with correct /auth prefixes
-const settingsTabs = [
+const settingsTabs: SettingsTab[] = [
   {
     title: "Data & Privacy",
     description: "Export your data and manage privacy settings",
     icon: Database,
-    path: "/auth/settings/data-privacy" as Route,
+    path: "/auth/settings/data-privacy",
   },
   {
     title: "Notifications",
     description: "Configure alerts and notification preferences",
     icon: Bell,
-    path: "/auth/settings/notifications" as Route,
+    path: "/auth/settings/notifications",
   },
   {
     title: "Preferences",
     description: "Customize your app experience and display settings",
     icon: Settings2,
-    path: "/auth/settings/preferences" as Route,
+    path: "/auth/settings/preferences",
   },
 ];
 

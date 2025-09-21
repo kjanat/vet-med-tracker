@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowLeft, X } from "lucide-react";
-import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
@@ -57,7 +56,7 @@ export function MobileRecordHeader({
     if (onCancel) {
       onCancel();
     } else {
-      router.push("/auth/dashboard" as Route);
+      router.push("/auth/dashboard");
     }
   };
 

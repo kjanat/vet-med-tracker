@@ -8,11 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 const ChartSkeleton = () => (
   <Card>
     <CardHeader>
-      <Skeleton className="h-4 w-[200px]" />
-      <Skeleton className="h-3 w-[150px]" />
+      <Skeleton className={`h-4 w-[200px]`} />
+      <Skeleton className={`h-3 w-[150px]`} />
     </CardHeader>
     <CardContent>
-      <Skeleton className="h-[200px] w-full" />
+      <Skeleton className={`h-[200px] w-full`} />
     </CardContent>
   </Card>
 );
@@ -141,7 +141,7 @@ export const LazyBulkRecordingForm = dynamic(
 
 export const LazyDosageCalculator = dynamic(
   () =>
-    import("@/components/dosage-calculator").then((mod) => ({
+    import("@/components/medication/dosage-calculator").then((mod) => ({
       default: mod.DosageCalculator,
     })),
   {

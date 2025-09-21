@@ -171,7 +171,7 @@ export { MobileMedicationCard } from "./ui/mobile-medication-card";
 export { MobileRecordHeader } from "./ui/mobile-record-header";
 export { MobileRecordLayout } from "./ui/mobile-record-layout";
 export { MobileSuccessLayout } from "./ui/mobile-success-layout";
-export { NavigationGuardLink as NavigationGuard } from "./ui/navigation-guard";
+export { GuardedLink as NavigationGuard } from "./ui/navigation-guard";
 export { NotificationDropdown } from "./ui/notification-dropdown";
 export { PhotoGallery } from "./ui/photo-gallery";
 export { PhotoGalleryDemo } from "./ui/photo-gallery-demo";
@@ -221,12 +221,12 @@ export { TimezoneCombobox } from "./ui/timezone-combobox";
 // LEGACY SUPPORT
 // ===========================
 
+export { ErrorBoundary } from "./error-handling/error-boundary";
 // Dosage calculator
-export { DosageCalculator } from "./dosage-calculator";
-export { ErrorBoundary } from "./error-boundary";
+export { DosageCalculator } from "./medication/dosage-calculator";
 // Error boundary components (these may not exist or have different exports)
 // Maintain legacy theme provider export
-export { ThemeProvider } from "./theme-provider";
+export { ThemeProvider } from "./providers/theme-provider";
 
 // ===========================
 // DECORATOR & STRATEGY HOOKS

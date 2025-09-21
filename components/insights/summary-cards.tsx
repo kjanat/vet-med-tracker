@@ -37,8 +37,8 @@ function buildHistoryUrl(
   filter: string,
 ): string {
   const params = new URLSearchParams();
-  params.set("from", range.from.toISOString().split("T")[0] || "");
-  params.set("to", range.to.toISOString().split("T")[0] || "");
+  params.set("from", range.from.toISOString().slice(0, 10) || "");
+  params.set("to", range.to.toISOString().slice(0, 10) || "");
 
   filter.split("&").forEach((param) => {
     const [key, value] = param.split("=");

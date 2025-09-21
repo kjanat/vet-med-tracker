@@ -65,9 +65,10 @@ export function NotificationsSidebarItem() {
     }
   };
 
-  const formatRelativeTime = (createdAt: string) => {
+  const formatRelativeTime = (createdAt: string | Date) => {
     const now = new Date();
-    const timestamp = new Date(createdAt);
+    const timestamp =
+      typeof createdAt === "string" ? new Date(createdAt) : createdAt;
     const diffMs = now.getTime() - timestamp.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));

@@ -59,18 +59,18 @@ export interface UserProfile {
   };
   onboarding: {
     complete: boolean | null;
-    completedAt: string | null;
+    completedAt: Date | null;
   };
   availableHouseholds: Array<{
     id: string;
     name: string;
     timezone: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
     membership: {
       id: string;
-      createdAt: string;
-      updatedAt: string;
+      createdAt: Date;
+      updatedAt: Date;
       householdId: string;
       userId: string;
       role: "OWNER" | "CAREGIVER" | "VETREADONLY";
@@ -188,8 +188,7 @@ export interface AppState {
   // Accessibility State
   accessibility: AccessibilityState;
 
-  // Offline & Sync State
-  isOffline: boolean;
+  // Sync State
   pendingSyncCount: number;
 
   // Loading & Error States
@@ -213,7 +212,6 @@ export type AppAction =
   | { type: "SET_HOUSEHOLD_SETTINGS"; payload: Partial<HouseholdSettings> }
   | { type: "SET_FIRST_TIME_USER"; payload: boolean }
   | { type: "SET_ACCESSIBILITY"; payload: Partial<AccessibilityState> }
-  | { type: "SET_OFFLINE_STATUS"; payload: boolean }
   | { type: "SET_PENDING_SYNC_COUNT"; payload: number }
   | {
       type: "SET_LOADING";
@@ -278,7 +276,6 @@ export interface LegacyAppContextType {
   setSelectedAnimal: (animal: Animal | null) => void;
   animals: Animal[];
   households: Household[];
-  isOffline: boolean;
   pendingSyncCount: number;
   refreshPendingMeds: () => void;
 }

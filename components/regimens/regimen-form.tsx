@@ -485,7 +485,7 @@ function CourseDatesSelector({
             )
           }
           type="date"
-          value={startDate ? startDate.toISOString().split("T")[0] : ""}
+          value={startDate ? startDate.toISOString().slice(0, 10) : ""}
         />
       </div>
 
@@ -499,7 +499,7 @@ function CourseDatesSelector({
             )
           }
           type="date"
-          value={endDate ? endDate.toISOString().split("T")[0] : ""}
+          value={endDate ? endDate.toISOString().slice(0, 10) : ""}
         />
       </div>
     </div>

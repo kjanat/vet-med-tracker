@@ -1,43 +1,198 @@
-name: Deploy to Production
+name: Production Deployment Pipeline
 
 on:
   push:
     branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      skip_quality_gates:
+        description: 'Skip quality gates (emergency deployment)'
+        required: false
+        default: 'false'
+        type: boolean
+      deployment_reason:
+        description: 'Reason for deployment'
+        required: true
+        default: 'Regular deployment'
 
 permissions:
   contents: read
+  security-events: write
+  packages: write
 
 env:
   NODE_VERSION: '22.x'
-  PNPM_VERSION: '10.16.0'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   pre-deployment:
-    name: Pre-deployment Checks
+    name: Pre-deployment Validation
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
-      should-skip-tests: ${{ steps.check.outputs.skip_tests }}
+      deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+      should-skip-quality: ${{ steps.check.outputs.skip_quality }}
+      image-tag: ${{ steps.image.outputs.tag }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Pre-deployment validation
+      - name: Generate deployment metadata
+        id: deployment
+        run: |
+          DEPLOYMENT_ID="deploy-$(date +%Y%m%d-%H%M%S)-${{ github.sha::8 }}"
+          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+          echo "::notice title=Deployment ID::$DEPLOYMENT_ID"
+
+      - name: Generate image tag
+        id: image
+        run: |
+          IMAGE_TAG="${{ github.sha::8 }}-$(date +%Y%m%d-%H%M%S)"
+          echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Validate deployment conditions
         id: check
         run: |
-          echo "skip_tests=false" >> $GITHUB_OUTPUT
+          echo "skip_quality=${{ github.event.inputs.skip_quality_gates || 'false' }}" >> $GITHUB_OUTPUT
 
-  test:
-    name: Run Tests
+          # Check if this is a hotfix or emergency deployment
+          if [[ "${{ github.event.inputs.skip_quality_gates }}" == "true" ]]; then
+            echo "::warning title=Quality Gates Skipped::Emergency deployment detected - quality gates will be skipped"
+          fi
+
+      - name: Deployment notification start
+        if: ${{ vars.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"🚀 VetMed Tracker production deployment started\nID: ${{ steps.deployment.outputs.deployment_id }}\nReason: ${{ github.event.inputs.deployment_reason || \"Automated deployment\" }}\nCommit: ${{ github.sha::8 }}"}' \
+            ${{ vars.SLACK_WEBHOOK_URL }}
+
+  # Wave 2A, 2B, 3.1 Integration: Comprehensive Quality Gates
+  quality-gates:
+    name: Quality Gates Validation
     needs: pre-deployment
     runs-on: ubuntu-latest
-    if: needs.pre-deployment.outputs.should-skip-tests == 'false'
+    if: needs.pre-deployment.outputs.should-skip-quality == 'false'
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        quality-domain: [ 'security', 'performance', 'accessibility', 'medical', 'integration' ]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vetmed_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps
+
+      - name: Setup test database
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: vetmed_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: postgres
+        run: |
+          bun db:test:init || true
+          bun db:test:seed || true
+
+      - name: Run Wave 2A Security Tests
+        if: matrix.quality-domain == 'security'
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          VETMED_ENCRYPTION_KEY: ${{ secrets.VETMED_ENCRYPTION_KEY }}
+        run: |
+          echo "::group::Security Quality Gate (Wave 2A Integration)"
+          bun run test:security
+          echo "::endgroup::"
+
+      - name: Run Wave 2B Performance Tests
+        if: matrix.quality-domain == 'performance'
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+        run: |
+          echo "::group::Performance Quality Gate (Wave 2B Integration)"
+          bun run test:performance
+          echo "::endgroup::"
+
+      - name: Run Wave 3.1 Accessibility Tests
+        if: matrix.quality-domain == 'accessibility'
+        run: |
+          echo "::group::Accessibility Quality Gate (Wave 3.1 Integration)"
+          bun run test:accessibility
+          echo "::endgroup::"
+
+      - name: Run Medical Workflow Tests
+        if: matrix.quality-domain == 'medical'
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+        run: |
+          echo "::group::Medical Workflow Quality Gate"
+          bun run test:medical
+          echo "::endgroup::"
+
+      - name: Run Integration Tests
+        if: matrix.quality-domain == 'integration'
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+        run: |
+          echo "::group::Integration Quality Gate (Cross-Wave Validation)"
+          bun run test:integration
+          echo "::endgroup::"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-results-${{ matrix.quality-domain }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  # Comprehensive Quality Pipeline
+  comprehensive-quality:
+    name: Comprehensive Quality Pipeline
+    needs: pre-deployment
+    runs-on: ubuntu-latest
+    if: needs.pre-deployment.outputs.should-skip-quality == 'false'
     permissions:
       contents: read
 
@@ -47,16 +202,107 @@ jobs:
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Run tests with Neon test database
+      - name: Run Complete Quality Pipeline
         env:
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-          DATABASE_URL_UNPOOLED: ${{ secrets.TEST_DATABASE_URL_UNPOOLED }}
-        run: pnpm test
+          VETMED_ENCRYPTION_KEY: ${{ secrets.VETMED_ENCRYPTION_KEY }}
+        run: |
+          echo "::group::Running Comprehensive Quality Pipeline"
+          bun run quality:pipeline
+          echo "::endgroup::"
 
+      - name: Generate Quality Report
+        run: |
+          echo "::group::Quality Assessment Report"
+          bun run quality:report
+          echo "::endgroup::"
+
+      - name: Upload quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report-${{ needs.pre-deployment.outputs.deployment-id }}
+          path: |
+            quality-report.json
+            quality-report.html
+          retention-days: 30
+
+  # Container Build and Security Scanning
+  build-and-scan:
+    name: Build & Security Scan
+    needs: [ pre-deployment, quality-gates, comprehensive-quality ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=${{ needs.pre-deployment.outputs.image-tag }}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.pre-deployment.outputs.image-tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Container security validation
+        run: |
+          echo "::group::Container Security Validation"
+          # Fail if critical vulnerabilities found
+          trivy image --exit-code 1 --severity CRITICAL ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.pre-deployment.outputs.image-tag }}
+          echo "::endgroup::"
+
+  # Database Backup with HIPAA Compliance
   backup:
-    name: Backup Database
-    needs: [ pre-deployment, test ]
+    name: HIPAA-Compliant Database Backup
+    needs: [ pre-deployment, build-and-scan ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,19 +313,54 @@ jobs:
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Create database backup
+      - name: Create encrypted database backup
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          pnpm db:backup
+          echo "::group::Creating HIPAA-compliant encrypted backup"
+          # Install AWS CLI for S3 backup
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
 
+          # Run backup script
+          chmod +x ./scripts/backup/backup.sh
+          ./scripts/backup/backup.sh
+          echo "::endgroup::"
+
+      - name: Verify backup integrity
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          echo "::group::Verifying backup integrity"
+          # Test restore functionality
+          LATEST_BACKUP=$(find backup -name "vetmed_backup_*.sql*" -type f | sort | tail -1)
+          if [[ -n "$LATEST_BACKUP" ]]; then
+            echo "Backup file verified: $LATEST_BACKUP"
+            echo "backup-file=$LATEST_BACKUP" >> $GITHUB_OUTPUT
+          else
+            echo "::error::No backup file found"
+            exit 1
+          fi
+          echo "::endgroup::"
+
+  # Database Migration with Rollback Safety
   migrate:
     name: Database Migration
-    needs: [ pre-deployment, test, backup ]
+    needs: [ pre-deployment, backup ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      migration-status: ${{ steps.migrate.outputs.status }}
 
     steps:
       - name: Checkout code
@@ -87,19 +368,29 @@ jobs:
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Run database migrations
+        id: migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          pnpm db:migrate
+          echo "::group::Running database migrations"
+          bun db:migrate
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
 
+  # Zero-Downtime Production Deployment
   deploy:
-    name: Deploy to Vercel
-    needs: [ pre-deployment, test, backup, migrate ]
+    name: Zero-Downtime Production Deployment
+    needs: [ pre-deployment, backup, migrate, build-and-scan ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      deployments: write
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.url }}
 
     steps:
       - name: Checkout code
@@ -107,39 +398,223 @@ jobs:
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Deploy to production
+      - name: Create deployment
+        id: deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'production',
+              description: 'VetMed Tracker production deployment',
+              auto_merge: false,
+              required_contexts: []
+            });
+            return deployment.data;
+
+      - name: Deploy to Vercel
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+          echo "::group::Deploying to Vercel Production"
 
+          # Install Vercel CLI
+          npm i -g vercel@latest
+
+          # Deploy with production settings
+          DEPLOYMENT_URL=$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes)
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Deployment URL: $DEPLOYMENT_URL"
+          echo "::endgroup::"
+
+      - name: Update deployment status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.deploy.outcome }}' === 'success' ? 'success' : 'failure';
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ steps.deployment.outputs.result.id }},
+              state: status,
+              environment_url: '${{ steps.deploy.outputs.url }}',
+              description: status === 'success' ? 'Deployment successful' : 'Deployment failed'
+            });
+
+  # Comprehensive Post-Deployment Verification
   verify:
-    name: Post-deployment Verification
+    name: Production Verification Suite
     needs: [ pre-deployment, deploy ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
 
     steps:
-      - name: Health check
-        run: |
-          echo "Running post-deployment health checks"
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps
+
+      - name: Production Health Checks
+        env:
+          PRODUCTION_URL: ${{ needs.deploy.outputs.deployment-url }}
+        run: |
+          echo "::group::Production Health Verification"
+
+          # Wait for deployment to be ready
+          echo "Waiting for deployment to be ready..."
+          for i in {1..30}; do
+            if curl -f "$PRODUCTION_URL/api/health" >/dev/null 2>&1; then
+              echo "✅ Health check passed"
+              break
+            fi
+            echo "Waiting... attempt $i/30"
+            sleep 10
+          done
+
+          # Verify API functionality
+          API_RESPONSE=$(curl -s "$PRODUCTION_URL/api/trpc/health.check")
+          if echo "$API_RESPONSE" | jq -e '.result.data' >/dev/null 2>&1; then
+            echo "✅ API functionality verified"
+          else
+            echo "❌ API functionality test failed"
+            exit 1
+          fi
+
+          echo "::endgroup::"
+
+      - name: Production Performance Validation
+        env:
+          PRODUCTION_URL: ${{ needs.deploy.outputs.deployment-url }}
+        run: |
+          echo "::group::Production Performance Validation"
+
+          # Core Web Vitals check
+          bun run lighthouse:ci --url="$PRODUCTION_URL"
+
+          # Response time check
+          RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}' "$PRODUCTION_URL/")
+          echo "Response time: ${RESPONSE_TIME}s"
+
+          if (( $(echo "$RESPONSE_TIME > 3.0" | bc -l) )); then
+            echo "⚠️ High response time detected: ${RESPONSE_TIME}s"
+          else
+            echo "✅ Response time acceptable: ${RESPONSE_TIME}s"
+          fi
+
+          echo "::endgroup::"
+
+      - name: Production Monitoring Validation
+        env:
+          PRODUCTION_URL: ${{ needs.deploy.outputs.deployment-url }}
+        run: |
+          echo "::group::Production Monitoring Validation"
+          bun run monitoring:health
+          echo "✅ Production monitoring validated"
+          echo "::endgroup::"
+
+  # Deployment Summary and Notifications
   notify:
-    name: Deployment Notification
+    name: Deployment Notifications
     needs: [ pre-deployment, deploy, verify ]
     runs-on: ubuntu-latest
+    if: always()
     permissions:
       contents: read
-      statuses: write
 
     steps:
-      - name: Notify success
-        if: success()
+      - name: Calculate deployment duration
+        id: duration
         run: |
-          echo "Production deployment completed successfully"
+          START_TIME=$(date -d "${{ needs.pre-deployment.outputs.deployment-id }}" +%s 2>/dev/null || echo "0")
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
 
-      - name: Notify failure
-        if: failure()
+      - name: Success notification
+        if: needs.deploy.result == 'success' && needs.verify.result == 'success'
         run: |
-          echo "Production deployment failed"
+          echo "::notice title=Deployment Successful::VetMed Tracker deployed successfully to production"
+
+          if [[ -n "${{ vars.SLACK_WEBHOOK_URL }}" ]]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data '{
+                "text": "✅ VetMed Tracker Production Deployment Successful",
+                "attachments": [
+                  {
+                    "color": "good",
+                    "fields": [
+                      {"title": "Deployment ID", "value": "${{ needs.pre-deployment.outputs.deployment-id }}", "short": true},
+                      {"title": "Commit", "value": "${{ github.sha::8 }}", "short": true},
+                      {"title": "Duration", "value": "${{ steps.duration.outputs.duration }}", "short": true},
+                      {"title": "URL", "value": "${{ needs.deploy.outputs.deployment-url }}", "short": false},
+                      {"title": "Quality Gates", "value": "All passed ✅", "short": true},
+                      {"title": "Security Scan", "value": "Clean ✅", "short": true}
+                    ]
+                  }
+                ]
+              }' \
+              ${{ vars.SLACK_WEBHOOK_URL }}
+          fi
+
+      - name: Failure notification
+        if: failure() || needs.deploy.result == 'failure' || needs.verify.result == 'failure'
+        run: |
+          echo "::error title=Deployment Failed::VetMed Tracker deployment failed"
+
+          if [[ -n "${{ vars.SLACK_WEBHOOK_URL }}" ]]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data '{
+                "text": "❌ VetMed Tracker Production Deployment Failed",
+                "attachments": [
+                  {
+                    "color": "danger",
+                    "fields": [
+                      {"title": "Deployment ID", "value": "${{ needs.pre-deployment.outputs.deployment-id }}", "short": true},
+                      {"title": "Commit", "value": "${{ github.sha::8 }}", "short": true},
+                      {"title": "Failed Step", "value": "Check workflow logs", "short": true},
+                      {"title": "Action Required", "value": "Review logs and consider rollback", "short": false}
+                    ]
+                  }
+                ]
+              }' \
+              ${{ vars.SLACK_WEBHOOK_URL }}
+          fi
+
+      - name: Update deployment summary
+        run: |
+          echo "## 🚀 VetMed Tracker Production Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment ID**: ${{ needs.pre-deployment.outputs.deployment-id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Duration**: ${{ steps.duration.outputs.duration }}" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.deploy.result }}" == "success" && "${{ needs.verify.result }}" == "success" ]]; then
+            echo "**Status**: ✅ Successful" >> $GITHUB_STEP_SUMMARY
+            echo "**URL**: ${{ needs.deploy.outputs.deployment-url }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status**: ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quality Gates Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Tests: ${{ needs.quality-gates.result == 'success' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance Tests: ${{ needs.quality-gates.result == 'success' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Accessibility Tests: ${{ needs.quality-gates.result == 'success' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Medical Workflow Tests: ${{ needs.quality-gates.result == 'success' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
 

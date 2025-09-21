@@ -1,6 +1,8 @@
+"use cache";
+
 import Link from "next/link";
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <h1 className="mb-6 font-bold text-3xl">Privacy Policy</h1>

@@ -12,8 +12,10 @@ import type {
 export class ShortcutRegistryService {
   private shortcuts: ShortcutMap = new Map();
   private activeShortcuts: ActiveShortcutsSet = new Set();
-  private onShortcutsChange?: (shortcuts: ShortcutMap) => void;
-  private onActiveShortcutsChange?: (active: ActiveShortcutsSet) => void;
+  private readonly onShortcutsChange?: (shortcuts: ShortcutMap) => void;
+  private readonly onActiveShortcutsChange?: (
+    active: ActiveShortcutsSet,
+  ) => void;
 
   constructor(
     onShortcutsChange?: (shortcuts: ShortcutMap) => void,

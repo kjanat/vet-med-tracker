@@ -20,8 +20,9 @@ function getScheduler() {
 }
 
 // Force dynamic rendering and disable caching for the status endpoint
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// TODO: Uncomment the following:
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
 
 const BodySchema = z.object({
   action: z.enum(["start", "stop", "restart"]),

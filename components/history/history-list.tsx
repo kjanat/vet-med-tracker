@@ -118,7 +118,6 @@ export function HistoryList({
             >
               {group.records.map((record) => (
                 <AdministrationRow
-                  isOffline={false}
                   key={record.id}
                   onCosign={onCosign}
                   onDelete={onDelete}
@@ -288,13 +287,11 @@ function AdministrationRow({
   onUndo,
   onDelete,
   onCosign,
-  isOffline,
 }: {
   record: AdministrationRecord;
   onUndo: (id: string) => void;
   onDelete: (id: string) => void;
   onCosign: (id: string) => void;
-  isOffline: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { animals } = useApp();
@@ -420,7 +417,6 @@ function AdministrationRow({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
-                            disabled={isOffline}
                             onClick={() => {
                               announce(
                                 `Undoing medication administration for ${record.animalName} - ${record.medicationName}`,
@@ -450,7 +446,6 @@ function AdministrationRow({
 
                   {canDelete && (
                     <Button
-                      disabled={isOffline}
                       onClick={() => {
                         announce(
                           `Deleting medication administration for ${record.animalName} - ${record.medicationName}`,
@@ -473,7 +468,6 @@ function AdministrationRow({
 
                   {record.cosignPending && (
                     <Button
-                      disabled={isOffline}
                       onClick={() => {
                         announce(
                           `Co-signing medication administration for ${record.animalName} - ${record.medicationName}`,

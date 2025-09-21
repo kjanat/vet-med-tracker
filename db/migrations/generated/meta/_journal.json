@@ -15,6 +15,13 @@
       "when": 1758224357347,
       "tag": "0001_omniscient_marvel_boy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758397941791,
+      "tag": "0002_dusty_dragon_lord",
+      "breakpoints": true
     }
   ]
 }

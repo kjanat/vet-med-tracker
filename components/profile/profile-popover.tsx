@@ -86,18 +86,18 @@ interface ProfileData {
   };
   onboarding: {
     complete: boolean | null;
-    completedAt: string | null;
+    completedAt: Date | null;
   };
   availableHouseholds: Array<{
     id: string;
     name: string;
     timezone: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
     membership: {
       id: string;
-      createdAt: string;
-      updatedAt: string;
+      createdAt: Date;
+      updatedAt: Date;
       householdId: string;
       userId: string;
       role: "OWNER" | "CAREGIVER" | "VETREADONLY";
@@ -316,10 +316,35 @@ export function ProfilePopover({
   });
 
   // tRPC queries
-  const { data: profile, isLoading } = trpc.user.getProfile.useQuery(
+  const { data: rawProfile, isLoading } = trpc.user.getProfile.useQuery(
     undefined,
     { enabled: isOpen },
   );
+
+  // Transform API response to match ProfileData interface with proper Date objects
+  const profile = rawProfile
+    ? {
+        ...rawProfile,
+        availableHouseholds: rawProfile.availableHouseholds.map(
+          (household) => ({
+            ...household,
+            createdAt: new Date(household.createdAt),
+            membership: {
+              ...household.membership,
+              createdAt: new Date(household.membership.createdAt),
+              updatedAt: new Date(household.membership.updatedAt),
+            },
+            updatedAt: new Date(household.updatedAt),
+          }),
+        ),
+        onboarding: {
+          ...rawProfile.onboarding,
+          completedAt: rawProfile.onboarding.completedAt
+            ? new Date(rawProfile.onboarding.completedAt)
+            : null,
+        },
+      }
+    : undefined;
 
   const updateProfileMutation = trpc.user.updateProfile.useMutation({
     onError: (error) => {

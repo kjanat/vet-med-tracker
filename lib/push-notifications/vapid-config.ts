@@ -7,11 +7,15 @@ import { loadEnvConfig } from "@next/env";
 // Load environment variables
 loadEnvConfig(process.cwd());
 
+// VAPID configuration interface
 interface VAPIDConfig {
   publicKey: string;
   privateKey: string;
   subject: string;
 }
+
+// Default subject for VAPID emails
+const defaultVapidSubject = "mailto:admin@vetmedtracker.com";
 
 /**
  * Get VAPID configuration from environment variables
@@ -20,7 +24,7 @@ interface VAPIDConfig {
 export function getVAPIDConfig(): VAPIDConfig | null {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT || "mailto:admin@vetmedtracker.com";
+  const subject = process.env.VAPID_SUBJECT || defaultVapidSubject;
 
   if (!publicKey || !privateKey) {
     console.warn(

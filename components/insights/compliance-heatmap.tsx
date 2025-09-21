@@ -136,8 +136,8 @@ export function ComplianceHeatmap({
     if (!selectedCell) return;
 
     const params: Record<string, string> = {
-      from: range.from.toISOString().split("T")[0] || "",
-      to: range.to.toISOString().split("T")[0] || "",
+      from: range.from.toISOString().slice(0, 10) || "",
+      to: range.to.toISOString().slice(0, 10) || "",
     };
 
     if (selectedAnimalId !== "all") {

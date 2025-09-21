@@ -6,7 +6,6 @@
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-// Use the database schema type for medication catalog rows
 import { medicationCatalog } from "@/db/schema";
 import {
   type DosageCalculationInput,
@@ -633,7 +632,7 @@ export const dosageRouter = createTRPCRouter({
           ...(unitsPerTablet !== undefined && {
             unitsPerTablet: unitsPerTablet?.toString(),
           }),
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         };
 
         // Update the medication

@@ -4,6 +4,7 @@ import { animalRouter } from "./animals";
 import { auditRouter } from "./audit";
 import { cosignerRouter } from "./cosigner";
 import { dosageRouter } from "./dosage";
+import { emergencyContactsRouter } from "./emergency-contacts";
 import { householdRouter } from "./households";
 import { insightsRouter } from "./insights";
 import { inventoryRouter } from "./inventory";
@@ -11,6 +12,7 @@ import { medicationRouter } from "./medication";
 import { notificationsRouter } from "./notifications";
 import { regimenRouter } from "./regimens";
 import { reportsRouter } from "./reports";
+import { securityMonitoringRouter } from "./security-monitoring";
 import { userRouter } from "./user";
 
 // Root router combining all sub-routers
@@ -20,6 +22,7 @@ export const appRouter = createTRPCRouter({
   audit: auditRouter,
   cosigner: cosignerRouter,
   dosage: dosageRouter,
+  emergencyContacts: emergencyContactsRouter,
   household: householdRouter,
   insights: insightsRouter,
   inventory: inventoryRouter,
@@ -27,6 +30,7 @@ export const appRouter = createTRPCRouter({
   notifications: notificationsRouter,
   regimen: regimenRouter,
   reports: reportsRouter,
+  security: securityMonitoringRouter,
   user: userRouter,
 });
 

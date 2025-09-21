@@ -45,7 +45,6 @@ export default function HelpPage() {
       links: [
         { label: "Recording Medications", href: "#recording" },
         { label: "Setting Up Reminders", href: "#reminders" },
-        { label: "Working Offline", href: "#offline" },
       ],
     },
     {

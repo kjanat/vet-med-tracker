@@ -17,8 +17,9 @@ import {
   defaultUserPreferences,
   defaultUserProfile,
 } from "@/db/schema/user-defaults";
-// Offline database functionality removed during simplification
 import { trpc } from "@/server/trpc/client";
+import { useHouseholdActions } from "./use-household-actions";
+import { useStackMetadataPreferences } from "./use-stack-metadata-preferences";
 
 // =============================================================================
 // TYPES & INTERFACES
@@ -37,7 +38,7 @@ interface StackUserForConversion {
 // tRPC query result types
 type HouseholdListItem = typeof vetmedHouseholds.$inferSelect & {
   role: string;
-  joinedAt: string;
+  joinedAt: Date;
 };
 
 type AnimalFromDatabase = typeof vetmedAnimals.$inferSelect;
@@ -83,18 +84,18 @@ export interface UserProfile {
   };
   onboarding: {
     complete: boolean | null;
-    completedAt: string | null;
+    completedAt: Date | null;
   };
   availableHouseholds: Array<{
     id: string;
     name: string;
     timezone: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
     membership: {
       id: string;
-      createdAt: string;
-      updatedAt: string;
+      createdAt: Date;
+      updatedAt: Date;
       householdId: string;
       userId: string;
       role: "OWNER" | "CAREGIVER" | "VETREADONLY";
@@ -193,8 +194,7 @@ interface AppState {
   // Accessibility State
   accessibility: AccessibilityState;
 
-  // Offline & Sync State
-  isOffline: boolean;
+  // Sync State
   pendingSyncCount: number;
 
   // Loading & Error States
@@ -217,7 +217,6 @@ type AppAction =
   | { type: "SET_HOUSEHOLD_SETTINGS"; payload: Partial<HouseholdSettings> }
   | { type: "SET_FIRST_TIME_USER"; payload: boolean }
   | { type: "SET_ACCESSIBILITY"; payload: Partial<AccessibilityState> }
-  | { type: "SET_OFFLINE_STATUS"; payload: boolean }
   | { type: "SET_PENDING_SYNC_COUNT"; payload: number }
   | {
       type: "SET_LOADING";
@@ -304,7 +303,6 @@ const initialState: AppState = {
   households: [],
   isAuthenticated: false,
   isFirstTimeUser: false,
-  isOffline: false,
   loading: {
     animals: false,
     households: false,
@@ -433,9 +431,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         accessibility: { ...state.accessibility, ...action.payload },
       };
 
-    case "SET_OFFLINE_STATUS":
-      return { ...state, isOffline: action.payload };
-
     case "SET_PENDING_SYNC_COUNT":
       return { ...state, pendingSyncCount: action.payload };
 
@@ -562,7 +557,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // Convert Stack user to internal user format
   const convertStackUser = useCallback(
     (stackUser: StackUserForConversion): User => ({
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
       defaultAnimalId: null,
       defaultHouseholdId: null,
       email: stackUser.primaryEmail || "",
@@ -575,7 +570,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
       preferences: structuredClone(defaultUserPreferences),
       profile: structuredClone(defaultUserProfile),
       stackUserId: stackUser.id,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     }),
     [],
   );
@@ -597,8 +592,35 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   }, [stackUser, convertStackUser]);
 
   // Get user profile data from tRPC
-  const { data: userProfile, refetch: refetchProfile } =
+  const { data: rawUserProfile, refetch: refetchProfile } =
     trpc.user.getProfile.useQuery(undefined, { enabled: Boolean(stackUser) });
+
+  // Transform API response to match UserProfile interface with proper Date objects
+  const userProfile = useMemo(() => {
+    if (!rawUserProfile) return null;
+
+    return {
+      ...rawUserProfile,
+      availableHouseholds: rawUserProfile.availableHouseholds.map(
+        (household) => ({
+          ...household,
+          createdAt: new Date(household.createdAt),
+          membership: {
+            ...household.membership,
+            createdAt: new Date(household.membership.createdAt),
+            updatedAt: new Date(household.membership.updatedAt),
+          },
+          updatedAt: new Date(household.updatedAt),
+        }),
+      ),
+      onboarding: {
+        ...rawUserProfile.onboarding,
+        completedAt: rawUserProfile.onboarding.completedAt
+          ? new Date(rawUserProfile.onboarding.completedAt)
+          : null,
+      },
+    };
+  }, [rawUserProfile]);
 
   useEffect(() => {
     if (userProfile) {
@@ -611,37 +633,32 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // =============================================================================
 
   // Load preferences from Stack user metadata
-  useEffect(() => {
-    if (stackUser?.clientMetadata) {
-      const vetMedPrefs = stackUser.clientMetadata
-        .vetMedPreferences as VetMedPreferences;
-      const householdSettings = stackUser.clientMetadata
-        .householdSettings as HouseholdSettings;
+  const handlePreferencesUpdate = useCallback(
+    (preferences: VetMedPreferences) => {
+      dispatch({ payload: preferences, type: "SET_PREFERENCES" });
+    },
+    [],
+  );
 
-      if (vetMedPrefs) {
-        dispatch({
-          payload: { ...defaultVetMedPreferences, ...vetMedPrefs },
-          type: "SET_PREFERENCES",
-        });
-      }
+  const handleHouseholdSettingsUpdate = useCallback(
+    (settings: HouseholdSettings) => {
+      dispatch({ payload: settings, type: "SET_HOUSEHOLD_SETTINGS" });
+    },
+    [],
+  );
 
-      if (householdSettings) {
-        dispatch({
-          payload: { ...defaultHouseholdSettings, ...householdSettings },
-          type: "SET_HOUSEHOLD_SETTINGS",
-        });
-      }
+  const handleFirstTimeUserUpdate = useCallback((isFirst: boolean) => {
+    dispatch({ payload: isFirst, type: "SET_FIRST_TIME_USER" });
+  }, []);
 
-      // Check if first time user
-      const hasPreferences = vetMedPrefs || householdSettings;
-      const hasCompletedOnboarding =
-        stackUser.clientMetadata?.onboardingComplete;
-      dispatch({
-        payload: !hasPreferences && !hasCompletedOnboarding,
-        type: "SET_FIRST_TIME_USER",
-      });
-    }
-  }, [stackUser]);
+  useStackMetadataPreferences({
+    defaultHouseholdSettings,
+    defaultPreferences: defaultVetMedPreferences,
+    onFirstTimeUserChange: handleFirstTimeUserUpdate,
+    onHouseholdSettings: handleHouseholdSettingsUpdate,
+    onPreferences: handlePreferencesUpdate,
+    stackUser,
+  });
 
   // =============================================================================
   // HOUSEHOLDS & ANIMALS MANAGEMENT
@@ -785,28 +802,10 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   }, [animalData, pendingMedsData, formatAnimalData, validateSelectedAnimal]);
 
   // =============================================================================
-  // OFFLINE & SYNC MANAGEMENT
+  // SYNC MANAGEMENT
   // =============================================================================
 
-  // Monitor online/offline status
-  useEffect(() => {
-    const handleOnline = () =>
-      dispatch({ payload: false, type: "SET_OFFLINE_STATUS" });
-    const handleOffline = () =>
-      dispatch({ payload: true, type: "SET_OFFLINE_STATUS" });
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    dispatch({ payload: !navigator.onLine, type: "SET_OFFLINE_STATUS" });
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
-
-  // Simplified: No offline queue, no pending sync count
+  // Simplified: No pending sync queue currently implemented
   const updatePendingSyncCount = useCallback(async () => {
     dispatch({ payload: 0, type: "SET_PENDING_SYNC_COUNT" });
   }, []);
@@ -858,21 +857,12 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   // ACTION HANDLERS
   // =============================================================================
 
-  const setSelectedHousehold = useCallback((household: Household | null) => {
-    dispatch({ payload: household, type: "SET_HOUSEHOLD" });
-  }, []);
-
-  const setSelectedAnimal = useCallback((animal: Animal | null) => {
-    dispatch({ payload: animal, type: "SET_ANIMAL" });
-  }, []);
-
-  const refreshPendingMeds = useCallback(() => {
-    if (state.selectedHouseholdId) {
-      utils.household.getPendingMeds.invalidate({
-        householdId: state.selectedHouseholdId,
-      });
-    }
-  }, [utils.household.getPendingMeds, state.selectedHouseholdId]);
+  const { refreshPendingMeds, setSelectedAnimal, setSelectedHousehold } =
+    useHouseholdActions<Household, Animal>({
+      dispatch,
+      invalidatePendingMeds: utils.household.getPendingMeds.invalidate,
+      selectedHouseholdId: state.selectedHouseholdId,
+    });
 
   const login = useCallback(() => {
     // Stack Auth uses redirects for sign-in
@@ -1143,7 +1133,6 @@ export function useAppLegacy() {
   return {
     animals: context.animals,
     households: context.households,
-    isOffline: context.isOffline,
     pendingSyncCount: context.pendingSyncCount,
     refreshPendingMeds: context.refreshPendingMeds,
     selectedAnimal: context.selectedAnimal,

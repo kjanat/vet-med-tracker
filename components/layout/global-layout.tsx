@@ -2,8 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-// App provider import removed - offline functionality simplified
-// Offline banner functionality removed during simplification
 
 export function GlobalLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();

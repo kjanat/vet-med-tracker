@@ -1,5 +1,7 @@
 "use client";
 
+import type { Route } from "next";
+import Link from "next/link";
 import type React from "react";
 import { useEffect, useRef } from "react";
 
@@ -207,7 +209,7 @@ export function ScreenReaderOnly({ text }: { text: string }) {
 export function SkipNavigation({
   links,
 }: {
-  links: Array<{ href: string; label: string }>;
+  links: Array<{ href: Route; label: string }>;
 }) {
   return (
     <nav
@@ -217,12 +219,12 @@ export function SkipNavigation({
       <ul className="flex gap-2 bg-primary p-2 text-primary-foreground">
         {links.map((link) => (
           <li key={link.href}>
-            <a
+            <Link
               className="inline-block rounded bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               href={link.href}
             >
               {link.label}
-            </a>
+            </Link>
           </li>
         ))}
       </ul>

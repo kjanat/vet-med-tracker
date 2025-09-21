@@ -340,7 +340,7 @@ async function storeSuggestionInDb(
       action: suggestion.action,
       estimatedImpact: suggestion.estimatedImpact,
       // Set expiry to 7 days from now
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       householdId,
       id: suggestion.id,
       priority: suggestion.priority,
@@ -458,8 +458,8 @@ async function generateComplianceHeatmap(
 
   if (range) {
     conditions.push(
-      gte(administrations.recordedAt, range.from),
-      lte(administrations.recordedAt, range.to),
+      gte(administrations.recordedAt, new Date(range.from)),
+      lte(administrations.recordedAt, new Date(range.to)),
     );
   }
 
@@ -632,7 +632,7 @@ async function handleShiftTimeSuggestion(
     .update(regimens)
     .set({
       timesLocal: [action.toTime],
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     })
     .where(eq(regimens.id, action.regimenId));
 
@@ -670,7 +670,7 @@ async function handleEnableCoSignSuggestion(
     .set({
       highRisk: action.highRisk || regimen.highRisk,
       requiresCoSign: true,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     })
     .where(eq(regimens.id, action.regimenId));
 
@@ -689,11 +689,11 @@ async function updateSuggestionStatus(
   await db
     .update(suggestions)
     .set({
-      appliedAt: new Date().toISOString(),
+      appliedAt: new Date(),
       appliedByUserId: userId,
       originalValues,
       status: "applied",
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     })
     .where(eq(suggestions.id, suggestionId));
 }
@@ -779,7 +779,7 @@ async function revertSuggestion(
         .update(regimens)
         .set({
           timesLocal: originalValues.originalTimes as string[],
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(regimens.id, originalValues.regimenId as string));
 
@@ -795,7 +795,7 @@ async function revertSuggestion(
         .set({
           highRisk: originalValues.originalHighRisk as boolean,
           requiresCoSign: originalValues.originalRequiresCoSign as boolean,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(regimens.id, originalValues.regimenId as string));
 
@@ -811,10 +811,10 @@ async function revertSuggestion(
     await db
       .update(suggestions)
       .set({
-        revertedAt: new Date().toISOString(),
+        revertedAt: new Date(),
         revertedByUserId: userId,
         status: "reverted",
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       })
       .where(eq(suggestions.id, suggestionId));
 
@@ -850,10 +850,10 @@ export const insightsRouter = createTRPCRouter({
       await ctx.db
         .update(suggestions)
         .set({
-          dismissedAt: new Date().toISOString(),
+          dismissedAt: new Date(),
           dismissedByUserId: ctx.dbUser.id,
           status: "dismissed",
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(
           and(
@@ -862,7 +862,7 @@ export const insightsRouter = createTRPCRouter({
           ),
         );
 
-      return { dismissedAt: new Date().toISOString(), success: true };
+      return { dismissedAt: new Date(), success: true };
     }),
 
   // Get compliance heatmap data

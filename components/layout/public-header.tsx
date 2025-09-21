@@ -15,11 +15,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const navigation = [
-  { href: "#features", name: "Features" },
-  { href: "#demo", name: "How It Works" },
-  { href: "#testimonials", name: "Testimonials" },
-  { href: "#pricing", name: "Pricing" },
+type NavItem = {
+  href: Route;
+  label: string;
+};
+
+const navigation: NavItem[] = [
+  { href: "/#features", label: "Features" },
+  { href: "/#demo", label: "How It Works" },
+  { href: "/#testimonials", label: "Testimonials" },
+  { href: "/#pricing", label: "Pricing" },
 ];
 
 export function PublicHeader() {
@@ -45,10 +50,10 @@ export function PublicHeader() {
           {navigation.map((item) => (
             <Link
               className="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-              href={item.href as Route}
-              key={item.name}
+              href={item.href}
+              key={item.label}
             >
-              {item.name}
+              {item.label}
             </Link>
           ))}
         </nav>
@@ -89,11 +94,11 @@ export function PublicHeader() {
               {navigation.map((item) => (
                 <Link
                   className="font-medium text-lg transition-colors hover:text-primary"
-                  href={item.href as Route}
-                  key={item.name}
+                  href={item.href}
+                  key={item.label}
                   onClick={() => setIsOpen(false)}
                 >
-                  {item.name}
+                  {item.label}
                 </Link>
               ))}
               <div className="space-y-3 border-t pt-4">

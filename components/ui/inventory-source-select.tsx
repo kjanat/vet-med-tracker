@@ -61,8 +61,8 @@ export function InventorySourceSelect({
             {selectedSource ? (
               <div className="flex items-center gap-2">
                 <span>{selectedSource.name}</span>
-                {selectedSource.brand && (
-                  <Badge variant="secondary">{selectedSource.brand}</Badge>
+                {selectedSource.brandName && (
+                  <Badge variant="secondary">{selectedSource.brandName}</Badge>
                 )}
                 {selectedSource.lot && (
                   <Badge variant="secondary">Lot {selectedSource.lot}</Badge>
@@ -116,8 +116,8 @@ export function InventorySourceSelect({
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span>{source.name}</span>
-                        {source.brand && (
-                          <Badge variant="secondary">{source.brand}</Badge>
+                        {source.brandName && (
+                          <Badge variant="secondary">{source.brandName}</Badge>
                         )}
                         {source.lot && (
                           <Badge variant="secondary">Lot {source.lot}</Badge>

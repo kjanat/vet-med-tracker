@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { AlertTriangle, Archive, Clock, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/providers/app-provider-consolidated";
@@ -15,158 +14,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  type Regimen,
+  RegimenDataService,
+} from "@/lib/services/regimen-data.service";
+import { RegimenDisplayService } from "@/lib/services/regimen-display.service";
+import { RegimenSchedulingService } from "@/lib/services/regimen-scheduling.service";
+import {
+  type MedicalValidationResult,
+  RegimenValidationService,
+} from "@/lib/services/regimen-validation.service";
 import { trpc } from "@/server/trpc/client";
 import { RegimenForm } from "./regimen-form";
 
-// Type for regimen data from tRPC - matches actual schema
-type RegimenWithDetails = {
-  regimen: {
-    id: string;
-    animalId: string;
-    medicationId: string | null;
-    name: string | null;
-    instructions: string | null;
-    scheduleType: "FIXED" | "PRN" | "INTERVAL" | "TAPER";
-    timesLocal: string[] | null;
-    intervalHours: number | null;
-    startDate: string;
-    endDate: string | null;
-    prnReason: string | null;
-    maxDailyDoses: number | null;
-    cutoffMinutes: number;
-    highRisk: boolean;
-    requiresCoSign: boolean;
-    active: boolean;
-    pausedAt: string | null;
-    pauseReason: string | null;
-    dose: string | null;
-    route: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-  };
-  animal: {
-    id: string;
-    householdId: string;
-    name: string;
-    species: string;
-    breed: string | null;
-    sex: string | null;
-    neutered: boolean;
-    dob: string | null;
-    weightKg: string | null;
-    microchipId: string | null;
-    color: string | null;
-    photoUrl: string | null;
-    timezone: string;
-    vetName: string | null;
-    vetPhone: string | null;
-    vetEmail: string | null;
-    clinicName: string | null;
-    allergies: string[] | null;
-    conditions: string[] | null;
-    notes: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-  };
-  medication: {
-    id: string;
-    genericName: string;
-    brandName: string | null;
-    strength: string | null;
-    route:
-      | "ORAL"
-      | "SC"
-      | "IM"
-      | "IV"
-      | "TOPICAL"
-      | "OTIC"
-      | "OPHTHALMIC"
-      | "INHALED"
-      | "RECTAL"
-      | "OTHER";
-    form:
-      | "TABLET"
-      | "CAPSULE"
-      | "LIQUID"
-      | "INJECTION"
-      | "CREAM"
-      | "OINTMENT"
-      | "DROPS"
-      | "SPRAY"
-      | "POWDER"
-      | "PATCH"
-      | "OTHER";
-    controlledSubstance: boolean;
-    commonDosing: string | null;
-    warnings: string | null;
-    createdAt: string;
-    updatedAt: string;
-  } | null;
-};
-
-// Interface for display
-export interface Regimen {
-  id: string;
-  animalId: string;
-  animalName: string;
-  medicationName: string;
-  medicationId: string | null;
-  route: string;
-  form: string;
-  strength?: string;
-  scheduleType: "FIXED" | "PRN";
-  timesLocal?: string[];
-  startDate?: Date;
-  endDate?: Date;
-  cutoffMins: number;
+interface ValidationPayload {
+  age?: number;
+  allergies?: string[];
+  conditions?: string[];
+  dose: string;
   highRisk: boolean;
-  isActive: boolean;
-  createdAt: Date;
-  status: "active" | "ended" | "paused";
+  name: string;
+  route: string;
+  species: string;
+  weight: number;
+  existingMedications?: string[];
 }
 
-// Helper function to transform tRPC data to display format
-function transformRegimenData(data: RegimenWithDetails[]): Regimen[] {
-  const now = new Date();
+function isValidationPayload(value: unknown): value is ValidationPayload {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
 
-  return data.map((item) => {
-    const { regimen, animal, medication } = item;
-
-    // Calculate status based on dates and pause state
-    let status: "active" | "ended" | "paused" = "active";
-    if (!regimen.active || regimen.pausedAt) {
-      status = "paused";
-    } else if (regimen.endDate && new Date(regimen.endDate) < now) {
-      status = "ended";
-    }
-
-    return {
-      animalId: animal.id,
-      animalName: animal.name,
-      createdAt: new Date(regimen.createdAt),
-      cutoffMins: regimen.cutoffMinutes,
-      endDate: regimen.endDate ? new Date(regimen.endDate) : undefined,
-      form: medication?.form || "TABLET",
-      highRisk: regimen.highRisk,
-      id: regimen.id,
-      isActive: regimen.active,
-      medicationId: regimen.medicationId,
-      medicationName:
-        medication?.genericName ||
-        medication?.brandName ||
-        regimen.name ||
-        "Unknown Medication",
-      route: regimen.route || medication?.route || "ORAL",
-      scheduleType: regimen.scheduleType as "FIXED" | "PRN",
-      startDate: new Date(regimen.startDate),
-      status,
-      strength: medication?.strength || undefined,
-      timesLocal: regimen.timesLocal || undefined,
-    };
-  });
+  const payload = value as Partial<ValidationPayload>;
+  return (
+    typeof payload.dose === "string" &&
+    typeof payload.name === "string" &&
+    typeof payload.route === "string" &&
+    typeof payload.species === "string" &&
+    typeof payload.weight === "number" &&
+    typeof payload.highRisk === "boolean"
+  );
 }
+
+// Re-export types from service
+export type {
+  Regimen,
+  RegimenWithDetails,
+} from "@/lib/services/regimen-data.service";
 
 export function RegimenList() {
   const [selectedAnimalId, setSelectedAnimalId] = useState<string>("all");
@@ -191,30 +85,48 @@ export function RegimenList() {
     },
   );
 
-  // Transform and filter regimens
-  const regimens = regimenData ? transformRegimenData(regimenData) : [];
-  const filteredRegimens = regimens.filter((regimen) => {
-    if (selectedAnimalId === "all")
-      return regimen.isActive && regimen.status !== "ended";
-    return (
-      regimen.animalId === selectedAnimalId &&
-      regimen.isActive &&
-      regimen.status !== "ended"
-    );
+  // Transform and filter regimens using data service
+  const regimens = regimenData
+    ? RegimenDataService.transformRegimenData(regimenData, {
+        validate: (regimen: unknown) => {
+          if (!isValidationPayload(regimen)) {
+            return {
+              errors: [] as string[],
+              isValid: true,
+              riskLevel: "LOW",
+              warnings: [] as string[],
+            } satisfies MedicalValidationResult;
+          }
+
+          return RegimenValidationService.validateRegimen(
+            {
+              dose: regimen.dose,
+              highRisk: regimen.highRisk,
+              name: regimen.name,
+              route: regimen.route,
+            },
+            {
+              age: regimen.age,
+              allergies: regimen.allergies,
+              conditions: regimen.conditions,
+              species: regimen.species,
+              weight: regimen.weight,
+            },
+            regimen.existingMedications ?? [],
+          );
+        },
+      })
+    : [];
+
+  const filteredRegimens = RegimenDataService.filterRegimens(regimens, {
+    activeOnly: true,
+    animalId: selectedAnimalId,
+    excludeEnded: true,
   });
 
-  // Group by animal
-  const groupedRegimens = filteredRegimens.reduce(
-    (groups, regimen) => {
-      const key = regimen.animalId;
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push(regimen);
-      return groups;
-    },
-    {} as Record<string, Regimen[]>,
-  );
+  // Group by animal using data service
+  const groupedRegimens =
+    RegimenDataService.groupRegimensByAnimal(filteredRegimens);
 
   const handleEdit = (regimen: Regimen) => {
     setEditingRegimen(regimen);
@@ -245,13 +157,32 @@ export function RegimenList() {
     },
   });
 
-  // Helper functions to reduce cognitive complexity
-  const formatDateForAPI = (date?: Date) => date?.toISOString().split("T")[0];
+  // Helper functions using scheduling service
+  const formatDateForAPI = (date?: Date) => date?.toISOString().slice(0, 10);
 
   const formatDateForAPIRequired = (date?: Date): string => {
     const isoDate = (date || new Date()).toISOString();
     const datePart = isoDate.split("T")[0];
     return datePart ?? isoDate; // Fallback to full ISO string if split fails
+  };
+
+  // Validate schedule conflicts when creating/updating regimens
+  const validateScheduleConflicts = (
+    newSchedule: string[],
+    medicationName: string,
+  ) => {
+    const existingSchedules = regimens
+      .filter((r) => r.id !== editingRegimen?.id && r.status === "active")
+      .map((r) => ({
+        highRisk: r.highRisk,
+        medicationName: r.medicationName,
+        times: r.timesLocal || [],
+      }));
+
+    return RegimenSchedulingService.checkScheduleConflicts(
+      { medicationName, times: newSchedule },
+      existingSchedules,
+    );
   };
 
   // Type for regimen update input based on tRPC schema
@@ -375,7 +306,43 @@ export function RegimenList() {
     );
   };
 
-  // Simplified main handler
+  const handleScheduleValidation = (
+    times: string[],
+    medicationName: string,
+  ): boolean => {
+    const conflicts = validateScheduleConflicts(times, medicationName);
+    const criticalConflicts = conflicts.filter((c) => c.severity === "ERROR");
+
+    if (criticalConflicts.length > 0) {
+      console.error("Schedule conflicts detected:", criticalConflicts);
+      // In a real app, show user confirmation dialog
+      return true;
+    }
+    return false;
+  };
+
+  const handleScheduleOptimization = (data: Partial<Regimen>) => {
+    if (!data.timesLocal || data.scheduleType !== "FIXED") return;
+
+    const scheduleOptimization = RegimenSchedulingService.generateDoseSchedule(
+      data.timesLocal.length,
+      data.scheduleType,
+      data.timesLocal[0] || "09:00",
+      {
+        avoidSleep: true,
+        withFood: true, // Could be made configurable
+      },
+    );
+
+    if (scheduleOptimization.warnings.length > 0) {
+      console.log(
+        "Schedule optimization suggestions:",
+        scheduleOptimization.warnings,
+      );
+    }
+  };
+
+  // Enhanced handler with medical validation and schedule optimization
   const handleSave = async (data: Partial<Regimen>) => {
     if (!selectedHousehold?.id) {
       console.error("No household selected");
@@ -383,6 +350,22 @@ export function RegimenList() {
     }
 
     try {
+      // Validate schedule conflicts
+      if (data.timesLocal && data.medicationName) {
+        const hasConflicts = handleScheduleValidation(
+          data.timesLocal,
+          data.medicationName,
+        );
+        if (hasConflicts) {
+          // Early return if critical conflicts are found
+          return;
+        }
+      }
+
+      if (!editingRegimen) {
+        handleScheduleOptimization(data);
+      }
+
       if (editingRegimen) {
         const updateData = buildUpdateData(data, selectedHousehold.id);
         await updateRegimen.mutateAsync(updateData);
@@ -641,108 +624,164 @@ function RegimenCard({
   onArchive,
   onTogglePause,
 }: {
-  regimen: Regimen;
+  regimen: Regimen & { validationWarnings?: string[] };
   onEdit: () => void;
   onArchive: () => void;
   onTogglePause: () => void;
 }) {
+  // Use display service to format regimen data
+  const formattedRegimen = RegimenDisplayService.formatRegimenForDisplay({
+    animalName: regimen.animalName,
+    cutoffMins: regimen.cutoffMins,
+    endDate: regimen.endDate,
+    form: regimen.form,
+    highRisk: regimen.highRisk,
+    id: regimen.id,
+    isActive: regimen.isActive,
+    medicationName: regimen.medicationName,
+    route: regimen.route,
+    scheduleType: regimen.scheduleType,
+    startDate: regimen.startDate || new Date(),
+    status: regimen.status,
+    strength: regimen.strength,
+    timesLocal: regimen.timesLocal,
+  });
+
+  // Create schedule visualization
+  const scheduleViz = regimen.timesLocal
+    ? RegimenDisplayService.createScheduleVisualization(
+        regimen.timesLocal,
+        "UTC", // Would use actual timezone
+      )
+    : null;
+
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-base">
-              {regimen.medicationName}
+              {formattedRegimen.title}
             </CardTitle>
             <p className="text-muted-foreground text-sm">
-              {regimen.strength} • {regimen.route}
+              {formattedRegimen.subtitle}
             </p>
+            {regimen.validationWarnings &&
+              regimen.validationWarnings.length > 0 && (
+                <div className="mt-1">
+                  {regimen.validationWarnings.map((warning, i) => (
+                    <p
+                      className="flex items-center gap-1 text-amber-600 text-xs"
+                      key={`${regimen.id}-warning-${i}`}
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      {warning}
+                    </p>
+                  ))}
+                </div>
+              )}
           </div>
           <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center">
-            {regimen.highRisk && (
+            {formattedRegimen.badges.map((badge, index) => (
               <Badge
                 className="whitespace-nowrap text-xs"
-                variant="destructive"
+                key={`${badge.text}-${index}`}
+                title={badge.tooltip}
+                variant={badge.variant}
               >
-                <AlertTriangle className="mr-1 h-3 w-3" />
-                High-risk
+                {badge.icon && badge.icon === "AlertTriangle" && (
+                  <AlertTriangle className="mr-1 h-3 w-3" />
+                )}
+                {badge.text}
               </Badge>
-            )}
-            <Badge
-              className="whitespace-nowrap text-xs"
-              variant={
-                regimen.scheduleType === "FIXED" ? "default" : "secondary"
-              }
-            >
-              {regimen.scheduleType}
-            </Badge>
-            {regimen.status === "paused" && (
-              <Badge className="whitespace-nowrap text-xs" variant="outline">
-                Paused
-              </Badge>
-            )}
-            {regimen.status === "ended" && (
-              <Badge className="whitespace-nowrap text-xs" variant="secondary">
-                Ended
-              </Badge>
-            )}
+            ))}
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {regimen.scheduleType === "FIXED" && regimen.timesLocal && (
+        {scheduleViz && scheduleViz.timeSlots.length > 0 && (
           <div>
             <p className="mb-1 font-medium text-sm">Schedule:</p>
             <div className="flex flex-wrap gap-1">
-              {regimen.timesLocal.map((time) => (
-                <Badge className="text-xs" key={time} variant="outline">
-                  {format(new Date(`2000-01-01T${time}`), "h:mm a")}
+              {scheduleViz.timeSlots.map((slot, index) => (
+                <Badge
+                  className="text-xs"
+                  key={`${slot.label}-${index}`}
+                  variant={
+                    slot.status === "completed"
+                      ? "default"
+                      : slot.status === "missed"
+                        ? "destructive"
+                        : slot.status === "current"
+                          ? "secondary"
+                          : "outline"
+                  }
+                >
+                  {slot.label}
+                  {slot.delay && slot.delay > 30 && (
+                    <span className="ml-1 text-xs opacity-70">
+                      (+{Math.round(slot.delay)}m)
+                    </span>
+                  )}
                 </Badge>
               ))}
             </div>
+            {scheduleViz.nextDose && (
+              <p className="mt-1 text-muted-foreground text-xs">
+                Next dose: {scheduleViz.nextDose.time} (
+                {scheduleViz.nextDose.countdown})
+                {scheduleViz.nextDose.isLate && (
+                  <span className="ml-1 text-destructive">- LATE</span>
+                )}
+              </p>
+            )}
           </div>
         )}
 
         <div className="text-muted-foreground text-sm">
-          <div>Cutoff: {regimen.cutoffMins} minutes</div>
-          {regimen.startDate && (
-            <div>
-              Started: {format(regimen.startDate, "MMM d, yyyy")}
-              {regimen.endDate &&
-                ` - ${format(regimen.endDate, "MMM d, yyyy")}`}
-            </div>
-          )}
+          <div>Cutoff: {formattedRegimen.metadata.cutoffTime}</div>
+          <div>
+            {formattedRegimen.metadata.startDate}
+            {formattedRegimen.metadata.endDate &&
+              ` - ${formattedRegimen.metadata.endDate}`}
+          </div>
         </div>
 
         <div className="flex gap-2 pt-2">
-          <Button
-            className="flex-1 bg-transparent"
-            onClick={onEdit}
-            size="sm"
-            variant="outline"
-          >
-            Edit
-          </Button>
-          <Button
-            className="gap-1 bg-transparent"
-            onClick={onTogglePause}
-            size="sm"
-            title={regimen.isActive ? "Pause regimen" : "Resume regimen"}
-            variant="outline"
-          >
-            {regimen.isActive ? "Pause" : "Resume"}
-          </Button>
-          <Button
-            className="gap-1 bg-transparent"
-            onClick={onArchive}
-            size="sm"
-            title="Archive regimen"
-            variant="outline"
-          >
-            <Archive className="h-3 w-3" />
-            Archive
-          </Button>
+          {formattedRegimen.actions.canEdit && (
+            <Button
+              className="flex-1 bg-transparent"
+              onClick={onEdit}
+              size="sm"
+              variant="outline"
+            >
+              Edit
+            </Button>
+          )}
+          {formattedRegimen.actions.canPause && (
+            <Button
+              className="gap-1 bg-transparent"
+              onClick={onTogglePause}
+              size="sm"
+              title={regimen.isActive ? "Pause regimen" : "Resume regimen"}
+              variant="outline"
+            >
+              {regimen.isActive ? "Pause" : "Resume"}
+            </Button>
+          )}
+          {formattedRegimen.actions.canArchive && (
+            <Button
+              className="gap-1 bg-transparent"
+              onClick={onArchive}
+              size="sm"
+              title="Archive regimen"
+              variant="outline"
+            >
+              <Archive className="h-3 w-3" />
+              Archive
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

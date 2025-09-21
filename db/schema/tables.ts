@@ -119,10 +119,10 @@ export const vetmedAnimals = pgTable(
     clinicName: text("clinic_name"),
     color: text(),
     conditions: text().array(),
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
-    deletedAt: timestamp("deleted_at", { mode: "string", withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { mode: "date", withTimezone: true }),
     dob: date(),
     householdId: uuid("household_id").notNull(),
     id: uuid().defaultRandom().primaryKey().notNull(),
@@ -134,7 +134,7 @@ export const vetmedAnimals = pgTable(
     sex: text(),
     species: text().notNull(),
     timezone: text().default("America/New_York").notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     vetEmail: text("vet_email"),
@@ -162,13 +162,13 @@ export const vetmedAnimals = pgTable(
 export const vetmedMemberships = pgTable(
   "vetmed_memberships",
   {
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     householdId: uuid("household_id").notNull(),
     id: uuid().defaultRandom().primaryKey().notNull(),
     role: vetmedRole().default("CAREGIVER").notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     userId: uuid("user_id").notNull(),
@@ -207,11 +207,14 @@ export const vetmedInventoryItems = pgTable(
     barcode: text(),
     brandOverride: text("brand_override"),
     concentration: text(),
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
-    deletedAt: timestamp("deleted_at", { mode: "string", withTimezone: true }),
-    expiresOn: date("expires_on").notNull(),
+    deletedAt: timestamp("deleted_at", { mode: "date", withTimezone: true }),
+    expiresOn: timestamp("expires_on", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
     householdId: uuid("household_id").notNull(),
     id: uuid().defaultRandom().primaryKey().notNull(),
     inUse: boolean("in_use").default(false).notNull(),
@@ -224,15 +227,18 @@ export const vetmedInventoryItems = pgTable(
     // Hybrid medication fields - fallback when not using catalog
     medicationName: text("medication_name"), // Free-text medication name (primary display)
     notes: text(),
-    openedOn: date("opened_on"),
-    purchaseDate: date("purchase_date"),
+    openedOn: timestamp("opened_on", { mode: "date", withTimezone: true }),
+    purchaseDate: timestamp("purchase_date", {
+      mode: "date",
+      withTimezone: true,
+    }),
     purchasePrice: numeric("purchase_price", { precision: 10, scale: 2 }),
     quantityUnits: integer("quantity_units"),
     storage: vetmedStorage().default("ROOM").notNull(),
     supplier: text(),
     unitsRemaining: integer("units_remaining"),
     unitType: text("unit_type"),
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -280,26 +286,26 @@ export const vetmedNotificationQueue = pgTable(
   {
     attempts: integer().default(0).notNull(),
     body: text().notNull(),
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     data: jsonb(),
     dismissedAt: timestamp("dismissed_at", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     error: text(),
-    failedAt: timestamp("failed_at", { mode: "string", withTimezone: true }),
+    failedAt: timestamp("failed_at", { mode: "date", withTimezone: true }),
     householdId: uuid("household_id").notNull(),
     id: uuid().defaultRandom().primaryKey().notNull(),
-    readAt: timestamp("read_at", { mode: "string", withTimezone: true }),
+    readAt: timestamp("read_at", { mode: "date", withTimezone: true }),
     scheduledFor: timestamp("scheduled_for", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }).notNull(),
-    sentAt: timestamp("sent_at", { mode: "string", withTimezone: true }),
+    sentAt: timestamp("sent_at", { mode: "date", withTimezone: true }),
     snoozedUntil: timestamp("snoozed_until", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     title: text().notNull(),
@@ -357,7 +363,7 @@ export const vetmedMedicationCatalog = pgTable(
       .default(false)
       .notNull(),
 
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     dosageMaxMgKg: numeric("dosage_max_mg_kg", { precision: 10, scale: 4 }), // Maximum dose per kg
@@ -388,7 +394,7 @@ export const vetmedMedicationCatalog = pgTable(
     typicalFrequencyHours: integer("typical_frequency_hours"), // How often medication is typically given
     unitsPerTablet: numeric("units_per_tablet", { precision: 10, scale: 4 }), // For solid medications
     unitType: text("unit_type").default("mg"), // mg, mcg, IU, etc.
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     warnings: text(),
@@ -411,13 +417,13 @@ export const vetmedMedicationCatalog = pgTable(
 );
 
 export const vetmedHouseholds = pgTable("vetmed_households", {
-  createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+  createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
     .defaultNow()
     .notNull(),
   id: uuid().defaultRandom().primaryKey().notNull(),
   name: text().notNull(),
   timezone: text().default("America/New_York").notNull(),
-  updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+  updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
     .defaultNow()
     .notNull(),
 });
@@ -435,7 +441,7 @@ export const vetmedAuditLog = pgTable(
     resourceId: uuid("resource_id"),
     resourceType: text("resource_type").notNull(),
     sessionId: text("session_id"),
-    timestamp: timestamp({ mode: "string", withTimezone: true })
+    timestamp: timestamp({ mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     userAgent: text("user_agent"),
@@ -477,13 +483,13 @@ export const vetmedRegimens = pgTable(
   {
     active: boolean().default(true).notNull(),
     animalId: uuid("animal_id").notNull(),
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     cutoffMinutes: integer("cutoff_minutes").default(240).notNull(),
-    deletedAt: timestamp("deleted_at", { mode: "string", withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { mode: "date", withTimezone: true }),
     dose: text(),
-    endDate: date("end_date"),
+    endDate: timestamp("end_date", { mode: "date", withTimezone: true }),
     highRisk: boolean("high_risk").default(false).notNull(),
     id: uuid().defaultRandom().primaryKey().notNull(),
     instructions: text(),
@@ -499,15 +505,18 @@ export const vetmedRegimens = pgTable(
 
     // Existing fields
     name: text(),
-    pausedAt: timestamp("paused_at", { mode: "string", withTimezone: true }),
+    pausedAt: timestamp("paused_at", { mode: "date", withTimezone: true }),
     pauseReason: text("pause_reason"),
     prnReason: text("prn_reason"),
     requiresCoSign: boolean("requires_co_sign").default(false).notNull(),
     route: text(),
     scheduleType: vetmedScheduleType("schedule_type").notNull(),
-    startDate: date("start_date").notNull(),
+    startDate: timestamp("start_date", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
     timesLocal: time("times_local").array(),
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -549,12 +558,12 @@ export const vetmedAdministrations = pgTable(
     animalId: uuid("animal_id").notNull(),
     caregiverId: uuid("caregiver_id").notNull(),
     coSignedAt: timestamp("co_signed_at", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     coSignNotes: text("co_sign_notes"),
     coSignUserId: uuid("co_sign_user_id"),
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     dose: text(),
@@ -564,18 +573,18 @@ export const vetmedAdministrations = pgTable(
     mediaUrls: text("media_urls").array(),
     notes: text(),
     recordedAt: timestamp("recorded_at", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }).notNull(),
     regimenId: uuid("regimen_id").notNull(),
     scheduledFor: timestamp("scheduled_for", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     site: text(),
     sourceItemId: uuid("source_item_id"),
     status: vetmedAdminStatus().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -648,13 +657,13 @@ export const vetmedNotifications = pgTable(
   "vetmed_notifications",
   {
     actionUrl: text("action_url"), // Optional URL for click action
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     data: jsonb(), // Additional metadata (animalId, regimenId, etc.)
     dismissed: boolean().default(false).notNull(),
     dismissedAt: timestamp("dismissed_at", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     householdId: uuid("household_id").notNull(),
@@ -662,7 +671,7 @@ export const vetmedNotifications = pgTable(
     message: text().notNull(),
     priority: text().default("medium").notNull(), // "low", "medium", "high", "critical"
     read: boolean().default(false).notNull(),
-    readAt: timestamp("read_at", { mode: "string", withTimezone: true }),
+    readAt: timestamp("read_at", { mode: "date", withTimezone: true }),
     title: text().notNull(),
     type: text().notNull(), // "medication", "inventory", "system", "due", "overdue", "reminder"
     userId: uuid("user_id").notNull(),
@@ -716,32 +725,32 @@ export const vetmedSuggestions = pgTable(
   "vetmed_suggestions",
   {
     action: jsonb().notNull(), // Store action parameters as JSON
-    appliedAt: timestamp("applied_at", { mode: "string", withTimezone: true }),
+    appliedAt: timestamp("applied_at", { mode: "date", withTimezone: true }),
     appliedByUserId: uuid("applied_by_user_id"),
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     dismissedAt: timestamp("dismissed_at", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     dismissedByUserId: uuid("dismissed_by_user_id"),
     estimatedImpact: text("estimated_impact"),
-    expiresAt: timestamp("expires_at", { mode: "string", withTimezone: true }),
+    expiresAt: timestamp("expires_at", { mode: "date", withTimezone: true }),
     householdId: uuid("household_id").notNull(),
     id: uuid().defaultRandom().primaryKey().notNull(),
     originalValues: jsonb("original_values"), // Store original state for revert
     priority: text().default("medium").notNull(), // "low", "medium", "high"
     rationale: text().notNull(),
     revertedAt: timestamp("reverted_at", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     revertedByUserId: uuid("reverted_by_user_id"),
     status: vetmedSuggestionStatus().default("pending").notNull(),
     summary: text().notNull(),
     type: text().notNull(), // "ADD_REMINDER", "SHIFT_TIME", "ENABLE_COSIGN", etc.
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -790,11 +799,11 @@ export const vetmedCosignRequests = pgTable(
   {
     administrationId: uuid("administration_id").notNull(),
     cosignerId: uuid("cosigner_id").notNull(),
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     expiresAt: timestamp("expires_at", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }).notNull(),
     householdId: uuid("household_id").notNull(),
@@ -802,9 +811,9 @@ export const vetmedCosignRequests = pgTable(
     rejectionReason: text("rejection_reason"),
     requesterId: uuid("requester_id").notNull(),
     signature: text(), // Base64 encoded signature
-    signedAt: timestamp("signed_at", { mode: "string", withTimezone: true }),
+    signedAt: timestamp("signed_at", { mode: "date", withTimezone: true }),
     status: vetmedCosignStatus().default("pending").notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -863,18 +872,18 @@ export const vetmedPushSubscriptions = pgTable(
   "vetmed_push_subscriptions",
   {
     authKey: text("auth_key").notNull(),
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     deviceName: text("device_name"),
     endpoint: text().notNull(),
     id: uuid().defaultRandom().primaryKey().notNull(),
     isActive: boolean("is_active").default(true).notNull(),
-    lastUsed: timestamp("last_used", { mode: "string", withTimezone: true })
+    lastUsed: timestamp("last_used", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     p256dhKey: text("p256dh_key").notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     userAgent: text("user_agent"),
@@ -905,14 +914,14 @@ export const vetmedPushSubscriptions = pgTable(
 export const vetmedUsers = pgTable(
   "vetmed_users",
   {
-    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
     defaultAnimalId: uuid("default_animal_id"),
     defaultHouseholdId: uuid("default_household_id"),
     email: text().notNull(),
     emailVerified: timestamp("email_verified", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     id: uuid().defaultRandom().primaryKey().notNull(),
@@ -920,7 +929,7 @@ export const vetmedUsers = pgTable(
     name: text(),
     onboardingComplete: boolean("onboarding_complete").default(false),
     onboardingCompletedAt: timestamp("onboarding_completed_at", {
-      mode: "string",
+      mode: "date",
       withTimezone: true,
     }),
     preferences: jsonb("preferences")
@@ -936,7 +945,7 @@ export const vetmedUsers = pgTable(
       )
       .notNull(),
     stackUserId: text("stack_user_id"),
-    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
   },

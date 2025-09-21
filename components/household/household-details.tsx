@@ -15,7 +15,7 @@ interface HouseholdDetailsProps {
     id: string;
     name: string;
     timezone?: string | null;
-    createdAt: string;
+    createdAt: Date;
     memberships?: unknown[];
     animals?: unknown[];
     regimens?: Array<{ isActive: boolean }>;

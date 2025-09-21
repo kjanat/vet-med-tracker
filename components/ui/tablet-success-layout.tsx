@@ -8,28 +8,65 @@ import {
   Home,
   RotateCcw,
 } from "lucide-react";
-import { memo } from "react";
+import { useRouter } from "next/navigation";
+import { memo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  type NavigationContext,
+  NavigationService,
+  type RouterLike,
+} from "@/lib/services/navigation.service";
 import { formatTimeLocal } from "@/utils/tz";
 
 interface TabletSuccessLayoutProps {
-  isOnline: boolean;
   onReturnHome: () => void;
   onRecordAnother: () => void;
   recordedAt?: string;
   animalName?: string;
   medicationName?: string;
+  navigationContext?: NavigationContext;
+  regimenId?: string;
 }
 
 export const TabletSuccessLayout = memo(function TabletSuccessLayout({
-  isOnline,
   onReturnHome,
   onRecordAnother,
   recordedAt = new Date().toISOString(),
   animalName,
   medicationName,
+  navigationContext,
+  regimenId,
 }: TabletSuccessLayoutProps) {
+  const router = useRouter();
+  const [_showReminderAdjustment, setShowReminderAdjustment] = useState(false);
+
+  const handleNavigateToHistory = () => {
+    if (navigationContext) {
+      const url = NavigationService.navigateToHistory(navigationContext);
+      NavigationService.navigateWithContext(url, router as RouterLike);
+    }
+  };
+
+  const handleNavigateToInsights = () => {
+    if (navigationContext) {
+      const url = NavigationService.navigateToInsights(navigationContext);
+      NavigationService.navigateWithContext(url, router as RouterLike);
+    }
+  };
+
+  const handleOpenReminderAdjustment = () => {
+    if (navigationContext && regimenId) {
+      const url = NavigationService.navigateToReminderSettings({
+        ...navigationContext,
+        regimenId,
+      });
+      NavigationService.navigateWithContext(url, router as RouterLike);
+    } else {
+      // Fallback: show inline reminder adjustment
+      setShowReminderAdjustment(true);
+    }
+  };
   return (
     <div className="flex h-full">
       {/* Left column - Success message and details */}
@@ -59,11 +96,6 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
                   You
                 </span>
               </div>
-              {!isOnline && (
-                <p className="font-medium text-amber-600">
-                  Will sync when connection is restored
-                </p>
-              )}
             </div>
           </div>
 
@@ -114,9 +146,7 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
 
             <Button
               className="h-12 w-full justify-start text-base"
-              onClick={() => {
-                // TODO: Open reminder adjustment sheet
-              }}
+              onClick={handleOpenReminderAdjustment}
               variant="ghost"
             >
               <Bell className="mr-3 h-5 w-5" />
@@ -135,9 +165,7 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
               <CardContent className="space-y-2 p-4 pt-0">
                 <Button
                   className="h-8 w-full justify-start text-sm"
-                  onClick={() => {
-                    // TODO: Navigate to history
-                  }}
+                  onClick={handleNavigateToHistory}
                   size="sm"
                   variant="ghost"
                 >
@@ -146,9 +174,7 @@ export const TabletSuccessLayout = memo(function TabletSuccessLayout({
                 </Button>
                 <Button
                   className="h-8 w-full justify-start text-sm"
-                  onClick={() => {
-                    // TODO: Navigate to insights
-                  }}
+                  onClick={handleNavigateToInsights}
                   size="sm"
                   variant="ghost"
                 >

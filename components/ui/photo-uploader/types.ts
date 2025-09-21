@@ -11,7 +11,7 @@ export interface PhotoUploaderProps {
   className?: string;
   value?: string; // Current photo URL
   placeholder?: string;
-  // Required for offline functionality
+  // Preserved for backward compatibility
   householdId: string;
   userId: string;
   animalId?: string;

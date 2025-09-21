@@ -3,7 +3,7 @@
 import { differenceInDays } from "date-fns";
 import { AlertTriangle, Package, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { InventoryErrorBoundary } from "@/components/error-boundary-page";
+import { InventoryErrorBoundary } from "@/components/error-handling/error-boundary-page";
 import { InventoryFormDialog } from "@/components/forms/inventory-form-dialog";
 import { AddItemButton } from "@/components/inventory/add-item-button";
 import { AssignModal } from "@/components/inventory/assign-modal";

@@ -12,7 +12,6 @@ import { BROWSER_ZONE } from "@/utils/timezone-helpers";
  * - Data sanitization and transformation
  */
 
-// biome-ignore lint/complexity/noStaticOnlyClass: explanation missing
 export class AnimalDataTransformer {
   /**
    * Transform form data for API calls

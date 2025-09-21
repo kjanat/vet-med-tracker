@@ -1,4 +1,14 @@
-import { and, count, eq, gte, inArray, isNull } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  gte,
+  inArray,
+  isNull,
+  like,
+  or,
+  sql,
+} from "drizzle-orm";
 
 import { z } from "zod";
 import {
@@ -25,7 +35,7 @@ export const inventoryRouter = createTRPCRouter({
         .update(inventoryItems)
         .set({
           assignedAnimalId: input.animalId,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(
           and(
@@ -75,7 +85,7 @@ export const inventoryRouter = createTRPCRouter({
       } = input;
 
       // Build the values object, excluding undefined optional fields
-      const expiryDateStr = expiresOn.toISOString().split("T")[0];
+      const expiryDateStr = expiresOn;
       if (!expiryDateStr) {
         throw new Error("Invalid expiry date");
       }
@@ -101,7 +111,7 @@ export const inventoryRouter = createTRPCRouter({
       if (restInput.purchasePrice)
         values.purchasePrice = restInput.purchasePrice;
       if (purchaseDate) {
-        const purchaseDateStr = purchaseDate.toISOString().split("T")[0];
+        const purchaseDateStr = purchaseDate;
         if (purchaseDateStr) {
           values.purchaseDate = purchaseDateStr;
         }
@@ -154,8 +164,8 @@ export const inventoryRouter = createTRPCRouter({
       const deleted = await ctx.db
         .update(inventoryItems)
         .set({
-          deletedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          deletedAt: new Date(),
+          updatedAt: new Date(),
         })
         .where(
           and(
@@ -216,7 +226,7 @@ export const inventoryRouter = createTRPCRouter({
             // Build conditions array dynamically
             const conditions = [
               eq(administrations.householdId, input.householdId),
-              gte(administrations.recordedAt, thirtyDaysAgo.toISOString()),
+              gte(administrations.recordedAt, thirtyDaysAgo),
             ];
 
             // Only compare medication IDs if item has a medication ID
@@ -279,7 +289,7 @@ export const inventoryRouter = createTRPCRouter({
       );
     }),
 
-  // Get household inventory (used by offline queue)
+  // Get household inventory
   getHouseholdInventory: householdProcedure
     .input(
       z.object({
@@ -291,10 +301,7 @@ export const inventoryRouter = createTRPCRouter({
       const conditions = [
         eq(inventoryItems.householdId, input.householdId),
         isNull(inventoryItems.deletedAt),
-        gte(
-          inventoryItems.expiresOn,
-          new Date().toISOString().split("T")[0] ?? "",
-        ),
+        gte(inventoryItems.expiresOn, new Date()),
       ];
 
       if (input.medicationId) {
@@ -337,20 +344,22 @@ export const inventoryRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      // For now, just get all inventory items for the household
-      // TODO: Implement proper text search for medication names
+      // Database-level text search for medication names using SQL LIKE operations
+      const searchTerm = `%${input.medicationName.toLowerCase()}%`;
+
       const conditions = [
         eq(inventoryItems.householdId, input.householdId),
         isNull(inventoryItems.deletedAt),
+        // Search across brand override, brand name, and generic name
+        or(
+          like(sql`LOWER(${inventoryItems.brandOverride})`, searchTerm),
+          like(sql`LOWER(${medicationCatalog.brandName})`, searchTerm),
+          like(sql`LOWER(${medicationCatalog.genericName})`, searchTerm),
+        ),
       ];
 
       if (!input.includeExpired) {
-        conditions.push(
-          gte(
-            inventoryItems.expiresOn,
-            new Date().toISOString().split("T")[0] ?? "",
-          ),
-        );
+        conditions.push(gte(inventoryItems.expiresOn, new Date() ?? null));
       }
 
       const result = await ctx.db
@@ -366,16 +375,8 @@ export const inventoryRouter = createTRPCRouter({
         .where(and(...conditions))
         .orderBy(inventoryItems.inUse, inventoryItems.expiresOn);
 
-      // Filter by medication name on the application side for now
-      const filtered = result.filter((row) => {
-        const itemName = (
-          row.item.brandOverride ||
-          row.medication.brandName ||
-          row.medication.genericName ||
-          ""
-        ).toLowerCase();
-        return itemName.includes(input.medicationName.toLowerCase());
-      });
+      // No longer need application-side filtering - database does the search
+      const filtered = result;
 
       return filtered.map((row) => ({
         expiresOn: row.item.expiresOn ? new Date(row.item.expiresOn) : null,
@@ -419,12 +420,7 @@ export const inventoryRouter = createTRPCRouter({
       }
 
       if (!input.includeExpired) {
-        conditions.push(
-          gte(
-            inventoryItems.expiresOn,
-            new Date().toISOString().split("T")[0] ?? "",
-          ),
-        );
+        conditions.push(gte(inventoryItems.expiresOn, new Date() ?? ""));
       }
 
       if (input.inUseOnly) {
@@ -474,7 +470,7 @@ export const inventoryRouter = createTRPCRouter({
       }));
     }),
 
-  // Mark as in use (convenience method for offline queue)
+  // Mark as in use
   markAsInUse: householdProcedure
     .input(
       z.object({
@@ -486,8 +482,8 @@ export const inventoryRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const updates: Record<string, unknown> = {
         inUse: true,
-        openedOn: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString(),
+        openedOn: new Date(),
+        updatedAt: new Date(),
       };
 
       if (input.animalId) {
@@ -525,11 +521,11 @@ export const inventoryRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const updates: Record<string, unknown> = {
         inUse: input.inUse,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       };
 
       if (input.inUse) {
-        updates.openedOn = new Date().toISOString().split("T")[0];
+        updates.openedOn = new Date();
       }
 
       const updated = await ctx.db
@@ -571,11 +567,11 @@ export const inventoryRouter = createTRPCRouter({
 
       const updates: Record<string, unknown> = {
         ...updateData,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       };
 
       if (expiresOn) {
-        updates.expiresOn = expiresOn.toISOString().split("T")[0];
+        updates.expiresOn = expiresOn;
       }
 
       const updated = await ctx.db
@@ -597,7 +593,7 @@ export const inventoryRouter = createTRPCRouter({
       return updated[0];
     }),
 
-  // Update quantity (used by offline queue)
+  // Update quantity
   updateQuantity: householdProcedure
     .input(
       z.object({
@@ -636,7 +632,7 @@ export const inventoryRouter = createTRPCRouter({
         .update(inventoryItems)
         .set({
           unitsRemaining: newQuantity,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(
           and(

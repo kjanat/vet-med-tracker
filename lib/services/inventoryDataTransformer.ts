@@ -80,7 +80,6 @@ const STORAGE_OPTIONS = [
  * default values, and calculates derived fields. Extracted from
  * the main hook to follow Single Responsibility Principle.
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: Utility class for data transformation
 export class InventoryDataTransformer {
   /**
    * Transform form data to API payload for inventory creation

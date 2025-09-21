@@ -13,7 +13,7 @@ export interface Animal {
   photo?: string;
   timezone: string;
   vetName?: string;
-  vetPhone?: string;
+  vetPhone?: string | null;
   vetEmail?: string | null;
   clinicName?: string | null;
   notes?: string | null;
@@ -33,6 +33,7 @@ export interface AnimalWithPhoto extends Animal {
 
 export interface EmergencyAnimal extends AnimalWithPhoto {
   vetEmail?: string | null;
+  vetPhone?: string | null;
   clinicName?: string | null;
   notes?: string | null;
 }

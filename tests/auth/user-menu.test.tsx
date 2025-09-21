@@ -126,7 +126,6 @@ function createTestAppContextValue(
     households: [],
     isAuthenticated: Boolean(user),
     isFirstTimeUser: false,
-    isOffline: false,
     loading: {
       animals: false,
       households: false,

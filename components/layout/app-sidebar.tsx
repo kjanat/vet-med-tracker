@@ -39,17 +39,17 @@ const data = {
     {
       icon: Clock,
       name: "Today's Doses",
-      url: "/auth/dashboard" as Route,
+      url: "/auth/dashboard",
     },
     {
       icon: Bell,
       name: "Overdue",
-      url: "/auth/dashboard?filter=overdue" as Route,
+      url: "/auth/dashboard?filter=overdue",
     },
     {
       icon: History,
       name: "Recent History",
-      url: "/auth/dashboard/history" as Route,
+      url: "/auth/dashboard/history",
     },
   ],
   navMain: [
@@ -57,22 +57,22 @@ const data = {
       icon: Home,
       isActive: true,
       title: "Dashboard",
-      url: "/auth/dashboard" as Route,
+      url: "/auth/dashboard",
     },
     {
       icon: Users,
       items: [
         {
           title: "Animals",
-          url: "/auth/manage/animals" as Route,
+          url: "/auth/manage/animals",
         },
         {
           title: "Households",
-          url: "/auth/manage/households" as Route,
+          url: "/auth/manage/households",
         },
         {
           title: "Users",
-          url: "/auth/manage/users" as Route,
+          url: "/auth/manage/users",
         },
       ],
       title: "Manage",
@@ -82,19 +82,19 @@ const data = {
       items: [
         {
           title: "Record Dose",
-          url: "/auth/admin/record" as Route,
+          url: "/auth/admin/record",
         },
         {
           title: "Dosage Calculator",
-          url: "/auth/medications/dosage-calculator" as Route,
+          url: "/auth/medications/dosage-calculator",
         },
         {
           title: "Inventory",
-          url: "/auth/medications/inventory" as Route,
+          url: "/auth/medications/inventory",
         },
         {
           title: "Regimens",
-          url: "/auth/medications/regimens" as Route,
+          url: "/auth/medications/regimens",
         },
       ],
       title: "Medications",
@@ -104,41 +104,41 @@ const data = {
       items: [
         {
           title: "History",
-          url: "/auth/dashboard/history" as Route,
+          url: "/auth/dashboard/history",
         },
         {
           title: "Animal Reports",
-          url: "/auth/reports" as Route,
+          url: "/auth/reports",
         },
       ],
       title: "Insights",
-      url: "/auth/insights" as Route,
+      url: "/auth/insights",
     },
     {
       icon: Settings,
       items: [
         {
           title: "Preferences",
-          url: "/auth/settings/preferences" as Route,
+          url: "/auth/settings/preferences",
         },
         {
           title: "Notifications",
-          url: "/auth/settings/notifications" as Route,
+          url: "/auth/settings/notifications",
         },
         {
           title: "Data & Privacy",
-          url: "/auth/settings/data-privacy" as Route,
+          url: "/auth/settings/data-privacy",
         },
       ],
       title: "Settings",
-      url: "/auth/settings" as Route,
+      url: "/auth/settings",
     },
   ],
   navSecondary: [
     {
       icon: HelpCircle,
       title: "Support",
-      url: "/help" as Route, // Public route, no /auth prefix
+      url: "/help", // Public route, no /auth prefix
     },
   ],
 };

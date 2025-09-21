@@ -163,7 +163,7 @@ export class NotificationScheduler {
    */
   private async cleanupOldNotifications(): Promise<void> {
     try {
-      const cutoffDate = DateTime.utc().minus({ days: 7 }).toISO();
+      const cutoffDate = DateTime.utc().minus({ days: 7 }).toJSDate();
 
       const deleted = await this.db
         .delete(notificationQueue)

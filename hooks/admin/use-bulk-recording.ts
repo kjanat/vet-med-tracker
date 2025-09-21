@@ -39,7 +39,7 @@ export function useBulkRecording() {
     try {
       const idempotencyKey = `bulk-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-      const result = await bulkRecordMutation.mutateAsync({
+      const result = (await bulkRecordMutation.mutateAsync({
         administeredAt: options.administeredAt.toISOString(),
         allowOverride: options.allowOverride || false,
         animalIds: Array.from(selectedIds),
@@ -50,17 +50,17 @@ export function useBulkRecording() {
         notes: options.notes,
         regimenId: options.regimenId,
         site: options.site,
-      });
+      })) as { summary: { failed: number; succeeded: number; total: number } };
 
       if (result.summary.failed > 0) {
         toast({
-          description: `Recorded ${result.summary.successful} of ${result.summary.total} administrations. ${result.summary.failed} failed.`,
+          description: `Recorded ${result.summary.succeeded} of ${result.summary.total} administrations. ${result.summary.failed} failed.`,
           title: "Partial Success",
           variant: "default",
         });
       } else {
         toast({
-          description: `Successfully recorded ${result.summary.successful} administrations.`,
+          description: `Successfully recorded ${result.summary.succeeded} administrations.`,
           title: "Success",
         });
         clearSelection();

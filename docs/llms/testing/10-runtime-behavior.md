@@ -75,7 +75,7 @@ Several Bun CLI flags can be used with `bun test` to modify its behavior:
 
 ### Installation-related Flags
 
-- `--prefer-offline`, `--frozen-lockfile`, etc.: Affect any network requests or auto-installs during test execution
+- `--frozen-lockfile`, etc.: Affect any network requests or auto-installs during test execution
 
 ## Watch and Hot Reloading
 

@@ -85,8 +85,8 @@ export function FilterBar() {
               <DateRangePicker
                 from={filters.from ? new Date(filters.from) : undefined}
                 onSelect={(from, to) => {
-                  if (from) setFilter("from", from.toISOString().split("T")[0]);
-                  if (to) setFilter("to", to.toISOString().split("T")[0]);
+                  if (from) setFilter("from", from.toISOString().slice(0, 10));
+                  if (to) setFilter("to", to.toISOString().slice(0, 10));
                 }}
                 to={filters.to ? new Date(filters.to) : undefined}
               />

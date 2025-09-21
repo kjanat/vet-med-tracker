@@ -336,7 +336,6 @@ describe("DosageCalculator route and error handling", () => {
   test("throws error for invalid weight unit", () => {
     const invalidUnit: Animal = {
       ...caninePatient,
-      // biome-ignore lint/suspicious/noExplicitAny: Testing invalid input
       weightUnit: "grams" as any,
     };
     expect(() =>

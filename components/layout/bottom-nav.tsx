@@ -1,30 +1,32 @@
 "use client";
 
-import {
-  Home,
-  History,
-  Package,
-  TrendingUp,
-  Settings,
-} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { History, Home, Package, Settings, TrendingUp } from "lucide-react";
 import type { Route } from "next";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils/general";
+
+import { BottomNavItem } from "@/components/ui/active-link";
+
+type MobileNavItem = {
+  icon: LucideIcon;
+  href: Route;
+  label: string;
+};
 
 // Mobile navigation items with correct /auth prefixes
-const mobileNavItems = [
-  { icon: Home, path: "/auth/dashboard" as Route, title: "Home" },
-  { icon: History, path: "/auth/dashboard/history" as Route, title: "History" },
-  { icon: Package, path: "/auth/medications/inventory" as Route, title: "Inventory" },
-  { icon: TrendingUp, path: "/auth/insights" as Route, title: "Insights" },
-  { icon: Settings, path: "/auth/settings" as Route, title: "Settings" },
+const mobileNavItems: MobileNavItem[] = [
+  { href: "/auth/dashboard", icon: Home, label: "Home" },
+  { href: "/auth/dashboard/history", icon: History, label: "History" },
+  {
+    href: "/auth/medications/inventory",
+    icon: Package,
+    label: "Inventory",
+  },
+  { href: "/auth/insights", icon: TrendingUp, label: "Insights" },
+  { href: "/auth/settings", icon: Settings, label: "Settings" },
 ];
 
-export function BottomNav() {
-  const pathname = usePathname();
-
+export function BottomNav(currentPathname: string = usePathname()) {
   return (
     <nav
       aria-label="Bottom navigation"
@@ -32,29 +34,22 @@ export function BottomNav() {
     >
       <div className="flex">
         {mobileNavItems.map((item) => {
-          // Consider nested routes active (e.g., /auth/settings/profile for /auth/settings)
-          const isActive =
-            item.path === "/auth/dashboard"
-              ? pathname === "/auth/dashboard"
-              : pathname === item.path || pathname.startsWith(`${item.path}/`);
-
-          const Icon = item.icon as LucideIcon;
+          const Icon = item.icon;
 
           return (
-            <Link
-              aria-current={isActive ? "page" : undefined}
-              className={cn(
-                "flex min-h-[44px] flex-1 flex-col items-center justify-center gap-1 py-3 font-medium text-xs transition-colors",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              href={item.path}
-              key={item.path}
+            <BottomNavItem
+              href={item.href}
+              isActive={
+                item.href === "/auth/dashboard"
+                  ? (pathname) => pathname === currentPathname
+                  : undefined
+              }
+              // Special handling for dashboard root
+              key={item.href}
             >
               <Icon aria-hidden="true" className="h-5 w-5" />
-              {item.title}
-            </Link>
+              {item.label}
+            </BottomNavItem>
           );
         })}
       </div>

@@ -33,8 +33,8 @@ interface HouseholdMember {
   userId: string;
   householdId: string;
   role: "OWNER" | "CAREGIVER" | "VETREADONLY";
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   user: {
     id: string;
     name: string | null;
@@ -53,13 +53,22 @@ export function CoSignerSelect({
   const { selectedHousehold } = useApp();
 
   // Get household members who are eligible to co-sign (not VETREADONLY)
-  const { data: householdMembers } = trpc.household.getMembers.useQuery(
+  const { data: rawHouseholdMembers } = trpc.household.getMembers.useQuery(
     { householdId: selectedHousehold?.id || "" },
     { enabled: Boolean(selectedHousehold?.id) },
   );
 
+  // Transform members to convert date strings to Date objects
+  const householdMembers: HouseholdMember[] = (rawHouseholdMembers || []).map(
+    (member) => ({
+      ...member,
+      createdAt: new Date(member.createdAt),
+      updatedAt: new Date(member.updatedAt),
+    }),
+  );
+
   // Filter eligible co-signers (exclude VETREADONLY and current user)
-  const eligibleMembers = (householdMembers || []).filter(
+  const eligibleMembers = householdMembers.filter(
     (member: HouseholdMember) => member.role !== "VETREADONLY" && member.user,
   );
 

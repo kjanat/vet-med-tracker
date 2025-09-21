@@ -246,7 +246,6 @@ export interface DosageResult {
 /**
  * Main Dosage Calculator Class
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: Legacy API preserved for backward compatibility
 export class DosageCalculator {
   /**
    * Calculate dosage for a given animal and medication

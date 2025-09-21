@@ -1,14 +1,14 @@
 "use client";
 
 import { AlertTriangle, Loader2, Phone, Pill } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useApp } from "@/components/providers/app-provider-consolidated";
+
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEmergencyCardData } from "@/hooks/shared/useEmergencyCardData";
+import { EmergencyDialService } from "@/lib/services/emergency-dial.service";
 import type { EmergencyAnimal, EmergencyRegimen } from "@/lib/utils/types";
-import { trpc } from "@/server/trpc/client";
 
 // Helper components to reduce cognitive complexity
 const EmptyState = ({ message }: { message: string }) => (
@@ -94,8 +94,18 @@ const AnimalInfoCard = ({
 
 const EmergencyContactsCard = ({
   animalData,
+  emergencyContacts = [],
+  canMakePhoneCalls,
 }: {
   animalData: EmergencyAnimal;
+  emergencyContacts?: Array<{
+    id: string;
+    contactName: string;
+    contactPhone: string;
+    relationship?: string;
+    isPrimary: boolean;
+  }>;
+  canMakePhoneCalls: boolean;
 }) => (
   <Card className="mb-6">
     <CardHeader>
@@ -106,6 +116,7 @@ const EmergencyContactsCard = ({
     </CardHeader>
     <CardContent>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {/* Primary Veterinarian */}
         <div className="rounded-lg border p-3 sm:p-4">
           <div className="font-medium text-base sm:text-lg">
             Primary Veterinarian
@@ -114,14 +125,84 @@ const EmergencyContactsCard = ({
             {animalData.vetName || "Not specified"}
           </div>
           <div className="text-base sm:text-lg">
-            {animalData.vetPhone || "Not specified"}
+            {animalData.vetPhone ? (
+              <div className="flex items-center gap-2">
+                <span>
+                  {EmergencyDialService.formatPhoneForDisplay(
+                    animalData.vetPhone,
+                  )}
+                </span>
+                {canMakePhoneCalls && (
+                  <Button
+                    className="ml-auto"
+                    onClick={() =>
+                      EmergencyDialService.dialVeterinarian({
+                        name: animalData.vetName || "Primary Veterinarian",
+                        phone: animalData.vetPhone,
+                      })
+                    }
+                    size="sm"
+                    variant="destructive"
+                  >
+                    <Phone className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ) : (
+              "Not specified"
+            )}
           </div>
         </div>
-        <div className="rounded-lg border p-3 sm:p-4">
-          <div className="font-medium text-base sm:text-lg">Owner</div>
-          <div className="font-bold text-lg sm:text-xl">Not specified</div>
-          <div className="text-base sm:text-lg">Not specified</div>
-        </div>
+
+        {/* Emergency Contacts */}
+        {emergencyContacts.length > 0 ? (
+          emergencyContacts.slice(0, 1).map((contact) => (
+            <div className="rounded-lg border p-3 sm:p-4" key={contact.id}>
+              <div className="font-medium text-base sm:text-lg">
+                {contact.relationship || "Emergency Contact"}
+                {contact.isPrimary && " (Primary)"}
+              </div>
+              <div className="font-bold text-lg sm:text-xl">
+                {contact.contactName}
+              </div>
+              <div className="text-base sm:text-lg">
+                <div className="flex items-center gap-2">
+                  <span>
+                    {EmergencyDialService.formatPhoneForDisplay(
+                      contact.contactPhone,
+                    )}
+                  </span>
+                  {canMakePhoneCalls && (
+                    <Button
+                      className="ml-auto"
+                      onClick={() =>
+                        EmergencyDialService.dialEmergencyContact({
+                          id: contact.id,
+                          name: contact.contactName,
+                          phone: contact.contactPhone,
+                          relationship: contact.relationship,
+                          isPrimary: contact.isPrimary,
+                        })
+                      }
+                      size="sm"
+                      variant="destructive"
+                    >
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="rounded-lg border p-3 sm:p-4">
+            <div className="font-medium text-base sm:text-lg">
+              Emergency Contact
+            </div>
+            <div className="font-bold text-lg sm:text-xl">Not specified</div>
+            <div className="text-base sm:text-lg">Not specified</div>
+          </div>
+        )}
       </div>
     </CardContent>
   </Card>
@@ -234,59 +315,21 @@ const MedicationsCard = ({ regimens }: { regimens: EmergencyRegimen[] }) => (
   </Card>
 );
 
-// Helper function to calculate age
-const calculateAge = (dob: Date | string | null) => {
-  if (!dob) return null;
-  const birthDate = new Date(dob);
-  return Math.floor(
-    (Date.now() - birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
-  );
-};
-
 export default function EmergencyCardPage() {
-  const params = useParams();
-  const animalId = params.id as string;
-  const { selectedHousehold, selectedAnimal } = useApp();
+  const {
+    animalData,
+    regimens,
+    emergencyContacts,
+    isLoading,
+    timezone,
+    age,
+    selectedHousehold,
+  } = useEmergencyCardData();
 
-  // Fetch animal data
-  const { data: animalResponse, isLoading: animalLoading } =
-    trpc.animal.getById.useQuery(
-      {
-        id: animalId,
-        householdId: selectedHousehold?.id || "",
-      },
-      {
-        enabled: Boolean(selectedHousehold?.id) && Boolean(animalId),
-      },
-    );
-
-  // Map the API response to EmergencyAnimal type
-  const animalData: EmergencyAnimal | undefined = animalResponse
-    ? ({
-        ...animalResponse,
-        photo: animalResponse.photoUrl || null,
-        photoUrl: animalResponse.photoUrl || null,
-        pendingMeds: 0, // TODO: Calculate from active regimens
-        dob: animalResponse.dob ? new Date(animalResponse.dob) : null,
-        weightKg: animalResponse.weightKg
-          ? Number(animalResponse.weightKg)
-          : null,
-      } as EmergencyAnimal)
-    : undefined;
-
-  // TODO: Fetch regimens once tRPC endpoint exists
-  const regimens: EmergencyRegimen[] = [];
-  const regimensLoading = false;
-
-  // Get timezone from fetched animal data, then selected animal, then household, then UTC
-  const timezone =
-    animalResponse?.timezone ||
-    selectedAnimal?.timezone ||
-    selectedHousehold?.timezone ||
-    "UTC";
+  // Check if device can make phone calls
+  const canMakePhoneCalls = EmergencyDialService.canMakePhoneCalls();
 
   const handlePrint = () => window.print();
-  const isLoading = animalLoading || regimensLoading;
 
   // Early returns for different states
   if (!selectedHousehold) {
@@ -304,8 +347,6 @@ export default function EmergencyCardPage() {
       <EmptyState message="Animal not found or you don't have access to this animal." />
     );
   }
-
-  const age = animalData.dob ? calculateAge(animalData.dob) : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -333,7 +374,17 @@ export default function EmergencyCardPage() {
           </div>
 
           <AnimalInfoCard age={age} animalData={animalData} />
-          <EmergencyContactsCard animalData={animalData} />
+          <EmergencyContactsCard
+            animalData={animalData}
+            canMakePhoneCalls={canMakePhoneCalls}
+            emergencyContacts={emergencyContacts?.map((contact) => ({
+              id: contact.id,
+              contactName: contact.contactName,
+              contactPhone: contact.contactPhone,
+              relationship: contact.relationship || undefined,
+              isPrimary: contact.isPrimary || false,
+            }))}
+          />
           <MedicalAlertsCard animalData={animalData} />
           <MedicationsCard regimens={regimens} />
 
@@ -352,48 +403,48 @@ export default function EmergencyCardPage() {
       </div>
 
       <style global jsx>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          
-          body {
-            -webkit-print-color-adjust: exact;
-            color-adjust: exact;
-            background: white !important;
-            color: black !important;
-          }
-          
-          .print\\:bg-gray-100 {
-            background-color: #f3f4f6 !important;
-          }
-          
-          .print\\:bg-gray-300 {
-            background-color: #d1d5db !important;
-          }
-          
-          .print\\:text-black {
-            color: #000000 !important;
-          }
-          
-          .print\\:border-black {
-            border-color: #000000 !important;
-          }
-          
-          /* Force light theme colors for print */
-          .bg-background {
-            background-color: white !important;
-          }
-          
-          .text-muted-foreground {
-            color: #6b7280 !important;
-          }
-          
-          .border {
-            border-color: #e5e7eb !important;
-          }
-        }
-      `}</style>
+				@media print {
+					.no-print {
+						display: none !important;
+					}
+
+					body {
+						-webkit-print-color-adjust: exact;
+						color-adjust: exact;
+						background: white !important;
+						color: black !important;
+					}
+
+					.print:bg-gray-100 {
+						background-color: #f3f4f6 !important;
+					}
+
+					.print:bg-gray-300 {
+						background-color: #d1d5db !important;
+					}
+
+					.print:text-black {
+						color: #000000 !important;
+					}
+
+					.print:border-black {
+						border-color: #000000 !important;
+					}
+
+					/* Force light theme colors for print */
+					.bg-background {
+						background-color: white !important;
+					}
+
+					.text-muted-foreground {
+						color: #6b7280 !important;
+					}
+
+					.border {
+						border-color: #e5e7eb !important;
+					}
+				}
+			`}</style>
     </div>
   );
 }

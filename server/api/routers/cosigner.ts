@@ -161,12 +161,12 @@ async function expireOldRequests(db: typeof import("@/db/drizzle").db) {
     .update(cosignRequests)
     .set({
       status: "expired",
-      updatedAt: now.toISOString(),
+      updatedAt: now,
     })
     .where(
       and(
         eq(cosignRequests.status, "pending"),
-        lt(cosignRequests.expiresAt, now.toISOString()),
+        lt(cosignRequests.expiresAt, now),
       ),
     );
 }
@@ -265,7 +265,7 @@ export const cosignerRouter = createTRPCRouter({
           .update(cosignRequests)
           .set({
             status: "expired",
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
           })
           .where(eq(cosignRequests.id, input.requestId));
 
@@ -290,9 +290,9 @@ export const cosignerRouter = createTRPCRouter({
         .update(cosignRequests)
         .set({
           signature: input.signature,
-          signedAt: now.toISOString(),
+          signedAt: now,
           status: "approved",
-          updatedAt: now.toISOString(),
+          updatedAt: now,
         })
         .where(eq(cosignRequests.id, input.requestId))
         .returning()
@@ -302,10 +302,10 @@ export const cosignerRouter = createTRPCRouter({
       const updatedAdministration = await ctx.db
         .update(administrations)
         .set({
-          coSignedAt: now.toISOString(),
+          coSignedAt: now,
           coSignNotes: `Co-signed via signature request system`,
           coSignUserId: ctx.dbUser.id,
-          updatedAt: now.toISOString(),
+          updatedAt: now,
         })
         .where(eq(administrations.id, request.administrationId))
         .returning()
@@ -400,7 +400,7 @@ export const cosignerRouter = createTRPCRouter({
       const newRequest: NewCosignRequest = {
         administrationId: input.administrationId,
         cosignerId: input.cosignerId,
-        expiresAt: expiresAt.toISOString(),
+        expiresAt: expiresAt,
         householdId: input.householdId,
         requesterId: ctx.dbUser.id,
         status: "pending",
@@ -647,7 +647,7 @@ export const cosignerRouter = createTRPCRouter({
         .set({
           rejectionReason: input.rejectionReason,
           status: "rejected",
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(cosignRequests.id, input.requestId))
         .returning()

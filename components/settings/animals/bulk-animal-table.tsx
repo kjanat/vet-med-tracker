@@ -238,7 +238,7 @@ export function BulkAnimalTable() {
     species: data.species || "",
     timezone: data.timezone || "America/New_York",
     vetName: data.vetName,
-    vetPhone: data.vetPhone,
+    vetPhone: data.vetPhone ?? undefined,
     weightKg: data.weightKg,
   });
 
@@ -363,7 +363,7 @@ ${selectedAnimals.map((animal) => `• ${animal.name}`).join("\n")}`;
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `animals-${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `animals-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

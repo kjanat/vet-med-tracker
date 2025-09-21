@@ -76,6 +76,11 @@ interface RecordingResult {
   error?: string;
 }
 
+interface BulkRecordResponse {
+  results: RecordingResult[];
+  summary: { failed: number; succeeded: number; total: number };
+}
+
 export function BulkRecordingForm({
   open,
   onOpenChange,
@@ -160,7 +165,7 @@ export function BulkRecordingForm({
         normalizedIso,
       ].join(":");
 
-      const result = await bulkRecordMutation.mutateAsync({
+      const result = (await bulkRecordMutation.mutateAsync({
         administeredAt: data.administeredAt.toISOString(),
         allowOverride: data.allowOverride,
         animalIds: Array.from(selectedIds),
@@ -171,20 +176,20 @@ export function BulkRecordingForm({
         notes: data.notes || undefined,
         regimenId: data.regimenId,
         site: data.site || undefined,
-      });
+      })) as BulkRecordResponse;
 
       setResults(result.results);
       setProgress(100);
 
       if (result.summary.failed > 0) {
         toast({
-          description: `Recorded ${result.summary.successful} of ${result.summary.total} administrations. ${result.summary.failed} failed.`,
+          description: `Recorded ${result.summary.succeeded} of ${result.summary.total} administrations. ${result.summary.failed} failed.`,
           title: "Partial Success",
           variant: "default",
         });
       } else {
         toast({
-          description: `Successfully recorded ${result.summary.successful} administrations.`,
+          description: `Successfully recorded ${result.summary.succeeded} administrations.`,
           title: "Success",
         });
       }
@@ -240,7 +245,7 @@ export function BulkRecordingForm({
         normalizedIso,
       ].join(":");
 
-      const result = await bulkRecordMutation.mutateAsync({
+      const result = (await bulkRecordMutation.mutateAsync({
         administeredAt: data.administeredAt.toISOString(),
         allowOverride: data.allowOverride,
         animalIds: failedResults.map((r) => r.animalId),
@@ -251,14 +256,16 @@ export function BulkRecordingForm({
         notes: data.notes || undefined,
         regimenId: data.regimenId,
         site: data.site || undefined,
-      });
+      })) as BulkRecordResponse;
 
       // Merge retry results with original results
       const updatedResults = results.map((original) => {
         const retryResult = result.results.find(
           (r) => r.animalId === original.animalId,
         );
-        return retryResult || original;
+        return retryResult
+          ? { ...retryResult, animalName: original.animalName }
+          : original;
       });
 
       setResults(updatedResults);
@@ -272,7 +279,7 @@ export function BulkRecordingForm({
         });
       } else {
         toast({
-          description: `${result.summary.successful} records succeeded, ${stillFailed} still failed.`,
+          description: `${(result as { summary: { succeeded: number } }).summary.succeeded} records succeeded, ${stillFailed} still failed.`,
           title: "Partial Retry Success",
           variant: "default",
         });

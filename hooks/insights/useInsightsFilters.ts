@@ -59,8 +59,8 @@ export function useInsightsFilters() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     return {
-      from: thirtyDaysAgo.toISOString().split("T")[0] || "",
-      to: now.toISOString().split("T")[0] || "",
+      from: thirtyDaysAgo.toISOString().slice(0, 10) || "",
+      to: now.toISOString().slice(0, 10) || "",
     };
   }, []); // Empty dependency array since dates should be stable per session
 

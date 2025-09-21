@@ -1,4 +1,8 @@
-export default function CookiesPage() {
+"use cache";
+
+import Link from "next/link";
+
+export default async function CookiesPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <h1 className="mb-6 font-bold text-3xl">Cookie Policy</h1>
@@ -38,7 +42,7 @@ export default function CookiesPage() {
             </li>
             <li>
               <strong>Performance:</strong> To ensure our app loads quickly and
-              works offline
+              responds smoothly
             </li>
           </ul>
         </section>
@@ -75,12 +79,8 @@ export default function CookiesPage() {
                 related browser storage mechanisms.
               </p>
               <ul className="list-disc space-y-1 pl-6">
-                <li>
-                  Service Worker cache data for offline functionality (not a
-                  cookie)
-                </li>
-                <li>IndexedDB for offline data storage (not a cookie)</li>
                 <li>Analytics cookies for usage tracking</li>
+                <li>Local storage for remembering display preferences</li>
               </ul>
             </div>
           </div>
@@ -100,44 +100,44 @@ export default function CookiesPage() {
           </p>
           <ul className="list-disc space-y-2 pl-6">
             <li>
-              <a
+              <Link
                 className="text-primary hover:underline"
                 href="https://support.google.com/chrome/answer/95647"
                 rel="noopener noreferrer"
                 target="_blank"
               >
                 Chrome
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 className="text-primary hover:underline"
                 href="https://support.mozilla.org/en-US/kb/enable-and-disable-cookies-website-preferences"
                 rel="noopener noreferrer"
                 target="_blank"
               >
                 Firefox
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 className="text-primary hover:underline"
                 href="https://support.apple.com/guide/safari/manage-cookies-and-website-data-sfri11471/mac"
                 rel="noopener noreferrer"
                 target="_blank"
               >
                 Safari
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 className="text-primary hover:underline"
                 href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09"
                 rel="noopener noreferrer"
                 target="_blank"
               >
                 Edge
-              </a>
+              </Link>
             </li>
           </ul>
         </section>
@@ -156,12 +156,12 @@ export default function CookiesPage() {
           <p className="mb-4">
             If you have any questions about our use of cookies, please contact
             us at{" "}
-            <a
+            <Link
               className="text-primary hover:underline"
               href="mailto:privacy@vetmedtracker.com"
             >
               privacy@vetmedtracker.com
-            </a>
+            </Link>
           </p>
         </section>
       </div>

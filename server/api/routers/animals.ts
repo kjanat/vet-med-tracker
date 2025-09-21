@@ -2,6 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { animals, type NewAnimal } from "@/db/schema";
+import {
+  auditDatabaseOperation,
+  createFailureAudit,
+  logAuditEvent,
+} from "@/lib/security/audit-logger";
 import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
 
 // Input validation schemas
@@ -41,11 +46,46 @@ export const animalRouter = createTRPCRouter({
         weightKg: input.weightKg?.toString(),
       };
 
-      const result = await ctx.db.insert(animals).values(newAnimal).returning();
+      try {
+        const result = await ctx.db
+          .insert(animals)
+          .values(newAnimal)
+          .returning();
 
-      // TODO: Create audit log entry
+        // Create audit log entry for successful animal creation
+        await auditDatabaseOperation(
+          ctx.dbUser.id,
+          "CREATE",
+          "ANIMAL",
+          result[0]?.id,
+          {
+            animalName: input.name,
+            householdId: ctx.householdId,
+            species: input.species,
+          },
+        );
 
-      return result[0];
+        return result[0];
+      } catch (error) {
+        // Log failed animal creation attempt
+        await logAuditEvent(
+          createFailureAudit(
+            ctx.dbUser.id,
+            "CREATE",
+            "ANIMAL",
+            error instanceof Error
+              ? error.message
+              : "Unknown error creating animal",
+            undefined,
+            {
+              animalName: input.name,
+              householdId: ctx.householdId,
+              species: input.species,
+            },
+          ),
+        );
+        throw error;
+      }
     }),
 
   // Soft delete an animal
@@ -70,24 +110,70 @@ export const animalRouter = createTRPCRouter({
         .limit(1);
 
       if (!existing[0]) {
+        // Log failed deletion attempt (animal not found)
+        await logAuditEvent(
+          createFailureAudit(
+            ctx.dbUser.id,
+            "DELETE",
+            "ANIMAL",
+            "Animal not found or not authorized",
+            input.id,
+            {
+              householdId: ctx.householdId,
+            },
+          ),
+        );
+
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Animal not found",
         });
       }
 
-      const result = await ctx.db
-        .update(animals)
-        .set({
-          deletedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(animals.id, input.id))
-        .returning();
+      try {
+        const result = await ctx.db
+          .update(animals)
+          .set({
+            deletedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(animals.id, input.id))
+          .returning();
 
-      // TODO: Create audit log entry
+        // Create audit log entry for successful animal deletion
+        await auditDatabaseOperation(
+          ctx.dbUser.id,
+          "DELETE",
+          "ANIMAL",
+          input.id,
+          {
+            animalName: existing[0].name,
+            householdId: ctx.householdId,
+            species: existing[0].species,
+          },
+        );
 
-      return { animal: result[0], success: true };
+        return { animal: result[0], success: true };
+      } catch (error) {
+        // Log failed deletion attempt
+        await logAuditEvent(
+          createFailureAudit(
+            ctx.dbUser.id,
+            "DELETE",
+            "ANIMAL",
+            error instanceof Error
+              ? error.message
+              : "Unknown error deleting animal",
+            input.id,
+            {
+              animalName: existing[0].name,
+              householdId: ctx.householdId,
+              species: existing[0].species,
+            },
+          ),
+        );
+        throw error;
+      }
     }),
 
   // Get a single animal by ID
@@ -162,25 +248,73 @@ export const animalRouter = createTRPCRouter({
         .limit(1);
 
       if (!existing[0]) {
+        // Log failed update attempt (animal not found)
+        await logAuditEvent(
+          createFailureAudit(
+            ctx.dbUser.id,
+            "UPDATE",
+            "ANIMAL",
+            "Animal not found or not authorized",
+            id,
+            {
+              householdId: ctx.householdId,
+              updateData,
+            },
+          ),
+        );
+
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Animal not found",
         });
       }
 
-      const result = await ctx.db
-        .update(animals)
-        .set({
-          ...updateData,
-          dob: updateData.dob,
-          updatedAt: new Date().toISOString(),
-          weightKg: updateData.weightKg?.toString(),
-        })
-        .where(eq(animals.id, id))
-        .returning();
+      try {
+        const result = await ctx.db
+          .update(animals)
+          .set({
+            ...updateData,
+            dob: updateData.dob,
+            updatedAt: new Date(),
+            weightKg: updateData.weightKg?.toString(),
+          })
+          .where(eq(animals.id, id))
+          .returning();
 
-      // TODO: Create audit log entry
+        // Create audit log entry for successful animal update
+        await auditDatabaseOperation(ctx.dbUser.id, "UPDATE", "ANIMAL", id, {
+          animalName: existing[0].name,
+          householdId: ctx.householdId,
+          previousValues: {
+            name: existing[0].name,
+            species: existing[0].species,
+            weightKg: existing[0].weightKg,
+          },
+          species: existing[0].species,
+          updatedFields: Object.keys(updateData),
+        });
 
-      return result[0];
+        return result[0];
+      } catch (error) {
+        // Log failed update attempt
+        await logAuditEvent(
+          createFailureAudit(
+            ctx.dbUser.id,
+            "UPDATE",
+            "ANIMAL",
+            error instanceof Error
+              ? error.message
+              : "Unknown error updating animal",
+            id,
+            {
+              animalName: existing[0].name,
+              householdId: ctx.householdId,
+              species: existing[0].species,
+              updateData,
+            },
+          ),
+        );
+        throw error;
+      }
     }),
 });

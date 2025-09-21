@@ -561,7 +561,7 @@ function OptimizedAnimalList() {
  * Complete dashboard showing various features
  */
 export default function ConsolidatedProviderDashboard() {
-  const { isAuthenticated, loading, isOffline, pendingSyncCount } = useApp();
+  const { isAuthenticated, loading, pendingSyncCount } = useApp();
 
   if (loading.user) {
     return (
@@ -584,10 +584,8 @@ export default function ConsolidatedProviderDashboard() {
       {/* Status Bar */}
       <div className="flex items-center justify-between rounded bg-gray-100 p-4">
         <div className="flex items-center space-x-4">
-          <div
-            className={`h-3 w-3 rounded-full ${isOffline ? "bg-red-500" : "bg-green-500"}`}
-          />
-          <span>{isOffline ? "Offline" : "Online"}</span>
+          <div className="h-3 w-3 rounded-full bg-green-500" />
+          <span>Connected</span>
           {pendingSyncCount > 0 && (
             <span className="rounded bg-yellow-100 px-2 py-1 text-sm">
               {pendingSyncCount} items pending sync

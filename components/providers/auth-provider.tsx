@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Convert Stack user to internal user format
   const convertStackUser = useCallback(
     (stackUser: StackUserForConversion): User => ({
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
       defaultAnimalId: null,
       defaultHouseholdId: null,
       email: stackUser.primaryEmail || "",
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       preferences: structuredClone(defaultUserPreferences),
       profile: structuredClone(defaultUserProfile),
       stackUserId: stackUser.id,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     }),
     [],
   );

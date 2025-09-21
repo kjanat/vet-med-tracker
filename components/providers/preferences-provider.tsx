@@ -6,7 +6,6 @@ import {
   type ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useReducer,
 } from "react";
@@ -14,6 +13,7 @@ import type {
   HouseholdSettings,
   VetMedPreferences,
 } from "./app-provider-consolidated";
+import { useStackMetadataPreferences } from "./use-stack-metadata-preferences";
 
 // =============================================================================
 // TYPES & INTERFACES
@@ -149,38 +149,32 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   // PREFERENCES LOADING
   // =============================================================================
 
-  // Load preferences from Stack user metadata
-  useEffect(() => {
-    if (stackUser?.clientMetadata) {
-      const vetMedPrefs = stackUser.clientMetadata
-        .vetMedPreferences as VetMedPreferences;
-      const householdSettings = stackUser.clientMetadata
-        .householdSettings as HouseholdSettings;
+  const handlePreferencesUpdate = useCallback(
+    (preferences: VetMedPreferences) => {
+      dispatch({ payload: preferences, type: "SET_PREFERENCES" });
+    },
+    [],
+  );
 
-      if (vetMedPrefs) {
-        dispatch({
-          payload: { ...defaultVetMedPreferences, ...vetMedPrefs },
-          type: "SET_PREFERENCES",
-        });
-      }
+  const handleHouseholdSettingsUpdate = useCallback(
+    (settings: HouseholdSettings) => {
+      dispatch({ payload: settings, type: "SET_HOUSEHOLD_SETTINGS" });
+    },
+    [],
+  );
 
-      if (householdSettings) {
-        dispatch({
-          payload: { ...defaultHouseholdSettings, ...householdSettings },
-          type: "SET_HOUSEHOLD_SETTINGS",
-        });
-      }
+  const handleFirstTimeUserUpdate = useCallback((isFirst: boolean) => {
+    dispatch({ payload: isFirst, type: "SET_FIRST_TIME_USER" });
+  }, []);
 
-      // Check if first time user
-      const hasPreferences = vetMedPrefs || householdSettings;
-      const hasCompletedOnboarding =
-        stackUser.clientMetadata?.onboardingComplete;
-      dispatch({
-        payload: !hasPreferences && !hasCompletedOnboarding,
-        type: "SET_FIRST_TIME_USER",
-      });
-    }
-  }, [stackUser]);
+  useStackMetadataPreferences({
+    defaultHouseholdSettings,
+    defaultPreferences: defaultVetMedPreferences,
+    onFirstTimeUserChange: handleFirstTimeUserUpdate,
+    onHouseholdSettings: handleHouseholdSettingsUpdate,
+    onPreferences: handlePreferencesUpdate,
+    stackUser,
+  });
 
   // =============================================================================
   // ACTION HANDLERS

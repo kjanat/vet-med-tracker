@@ -9,7 +9,6 @@ import { useIsMobile } from "@/hooks/shared/useResponsive";
 import { UserMenu } from "../auth/user-menu";
 import { Logo } from "../ui/logo";
 import { SidebarTrigger } from "../ui/sidebar";
-// Sync status functionality removed during simplification
 
 export function Header() {
   const isMobile = useIsMobile();

@@ -112,3 +112,16 @@ export function LeaveHouseholdDialog({
     </Dialog>
   );
 }
+
+// Export combined dialogs for dynamic import
+export const HouseholdDialogs = {
+  EditHouseholdDialog,
+  LeaveHouseholdDialog,
+};
+
+// Export default component wrapper for dynamic imports
+export default function HouseholdDialogsWrapper(
+  _props: Record<string, unknown>,
+) {
+  return null; // This is just for dynamic import compatibility
+}

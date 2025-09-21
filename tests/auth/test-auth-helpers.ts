@@ -5,7 +5,7 @@ import type {
 import type { UserProfile } from "@/types/app-state";
 
 const BASE_USER: User = {
-  createdAt: "2024-01-01T00:00:00Z",
+  createdAt: new Date("2024-01-01T00:00:00Z"),
   defaultAnimalId: null,
   defaultHouseholdId: null,
   email: "john@example.com",
@@ -55,7 +55,7 @@ const BASE_USER: User = {
     website: null,
   },
   stackUserId: null,
-  updatedAt: "2024-01-01T00:00:00Z",
+  updatedAt: new Date("2024-01-01T00:00:00Z"),
 };
 
 const BASE_PROFILE: UserProfile = {
@@ -248,7 +248,6 @@ export function createTestAppContext(
     households: [],
     isAuthenticated: Boolean(user),
     isFirstTimeUser: false,
-    isOffline: false,
     loading: {
       animals: false,
       households: false,

@@ -2,7 +2,7 @@
 export interface InventorySource {
   id: string;
   name: string;
-  brand?: string;
+  brandName?: string;
   lot: string;
   expiresOn: Date | null;
   unitsRemaining: number;

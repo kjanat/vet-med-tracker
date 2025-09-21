@@ -256,29 +256,6 @@ useEffect(() => {
 - Automatic cleanup on unmount
 - Efficient timeout tracking with Map
 
-#### Event Listener Cleanup
-
-```tsx
-useEffect(() => {
-  const handleOnline = () => dispatch({ type: 'SET_OFFLINE_STATUS', payload: false });
-  const handleOffline = () => dispatch({ type: 'SET_OFFLINE_STATUS', payload: true });
-  
-  window.addEventListener("online", handleOnline);
-  window.addEventListener("offline", handleOffline);
-  
-  return () => {
-    window.removeEventListener("online", handleOnline);
-    window.removeEventListener("offline", handleOffline);
-  };
-}, []);
-```
-
-**Benefits**:
-
-- Prevents memory leaks from global event listeners
-- Clean component unmount behavior
-- Automatic resource cleanup
-
 ## Performance Monitoring
 
 ### Measuring Provider Performance

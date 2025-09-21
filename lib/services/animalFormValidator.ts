@@ -44,7 +44,6 @@ export interface ValidationContext {
  * - Context-aware validation (household, editing state)
  * - Structured error and warning reporting
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: Utility class for validation
 export class AnimalFormValidator {
   /**
    * Validate complete form data

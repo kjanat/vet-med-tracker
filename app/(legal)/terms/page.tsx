@@ -1,8 +1,10 @@
+"use cache";
+
 import Link from "next/link";
 
-export const experimental_ppr = true;
+// export const experimental_ppr = true;
 
-export default function TermsPage() {
+export default async function TermsPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <h1 className="mb-6 font-bold text-3xl">Terms of Service</h1>

@@ -187,7 +187,7 @@ interface RegimenRow {
   } | null;
   lastAdmin: {
     id: string;
-    recordedAt: string;
+    recordedAt: Date;
     status: string;
   } | null;
 }
@@ -226,7 +226,13 @@ function processRegimenRow(
     isHighRisk: regimen.highRisk,
     isOverdue: dueStatus.isOverdue,
     isPRN: regimen.scheduleType === "PRN",
-    lastAdministration: lastAdmin,
+    lastAdministration: lastAdmin
+      ? {
+          id: lastAdmin.id,
+          recordedAt: lastAdmin.recordedAt.toISOString(),
+          status: lastAdmin.status,
+        }
+      : null,
     medicationName,
     minutesUntilDue: dueStatus.minutesUntilDue,
     prnReason: regimen.prnReason,
@@ -360,7 +366,7 @@ export const regimenRouter = createTRPCRouter({
         animalId: input.animalId,
         cutoffMinutes: input.cutoffMinutes,
         dose: input.dose,
-        endDate: input.endDate,
+        endDate: input.endDate ? new Date(input.endDate) : undefined,
         highRisk: input.highRisk,
         instructions: input.instructions,
         intervalHours: input.intervalHours,
@@ -373,7 +379,7 @@ export const regimenRouter = createTRPCRouter({
         requiresCoSign: input.requiresCoSign,
         route: input.route,
         scheduleType: input.scheduleType,
-        startDate: input.startDate,
+        startDate: new Date(input.startDate),
         timesLocal: input.timesLocal,
       };
 
@@ -444,8 +450,8 @@ export const regimenRouter = createTRPCRouter({
       const result = await ctx.db
         .update(regimens)
         .set({
-          deletedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          deletedAt: new Date(),
+          updatedAt: new Date(),
         })
         .where(eq(regimens.id, input.id))
         .returning();
@@ -653,11 +659,8 @@ export const regimenRouter = createTRPCRouter({
         eq(regimens.active, true),
         isNull(regimens.deletedAt),
         isNull(animals.deletedAt),
-        lte(regimens.startDate, now.toISOString().split("T")[0] ?? ""),
-        or(
-          isNull(regimens.endDate),
-          gte(regimens.endDate, now.toISOString().split("T")[0] ?? ""),
-        ),
+        lte(regimens.startDate, now),
+        or(isNull(regimens.endDate), gte(regimens.endDate, now)),
       ];
 
       if (input.animalId) {
@@ -687,8 +690,8 @@ export const regimenRouter = createTRPCRouter({
           administrations,
           and(
             eq(administrations.regimenId, regimens.id),
-            gte(administrations.recordedAt, startOfDay.toISOString()),
-            lte(administrations.recordedAt, endOfDay.toISOString()),
+            gte(administrations.recordedAt, startOfDay),
+            lte(administrations.recordedAt, endOfDay),
           ),
         )
         .where(and(...baseConditions))
@@ -748,9 +751,9 @@ export const regimenRouter = createTRPCRouter({
       const result = await ctx.db
         .update(regimens)
         .set({
-          pausedAt: new Date().toISOString(),
+          pausedAt: new Date(),
           pauseReason: input.reason,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(regimens.id, input.id))
         .returning();
@@ -814,7 +817,7 @@ export const regimenRouter = createTRPCRouter({
         .set({
           pausedAt: null,
           pauseReason: null,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(regimens.id, input.id))
         .returning();
@@ -865,7 +868,24 @@ export const regimenRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, householdId, ...updateData } = input;
+      const { id, householdId, ...rawUpdateData } = input;
+
+      // Convert date strings to Date objects if present
+      const {
+        startDate: rawStartDate,
+        endDate: rawEndDate,
+        ...otherData
+      } = rawUpdateData;
+
+      const updateData = {
+        ...otherData,
+        ...(rawStartDate && {
+          startDate: new Date(rawStartDate),
+        }),
+        ...(rawEndDate && {
+          endDate: new Date(rawEndDate),
+        }),
+      };
 
       // Verify regimen exists and belongs to household
       const existing = await ctx.db
@@ -922,7 +942,7 @@ export const regimenRouter = createTRPCRouter({
         .update(regimens)
         .set({
           ...updateData,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(regimens.id, id))
         .returning();

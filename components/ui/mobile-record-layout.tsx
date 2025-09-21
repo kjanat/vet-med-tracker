@@ -46,8 +46,7 @@ interface MobileRecordLayoutProps {
   selectedRegimen: DueRegimen | null;
   dueRegimens?: DueRegimen[];
   regimensLoading: boolean;
-  regimensError: Error | null;
-  isOnline: boolean;
+  regimensError: { message: string } | null;
   onRegimenSelect: (regimen: DueRegimen) => void;
   onBack?: () => void;
   onCancel?: () => void;
@@ -148,7 +147,6 @@ export function MobileRecordLayout({
   dueRegimens,
   regimensLoading,
   regimensError,
-  isOnline,
   onRegimenSelect,
   onBack,
   onCancel,
@@ -211,7 +209,7 @@ export function MobileRecordLayout({
         />
       )}
 
-      <StatusAlerts isOnline={isOnline} regimensError={regimensError} />
+      <StatusAlerts regimensError={regimensError} />
 
       <div className="flex-1 overflow-hidden">
         {regimensLoading ? (
@@ -430,23 +428,12 @@ function EmptyMedicationsState() {
 
 // Helper component for status alerts
 function StatusAlerts({
-  isOnline,
   regimensError,
 }: {
-  isOnline: boolean;
-  regimensError: Error | null;
+  regimensError: { message: string } | null;
 }) {
   return (
     <>
-      {!isOnline && (
-        <Alert className="mx-4 mt-4 border-amber-200 bg-amber-50">
-          <AlertDescription className="text-amber-800 text-sm">
-            You&apos;re offline. Recordings will be saved and synced when
-            connection is restored.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {regimensError && (
         <Alert className="mx-4 mt-4" variant="destructive">
           <AlertDescription>

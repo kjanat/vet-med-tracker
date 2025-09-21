@@ -1,6 +1,5 @@
 "use client";
 
-import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useScreenReaderAnnouncements } from "@/components/ui/screen-reader-announcer";
@@ -133,31 +132,31 @@ export function useGlobalKeyboardShortcuts(
   useEffect(() => {
     // Navigation shortcuts
     registerShortcut({
-      action: () => router.push("/auth/admin/record" as Route),
+      action: () => router.push("/auth/admin/record"),
       description: "Navigating to record medication page",
       key: "Ctrl+R",
     });
 
     registerShortcut({
-      action: () => router.push("/auth/medications/inventory" as Route),
+      action: () => router.push("/auth/medications/inventory"),
       description: "Navigating to inventory page",
       key: "Ctrl+I",
     });
 
     registerShortcut({
-      action: () => router.push("/auth/dashboard/history" as Route),
+      action: () => router.push("/auth/dashboard/history"),
       description: "Navigating to history page",
       key: "Ctrl+H",
     });
 
     registerShortcut({
-      action: () => router.push("/auth/manage/animals" as Route),
+      action: () => router.push("/auth/manage/animals"),
       description: "Navigating to manage animals page",
       key: "Ctrl+N",
     });
 
     registerShortcut({
-      action: () => router.push("/auth/settings" as Route),
+      action: () => router.push("/auth/settings"),
       description: "Navigating to settings page",
       key: "Ctrl+S",
     });
@@ -173,7 +172,7 @@ export function useGlobalKeyboardShortcuts(
 
     // Quick actions
     registerShortcut({
-      action: () => router.push("/auth/admin/record" as Route),
+      action: () => router.push("/auth/admin/record"),
       description: "Quick action: record medication",
       key: "Ctrl+Shift+A",
     });
@@ -187,7 +186,7 @@ export function useGlobalKeyboardShortcuts(
     });
 
     registerShortcut({
-      action: () => router.push("/auth/medications/regimens" as Route),
+      action: () => router.push("/auth/medications/regimens"),
       description: "Quick action: create new regimen",
       key: "Ctrl+Shift+R",
     });

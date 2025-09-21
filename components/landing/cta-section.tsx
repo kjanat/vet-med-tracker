@@ -7,7 +7,7 @@ import { Section } from "./primitives/section";
 const benefits = [
   "Free forever for up to 2 pets",
   "No credit card required",
-  "Works offline",
+  "Secure, HIPAA-aware data handling",
   "Cancel anytime",
 ];
 

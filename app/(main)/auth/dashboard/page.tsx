@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AnimalFormDialog,
   useAnimalFormDialog,
@@ -23,34 +23,18 @@ import {
   KeyboardShortcutsOverlay,
 } from "@/components/ui/desktop-productivity-toolbar";
 import { RecordButton } from "@/components/ui/record-button";
-import { useKeyboardShortcuts } from "@/hooks/shared/useKeyboardShortcuts";
+import { useDashboardShortcuts } from "@/hooks/dashboard/useDashboardShortcuts";
+import {
+  computeNextActions,
+  type DashboardFilters,
+  DEFAULT_FILTERS,
+  type SortKey,
+  type SortOrder,
+  type TransformedRegimen,
+} from "@/lib/dashboard/next-actions";
+import { getUtcDayRange } from "@/lib/date/get-utc-day-range";
 import type { Animal } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
-import { formatTimeLocal } from "@/utils/tz";
-
-// Define types for regimen data
-interface RegimenData {
-  id: string;
-  animalId: string;
-  animalName: string;
-  medicationName: string;
-  strength?: string;
-  targetTime?: string;
-  section: "due" | "later" | "prn";
-  isOverdue: boolean;
-  isPRN?: boolean;
-  route?: string;
-}
-
-interface TransformedRegimen {
-  id: string;
-  animalId: string;
-  animal: string;
-  medication: string;
-  dueTime: string;
-  status: "overdue" | "due" | "upcoming";
-  route?: string;
-}
 
 export default function DashboardPage() {
   const { selectedAnimal, animals, selectedHousehold, households } = useApp();
@@ -59,99 +43,17 @@ export default function DashboardPage() {
 
   // Productivity toolbar state
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<
-    "time" | "animal" | "medication" | "status"
-  >("time");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [filters, setFilters] = useState({
-    showDue: true,
-    showLater: true,
-    showPRN: false,
-    showOverdue: true,
+  const [sortBy, setSortBy] = useState<SortKey>("time");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [filters, setFilters] = useState<DashboardFilters>({
+    ...DEFAULT_FILTERS,
   });
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
 
-  // Set up keyboard shortcuts
-  const { registerShortcut, unregisterShortcut } = useKeyboardShortcuts({
-    enabled: true,
-    respectInputs: true,
+  useDashboardShortcuts({
+    setFilters,
+    setShowKeyboardShortcuts,
   });
-
-  // Register keyboard shortcuts
-  React.useEffect(() => {
-    const shortcuts = [
-      {
-        key: "/",
-        modifiers: { ctrl: true },
-        description: "Focus search",
-        action: () => {
-          const searchInput = document.querySelector(
-            '[data-shortcut="Ctrl+/"]',
-          ) as HTMLInputElement;
-          searchInput?.focus();
-        },
-      },
-      {
-        key: "r",
-        modifiers: { ctrl: true },
-        description: "Record medication",
-        action: () => router.push("/auth/admin/record"),
-      },
-      {
-        key: "h",
-        modifiers: { ctrl: true },
-        description: "View history",
-        action: () => router.push("/auth/dashboard/history"),
-      },
-      {
-        key: "i",
-        modifiers: { ctrl: true },
-        description: "View insights",
-        action: () => router.push("/auth/insights"),
-      },
-      {
-        key: "n",
-        modifiers: { ctrl: true },
-        description: "Add new regimen",
-        action: () => router.push("/auth/medications/regimens"),
-      },
-      {
-        key: "?",
-        modifiers: { ctrl: true },
-        description: "Show shortcuts",
-        action: () => setShowKeyboardShortcuts(!showKeyboardShortcuts),
-      },
-      {
-        key: "d",
-        description: "Toggle due filter",
-        action: () => setFilters((f) => ({ ...f, showDue: !f.showDue })),
-      },
-      {
-        key: "o",
-        description: "Toggle overdue filter",
-        action: () =>
-          setFilters((f) => ({ ...f, showOverdue: !f.showOverdue })),
-      },
-      {
-        key: "l",
-        description: "Toggle later filter",
-        action: () => setFilters((f) => ({ ...f, showLater: !f.showLater })),
-      },
-      {
-        key: "p",
-        description: "Toggle PRN filter",
-        action: () => setFilters((f) => ({ ...f, showPRN: !f.showPRN })),
-      },
-    ];
-
-    shortcuts.forEach(registerShortcut);
-
-    return () => {
-      shortcuts.forEach((s) => {
-        unregisterShortcut(s.key);
-      });
-    };
-  }, [registerShortcut, unregisterShortcut, router, showKeyboardShortcuts]);
 
   // Get timezone from animal or household context
   const timezone =
@@ -170,142 +72,32 @@ export default function DashboardPage() {
   );
 
   // Fetch today's administrations
-  const today = new Date().toISOString().split("T")[0];
+  const { start: todayStartUtc, endExclusive: todayEndExclusive } =
+    getUtcDayRange(new Date());
   const { data: todayAdmins } = trpc.admin.list.useQuery(
     {
       householdId: selectedHousehold?.id || "",
-      startDate: `${today}T00:00:00.000Z`,
-      endDate: `${today}T23:59:59.999Z`,
+      startDate: todayStartUtc,
+      endDate: todayEndExclusive,
     },
     {
       enabled: Boolean(selectedHousehold?.id),
     },
   );
 
-  // Check if regimen passes section filters
-  const passesSectionFilter = useCallback(
-    (regimen: RegimenData, activeFilters: typeof filters) => {
-      if (regimen.section === "due" && !activeFilters.showDue) return false;
-      if (regimen.section === "later" && !activeFilters.showLater) return false;
-      if (regimen.section === "prn" && !activeFilters.showPRN) return false;
-      if (regimen.isOverdue && !activeFilters.showOverdue) return false;
-      return true;
-    },
-    [],
-  );
-
-  // Check if regimen matches search query
-  const matchesSearchQuery = useCallback(
-    (regimen: RegimenData, query: string) => {
-      if (!query) return true;
-
-      const queryLower = query.toLowerCase();
-      const matchesAnimal = regimen.animalName
-        ?.toLowerCase()
-        .includes(queryLower);
-      const matchesMed = regimen.medicationName
-        ?.toLowerCase()
-        .includes(queryLower);
-      return matchesAnimal || matchesMed;
-    },
-    [],
-  );
-
-  // Filter regimens based on active filters
-  const filterRegimens = useCallback(
-    (
-      regimens: typeof dueRegimens,
-      activeFilters: typeof filters,
-      query: string,
-    ) => {
-      if (!regimens) return [];
-
-      return regimens.filter(
-        (r) =>
-          passesSectionFilter(r, activeFilters) && matchesSearchQuery(r, query),
-      );
-    },
-    [passesSectionFilter, matchesSearchQuery],
-  );
-
-  // Create sorting strategies
-  const sortingStrategies = useMemo(() => {
-    const compareString = (a: string | undefined, b: string | undefined) =>
-      (a || "").localeCompare(b || "");
-
-    const getStatusOrder = (regimen: RegimenData) => {
-      const statusOrder: Record<string, number> = {
-        overdue: 0,
-        due: 1,
-        later: 2,
-        prn: 3,
-      };
-      const status = regimen.isOverdue ? "overdue" : regimen.section || "prn";
-      return statusOrder[status] || 99;
-    };
-
-    return {
-      time: (a: RegimenData, b: RegimenData) =>
-        compareString(a.targetTime, b.targetTime),
-      animal: (a: RegimenData, b: RegimenData) =>
-        compareString(a.animalName, b.animalName),
-      medication: (a: RegimenData, b: RegimenData) =>
-        compareString(a.medicationName, b.medicationName),
-      status: (a: RegimenData, b: RegimenData) =>
-        getStatusOrder(a) - getStatusOrder(b),
-    };
-  }, []);
-
-  // Sort regimens using selected strategy
-  const sortRegimens = useCallback(
-    (regimens: RegimenData[], sortBy: string, sortOrder: string) => {
-      const compareFn =
-        sortingStrategies[sortBy as keyof typeof sortingStrategies];
-      if (!compareFn) return regimens;
-
-      const sorted = [...regimens].sort(compareFn);
-      return sortOrder === "desc" ? sorted.reverse() : sorted;
-    },
-    [sortingStrategies],
-  );
-
-  // Transform regimen data for display
-  const transformRegimens = useCallback(
-    (regimens: RegimenData[], timezone: string) =>
-      regimens.slice(0, 10).map((regimen) => ({
-        id: regimen.id,
-        animalId: regimen.animalId,
-        animal: regimen.animalName,
-        medication: `${regimen.medicationName} ${regimen.strength}`,
-        dueTime: regimen.targetTime
-          ? formatTimeLocal(new Date(regimen.targetTime), timezone)
-          : "As needed",
-        status: regimen.isOverdue
-          ? ("overdue" as const)
-          : regimen.section === "due"
-            ? ("due" as const)
-            : ("upcoming" as const),
-        route: regimen.route,
-      })),
-    [],
-  );
-
   // Calculate next actions with filtering and sorting
-  const nextActions = useMemo(() => {
-    const filtered = filterRegimens(dueRegimens, filters, searchQuery);
-    const sorted = sortRegimens(filtered, sortBy, sortOrder);
-    return transformRegimens(sorted, timezone);
-  }, [
-    dueRegimens,
-    filters,
-    searchQuery,
-    sortBy,
-    sortOrder,
-    timezone,
-    filterRegimens,
-    sortRegimens,
-    transformRegimens,
-  ]);
+  const nextActions = useMemo(
+    () =>
+      computeNextActions({
+        regimens: dueRegimens,
+        filters,
+        query: searchQuery,
+        sortBy,
+        sortOrder,
+        timezone,
+      }),
+    [dueRegimens, filters, searchQuery, sortBy, sortOrder, timezone],
+  );
 
   // Calculate stats
   const todayStats = useMemo(() => {
@@ -386,12 +178,12 @@ export default function DashboardPage() {
           filters={filters}
           onFiltersChange={setFilters}
           onKeyboardShortcutsToggle={() =>
-            setShowKeyboardShortcuts(!showKeyboardShortcuts)
+            setShowKeyboardShortcuts((open) => !open)
           }
           onSearchChange={setSearchQuery}
           onSortChange={(newSortBy, newOrder) => {
-            setSortBy(newSortBy as typeof sortBy);
-            setSortOrder(newOrder);
+            setSortBy(newSortBy as SortKey);
+            setSortOrder(newOrder as SortOrder);
           }}
           searchQuery={searchQuery}
           selectedCount={0}

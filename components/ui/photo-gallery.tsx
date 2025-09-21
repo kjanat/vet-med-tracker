@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +43,17 @@ import {
 import { LazyImage, ProgressiveImage } from "@/components/ui/progressive-image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  type GestureConfig,
+  PhotoGestureService,
+  type SwipeState,
+  type TouchState,
+} from "@/lib/services/photo-gesture.service";
+import {
+  type LightboxState,
+  PhotoViewerService,
+  type ViewerConfig,
+} from "@/lib/services/photo-viewer.service";
 import { cn } from "@/lib/utils/general";
 
 export interface Photo {
@@ -75,31 +86,7 @@ export interface PhotoGalleryProps {
   allowReorder?: boolean;
 }
 
-interface LightboxState {
-  isOpen: boolean;
-  currentIndex: number;
-  zoom: number;
-  panX: number;
-  panY: number;
-  isDragging: boolean;
-  lastPanX: number;
-  lastPanY: number;
-}
-
-interface SwipeState {
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-  isDragging: boolean;
-  threshold: number;
-}
-
-interface TouchState {
-  initialDistance: number;
-  initialZoom: number;
-  touches: number;
-}
+// State interfaces moved to services
 
 /**
  * PhotoGallery - A comprehensive photo gallery component with lightbox,
@@ -122,33 +109,34 @@ export function PhotoGallery({
 }: PhotoGalleryProps) {
   const { toast } = useToast();
 
-  // Lightbox state
-  const [lightbox, setLightbox] = useState<LightboxState>({
-    currentIndex: 0,
-    isDragging: false,
-    isOpen: false,
-    lastPanX: 0,
-    lastPanY: 0,
-    panX: 0,
-    panY: 0,
-    zoom: 1,
-  });
+  // Service state management
+  const [lightbox, setLightbox] = useState<LightboxState>(
+    PhotoViewerService.createInitialLightboxState(),
+  );
+  const [swipe, setSwipe] = useState<SwipeState>(
+    PhotoGestureService.createInitialSwipeState(),
+  );
+  const [touch, setTouch] = useState<TouchState>(
+    PhotoGestureService.createInitialTouchState(),
+  );
 
-  // Touch/swipe state
-  const [swipe, setSwipe] = useState<SwipeState>({
-    currentX: 0,
-    currentY: 0,
-    isDragging: false,
-    startX: 0,
-    startY: 0,
-    threshold: 50,
-  });
+  // Configuration for services
+  const viewerConfig: ViewerConfig = {
+    enableKeyboardNav: true,
+    maxZoom: 5,
+    minZoom: 0.5,
+    zoomStep: 1.5,
+  };
 
-  const [touch, setTouch] = useState<TouchState>({
-    initialDistance: 0,
-    initialZoom: 1,
-    touches: 0,
-  });
+  const gestureConfig: GestureConfig = useMemo(
+    () => ({
+      enablePanWhenZoomed: true,
+      enablePinchZoom: true,
+      enableSwipeNavigation: enableSwipeGestures,
+      swipeThreshold: 50,
+    }),
+    [enableSwipeGestures],
+  );
 
   // Delete confirmation state
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -197,33 +185,28 @@ export function PhotoGallery({
   /**
    * Open lightbox at specific photo index
    */
-  const openLightbox = useCallback((index: number) => {
-    setLightbox({
-      currentIndex: index,
-      isDragging: false,
-      isOpen: true,
-      lastPanX: 0,
-      lastPanY: 0,
-      panX: 0,
-      panY: 0,
-      zoom: 1,
-    });
-  }, []);
+  const openLightbox = useCallback(
+    (index: number) => {
+      try {
+        const newState = PhotoViewerService.openLightbox(index, photos.length);
+        setLightbox(newState);
+      } catch (error) {
+        console.error("Failed to open lightbox:", error);
+        toast({
+          description: "Failed to open photo viewer",
+          title: "Error",
+          variant: "destructive",
+        });
+      }
+    },
+    [photos.length, toast],
+  );
 
   /**
    * Close lightbox
    */
   const closeLightbox = useCallback(() => {
-    setLightbox((prev) => ({
-      ...prev,
-      isDragging: false,
-      isOpen: false,
-      lastPanX: 0,
-      lastPanY: 0,
-      panX: 0,
-      panY: 0,
-      zoom: 1,
-    }));
+    setLightbox((prev) => PhotoViewerService.closeLightbox(prev));
   }, []);
 
   /**
@@ -232,16 +215,12 @@ export function PhotoGallery({
   const navigatePhoto = useCallback(
     (direction: number) => {
       setLightbox((prev) => {
-        const newIndex = prev.currentIndex + direction;
-        if (newIndex < 0 || newIndex >= photos.length) return prev;
-
-        return {
-          ...prev,
-          currentIndex: newIndex,
-          panX: 0,
-          panY: 0,
-          zoom: 1,
-        };
+        const navigationResult = PhotoViewerService.navigatePhoto(
+          prev,
+          direction,
+          photos.length,
+        );
+        return PhotoViewerService.applyNavigation(prev, navigationResult);
       });
     },
     [photos.length],
@@ -251,169 +230,76 @@ export function PhotoGallery({
    * Zoom in
    */
   const zoomIn = useCallback(() => {
-    setLightbox((prev) => ({
-      ...prev,
-      zoom: Math.min(prev.zoom * 1.5, 5),
-    }));
+    setLightbox((prev) => PhotoViewerService.zoomIn(prev, viewerConfig));
   }, []);
 
   /**
    * Zoom out
    */
   const zoomOut = useCallback(() => {
-    setLightbox((prev) => ({
-      ...prev,
-      panX: prev.zoom <= 1 ? 0 : prev.panX,
-      panY: prev.zoom <= 1 ? 0 : prev.panY,
-      zoom: Math.max(prev.zoom / 1.5, 0.5),
-    }));
+    setLightbox((prev) => PhotoViewerService.zoomOut(prev, viewerConfig));
   }, []);
 
   /**
    * Reset zoom
    */
   const resetZoom = useCallback(() => {
-    setLightbox((prev) => ({
-      ...prev,
-      panX: 0,
-      panY: 0,
-      zoom: 1,
-    }));
+    setLightbox((prev) => PhotoViewerService.resetZoom(prev));
   }, []);
 
-  // Keyboard navigation
+  // Keyboard navigation using service
   useEffect(() => {
     if (!lightbox.isOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key) {
-        case "Escape":
-          closeLightbox();
-          break;
-        case "ArrowLeft":
-          navigatePhoto(-1);
-          break;
-        case "ArrowRight":
-          navigatePhoto(1);
-          break;
-        case "+":
-        case "=":
-          zoomIn();
-          break;
-        case "-":
-          zoomOut();
-          break;
-        case "0":
-          resetZoom();
-          break;
+      const result = PhotoViewerService.handleKeyboardEvent(
+        event,
+        lightbox,
+        photos.length,
+        viewerConfig,
+      );
+
+      if (result.shouldPreventDefault) {
+        event.preventDefault();
+      }
+
+      if (result.newState !== lightbox) {
+        setLightbox(result.newState);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    lightbox.isOpen,
-    closeLightbox,
-    navigatePhoto,
-    resetZoom,
-    zoomIn,
-    zoomOut,
-  ]);
+  }, [lightbox, photos.length]);
 
   /**
    * Handle touch start for swipe gestures
    */
   const handleTouchStart = useCallback(
     (event: React.TouchEvent) => {
-      if (!enableSwipeGestures || !lightbox.isOpen) return;
+      const touchData = PhotoGestureService.parseTouchEvent(event);
 
-      const touches = event.touches;
-
-      if (touches.length === 1) {
-        // Single touch - swipe or pan
-        const touch = touches[0];
-        if (!touch) return;
-
-        setSwipe({
-          currentX: touch.clientX,
-          currentY: touch.clientY,
-          isDragging: true,
-          startX: touch.clientX,
-          startY: touch.clientY,
-          threshold: 50,
-        });
-
-        setLightbox((prev) => ({
-          ...prev,
-          isDragging: true,
-          lastPanX: prev.panX,
-          lastPanY: prev.panY,
-        }));
-      } else if (touches.length === 2) {
-        // Two touch - pinch to zoom
-        const touch1 = touches[0];
-        const touch2 = touches[1];
-        if (!touch1 || !touch2) return;
-
-        const distance = Math.sqrt(
-          (touch1.clientX - touch2.clientX) ** 2 +
-            (touch1.clientY - touch2.clientY) ** 2,
-        );
-
-        setTouch({
-          initialDistance: distance,
-          initialZoom: lightbox.zoom,
-          touches: 2,
-        });
+      if (
+        !PhotoGestureService.shouldHandleTouchEvent(
+          touchData,
+          lightbox,
+          gestureConfig,
+        )
+      ) {
+        return;
       }
+
+      const result = PhotoGestureService.handleTouchStart(
+        touchData,
+        lightbox,
+        gestureConfig,
+      );
+
+      setSwipe(result.swipeState);
+      setTouch(result.touchState);
+      setLightbox(result.lightboxState);
     },
-    [enableSwipeGestures, lightbox.isOpen, lightbox.zoom],
-  );
-
-  // Helper to handle single touch pan/swipe
-  const handleSingleTouchMove = useCallback(
-    (touch: React.Touch, deltaX: number, deltaY: number) => {
-      setSwipe((prev) => ({
-        ...prev,
-        currentX: touch.clientX,
-        currentY: touch.clientY,
-      }));
-
-      if (lightbox.zoom > 1) {
-        // Pan the zoomed image
-        setLightbox((prev) => ({
-          ...prev,
-          panX: prev.lastPanX + deltaX,
-          panY: prev.lastPanY + deltaY,
-        }));
-      }
-    },
-    [lightbox.zoom],
-  );
-
-  // Helper to calculate distance between two touches
-  const calculateTouchDistance = useCallback(
-    (touch1: React.Touch, touch2: React.Touch) =>
-      Math.sqrt(
-        (touch1.clientX - touch2.clientX) ** 2 +
-          (touch1.clientY - touch2.clientY) ** 2,
-      ),
-    [],
-  );
-
-  // Helper to handle pinch to zoom
-  const handlePinchZoom = useCallback(
-    (touch1: React.Touch, touch2: React.Touch) => {
-      const distance = calculateTouchDistance(touch1, touch2);
-      const scale = distance / touch.initialDistance;
-      const newZoom = Math.min(Math.max(touch.initialZoom * scale, 0.5), 5);
-
-      setLightbox((prev) => ({
-        ...prev,
-        zoom: newZoom,
-      }));
-    },
-    [calculateTouchDistance, touch.initialDistance, touch.initialZoom],
+    [lightbox, gestureConfig],
   );
 
   /**
@@ -421,89 +307,56 @@ export function PhotoGallery({
    */
   const handleTouchMove = useCallback(
     (event: React.TouchEvent) => {
-      if (!enableSwipeGestures || !lightbox.isOpen) return;
+      const touchData = PhotoGestureService.parseTouchEvent(event);
 
-      event.preventDefault();
-      const touches = event.touches;
-
-      if (touches.length === 1 && swipe.isDragging) {
-        const touch = touches[0];
-        if (!touch) return;
-
-        const deltaX = touch.clientX - swipe.startX;
-        const deltaY = touch.clientY - swipe.startY;
-
-        handleSingleTouchMove(touch, deltaX, deltaY);
-      } else if (touches.length === 2) {
-        const touch1 = touches[0];
-        const touch2 = touches[1];
-        if (!touch1 || !touch2) return;
-
-        handlePinchZoom(touch1, touch2);
+      if (
+        !PhotoGestureService.shouldHandleTouchEvent(
+          touchData,
+          lightbox,
+          gestureConfig,
+        )
+      ) {
+        return;
       }
+
+      const result = PhotoGestureService.handleTouchMove(
+        touchData,
+        swipe,
+        touch,
+        lightbox,
+        gestureConfig,
+      );
+
+      if (result.shouldPreventDefault) {
+        event.preventDefault();
+      }
+
+      setSwipe(result.swipeState);
+      setLightbox(result.lightboxState);
     },
-    [
-      enableSwipeGestures,
-      lightbox.isOpen,
-      swipe.isDragging,
-      swipe.startX,
-      swipe.startY,
-      handleSingleTouchMove,
-      handlePinchZoom,
-    ],
+    [lightbox, swipe, touch, gestureConfig],
   );
 
   /**
    * Handle touch end for swipe gestures
    */
   const handleTouchEnd = useCallback(() => {
-    if (!enableSwipeGestures || !lightbox.isOpen || !swipe.isDragging) return;
+    const result = PhotoGestureService.handleTouchEnd(
+      swipe,
+      lightbox,
+      gestureConfig,
+    );
 
-    const deltaX = swipe.currentX - swipe.startX;
-    const deltaY = swipe.currentY - swipe.startY;
-    const absDeltaX = Math.abs(deltaX);
-    const absDeltaY = Math.abs(deltaY);
-
-    // Only trigger swipe if horizontal movement is dominant and exceeds threshold
-    if (
-      absDeltaX > absDeltaY &&
-      absDeltaX > swipe.threshold &&
-      lightbox.zoom <= 1
-    ) {
-      if (deltaX > 0) {
-        navigatePhoto(-1); // Swipe right = previous
-      } else {
-        navigatePhoto(1); // Swipe left = next
-      }
+    // Apply navigation if swipe was detected
+    if (result.swipeResult.shouldNavigate) {
+      navigatePhoto(result.swipeResult.direction);
     }
 
-    setSwipe((prev) => ({
-      ...prev,
-      isDragging: false,
-    }));
-
-    setLightbox((prev) => ({
-      ...prev,
-      isDragging: false,
-    }));
-
-    setTouch({
-      initialDistance: 0,
-      initialZoom: 1,
-      touches: 0,
-    });
-  }, [
-    enableSwipeGestures,
-    lightbox.isOpen,
-    lightbox.zoom,
-    swipe.isDragging,
-    swipe.currentX,
-    swipe.startX,
-    swipe.currentY,
-    swipe.startY,
-    swipe.threshold,
-    navigatePhoto,
-  ]);
+    // Reset all touch states
+    setSwipe(result.resetStates.swipeState);
+    setTouch(result.resetStates.touchState);
+    setLightbox(result.resetStates.lightboxState);
+  }, [swipe, lightbox, gestureConfig, navigatePhoto]);
 
   /**
    * Handle photo deletion
@@ -747,7 +600,7 @@ export function PhotoGallery({
               </Button>
 
               <span className="min-w-[3rem] text-center text-sm text-white">
-                {Math.round(lightbox.zoom * 100)}%
+                {PhotoViewerService.formatZoomPercentage(lightbox.zoom)}
               </span>
 
               <Button
@@ -777,11 +630,14 @@ export function PhotoGallery({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
+                      asChild
                       className="bg-black/50 text-white hover:bg-black/70"
                       size="icon"
                       variant="ghost"
                     >
-                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="inline-flex h-10 w-10 items-center justify-center">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -837,8 +693,9 @@ export function PhotoGallery({
                 sizes="100vw"
                 src={currentPhoto.url}
                 style={{
-                  cursor: lightbox.zoom > 1 ? "grab" : "default",
-                  transform: `scale(${lightbox.zoom}) translate(${lightbox.panX}px, ${lightbox.panY}px)`,
+                  cursor: PhotoViewerService.getCursorStyle(lightbox),
+                  transform:
+                    PhotoViewerService.calculateImageTransform(lightbox),
                 }}
                 unoptimized
               />
@@ -956,55 +813,6 @@ function PhotoGridItem({
           </div>
         )}
 
-        {/* Action buttons */}
-        {(onDelete || onSetPrimary) && (
-          <div className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  className="h-8 w-8 p-0"
-                  onClick={(e) => e.stopPropagation()}
-                  size="sm"
-                  variant="secondary"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {onSetPrimary && !photo.isPrimary && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSetPrimary(photo.id);
-                    }}
-                  >
-                    <Star className="mr-2 h-4 w-4" />
-                    Set as primary
-                  </DropdownMenuItem>
-                )}
-
-                {onDelete && (
-                  <>
-                    {onSetPrimary && !photo.isPrimary && (
-                      <DropdownMenuSeparator />
-                    )}
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(photo.id);
-                      }}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
-
         {/* Image */}
         {showImage ? (
           enableLazyLoading ? (
@@ -1033,6 +841,57 @@ function PhotoGridItem({
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
       </button>
+
+      {(onDelete || onSetPrimary) && (
+        <div className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                asChild
+                className="h-8 w-8 p-0"
+                onClick={(e) => e.stopPropagation()}
+                size="sm"
+                variant="secondary"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center">
+                  <MoreHorizontal className="h-4 w-4" />
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onSetPrimary && !photo.isPrimary && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSetPrimary(photo.id);
+                  }}
+                >
+                  <Star className="mr-2 h-4 w-4" />
+                  Set as primary
+                </DropdownMenuItem>
+              )}
+
+              {onDelete && (
+                <>
+                  {onSetPrimary && !photo.isPrimary && (
+                    <DropdownMenuSeparator />
+                  )}
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(photo.id);
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
 
       {/* Caption */}
       {showCaption && photo.caption && (

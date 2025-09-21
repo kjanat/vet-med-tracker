@@ -1,6 +1,6 @@
 # Photo Uploader Component
 
-A modular, well-organized photo upload component with offline support, image compression, and drag-and-drop functionality.
+A modular, well-organized photo upload component with image compression and drag-and-drop functionality.
 
 ## Structure
 
@@ -16,7 +16,7 @@ photo-uploader/
 │   ├── validation.ts            # File validation logic
 │   └── compression.ts           # Image compression logic
 └── components/
-    ├── StatusBar.tsx            # Online/offline status display
+    ├── StatusBar.tsx            # Upload status display
     ├── UploadDropZone.tsx       # Drop zone container
     ├── UploadContent.tsx        # Upload UI content
     └── FileInfo.tsx             # File information display
@@ -65,7 +65,6 @@ import { PhotoUploader } from "@/components/ui/photo-uploader";
 
 ## Features
 
-- **Offline Support**: Queues uploads when offline
 - **Image Compression**: Automatically compresses large images
 - **Drag & Drop**: Full drag and drop support
 - **Progress Tracking**: Visual progress indicators
@@ -88,7 +87,7 @@ import { PhotoUploader } from "@/components/ui/photo-uploader";
 
 ### UI Components
 
-- `StatusBar`: Shows online/offline status
+- `StatusBar`: Shows upload status and progress
 - `UploadDropZone`: Main interactive area
 - `UploadContent`: Displays preview or upload prompt
 - `FileInfo`: Shows file details and compression stats

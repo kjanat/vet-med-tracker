@@ -1,8 +1,14 @@
+import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // devIndicators: false,
-  allowedDevOrigins: ["192.168.1.2"],
+  allowedDevOrigins: [
+    "192.168.1.2",
+    "propc-manjaro",
+    "propc",
+    "100.79.27.53",
+    "propc-manjaro.taildd9ae2.ts.net",
+  ],
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
     reactRemoveProperties: process.env.NODE_ENV === "production",
@@ -11,6 +17,9 @@ const nextConfig: NextConfig = {
     emotion: undefined,
   },
   compress: process.env.NODE_ENV === "production",
+  devIndicators: {
+    position: "bottom-right",
+  },
   experimental: {
     reactCompiler: true,
     turbopackMinify: true,
@@ -18,8 +27,9 @@ const nextConfig: NextConfig = {
     turbopackSourceMaps: true,
     typedEnv: true,
     useCache: true,
-    ppr: "incremental",
-    // webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB"],
+    cacheComponents: true,
+    // ppr: "incremental",
+    webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB"],
   },
   generateEtags: true,
   // async headers() {
@@ -50,6 +60,8 @@ const nextConfig: NextConfig = {
   httpAgentOptions: {
     keepAlive: true,
   },
+  // Configure `pageExtensions` to include markdown and MDX files
+  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   poweredByHeader: false,
   reactStrictMode: true,
   typedRoutes: true,
@@ -73,4 +85,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+});
+
+// Merge MDX config with Next.js config
+export default withMDX(nextConfig);
+//export default nextConfig;

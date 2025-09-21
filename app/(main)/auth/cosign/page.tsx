@@ -563,8 +563,8 @@ type BaseRequestItem = {
     signedAt: string | null;
     rejectionReason: string | null;
     expiresAt: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
   };
   medication: {
     id: string;
@@ -601,8 +601,8 @@ type BaseRequestItem = {
     adverseEvent: boolean;
     adverseEventDescription: string | null;
     idempotencyKey: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
   };
   regimen: {
     id: string;
@@ -679,7 +679,7 @@ function PendingRequestCard({
               <div>
                 <span className="font-medium">Requested:</span>
                 <span className="ml-2">
-                  {formatDistanceToNow(parseISO(item.request.createdAt), {
+                  {formatDistanceToNow(item.request.createdAt, {
                     addSuffix: true,
                   })}
                 </span>
@@ -786,7 +786,7 @@ function HistoryRequestCard({ item, formatUserName }: RequestCardProps) {
               <div>
                 <span className="font-medium">Requested:</span>
                 <span className="ml-2">
-                  {formatDistanceToNow(parseISO(item.request.createdAt), {
+                  {formatDistanceToNow(item.request.createdAt, {
                     addSuffix: true,
                   })}
                 </span>
@@ -796,7 +796,7 @@ function HistoryRequestCard({ item, formatUserName }: RequestCardProps) {
                 <div>
                   <span className="font-medium">Approved:</span>
                   <span className="ml-2">
-                    {formatDistanceToNow(parseISO(item.request.signedAt), {
+                    {formatDistanceToNow(item.request.signedAt, {
                       addSuffix: true,
                     })}
                   </span>

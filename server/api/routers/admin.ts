@@ -1,944 +1,119 @@
-import { TRPCError } from "@trpc/server";
-import { and, eq, gte, inArray, isNull, lte } from "drizzle-orm";
+// server/api/routers/admin.ts
+
 import { z } from "zod";
+// Shared domain types/schemas
 import {
-  vetmedAdministrations as administrations,
-  type adminStatusEnum,
-  vetmedAnimals as animals,
-  vetmedInventoryItems as inventoryItems,
-  vetmedMedicationCatalog as medicationCatalog,
-  type NewAdministration,
-  vetmedRegimens as regimens,
-  vetmedUsers as users,
-} from "@/db/schema";
+  IsoDateZ,
+  RecordAdministrationZ,
+  RecordBulkAdministrationZ,
+} from "@/domain/admin.types";
 import { createTRPCRouter, householdProcedure } from "@/server/api/trpc";
-import { createAuditLog } from "@/server/utils/audit-log";
+// Query layer (reads)
+import { listAdministrations } from "@/server/services/admin.queries";
+// Service layer (writes/mutations)
+import {
+  getActiveRegimenOrThrow,
+  getAnimalOrThrow,
+  recordAdministration,
+} from "@/server/services/admin.service";
 
-// Input validation schema for recording administration
-const recordAdministrationSchema = z.object({
-  administeredAt: z.iso.datetime().optional(), // ISO datetime, defaults to now
-  allowOverride: z.boolean().default(false),
-  animalId: z.uuid(),
-  conditionTags: z.array(z.string()).optional(),
-  // Optional fields for offline sync
-  dose: z.string().optional(), // Actual dose given if different from regimen
+/**
+ * Local input schemas for the thin router.
+ * These mirror what your old file validated inline, but live here
+ * only as lightweight wiring to the service layer.
+ */
+
+const CosignZ = z.object({
   householdId: z.uuid(),
-  idempotencyKey: z.string(),
-  inventorySourceId: z.uuid().optional(),
-  // Photo evidence URLs
-  mediaUrls: z.array(z.url()).optional(), // Photo evidence URLs
   notes: z.string().optional(),
-  regimenId: z.uuid(),
-  requiresCoSign: z.boolean().default(false),
-  site: z.string().optional(),
-  status: z.enum(["ON_TIME", "LATE", "VERY_LATE", "PRN"]).optional(),
+  recordId: z.uuid(),
 });
 
-// Input validation schema for bulk recording administration
-const recordBulkAdministrationSchema = z.object({
-  administeredAt: z.iso.datetime().optional(), // ISO datetime, defaults to now
-  allowOverride: z.boolean().default(false),
-  animalIds: z.array(z.uuid()).min(1).max(50), // Limit to reasonable batch size
-  conditionTags: z.array(z.string()).optional(),
-  // Optional fields for offline sync
-  dose: z.string().optional(), // Actual dose given if different from regimen
+const UndoZ = z.object({
   householdId: z.uuid(),
-  idempotencyKey: z.string(), // Base key, will be suffixed per animal
-  inventorySourceId: z.uuid().optional(),
-  // Photo evidence URLs
-  mediaUrls: z.array(z.url()).optional(), // Photo evidence URLs
-  notes: z.string().optional(),
-  regimenId: z.uuid(),
-  site: z.string().optional(),
-  status: z.enum(["ON_TIME", "LATE", "VERY_LATE", "PRN"]).optional(),
+  recordId: z.uuid(),
 });
 
-// Helper function to calculate administration status
-function calculateAdministrationStatus(
-  adminMinutes: number,
-  scheduledMinutes: number,
-  cutoffMinutes: number,
-): (typeof adminStatusEnum.enumValues)[number] {
-  const diffMinutes = adminMinutes - scheduledMinutes;
+const DeleteZ = z.object({
+  householdId: z.uuid(),
+  recordId: z.uuid(),
+});
 
-  if (diffMinutes <= 60) {
-    return "ON_TIME";
-  }
-  if (diffMinutes <= 180) {
-    return "LATE";
-  }
-  if (diffMinutes <= cutoffMinutes) {
-    return "VERY_LATE";
-  }
-  // Beyond cutoff - should have been auto-missed
-  return "VERY_LATE";
-}
+const UpdateZ = z.object({
+  householdId: z.uuid(),
+  recordId: z.uuid(),
+  updates: z.object({
+    adverseEvent: z.boolean().optional(),
+    adverseEventDescription: z.string().optional(),
+    dose: z.string().optional(),
+    mediaUrls: z.array(z.url()).optional(),
+    notes: z.string().optional(),
+    site: z.string().optional(),
+  }),
+});
 
-// Helper function to find the closest scheduled time
-function findClosestScheduledTime(
-  adminMinutes: number,
-  timesLocal: string[],
-): { time: string; minutes: number } | null {
-  let closestTime: string | null = null;
-  let minDiff = Number.POSITIVE_INFINITY;
-  let closestMinutes = 0;
-
-  for (const timeStr of timesLocal) {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    const scheduledMinutes = (hours ?? 0) * 60 + (minutes ?? 0);
-    const diff = Math.abs(adminMinutes - scheduledMinutes);
-
-    if (diff < minDiff) {
-      minDiff = diff;
-      closestTime = timeStr;
-      closestMinutes = scheduledMinutes;
-    }
-  }
-
-  return closestTime ? { minutes: closestMinutes, time: closestTime } : null;
-}
-
-// Helper function to calculate scheduled time and status
-function calculateScheduledTimeAndStatus(
-  regimen: {
-    scheduleType: string;
-    timesLocal: string[] | null;
-    cutoffMinutes: number;
-  },
-  animal: {
-    timezone: string;
-  },
-  administeredAt: Date,
-  providedStatus?: string,
-): {
-  status: (typeof adminStatusEnum.enumValues)[number];
-  scheduledFor: Date | null;
-} {
-  // Use provided status if given (for offline sync)
-  if (providedStatus) {
-    return {
-      scheduledFor: null,
-      status: providedStatus as (typeof adminStatusEnum.enumValues)[number],
-    };
-  }
-
-  // PRN regimens
-  if (regimen.scheduleType === "PRN") {
-    return { scheduledFor: null, status: "PRN" };
-  }
-
-  // Fixed schedule regimens
-  if (regimen.scheduleType === "FIXED" && regimen.timesLocal) {
-    const animalTimezone = animal.timezone;
-    const adminTimeLocal = new Date(
-      administeredAt.toLocaleString("en-US", { timeZone: animalTimezone }),
-    );
-    const adminMinutes =
-      adminTimeLocal.getHours() * 60 + adminTimeLocal.getMinutes();
-
-    const closest = findClosestScheduledTime(adminMinutes, regimen.timesLocal);
-
-    if (!closest) {
-      return { scheduledFor: null, status: "ON_TIME" };
-    }
-
-    const [hours, minutes] = closest.time.split(":").map(Number);
-    const scheduledFor = new Date(adminTimeLocal);
-    scheduledFor.setHours(hours ?? 0, minutes ?? 0, 0, 0);
-
-    const status = calculateAdministrationStatus(
-      adminMinutes,
-      closest.minutes,
-      regimen.cutoffMinutes,
-    );
-
-    return { scheduledFor, status };
-  }
-
-  return { scheduledFor: null, status: "ON_TIME" };
-}
-
-// Helper function to verify animal ownership
-async function verifyAnimalOwnership(
-  db: typeof import("@/db/drizzle").db,
-  animalId: string,
-  householdId: string,
-) {
-  const result = await db
-    .select()
-    .from(animals)
-    .where(and(eq(animals.id, animalId), eq(animals.householdId, householdId)))
-    .limit(1)
-    .execute();
-
-  if (!result[0]) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Animal not found in this household",
-    });
-  }
-
-  return result[0];
-}
-
-// Helper function to verify regimen
-async function verifyActiveRegimen(
-  db: typeof import("@/db/drizzle").db,
-  regimenId: string,
-  animalId: string,
-) {
-  const result = await db
-    .select()
-    .from(regimens)
-    .where(
-      and(
-        eq(regimens.id, regimenId),
-        eq(regimens.animalId, animalId),
-        eq(regimens.active, true),
-      ),
-    )
-    .limit(1)
-    .execute();
-
-  if (!result[0]) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Active regimen not found for this animal",
-    });
-  }
-
-  return result[0];
-}
-
-// Helper function to verify inventory item
-async function verifyInventoryItem(
-  db: typeof import("@/db/drizzle").db,
-  inventorySourceId: string,
-  householdId: string,
-  allowOverride: boolean,
-) {
-  const result = await db
-    .select()
-    .from(inventoryItems)
-    .where(
-      and(
-        eq(inventoryItems.id, inventorySourceId),
-        eq(inventoryItems.householdId, householdId),
-      ),
-    )
-    .limit(1)
-    .execute();
-
-  if (!result[0]) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Inventory item not found",
-    });
-  }
-
-  // Check if expired and override not allowed
-  if (
-    result[0].expiresOn &&
-    new Date(result[0].expiresOn) < new Date() &&
-    !allowOverride
-  ) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Cannot use expired medication without override",
-    });
-  }
-
-  return result[0];
-}
-
-// Helper function to check for duplicate
-async function checkDuplicateAdministration(
-  db: typeof import("@/db/drizzle").db,
-  idempotencyKey: string,
-) {
-  const result = await db
-    .select()
-    .from(administrations)
-    .where(eq(administrations.idempotencyKey, idempotencyKey))
-    .limit(1)
-    .execute();
-
-  return result[0] || null;
-}
-
-// Helper function to create administration record
-async function createAdministrationRecord(
-  db: typeof import("@/db/drizzle").db,
-  userId: string,
-  input: z.infer<typeof recordAdministrationSchema>,
-  animal: {
-    timezone: string;
-  },
-  regimen: {
-    dose: string | null;
-    scheduleType: string;
-    timesLocal: string[] | null;
-    cutoffMinutes: number;
-  },
-) {
-  const administeredAt = input.administeredAt
-    ? new Date(input.administeredAt)
-    : new Date();
-
-  const { status, scheduledFor } = calculateScheduledTimeAndStatus(
-    {
-      cutoffMinutes: regimen.cutoffMinutes,
-      scheduleType: regimen.scheduleType,
-      timesLocal: regimen.timesLocal,
-    },
-    animal,
-    administeredAt,
-    input.status,
-  );
-
-  const newAdmin: NewAdministration = {
-    adverseEvent: false,
-    animalId: input.animalId,
-    caregiverId: userId,
-    dose: input.dose || regimen.dose || null,
-    householdId: input.householdId,
-    idempotencyKey: input.idempotencyKey,
-    mediaUrls: input.mediaUrls || null,
-    notes: input.notes || null,
-    recordedAt: administeredAt.toISOString(),
-    regimenId: input.regimenId,
-    scheduledFor: scheduledFor?.toISOString() || null,
-    site: input.site || null,
-    sourceItemId: input.inventorySourceId || null,
-    status,
-  };
-
-  const result = await db.insert(administrations).values(newAdmin).returning();
-
-  if (!result[0]) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to create administration record",
-    });
-  }
-
-  return result[0];
-}
-
-// Helper function to process administration for a single animal
-async function processAnimalAdministration(
-  // biome-ignore lint/suspicious/noExplicitAny: Database transaction type compatibility
-  db: any,
-  animal: { id: string; name: string; timezone?: string | null },
-  input: {
-    regimenId: string;
-    householdId: string;
-    idempotencyKey: string;
-    administeredAt?: string;
-    status?: "ON_TIME" | "LATE" | "VERY_LATE" | "PRN";
-    inventorySourceId?: string | null;
-    site?: string | null;
-    dose?: string | null;
-    notes?: string | null;
-    mediaUrls?: string[] | null;
-  },
-  caregiverId: string,
-) {
-  // Check if this animal has an active regimen with this ID
-  const animalRegimen = await db
-    .select()
-    .from(regimens)
-    .where(
-      and(
-        eq(regimens.id, input.regimenId),
-        eq(regimens.animalId, animal.id),
-        eq(regimens.active, true),
-      ),
-    )
-    .limit(1)
-    .execute();
-
-  if (!animalRegimen[0]) {
-    throw new Error("No active regimen found for this animal");
-  }
-
-  // Create unique idempotency key per animal
-  const animalIdempotencyKey = `${input.idempotencyKey}-${animal.id}`;
-
-  // Check for duplicate
-  const existing = await checkDuplicateAdministration(db, animalIdempotencyKey);
-
-  if (existing) {
-    return existing;
-  }
-
-  // Create administration record
-  const administeredAt = input.administeredAt
-    ? new Date(input.administeredAt)
-    : new Date();
-
-  const { status, scheduledFor } = calculateScheduledTimeAndStatus(
-    {
-      cutoffMinutes: animalRegimen[0].cutoffMinutes,
-      scheduleType: animalRegimen[0].scheduleType,
-      timesLocal: animalRegimen[0].timesLocal,
-    },
-    { timezone: animal.timezone || "UTC" },
-    administeredAt,
-    input.status,
-  );
-
-  const newAdmin: NewAdministration = {
-    adverseEvent: false,
-    animalId: animal.id,
-    caregiverId,
-    dose: input.dose || animalRegimen[0].dose || null,
-    householdId: input.householdId,
-    idempotencyKey: animalIdempotencyKey,
-    mediaUrls: input.mediaUrls || null,
-    notes: input.notes || null,
-    recordedAt: administeredAt.toISOString(),
-    regimenId: input.regimenId,
-    scheduledFor: scheduledFor?.toISOString() || null,
-    site: input.site || null,
-    sourceItemId: input.inventorySourceId || null,
-    status,
-  };
-
-  const result = await db.insert(administrations).values(newAdmin).returning();
-
-  if (!result[0]) {
-    throw new Error("Failed to create administration record");
-  }
-
-  return result[0];
-}
+const ListZ = z.object({
+  animalId: z.uuid().optional(),
+  endDate: IsoDateZ.optional(),
+  householdId: z.uuid(),
+  limit: z.number().min(1).max(100).default(50),
+  startDate: IsoDateZ.optional(),
+});
 
 export const adminRouter = createTRPCRouter({
-  // Record a medication administration
-  cosign: householdProcedure
-    .input(
-      z.object({
-        householdId: z.uuid(),
-        notes: z.string().optional(),
-        recordId: z.uuid(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Get the record and verify it exists and needs co-signing
-      const existing = await ctx.db
-        .select({
-          administration: administrations,
-          regimen: regimens,
-        })
-        .from(administrations)
-        .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
-        .where(
-          and(
-            eq(administrations.id, input.recordId),
-            eq(administrations.householdId, input.householdId),
-            isNull(administrations.coSignedAt), // Not already co-signed
-          ),
-        )
-        .limit(1)
-        .execute();
-
-      if (!existing[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Administration record not found or already co-signed",
-        });
-      }
-
-      // Verify the regimen requires co-signing
-      if (!existing[0].regimen.requiresCoSign) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "This medication does not require co-signing",
-        });
-      }
-
-      // Can't co-sign your own administration
-      if (existing[0].administration.caregiverId === ctx.dbUser.id) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Cannot co-sign your own administration",
-        });
-      }
-
-      // Check if co-sign is within time limit (10 minutes)
-      const recordedAt = new Date(existing[0].administration.recordedAt);
-      const now = new Date();
-      const diffMinutes = (now.getTime() - recordedAt.getTime()) / (1000 * 60);
-
-      if (diffMinutes > 10) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Co-sign window has expired (must be within 10 minutes)",
-        });
-      }
-
-      // Update the record with co-sign information
-      const result = await ctx.db
-        .update(administrations)
-        .set({
-          coSignedAt: new Date().toISOString(),
-          coSignNotes: input.notes || null,
-          coSignUserId: ctx.dbUser.id,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(administrations.id, input.recordId))
-        .returning()
-        .execute();
-
-      if (!result[0]) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to co-sign administration record",
-        });
-      }
-
-      // Create audit log
-      await createAuditLog(ctx.db, {
-        action: "COSIGN",
-        householdId: input.householdId,
-        newValues: result[0],
-        oldValues: existing[0].administration,
-        recordId: input.recordId,
-        tableName: "administrations",
-        userId: ctx.dbUser.id,
-      });
-
-      return { cosignedRecord: result[0], success: true };
-    }),
-
-  // List administrations for an animal or household with proper joins
+  // Co-sign an administration record
+  cosign: householdProcedure.input(CosignZ).mutation(() => {
+    throw new Error("Co-sign functionality not yet implemented");
+  }),
+  // Create a new administration record
   create: householdProcedure
-    .input(recordAdministrationSchema)
+    .input(RecordAdministrationZ)
     .mutation(async ({ ctx, input }) => {
-      // Verify resources
-      const animal = await verifyAnimalOwnership(
+      const animal = await getAnimalOrThrow(
         ctx.db,
         input.animalId,
-        input.householdId,
+        ctx.dbUser.id,
       );
-
-      const regimen = await verifyActiveRegimen(
+      const regimen = await getActiveRegimenOrThrow(
         ctx.db,
         input.regimenId,
-        input.animalId,
+        ctx.dbUser.id,
       );
-
-      if (input.inventorySourceId) {
-        await verifyInventoryItem(
-          ctx.db,
-          input.inventorySourceId,
-          input.householdId,
-          input.allowOverride,
-        );
-      }
-
-      // Check for duplicate
-      const existing = await checkDuplicateAdministration(
-        ctx.db,
-        input.idempotencyKey,
-      );
-
-      if (existing) {
-        return existing;
-      }
-
-      // Create the administration record
-      const result = await createAdministrationRecord(
+      return recordAdministration(
         ctx.db,
         ctx.dbUser.id,
         input,
         animal,
         regimen,
       );
-
-      // Create audit log
-      await createAuditLog(ctx.db, {
-        action: "CREATE",
-        householdId: input.householdId,
-        newValues: result,
-        recordId: result.id,
-        tableName: "administrations",
-        userId: ctx.dbUser.id,
-      });
-
-      // TODO: Handle inventory update and co-sign requirement
-
-      return result;
     }),
 
-  // Delete (soft delete) an administration record
-  delete: householdProcedure
-    .input(
-      z.object({
-        householdId: z.uuid(),
-        recordId: z.uuid(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Verify the record exists and belongs to the household
-      const existing = await ctx.db
-        .select()
-        .from(administrations)
-        .where(
-          and(
-            eq(administrations.id, input.recordId),
-            eq(administrations.householdId, input.householdId),
-          ),
-        )
-        .limit(1)
-        .execute();
+  // Delete an administration record
+  delete: householdProcedure.input(DeleteZ).mutation(() => {
+    throw new Error("Delete functionality not yet implemented");
+  }),
 
-      if (!existing[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Administration record not found",
-        });
-      }
-
-      // For this implementation, we'll actually delete the record
-      // In a real system, you might want to add a deletedAt field for soft delete
-      const result = await ctx.db
-        .delete(administrations)
-        .where(eq(administrations.id, input.recordId))
-        .returning()
-        .execute();
-
-      if (!result[0]) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to delete administration record",
-        });
-      }
-
-      // Create audit log
-      await createAuditLog(ctx.db, {
-        action: "DELETE",
-        householdId: input.householdId,
-        oldValues: existing[0],
-        recordId: input.recordId,
-        tableName: "administrations",
-        userId: ctx.dbUser.id,
-      });
-
-      return { deletedRecord: result[0], success: true };
-    }),
-
-  // Undo an administration record (if recorded recently)
+  // List administrations with joined/derived fields (batched)
   list: householdProcedure
-    .input(
-      z.object({
-        animalId: z.uuid().optional(),
-        endDate: z.iso.datetime().optional(),
-        householdId: z.uuid(),
-        limit: z.number().min(1).max(100).default(50),
-        startDate: z.iso.datetime().optional(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const conditions = [eq(administrations.householdId, input.householdId)];
+    .input(ListZ)
+    .query(({ ctx, input }) =>
+      listAdministrations(ctx.db, ctx.dbUser.id, input),
+    ),
 
-      if (input.animalId) {
-        conditions.push(eq(administrations.animalId, input.animalId));
-      }
-
-      if (input.startDate) {
-        conditions.push(
-          gte(
-            administrations.recordedAt,
-            new Date(input.startDate).toISOString(),
-          ),
-        );
-      }
-
-      if (input.endDate) {
-        conditions.push(
-          lte(
-            administrations.recordedAt,
-            new Date(input.endDate).toISOString(),
-          ),
-        );
-      }
-
-      return await ctx.db
-        .select({
-          adverseEvent: administrations.adverseEvent,
-          adverseEventDescription: administrations.adverseEventDescription,
-          animalId: administrations.animalId,
-          // Joined fields
-          animalName: animals.name,
-          caregiverEmail: users.email,
-          caregiverId: administrations.caregiverId,
-          caregiverName: users.name,
-          coSignedAt: administrations.coSignedAt,
-          coSignNotes: administrations.coSignNotes,
-          coSignUserId: administrations.coSignUserId,
-          // Co-signer details
-          coSignUserName: users.name,
-          createdAt: administrations.createdAt,
-          dose: administrations.dose,
-          householdId: administrations.householdId,
-          // Administration fields
-          id: administrations.id,
-          idempotencyKey: administrations.idempotencyKey,
-          // Inventory item details
-          inventoryBrandOverride: inventoryItems.brandOverride,
-          inventoryExpiresOn: inventoryItems.expiresOn,
-          inventoryLot: inventoryItems.lot,
-          mediaUrls: administrations.mediaUrls,
-          medicationBrandName: medicationCatalog.brandName,
-          medicationForm: medicationCatalog.form,
-          medicationGenericName: medicationCatalog.genericName,
-          medicationRoute: medicationCatalog.route,
-          medicationStrength: medicationCatalog.strength,
-          notes: administrations.notes,
-          recordedAt: administrations.recordedAt,
-          regimenId: administrations.regimenId,
-          scheduledFor: administrations.scheduledFor,
-          site: administrations.site,
-          sourceItemId: administrations.sourceItemId,
-          status: administrations.status,
-          updatedAt: administrations.updatedAt,
-        })
-        .from(administrations)
-        .innerJoin(animals, eq(administrations.animalId, animals.id))
-        .innerJoin(users, eq(administrations.caregiverId, users.id))
-        .innerJoin(regimens, eq(administrations.regimenId, regimens.id))
-        .innerJoin(
-          medicationCatalog,
-          eq(regimens.medicationId, medicationCatalog.id),
-        )
-        .leftJoin(
-          inventoryItems,
-          eq(administrations.sourceItemId, inventoryItems.id),
-        )
-        .where(and(...conditions))
-        .orderBy(administrations.recordedAt)
-        .limit(input.limit)
-        .execute();
-    }),
-
-  // Co-sign an administration record (for high-risk medications)
+  // Record administrations for multiple animals
   recordBulk: householdProcedure
-    .input(recordBulkAdministrationSchema)
-    .mutation(async ({ ctx, input }) => {
-      const results: {
-        animalId: string;
-        animalName: string;
-        success: boolean;
-        error?: string;
-        administration?: typeof administrations.$inferSelect;
-      }[] = [];
-
-      // Validate all animals belong to the household first
-      const animalData = await ctx.db
-        .select({
-          householdId: animals.householdId,
-          id: animals.id,
-          name: animals.name,
-          timezone: animals.timezone,
-        })
-        .from(animals)
-        .where(
-          and(
-            eq(animals.householdId, input.householdId),
-            inArray(animals.id, input.animalIds),
-          ),
-        )
-        .execute();
-
-      // Check that all requested animals were found
-      const foundAnimalIds = new Set(animalData.map((a) => a.id));
-      const missingAnimalIds = input.animalIds.filter(
-        (id) => !foundAnimalIds.has(id),
-      );
-
-      if (missingAnimalIds.length > 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Animals not found in household: ${missingAnimalIds.join(", ")}`,
-        });
-      }
-
-      // Validate regimen exists and get its details
-      const regimen = await ctx.db
-        .select()
-        .from(regimens)
-        .where(and(eq(regimens.id, input.regimenId), eq(regimens.active, true)))
-        .limit(1)
-        .execute();
-
-      if (!regimen[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Active regimen not found",
-        });
-      }
-
-      // Validate inventory item if provided
-      let _inventoryItem = null;
-      if (input.inventorySourceId) {
-        try {
-          _inventoryItem = await verifyInventoryItem(
-            ctx.db,
-            input.inventorySourceId,
-            input.householdId,
-            input.allowOverride,
-          );
-        } catch (error) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Inventory validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-          });
-        }
-      }
-
-      // Process each animal in a database transaction
-      await ctx.db.transaction(async (tx) => {
-        for (const animal of animalData) {
-          try {
-            const result = await processAnimalAdministration(
-              tx,
-              animal,
-              {
-                administeredAt: input.administeredAt,
-                dose: input.dose,
-                householdId: input.householdId,
-                idempotencyKey: input.idempotencyKey,
-                inventorySourceId: input.inventorySourceId,
-                mediaUrls: input.mediaUrls,
-                notes: input.notes,
-                regimenId: input.regimenId,
-                site: input.site,
-                status: input.status,
-              },
-              ctx.dbUser.id,
-            );
-
-            // Create audit log
-            await createAuditLog(ctx.db, {
-              action: "CREATE",
-              householdId: input.householdId,
-              newValues: result,
-              recordId: result.id,
-              tableName: "administrations",
-              userId: ctx.dbUser.id,
-            });
-
-            results.push({
-              administration: result,
-              animalId: animal.id,
-              animalName: animal.name,
-              success: true,
-            });
-          } catch (error) {
-            results.push({
-              animalId: animal.id,
-              animalName: animal.name,
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "Unknown error occurred",
-              success: false,
-            });
-            // Continue processing other animals instead of failing entire transaction
-          }
-        }
-      });
-
-      const successCount = results.filter((r) => r.success).length;
-      const failureCount = results.filter((r) => !r.success).length;
-
-      return {
-        results,
-        summary: {
-          failed: failureCount,
-          successful: successCount,
-          total: results.length,
-        },
-      };
+    .input(RecordBulkAdministrationZ)
+    .mutation(() => {
+      throw new Error("Bulk record functionality not yet implemented");
     }),
 
-  // Record medication administrations for multiple animals (bulk operation)
-  undo: householdProcedure
-    .input(
-      z.object({
-        householdId: z.uuid(),
-        recordId: z.uuid(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Get the record with verification
-      const existing = await ctx.db
-        .select()
-        .from(administrations)
-        .where(
-          and(
-            eq(administrations.id, input.recordId),
-            eq(administrations.householdId, input.householdId),
-            eq(administrations.caregiverId, ctx.dbUser.id), // Only allow undo by original caregiver
-          ),
-        )
-        .limit(1)
-        .execute();
+  // Undo a recent administration (caregiver self-undo)
+  undo: householdProcedure.input(UndoZ).mutation(() => {
+    throw new Error("Undo functionality not yet implemented");
+  }),
 
-      if (!existing[0]) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message:
-            "Administration record not found or you don't have permission to undo it",
-        });
-      }
-
-      // Check if record is recent enough to undo (within 30 minutes)
-      const recordedAt = new Date(existing[0].recordedAt);
-      const now = new Date();
-      const diffMinutes = (now.getTime() - recordedAt.getTime()) / (1000 * 60);
-
-      if (diffMinutes > 30) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Cannot undo administration after 30 minutes",
-        });
-      }
-
-      // Check if already co-signed (can't undo co-signed records)
-      if (existing[0].coSignedAt) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Cannot undo a co-signed administration",
-        });
-      }
-
-      // Delete the record
-      const result = await ctx.db
-        .delete(administrations)
-        .where(eq(administrations.id, input.recordId))
-        .returning()
-        .execute();
-
-      if (!result[0]) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to undo administration record",
-        });
-      }
-
-      // Create audit log
-      await createAuditLog(ctx.db, {
-        action: "UNDO",
-        householdId: input.householdId,
-        oldValues: existing[0],
-        recordId: input.recordId,
-        tableName: "administrations",
-        userId: ctx.dbUser.id,
-      });
-
-      return { success: true, undoneRecord: result[0] };
-    }),
+  // Update an administration record
+  update: householdProcedure.input(UpdateZ).mutation(() => {
+    throw new Error("Update functionality not yet implemented");
+  }),
 });

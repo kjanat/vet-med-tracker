@@ -22,7 +22,7 @@ interface Notification {
   type: string;
   title: string;
   message: string;
-  createdAt: string;
+  createdAt: Date;
   read: boolean;
   actionUrl?: string | null;
   priority: string;

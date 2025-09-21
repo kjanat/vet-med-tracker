@@ -94,12 +94,10 @@ export const notificationsRouter = createTRPCRouter({
         userId,
       }));
 
-      const created = await ctx.db
+      return await ctx.db
         .insert(notifications)
         .values(notificationsToCreate)
         .returning();
-
-      return created;
     }),
 
   // Delete a notification permanently
@@ -191,7 +189,7 @@ export const notificationsRouter = createTRPCRouter({
         .update(notifications)
         .set({
           dismissed: true,
-          dismissedAt: new Date().toISOString(),
+          dismissedAt: new Date(),
         })
         .where(eq(notifications.id, input.id))
         .returning();
@@ -262,19 +260,17 @@ export const notificationsRouter = createTRPCRouter({
         conditions.push(eq(notifications.read, false));
       }
 
-      const notificationList = await ctx.db
+      return await ctx.db
         .select()
         .from(notifications)
         .where(and(...conditions))
         .orderBy(desc(notifications.createdAt))
         .limit(limit)
         .offset(offset);
-
-      return notificationList;
     }),
 
   listPushSubscriptions: protectedProcedure.query(async ({ ctx }) => {
-    const subscriptions = await ctx.db
+    return await ctx.db
       .select()
       .from(pushSubscriptions)
       .where(
@@ -284,8 +280,6 @@ export const notificationsRouter = createTRPCRouter({
         ),
       )
       .orderBy(desc(pushSubscriptions.lastUsed));
-
-    return subscriptions;
   }),
 
   // Mark all notifications as read for the current user, optionally scoped to a household
@@ -308,16 +302,14 @@ export const notificationsRouter = createTRPCRouter({
         conditions.push(eq(notifications.householdId, householdId));
       }
 
-      const updated = await ctx.db
+      return await ctx.db
         .update(notifications)
         .set({
           read: true,
-          readAt: new Date().toISOString(),
+          readAt: new Date(),
         })
         .where(and(...conditions))
         .returning();
-
-      return updated;
     }),
 
   // Mark a single notification as read
@@ -349,7 +341,7 @@ export const notificationsRouter = createTRPCRouter({
         .update(notifications)
         .set({
           read: true,
-          readAt: new Date().toISOString(),
+          readAt: new Date(),
         })
         .where(eq(notifications.id, input.id))
         .returning();
@@ -383,16 +375,14 @@ export const notificationsRouter = createTRPCRouter({
       }
 
       // Update the notifications
-      const updated = await ctx.db
+      return await ctx.db
         .update(notifications)
         .set({
           read: true,
-          readAt: new Date().toISOString(),
+          readAt: new Date(),
         })
         .where(inArray(notifications.id, validIds))
         .returning();
-
-      return updated;
     }),
 
   sendTestNotification: protectedProcedure.mutation(async ({ ctx }) => {
@@ -457,8 +447,8 @@ export const notificationsRouter = createTRPCRouter({
         await ctx.db
           .update(pushSubscriptions)
           .set({
-            lastUsed: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            lastUsed: new Date(),
+            updatedAt: new Date(),
           })
           .where(eq(pushSubscriptions.id, subscription.id));
 
@@ -476,7 +466,7 @@ export const notificationsRouter = createTRPCRouter({
             .update(pushSubscriptions)
             .set({
               isActive: false,
-              updatedAt: new Date().toISOString(),
+              updatedAt: new Date(),
             })
             .where(eq(pushSubscriptions.id, subscription.id));
         }
@@ -517,9 +507,9 @@ export const notificationsRouter = createTRPCRouter({
             authKey: keys.auth,
             deviceName: deviceInfo?.deviceName || null,
             isActive: true,
-            lastUsed: new Date().toISOString(),
+            lastUsed: new Date(),
             p256dhKey: keys.p256dh,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
             userAgent: deviceInfo?.userAgent || null,
             userId: ctx.dbUser.id,
           })
@@ -552,7 +542,7 @@ export const notificationsRouter = createTRPCRouter({
         .update(pushSubscriptions)
         .set({
           isActive: false,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(
           and(

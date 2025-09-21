@@ -85,7 +85,7 @@ function AuditLogContent() {
       resourceType: entry.resourceType,
       resourceId: entry.resourceId,
       details: entry.details,
-      timestamp: entry.timestamp,
+      timestamp: new Date(entry.timestamp),
       ipAddress: entry.ipAddress,
       userAgent: entry.userAgent,
       sessionId: entry.sessionId,

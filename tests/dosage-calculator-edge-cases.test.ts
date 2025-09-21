@@ -195,7 +195,6 @@ describe("DosageCalculator edge cases", () => {
       DosageCalculator.calculate({
         animal: caninePatient,
         medication: baseMedication,
-        // biome-ignore lint/suspicious/noExplicitAny: Testing invalid input
         targetUnit: "gallons" as any,
       }),
     ).toThrow("Unsupported target unit: gallons");

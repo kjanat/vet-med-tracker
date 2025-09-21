@@ -9,7 +9,7 @@ export const auditEntrySchema = z.object({
   resourceId: z.uuid().nullable(),
   resourceType: z.string(),
   sessionId: z.string().nullable(),
-  timestamp: z.string(),
+  timestamp: z.date(),
   userAgent: z.string().nullable(),
   userEmail: z.string(),
   userId: z.uuid(),

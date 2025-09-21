@@ -84,15 +84,11 @@ export const auditRouter = createTRPCRouter({
       }
 
       if (input.startDate) {
-        conditions.push(
-          gte(auditLog.timestamp, new Date(input.startDate).toISOString()),
-        );
+        conditions.push(gte(auditLog.timestamp, new Date(input.startDate)));
       }
 
       if (input.endDate) {
-        conditions.push(
-          lte(auditLog.timestamp, new Date(input.endDate).toISOString()),
-        );
+        conditions.push(lte(auditLog.timestamp, new Date(input.endDate)));
       }
 
       // Search functionality

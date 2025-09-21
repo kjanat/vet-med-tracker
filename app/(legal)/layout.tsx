@@ -1,22 +1,10 @@
 import type React from "react";
-import { AnimatedBackground } from "@/components/landing/primitives/animated-background";
-import { PublicFooter } from "@/components/layout/public-footer";
-import { PublicHeader } from "@/components/layout/public-header";
+import { StaticPublicShell } from "@/components/layout/static-public-shell";
 
 export default function LegalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-screen flex-col">
-      <PublicHeader />
-      <main className="relative flex-1" id="main-content">
-        {/* Unified animated background for all sections */}
-        <AnimatedBackground variant="default" />
-        <div className="relative z-10">{children}</div>
-      </main>
-      <PublicFooter />
-    </div>
-  );
+  return <StaticPublicShell>{children}</StaticPublicShell>;
 }

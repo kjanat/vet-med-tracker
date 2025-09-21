@@ -1,28 +1,47 @@
 "use client";
 
 import { Bell, CheckCircle, Clock, Home } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  type NavigationContext,
+  NavigationService,
+  type RouterLike,
+} from "@/lib/services/navigation.service";
 import { formatTimeLocal } from "@/utils/tz";
 
 interface MobileSuccessLayoutProps {
-  isOnline: boolean;
   onReturnHome: () => void;
   onRecordAnother: () => void;
   recordedAt?: string;
   animalName?: string;
   medicationName?: string;
+  navigationContext?: NavigationContext;
+  regimenId?: string;
 }
 
 export const MobileSuccessLayout = memo(function MobileSuccessLayout({
-  isOnline,
   onReturnHome,
   onRecordAnother,
   recordedAt = new Date().toISOString(),
   animalName,
   medicationName,
+  navigationContext,
+  regimenId,
 }: MobileSuccessLayoutProps) {
+  const router = useRouter();
+
+  const handleOpenReminderAdjustment = () => {
+    if (navigationContext && regimenId) {
+      const url = NavigationService.navigateToReminderSettings({
+        ...navigationContext,
+        regimenId,
+      });
+      NavigationService.navigateWithContext(url, router as RouterLike);
+    }
+  };
   return (
     <div className="flex min-h-full flex-col items-center justify-center p-6 text-center">
       {/* Success Icon */}
@@ -48,11 +67,6 @@ export const MobileSuccessLayout = memo(function MobileSuccessLayout({
               {formatTimeLocal(new Date(recordedAt), "America/New_York")} by You
             </span>
           </div>
-          {!isOnline && (
-            <p className="font-medium text-amber-600 text-sm">
-              Will sync when online
-            </p>
-          )}
         </div>
       </div>
 
@@ -77,9 +91,7 @@ export const MobileSuccessLayout = memo(function MobileSuccessLayout({
 
         <Button
           className="h-12 w-full text-base"
-          onClick={() => {
-            // TODO: Open reminder adjustment sheet
-          }}
+          onClick={handleOpenReminderAdjustment}
           variant="ghost"
         >
           <Bell className="mr-2 h-5 w-5" />

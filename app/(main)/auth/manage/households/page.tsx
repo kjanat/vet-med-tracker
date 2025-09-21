@@ -38,18 +38,35 @@ export default function HouseholdsPage() {
 
   // Get user's households
   const {
-    data: memberships,
+    data: rawMemberships,
     isLoading,
     refetch,
   } = trpc.user.getMemberships.useQuery(undefined, {
     enabled: Boolean(user),
   });
 
+  // Transform memberships to convert createdAt to Date
+  const memberships = rawMemberships?.map((membership) => ({
+    ...membership,
+    household: {
+      ...membership.household,
+      createdAt: new Date(membership.household.createdAt),
+    },
+  }));
+
   // Get detailed data for selected household
-  const { data: selectedHouseholdData } = trpc.household.get.useQuery(
+  const { data: rawSelectedHouseholdData } = trpc.household.get.useQuery(
     { householdId: selectedHousehold?.id ?? "" },
     { enabled: Boolean(selectedHousehold?.id) },
   );
+
+  // Transform selectedHouseholdData to convert createdAt to Date
+  const selectedHouseholdData = rawSelectedHouseholdData
+    ? {
+        ...rawSelectedHouseholdData,
+        createdAt: new Date(rawSelectedHouseholdData.createdAt),
+      }
+    : undefined;
 
   // Get members for selected household
   const { data: membersData } = trpc.household.getMembers.useQuery(

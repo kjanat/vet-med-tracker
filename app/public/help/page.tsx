@@ -1,4 +1,4 @@
-"use client";
+"use cache";
 
 import {
   BookOpen,
@@ -23,7 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function HelpPage() {
+export default async function HelpPage() {
   const helpCategories = [
     {
       icon: BookOpen,
@@ -45,7 +45,6 @@ export default function HelpPage() {
       links: [
         { label: "Recording Medications", href: "#recording" },
         { label: "Setting Up Reminders", href: "#reminders" },
-        { label: "Working Offline", href: "#offline" },
       ],
     },
     {

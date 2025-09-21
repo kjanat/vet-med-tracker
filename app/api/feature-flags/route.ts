@@ -36,7 +36,6 @@ export async function GET() {
           pushNotifications: false,
           bulkOperations: false,
           advancedReporting: false,
-          offlineMode: true, // Keep core functionality working
           serviceWorker: true,
           caching: true,
           backgroundSync: false,

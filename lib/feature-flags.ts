@@ -11,7 +11,6 @@ export interface FeatureFlags {
   pushNotifications: boolean;
   bulkOperations: boolean;
   advancedReporting: boolean;
-  offlineMode: boolean;
 
   // Performance Features
   serviceWorker: boolean;
@@ -53,7 +52,6 @@ const DEFAULT_FLAGS: FeatureFlags = {
   experimentalUI: false, // Disabled by default for stability
   mobileOptimizations: true,
   mockData: false,
-  offlineMode: true,
   // Core Features - Generally enabled in production
   pushNotifications: true,
 
@@ -103,7 +101,6 @@ function getEnvironmentFlags(): Partial<FeatureFlags> {
     experimentalUI: process.env.FEATURE_EXPERIMENTAL_UI === "true",
     mobileOptimizations: process.env.FEATURE_MOBILE_OPTIMIZATIONS !== "false",
     mockData: false, // Always disabled in production
-    offlineMode: process.env.FEATURE_OFFLINE_MODE !== "false",
     pushNotifications: process.env.FEATURE_PUSH_NOTIFICATIONS !== "false",
     serviceWorker: process.env.FEATURE_SERVICE_WORKER !== "false",
     systemMetrics: process.env.FEATURE_SYSTEM_METRICS !== "false",
@@ -148,7 +145,6 @@ export function getClientFeatureFlags(): Partial<FeatureFlags> {
     debugMode: flags.debugMode && process.env.NODE_ENV !== "production",
     experimentalUI: flags.experimentalUI,
     mobileOptimizations: flags.mobileOptimizations,
-    offlineMode: flags.offlineMode,
     pushNotifications: flags.pushNotifications,
     serviceWorker: flags.serviceWorker,
   };

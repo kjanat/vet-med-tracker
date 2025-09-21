@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
-import { PageHeaderEnhanced } from "./page-header-enhanced";
+import { PageHeader } from "./page-header";
 
 export interface SidebarLayoutProps {
   children: ReactNode;
@@ -37,7 +37,7 @@ export function SidebarLayout({
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
       <SidebarInset>
-        <PageHeaderEnhanced />
+        <PageHeader />
         <main
           aria-label="Main content"
           className="flex flex-1 flex-col gap-4 p-4 pt-6"

@@ -46,7 +46,6 @@ interface ValidationContext {
  * medication requirements, and business rule enforcement. Extracted from
  * the main hook to follow Single Responsibility Principle.
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: Utility class for validation
 export class InventoryFormValidator {
   /**
    * Comprehensive form validation with business rules

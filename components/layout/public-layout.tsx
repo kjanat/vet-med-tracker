@@ -4,6 +4,8 @@
  * Clean public layout without authentication requirements
  */
 
+"use client";
+
 import type { ReactNode } from "react";
 import { AnimatedBackground } from "@/components/landing/primitives/animated-background";
 import { PublicFooter } from "./public-footer";

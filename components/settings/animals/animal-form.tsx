@@ -294,7 +294,7 @@ export function AnimalForm({
                           type="date"
                           value={
                             field.value
-                              ? field.value.toISOString().split("T")[0]
+                              ? field.value.toISOString().slice(0, 10)
                               : ""
                           }
                         />

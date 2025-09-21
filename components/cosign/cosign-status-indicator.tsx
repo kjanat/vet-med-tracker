@@ -31,10 +31,10 @@ interface CoSignRequestData {
   id: string;
   status: "pending" | "approved" | "rejected" | "expired";
   signature?: string | null;
-  signedAt?: string | null;
+  signedAt?: Date | null;
   rejectionReason?: string | null;
-  expiresAt: string;
-  createdAt: string;
+  expiresAt: Date | null;
+  createdAt: Date;
   requester: {
     id: string;
     name: string | null;
@@ -163,15 +163,15 @@ export function CoSignStatusIndicator({
             {status === "pending" && cosignRequest && (
               <p className="text-xs">
                 Expires{" "}
-                {formatDistanceToNow(parseISO(cosignRequest.expiresAt), {
-                  addSuffix: true,
-                })}
+                {cosignRequest.expiresAt &&
+                  formatDistanceToNow(cosignRequest.expiresAt, {
+                    addSuffix: true,
+                  })}
               </p>
             )}
             {status === "approved" && coSignedAt && (
               <p className="text-xs">
-                Approved{" "}
-                {formatDistanceToNow(parseISO(coSignedAt), { addSuffix: true })}
+                Approved {formatDistanceToNow(coSignedAt, { addSuffix: true })}
               </p>
             )}
           </div>
@@ -239,8 +239,13 @@ const formatUserName = (
   return user.name || user.email || "Unknown User";
 };
 
-const formatTimestamp = (timestamp: string) =>
-  formatDistanceToNow(parseISO(timestamp), { addSuffix: true });
+const formatTimestamp = (timestamp: string | Date | null | undefined) => {
+  if (!timestamp) return "Unknown";
+  return formatDistanceToNow(
+    typeof timestamp === "string" ? parseISO(timestamp) : timestamp,
+    { addSuffix: true },
+  );
+};
 
 // User display component to reduce duplication
 function UserDisplay({
@@ -381,7 +386,7 @@ function ApprovedDetails({
       {(coSignedAt || cosignRequest?.signedAt) && (
         <DetailRow label="Signed">
           <span className="font-medium text-green-700">
-            {formatTimestamp(coSignedAt || cosignRequest?.signedAt || "")}
+            {formatTimestamp(coSignedAt || cosignRequest?.signedAt)}
           </span>
         </DetailRow>
       )}

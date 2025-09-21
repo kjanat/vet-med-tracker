@@ -74,10 +74,10 @@ export async function seedMedicationCatalog(
 
     const payload: NewMedicationCatalog = {
       controlledSubstance: medication.controlledSubstance ?? false,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
       id: randomUUID(),
       unitType: medication.unitType ?? "mg",
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
       ...medication,
     };
 

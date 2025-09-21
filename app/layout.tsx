@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { stackServerApp } from "@/stack/server";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
 import { TRPCProvider } from "@/server/trpc/client";
 import { inter, jetbrainsMono } from "./fonts";

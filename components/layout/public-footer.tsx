@@ -1,30 +1,39 @@
+"use client";
+
 import type { Route } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 
-const footerLinks = {
+type NavItem = {
+  href: Route;
+  label: string;
+};
+
+const footerSections: {
+  company: NavItem[];
+  legal: NavItem[];
+  product: NavItem[];
+  support: NavItem[];
+} = {
   company: [
-    { href: "/about" as Route, name: "About" },
-    { href: "/blog" as Route, name: "Blog" },
-    { href: "/contact" as Route, name: "Contact" },
-    { href: "/careers" as Route, name: "Careers" },
+    { href: "/help", label: "About" },
+    { href: "/faq", label: "FAQ" },
+    { href: "/help", label: "Contact" },
   ],
   legal: [
-    { href: "/privacy" as Route, name: "Privacy Policy" },
-    { href: "/terms" as Route, name: "Terms of Service" },
-    { href: "/cookies" as Route, name: "Cookie Policy" },
+    { href: "/privacy", label: "Privacy Policy" },
+    { href: "/terms", label: "Terms of Service" },
+    { href: "/cookies", label: "Cookie Policy" },
   ],
   product: [
-    { href: "/#features" as Route, name: "Features" },
-    { href: "/#demo" as Route, name: "How It Works" },
-    { href: "/#pricing" as Route, name: "Pricing" },
-    { href: "/security" as Route, name: "Security" },
+    { href: "/#features", label: "Features" },
+    { href: "/#demo", label: "How It Works" },
+    { href: "/#pricing", label: "Pricing" },
+    { href: "/help", label: "Help" },
   ],
   support: [
-    { href: "/help" as Route, name: "Help Center" },
-    { href: "/faq" as Route, name: "FAQ" },
-    { href: "/status" as Route, name: "Status" },
-    { href: "/docs" as Route, name: "API Docs" },
+    { href: "/help", label: "Help Center" },
+    { href: "/faq", label: "FAQ" },
   ],
 };
 
@@ -49,13 +58,13 @@ export function PublicFooter() {
           <div>
             <h3 className="mb-3 font-semibold">Product</h3>
             <ul className="space-y-2">
-              {footerLinks.product.map((link) => (
-                <li key={link.name}>
+              {footerSections.product.map((item) => (
+                <li key={item.label}>
                   <Link
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"
-                    href={link.href}
+                    href={item.href}
                   >
-                    {link.name}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -65,13 +74,13 @@ export function PublicFooter() {
           <div>
             <h3 className="mb-3 font-semibold">Company</h3>
             <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
+              {footerSections.company.map((item) => (
+                <li key={item.label}>
                   <Link
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"
-                    href={link.href}
+                    href={item.href}
                   >
-                    {link.name}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -81,13 +90,13 @@ export function PublicFooter() {
           <div>
             <h3 className="mb-3 font-semibold">Legal</h3>
             <ul className="space-y-2">
-              {footerLinks.legal.map((link) => (
-                <li key={link.name}>
+              {footerSections.legal.map((item) => (
+                <li key={item.label}>
                   <Link
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"
-                    href={link.href}
+                    href={item.href}
                   >
-                    {link.name}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -97,13 +106,13 @@ export function PublicFooter() {
           <div>
             <h3 className="mb-3 font-semibold">Support</h3>
             <ul className="space-y-2">
-              {footerLinks.support.map((link) => (
-                <li key={link.name}>
+              {footerSections.support.map((item) => (
+                <li key={item.label}>
                   <Link
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"
-                    href={link.href}
+                    href={item.href}
                   >
-                    {link.name}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -117,25 +126,31 @@ export function PublicFooter() {
             <p className="text-muted-foreground text-sm">
               © {new Date().getFullYear()} VetMed Tracker. All rights reserved.
             </p>
-            <div className="flex hidden gap-6">
-              <Link
+            <div className="flex gap-6">
+              {/* <a
                 className="text-muted-foreground text-sm transition-colors hover:text-foreground"
                 href="https://twitter.com/vetmedtracker"
+                rel="noopener noreferrer"
+                target="_blank"
               >
                 Twitter
-              </Link>
-              <Link
+              </a> */}
+              <a
                 className="text-muted-foreground text-sm transition-colors hover:text-foreground"
-                href="https://github.com/vetmedtracker"
+                href="https://github.com/kjanat/vet-med-tracker"
+                rel="noopener noreferrer"
+                target="_blank"
               >
                 GitHub
-              </Link>
-              <Link
+              </a>
+              {/* <a
                 className="text-muted-foreground text-sm transition-colors hover:text-foreground"
                 href="https://linkedin.com/company/vetmedtracker"
+                rel="noopener noreferrer"
+                target="_blank"
               >
                 LinkedIn
-              </Link>
+              </a> */}
             </div>
           </div>
         </div>

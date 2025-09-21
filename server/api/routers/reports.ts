@@ -59,8 +59,8 @@ async function calculateComplianceData(
       and(
         eq(administrations.animalId, animalId),
         eq(administrations.householdId, householdId),
-        gte(administrations.recordedAt, startDate.toISOString()),
-        lte(administrations.recordedAt, endDate.toISOString()),
+        gte(administrations.recordedAt, startDate),
+        lte(administrations.recordedAt, endDate),
       ),
     )
     .orderBy(desc(administrations.recordedAt));
@@ -188,8 +188,8 @@ async function getRegimenSummaries(
         and(
           eq(administrations.regimenId, regimen.id),
           eq(administrations.householdId, householdId),
-          gte(administrations.recordedAt, startDate.toISOString()),
-          lte(administrations.recordedAt, endDate.toISOString()),
+          gte(administrations.recordedAt, startDate),
+          lte(administrations.recordedAt, endDate),
         ),
       );
 
@@ -251,8 +251,8 @@ async function getNotableEvents(
       and(
         eq(administrations.animalId, animalId),
         eq(administrations.householdId, householdId),
-        gte(administrations.recordedAt, startDate.toISOString()),
-        lte(administrations.recordedAt, endDate.toISOString()),
+        gte(administrations.recordedAt, startDate),
+        lte(administrations.recordedAt, endDate),
         // Only include events that have notes, adverse events, or are missed
         sql`(${administrations.notes} IS NOT NULL 
 					OR ${administrations.adverseEvent} = true 

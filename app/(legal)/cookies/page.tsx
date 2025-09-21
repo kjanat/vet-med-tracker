@@ -1,6 +1,8 @@
-export const experimental_ppr = true;
+"use cache";
 
-export default function CookiesPage() {
+// export const experimental_ppr = true;
+
+export default async function CookiesPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <h1 className="mb-6 font-bold text-3xl">Cookie Policy</h1>
@@ -40,7 +42,7 @@ export default function CookiesPage() {
             </li>
             <li>
               <strong>Performance:</strong> To ensure our app loads quickly and
-              works offline
+              responds smoothly
             </li>
           </ul>
         </section>
@@ -77,12 +79,8 @@ export default function CookiesPage() {
                 related browser storage mechanisms.
               </p>
               <ul className="list-disc space-y-1 pl-6">
-                <li>
-                  Service Worker cache data for offline functionality (not a
-                  cookie)
-                </li>
-                <li>IndexedDB for offline data storage (not a cookie)</li>
                 <li>Analytics cookies for usage tracking</li>
+                <li>Local storage for remembering display preferences</li>
               </ul>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DosageCalculator } from "@/components/dosage-calculator";
+import { DosageCalculator } from "@/components/medication/dosage-calculator";
 
 export const metadata: Metadata = {
   title: "Dosage Calculator | VetMed Tracker",

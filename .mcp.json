@@ -1,12 +1,12 @@
 {
-  "bun": {
-    "command": "bunx",
-    "args": ["mcp-bun@latest"],
-    "env": {
-      "DISABLE_NOTIFICATIONS": "true"
-    }
-  },
   "mcpServers": {
+    "bun": {
+      "command": "bunx",
+      "args": ["mcp-bun@latest"],
+      "env": {
+        "DISABLE_NOTIFICATIONS": "true"
+      }
+    },
     "jetbrains": {
       "command": "/home/kjanat/.local/share/JetBrains/Toolbox/apps/webstorm/jbr/bin/java",
       "args": [

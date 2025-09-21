@@ -1,0 +1,201 @@
+# VetMed Tracker Alert Rules
+# Production alerting for HIPAA-compliant medical application
+
+groups:
+  # Application Health Alerts
+  - name: vetmed.application
+    rules:
+      - alert: VetMedAppDown
+        expr: up{job="vetmed-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: vetmed-tracker
+        annotations:
+          summary: "VetMed Tracker application is down"
+          description: "The VetMed Tracker application has been down for more than 1 minute"
+
+      - alert: VetMedHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="vetmed-app"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: vetmed-tracker
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s, above 2s threshold"
+
+      - alert: VetMedHighErrorRate
+        expr: rate(http_requests_total{job="vetmed-app",status=~"5.."}[5m]) / rate(http_requests_total{job="vetmed-app"}[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+          service: vetmed-tracker
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }}, above 5% threshold"
+
+  # Database Health Alerts
+  - name: vetmed.database
+    rules:
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has been down for more than 1 minute"
+
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connections at {{ $value | humanizePercentage }} of maximum"
+
+      - alert: DatabaseSlowQueries
+        expr: increase(pg_stat_database_slow_queries[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "{{ $value }} slow queries detected in the last 5 minutes"
+
+  # Security Alerts
+  - name: vetmed.security
+    rules:
+      - alert: VetMedAuthenticationFailures
+        expr: increase(auth_failures_total[5m]) > 20
+        for: 1m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value }} authentication failures in the last 5 minutes"
+
+      - alert: VetMedRateLimitHit
+        expr: increase(rate_limit_exceeded_total[5m]) > 50
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "Rate limit exceeded frequently"
+          description: "Rate limit exceeded {{ $value }} times in the last 5 minutes"
+
+      - alert: VetMedSecurityIncident
+        expr: increase(security_incidents_total[1m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Security incident detected"
+          description: "{{ $value }} security incidents detected"
+
+  # Infrastructure Alerts
+  - name: vetmed.infrastructure
+    rules:
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% for container {{ $labels.name }}"
+
+      - alert: HighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 85
+        for: 3m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% for container {{ $labels.name }}"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 20
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is {{ $value }}% available on {{ $labels.device }}"
+
+  # Medical Workflow Alerts
+  - name: vetmed.medical
+    rules:
+      - alert: VetMedMedicationWorkflowFailure
+        expr: increase(medication_workflow_failures_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: medical
+        annotations:
+          summary: "Medication workflow failure"
+          description: "{{ $value }} medication workflow failures detected"
+
+      - alert: VetMedDosageCalculationError
+        expr: increase(dosage_calculation_errors_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: medical
+        annotations:
+          summary: "Dosage calculation error"
+          description: "{{ $value }} dosage calculation errors detected"
+
+      - alert: VetMedDataIntegrityIssue
+        expr: increase(data_integrity_violations_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: medical
+        annotations:
+          summary: "Data integrity violation"
+          description: "{{ $value }} data integrity violations detected"
+
+  # Performance Alerts
+  - name: vetmed.performance
+    rules:
+      - alert: VetMedCoreWebVitalsLCP
+        expr: core_web_vitals_lcp_p75 > 2500
+        for: 3m
+        labels:
+          severity: warning
+          service: performance
+        annotations:
+          summary: "Poor Largest Contentful Paint performance"
+          description: "LCP 75th percentile is {{ $value }}ms, above 2.5s threshold"
+
+      - alert: VetMedCoreWebVitalsFID
+        expr: core_web_vitals_fid_p95 > 100
+        for: 3m
+        labels:
+          severity: warning
+          service: performance
+        annotations:
+          summary: "Poor First Input Delay performance"
+          description: "FID 95th percentile is {{ $value }}ms, above 100ms threshold"
+
+      - alert: VetMedCoreWebVitalsCLS
+        expr: core_web_vitals_cls_p75 > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          service: performance
+        annotations:
+          summary: "Poor Cumulative Layout Shift performance"
+          description: "CLS 75th percentile is {{ $value }}, above 0.1 threshold"

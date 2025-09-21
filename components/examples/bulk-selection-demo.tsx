@@ -254,7 +254,7 @@ function BulkSelectionDemoContent() {
           item.status,
           item.priority,
           `"${item.assignee}"`,
-          item.dueDate.toISOString().split("T")[0],
+          item.dueDate.toISOString().slice(0, 10),
           `"${item.tags.join(", ")}"`,
         ].join(","),
       ),
@@ -265,7 +265,7 @@ function BulkSelectionDemoContent() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `tasks-${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `tasks-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

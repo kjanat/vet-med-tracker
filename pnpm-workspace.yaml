@@ -1,0 +1,10 @@
+onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
+  - bufferutil
+  - esbuild
+  - msw
+  - puppeteer
+  - sharp
+  - unrs-resolver
+
+packageManagerStrict: false

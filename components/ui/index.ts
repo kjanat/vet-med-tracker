@@ -219,7 +219,7 @@ export { MobileMedicationCard } from "./mobile-medication-card";
 export { MobileRecordHeader } from "./mobile-record-header";
 export { MobileRecordLayout } from "./mobile-record-layout";
 export { MobileSuccessLayout } from "./mobile-success-layout";
-export { NavigationGuardLink } from "./navigation-guard";
+export { GuardedLink } from "./navigation-guard";
 export { NotificationDropdown } from "./notification-dropdown";
 export { PhotoGallery } from "./photo-gallery";
 export { PhotoGalleryDemo } from "./photo-gallery-demo";

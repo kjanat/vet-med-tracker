@@ -8,6 +8,7 @@ import { HistoryCalendar } from "@/components/history/history-calendar";
 import { HistoryList } from "@/components/history/history-list";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { useHistoryFilters } from "@/hooks/history/useHistoryFilters";
+import { transformMedicalRecords } from "@/lib/services/medical-history-transformer.service";
 import type { AdministrationRecord } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 import { localDayISO } from "@/utils/tz";
@@ -56,35 +57,20 @@ function HistoryContent() {
     },
   );
 
-  // Transform API data to AdministrationRecord format
+  // Transform enhanced API data to AdministrationRecord format
   const transformedRecords: AdministrationRecord[] = useMemo(() => {
     if (!adminRecords) return [];
 
-    return adminRecords.map((record) => ({
-      id: record.id,
-      animalId: record.animalId,
-      animalName: "Unknown", // TODO: Join with animals table
-      medicationName: "Unknown", // TODO: Join with regimens/medications table
-      strength: "", // TODO: Join with medications table
-      route: "Unknown", // TODO: Join with medications table
-      form: "Unknown", // TODO: Join with medications table
-      slot: undefined, // TODO: Implement slot logic
-      scheduledFor: record.scheduledFor
-        ? new Date(record.scheduledFor)
-        : undefined,
+    // Convert string dates to Date objects to match RawAdministrationRecord interface
+    const rawRecords = adminRecords.map((record) => ({
+      ...record,
+      scheduledFor: record.scheduledFor ? new Date(record.scheduledFor) : null,
       recordedAt: new Date(record.recordedAt),
-      caregiverName: "Unknown", // TODO: Join with users table
-      status: record.status as AdministrationRecord["status"],
-      cosignPending: false, // TODO: Implement cosign logic
-      sourceItem: undefined, // TODO: Join with inventory items
-      site: record.site || undefined,
-      notes: record.notes || undefined,
-      media: record.mediaUrls || undefined,
-      isEdited: false, // TODO: Implement edit tracking
-      editedBy: undefined,
-      editedAt: undefined,
-      isDeleted: false, // TODO: Implement soft delete
+      coSignedAt: record.coSignedAt ? new Date(record.coSignedAt) : null,
+      editedAt: record.editedAt ? new Date(record.editedAt) : null,
     }));
+
+    return transformMedicalRecords(rawRecords);
   }, [adminRecords]);
 
   // Filter records based on current filters
@@ -266,7 +252,7 @@ function HistoryContent() {
 
   const handleSelectDay = (day: Date) => {
     // Update filters to show only that day
-    // const dayStr = day.toISOString().split("T")[0]
+    // const dayStr = day.toISOString().slice(0, 10)
     // setFilters({ ...filters, from: dayStr, to: dayStr, view: "list" })
     console.log("Selected day:", day);
   };

@@ -72,7 +72,6 @@ function getFeatureStatus() {
       "pushNotifications",
       "bulkOperations",
       "advancedReporting",
-      "offlineMode",
       "serviceWorker",
       "caching",
       "backgroundSync",

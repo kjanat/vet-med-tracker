@@ -195,13 +195,13 @@ export const householdRouter = createTRPCRouter({
       const shouldSkipRegimen = (
         regimen: {
           scheduleType: string;
-          endDate: string | null;
+          endDate: Date | null;
           timesLocal: string[] | null;
         },
-        currentDateStr: string,
+        currentDate: Date,
       ) =>
         regimen.scheduleType === "PRN" ||
-        (regimen.endDate && regimen.endDate < currentDateStr) ||
+        (regimen.endDate && regimen.endDate < currentDate) ||
         !regimen.timesLocal ||
         regimen.timesLocal.length === 0;
 
@@ -249,8 +249,8 @@ export const householdRouter = createTRPCRouter({
             and(
               eq(administrations.regimenId, regimenId),
               eq(administrations.animalId, animalId),
-              gte(administrations.recordedAt, startOfDayUTC.toISOString()),
-              lte(administrations.recordedAt, endOfDayUTC.toISOString()),
+              gte(administrations.recordedAt, startOfDayUTC),
+              lte(administrations.recordedAt, endOfDayUTC),
             ),
           )
           .limit(1);
@@ -304,7 +304,7 @@ export const householdRouter = createTRPCRouter({
 
       // Main logic starts here
       const now = new Date();
-      const currentDateStr = now.toISOString().split("T")[0] as string;
+      const currentDate = new Date(now.toISOString().slice(0, 10));
 
       // Build animal query conditions
       const animalConditions = [
@@ -335,7 +335,7 @@ export const householdRouter = createTRPCRouter({
             eq(regimens.active, true),
             isNull(regimens.deletedAt),
             isNull(regimens.pausedAt),
-            lte(regimens.startDate, currentDateStr),
+            lte(regimens.startDate, currentDate),
           ),
         );
 
@@ -344,7 +344,7 @@ export const householdRouter = createTRPCRouter({
       let totalPendingCount = 0;
 
       for (const { regimen, animal } of activeRegimens) {
-        if (shouldSkipRegimen(regimen, currentDateStr)) {
+        if (shouldSkipRegimen(regimen, currentDate)) {
           continue;
         }
 
@@ -446,7 +446,7 @@ export const householdRouter = createTRPCRouter({
             role,
           },
           householdId,
-          scheduledFor: new Date().toISOString(),
+          scheduledFor: new Date(),
           title: "Added to Household",
           type: "HOUSEHOLD_INVITATION_ACCEPTED",
           userId: existingUser[0].id,
@@ -471,7 +471,7 @@ export const householdRouter = createTRPCRouter({
           role,
         },
         householdId,
-        scheduledFor: new Date().toISOString(),
+        scheduledFor: new Date(),
         title: "Invitation Sent",
         type: "PENDING_INVITATION",
         userId: ctx.dbUser.id, // Temporarily assign to inviter for tracking
@@ -675,7 +675,7 @@ export const householdRouter = createTRPCRouter({
         body: "You have been removed from the household",
         data: { removedBy: ctx.dbUser.name || ctx.dbUser.email },
         householdId,
-        scheduledFor: new Date().toISOString(),
+        scheduledFor: new Date(),
         title: "Removed from Household",
         type: "REMOVED_FROM_HOUSEHOLD",
         userId: membership[0].membership.userId,
@@ -767,7 +767,7 @@ export const householdRouter = createTRPCRouter({
         .set({
           name,
           timezone,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(households.id, householdId))
         .returning();
@@ -858,7 +858,7 @@ export const householdRouter = createTRPCRouter({
         .update(memberships)
         .set({
           role: newRole,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(memberships.id, membershipId));
 
@@ -882,7 +882,7 @@ export const householdRouter = createTRPCRouter({
           oldRole,
         },
         householdId,
-        scheduledFor: new Date().toISOString(),
+        scheduledFor: new Date(),
         title: "Role Updated",
         type: "ROLE_CHANGED",
         userId: membership[0].membership.userId,

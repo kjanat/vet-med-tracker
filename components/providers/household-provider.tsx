@@ -12,6 +12,7 @@ import {
 import type { vetmedAnimals, vetmedHouseholds } from "@/db/schema";
 import { trpc } from "@/server/trpc/client";
 import { useAuth } from "./auth-provider";
+import { useHouseholdActions } from "./use-household-actions";
 
 // =============================================================================
 // TYPES & INTERFACES
@@ -19,7 +20,7 @@ import { useAuth } from "./auth-provider";
 
 type HouseholdListItem = typeof vetmedHouseholds.$inferSelect & {
   role: string;
-  joinedAt: string;
+  joinedAt: Date;
 };
 
 type AnimalFromDatabase = typeof vetmedAnimals.$inferSelect;
@@ -367,21 +368,12 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   // ACTION HANDLERS
   // =============================================================================
 
-  const setSelectedHousehold = useCallback((household: Household | null) => {
-    dispatch({ payload: household, type: "SET_HOUSEHOLD" });
-  }, []);
-
-  const setSelectedAnimal = useCallback((animal: Animal | null) => {
-    dispatch({ payload: animal, type: "SET_ANIMAL" });
-  }, []);
-
-  const refreshPendingMeds = useCallback(() => {
-    if (state.selectedHouseholdId) {
-      utils.household.getPendingMeds.invalidate({
-        householdId: state.selectedHouseholdId,
-      });
-    }
-  }, [utils.household.getPendingMeds, state.selectedHouseholdId]);
+  const { refreshPendingMeds, setSelectedAnimal, setSelectedHousehold } =
+    useHouseholdActions<Household, Animal>({
+      dispatch,
+      invalidatePendingMeds: utils.household.getPendingMeds.invalidate,
+      selectedHouseholdId: state.selectedHouseholdId,
+    });
 
   // =============================================================================
   // CONTEXT VALUE

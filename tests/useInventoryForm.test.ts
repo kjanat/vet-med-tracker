@@ -61,6 +61,8 @@ const mockFormState = {
   setError: mock(),
 };
 
+const daysInYear = 365;
+
 mock.module("@/hooks/forms/useInventoryFormState", () => ({
   useInventoryFormState: () => mockFormState,
 }));
@@ -68,7 +70,7 @@ mock.module("@/hooks/forms/useInventoryFormState", () => ({
 mock.module("@/lib/services/inventoryDataTransformer", () => ({
   InventoryDataTransformer: {
     calculateDerivedFields: mock(() => ({
-      daysUntilExpiry: 365,
+      daysUntilExpiry: daysInYear,
       isExpiringSoon: false,
       percentRemaining: 100,
       storageDescription: "Room Temperature",
@@ -458,7 +460,7 @@ describe("useInventoryCalculations", () => {
     expect(calculations.percentRemaining).toBe(100);
     expect(calculations.isExpiringSoon).toBe(false);
     expect(calculations.storageDescription).toBe("Room Temperature");
-    expect(calculations.daysUntilExpiry).toBe(365);
+    expect(calculations.daysUntilExpiry).toBe(daysInYear);
 
     const InventoryDataTransformer =
       require("@/lib/services/inventoryDataTransformer").InventoryDataTransformer;

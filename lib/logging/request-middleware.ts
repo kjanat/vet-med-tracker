@@ -26,7 +26,6 @@ const DEFAULT_REQUEST_CONFIG: RequestLoggingConfig = {
     "/robots.txt",
     "/sitemap.xml",
     "/api/health",
-    "/sw.js",
   ],
   excludeStaticAssets: true,
   logHeaders: false, // Can contain sensitive data
