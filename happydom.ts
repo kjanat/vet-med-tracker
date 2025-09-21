@@ -1,5 +1,8 @@
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
+// Import jest-dom matchers for React Testing Library
+import "@testing-library/jest-dom";
+
 type MockFn = ((...args: unknown[]) => unknown) & {
   mockClear: () => MockFn;
   mockImplementation: (newImpl: (...args: unknown[]) => unknown) => MockFn;
@@ -141,3 +144,41 @@ Object.defineProperty(globalThis, "jest", {
     }
   },
 });
+
+// Enhance Bun's expect to be more Jest-compatible for @testing-library/jest-dom
+if (typeof globalThis.expect !== "undefined") {
+  const originalExpected = globalThis.expect;
+
+  // Add Jest-specific properties that @testing-library/jest-dom expects
+  if (!originalExpected.getState) {
+    originalExpected.getState = () => ({
+      assertionCalls: 0,
+      currentTestName: "",
+      expand: true,
+      expectedAssertionsNumber: null,
+      isExpectingAssertions: false,
+      suppressedErrors: [],
+      testPath: "",
+    });
+  }
+
+  if (!originalExpected.setState) {
+    originalExpected.setState = () => {};
+  }
+
+  // Mock asymmetric matchers that jest-dom might need
+  if (!originalExpected.anything) {
+    originalExpected.anything = () => ({ asymmetricMatch: () => true });
+  }
+
+  if (!originalExpected.stringMatching) {
+    originalExpected.stringMatching = (pattern: string | RegExp) => ({
+      asymmetricMatch: (actual: string) => {
+        if (typeof pattern === "string") {
+          return actual.includes(pattern);
+        }
+        return pattern.test(actual);
+      },
+    });
+  }
+}

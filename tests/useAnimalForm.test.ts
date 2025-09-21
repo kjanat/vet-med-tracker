@@ -54,21 +54,7 @@ mock.module("@/server/trpc/client", () => ({
   },
 }));
 
-const mockFormState = {
-  clearError: mock(),
-  closeForm: mock(),
-  editingAnimal: null,
-  error: null,
-  isDirty: false,
-  isOpen: false,
-  openForm: mock(),
-  setDirty: mock(),
-  setError: mock(),
-};
-
-mock.module("@/hooks/forms/useAnimalFormState", () => ({
-  useAnimalFormState: () => mockFormState,
-}));
+// Don't mock useAnimalFormState globally - let individual tests mock when needed
 
 mock.module("@/lib/services/animalDataTransformer", () => ({
   AnimalDataTransformer: {
@@ -171,7 +157,7 @@ describe("useAnimalForm", () => {
         result.current.openForm();
       });
 
-      expect(mockFormState.openForm).toHaveBeenCalledWith(undefined);
+      expect(onOpen).toHaveBeenCalledWith(null);
     });
 
     it("should call onClose callback when provided", () => {
@@ -184,7 +170,7 @@ describe("useAnimalForm", () => {
         result.current.closeForm();
       });
 
-      expect(mockFormState.closeForm).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
     });
 
     it("should reset form when opening for new animal", () => {

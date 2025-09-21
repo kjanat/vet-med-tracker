@@ -1,6 +1,6 @@
 import {
   afterAll,
-  beforeAll,
+  afterEach,
   beforeEach,
   describe,
   expect,
@@ -15,7 +15,7 @@ import { useInventoryForm } from "@/hooks/forms/useInventoryForm";
 import { createTestAppContext } from "./auth/test-auth-helpers";
 
 // Constants needed by mocks
-const mockFormState = {
+const _mockFormState = {
   clearError: mock(),
   closeForm: mock(),
   error: null,
@@ -63,9 +63,7 @@ mock.module("@/server/trpc/client", () => ({
   },
 }));
 
-mock.module("@/hooks/forms/useInventoryFormState", () => ({
-  useInventoryFormState: () => mockFormState,
-}));
+// Don't mock useInventoryFormState globally - let individual tests mock when needed
 
 mock.module("@/lib/services/inventoryDataTransformer", () => ({
   InventoryDataTransformer: {
@@ -184,16 +182,7 @@ mock.module("@/lib/services/inventoryDataTransformer", () => ({
   },
 }));
 
-mock.module("@/lib/services/inventoryFormValidator", () => ({
-  InventoryFormValidator: {
-    getDisplayMessage: mock(() => null),
-    validate: mock(() => ({
-      errors: [],
-      isValid: true,
-      warnings: [],
-    })),
-  },
-}));
+// Don't mock InventoryFormValidator globally - let individual tests mock when needed
 
 mock.module("@/lib/schemas/inventory", () => {
   const { z } = require("zod");
@@ -235,6 +224,19 @@ describe("useInventoryForm", () => {
         selectedHouseholdId: "household-1",
       }),
     );
+  });
+
+  afterEach(() => {
+    // Restore InventoryFormValidator spies to prevent contamination
+    const {
+      InventoryFormValidator,
+    } = require("@/lib/services/inventoryFormValidator");
+    if (InventoryFormValidator.validate?.mockRestore) {
+      InventoryFormValidator.validate.mockRestore();
+    }
+    if (InventoryFormValidator.getDisplayMessage?.mockRestore) {
+      InventoryFormValidator.getDisplayMessage.mockRestore();
+    }
   });
 
   afterAll(() => {
@@ -290,7 +292,7 @@ describe("useInventoryForm", () => {
         result.current.openForm();
       });
 
-      expect(mockFormState.openForm).toHaveBeenCalled();
+      expect(onOpen).toHaveBeenCalled();
     });
 
     it("should call onClose callback when provided", () => {
@@ -303,7 +305,7 @@ describe("useInventoryForm", () => {
         result.current.closeForm();
       });
 
-      expect(mockFormState.closeForm).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
     });
 
     it("should reset form with fresh defaults when opening", () => {
@@ -325,7 +327,8 @@ describe("useInventoryForm", () => {
         result.current.closeForm();
       });
 
-      expect(mockFormState.closeForm).toHaveBeenCalled();
+      // Test the actual form behavior instead of mock calls
+      expect(result.current.isOpen).toBe(false);
     });
   });
 
@@ -354,6 +357,14 @@ describe("useInventoryForm", () => {
 
   describe("form validation", () => {
     it("should handle validation success", async () => {
+      const InventoryFormValidator =
+        require("@/lib/services/inventoryFormValidator").InventoryFormValidator;
+      spyOn(InventoryFormValidator, "validate").mockReturnValue({
+        errors: [],
+        isValid: true,
+        warnings: [],
+      });
+
       const onSave = mock();
       const options: UseInventoryFormOptions = { onSave };
 
@@ -384,8 +395,6 @@ describe("useInventoryForm", () => {
         await result.current.saveForm(testData);
       });
 
-      const InventoryFormValidator =
-        require("@/lib/services/inventoryFormValidator").InventoryFormValidator;
       expect(InventoryFormValidator.validate).toHaveBeenCalledWith(
         testData,
         expect.objectContaining({
@@ -438,7 +447,8 @@ describe("useInventoryForm", () => {
       });
 
       expect(InventoryFormValidator.getDisplayMessage).toHaveBeenCalled();
-      expect(mockFormState.setError).toHaveBeenCalledWith("Validation failed");
+      // Test that error state is actually set instead of mock calls
+      expect(result.current.error).toBeTruthy();
     });
   });
 

@@ -5,6 +5,7 @@ import { useSelectedLayoutSegments } from "next/navigation";
 import type React from "react";
 import { useAnimalFormDialog } from "@/components/forms/animal-form-dialog";
 import { useInventoryFormDialog } from "@/components/forms/inventory-form-dialog";
+import { useRegimenFormDialog } from "@/components/forms/regimen-form-dialog";
 import { AnimalBreadcrumb } from "@/components/ui/animal-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -26,6 +27,7 @@ export function PageHeader({ className }: PageHeaderProps) {
   const segments = useSelectedLayoutSegments();
   const { openAnimalForm } = useAnimalFormDialog();
   const { openInventoryForm } = useInventoryFormDialog();
+  const { openRegimenForm } = useRegimenFormDialog();
 
   // Filter out route groups
   const filteredSegments = segments.filter(
@@ -88,16 +90,16 @@ export function PageHeader({ className }: PageHeaderProps) {
       description: "Track your medication stock",
       title: "Medication Inventory",
     }),
-    "medications/regimens": {
+    "medications/regimens": () => ({
       actions: (
-        <Button size="sm">
+        <Button onClick={() => openRegimenForm()} size="sm">
           <Plus className="mr-2 h-4 w-4" />
           New Regimen
         </Button>
       ),
       description: "Manage medication schedules",
       title: "Medication Regimens",
-    },
+    }),
     reports: {
       actions: (
         <Button size="sm" variant="outline">

@@ -3,16 +3,17 @@ import { InventoryFormValidator } from "../inventoryFormValidator";
 
 // Mock data factory for consistent test data
 const createMockFormData = (overrides = {}) => ({
-  concentration: null,
+  concentration: undefined,
   expiresOn: new Date("2025-12-31"),
   form: "Tablet",
   isCustomMedication: false,
   lot: "LOT123",
-  medicationId: "med-123",
+  medicationId: "123e4567-e89b-12d3-a456-426614174000", // Valid UUID
   name: "Test Medication",
   quantityUnits: 10,
   route: "Oral",
-  storage: "ROOM",
+  setInUse: false,
+  storage: "ROOM" as const,
   strength: "250mg",
   unitsRemaining: 8,
   unitType: "units",
@@ -33,6 +34,26 @@ describe("InventoryFormValidator", () => {
       const context = createValidationContext();
 
       const result = InventoryFormValidator.validate(data, context);
+
+      // Debug output for test failure investigation
+      if (!result.isValid) {
+        console.error("Validation failed unexpectedly:");
+        console.error("Errors:", result.errors);
+        console.error("Data:", data);
+        console.error("Context:", context);
+        console.error("Data.medicationId type:", typeof data.medicationId);
+        console.error(
+          "Data.medicationId value:",
+          JSON.stringify(data.medicationId),
+        );
+        console.error("Data.name type:", typeof data.name);
+        console.error("Data.name value:", JSON.stringify(data.name));
+        console.error(
+          "hasMedicationId:",
+          data.medicationId && data.medicationId.trim() !== "",
+        );
+        console.error("hasName:", data.name && data.name.trim() !== "");
+      }
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -172,7 +193,7 @@ describe("InventoryFormValidator", () => {
 
     test("should pass with medicationId but no name", () => {
       const data = createMockFormData({
-        medicationId: "med-123",
+        medicationId: "123e4567-e89b-12d3-a456-426614174001", // Valid UUID
         name: "",
       });
 

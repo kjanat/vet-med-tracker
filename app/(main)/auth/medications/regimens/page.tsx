@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { RegimenFormDialog } from "@/components/forms/regimen-form-dialog";
 import { RegimenList } from "@/components/regimens/regimen-list";
 
 function RegimensContent() {
@@ -8,6 +9,7 @@ function RegimensContent() {
     <div className="space-y-6">
       {/* Main content */}
       <RegimenList />
+      <RegimenFormDialog />
     </div>
   );
 }

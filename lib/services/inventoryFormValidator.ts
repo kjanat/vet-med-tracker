@@ -312,7 +312,7 @@ export class InventoryFormValidator {
     // Storage-specific warnings based on medication type
     if (data.storage === "CONTROLLED" && !data.lot) {
       warnings.push({
-        code: "CONTROLLED_LOT_RECOMMENDED",
+        code: "CONTROLLED_SUBSTANCE_LOT",
         field: "lot",
         message: "Lot number recommended for controlled substances.",
       });

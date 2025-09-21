@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import {
+  applyEventBehavior,
   findMatchingShortcut,
+  getSafeTarget,
   matchesShortcut,
   parseShortcut,
   validateShortcutConfig,
@@ -148,6 +150,113 @@ describe("KeyboardEventService", () => {
 
       const result = findMatchingShortcut(event, shortcuts);
       expect(result).toBeNull();
+    });
+  });
+
+  describe("applyEventBehavior", () => {
+    it("should call preventDefault and stopPropagation by default", () => {
+      let preventDefaultCalled = false;
+      let stopPropagationCalled = false;
+
+      const mockEvent = {
+        preventDefault: () => {
+          preventDefaultCalled = true;
+        },
+        stopPropagation: () => {
+          stopPropagationCalled = true;
+        },
+      } as KeyboardEvent;
+
+      const config: ShortcutConfig = {
+        action: () => {},
+        description: "test",
+        key: "k",
+      };
+
+      applyEventBehavior(mockEvent, config);
+      expect(preventDefaultCalled).toBe(true);
+      expect(stopPropagationCalled).toBe(true);
+    });
+
+    it("should skip preventDefault when explicitly disabled", () => {
+      let preventDefaultCalled = false;
+      let stopPropagationCalled = false;
+
+      const mockEvent = {
+        preventDefault: () => {
+          preventDefaultCalled = true;
+        },
+        stopPropagation: () => {
+          stopPropagationCalled = true;
+        },
+      } as KeyboardEvent;
+
+      const config: ShortcutConfig = {
+        action: () => {},
+        description: "test",
+        key: "k",
+        preventDefault: false,
+      };
+
+      applyEventBehavior(mockEvent, config);
+      expect(preventDefaultCalled).toBe(false);
+      expect(stopPropagationCalled).toBe(true);
+    });
+
+    it("should skip stopPropagation when explicitly disabled", () => {
+      let preventDefaultCalled = false;
+      let stopPropagationCalled = false;
+
+      const mockEvent = {
+        preventDefault: () => {
+          preventDefaultCalled = true;
+        },
+        stopPropagation: () => {
+          stopPropagationCalled = true;
+        },
+      } as KeyboardEvent;
+
+      const config: ShortcutConfig = {
+        action: () => {},
+        description: "test",
+        key: "k",
+        stopPropagation: false,
+      };
+
+      applyEventBehavior(mockEvent, config);
+      expect(preventDefaultCalled).toBe(true);
+      expect(stopPropagationCalled).toBe(false);
+    });
+  });
+
+  describe("getSafeTarget", () => {
+    it("should return provided target when valid", () => {
+      const mockElement = document.createElement("div");
+      const result = getSafeTarget(mockElement);
+      expect(result).toBe(mockElement);
+    });
+
+    it("should return document when no target provided", () => {
+      const result = getSafeTarget();
+      expect(result).toBe(document);
+    });
+
+    it("should return null when no target and no document (SSR)", () => {
+      const originalDocument = global.document;
+      // @ts-expect-error - simulating SSR environment
+      delete global.document;
+
+      const result = getSafeTarget();
+      expect(result).toBeNull();
+
+      // Restore document
+      global.document = originalDocument;
+    });
+
+    it("should return provided target over document", () => {
+      const mockDocument = {} as Document;
+      const result = getSafeTarget(mockDocument);
+      expect(result).toBe(mockDocument);
     });
   });
 });

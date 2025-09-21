@@ -25,6 +25,11 @@ coverageThreshold = 0.7
 #coveragePathIgnorePatterns = "**/*.spec.ts"
 coverageReporter  = ["text", "lcov"]
 coverageDir       = "coverage"
+# Force sequential test execution to prevent state pollution
+#bail = 0
+#concurrency = 1
+# Reset module state between tests
+#smol = true
 
 [test.reporter]
 junit = "tests/junit.xml"

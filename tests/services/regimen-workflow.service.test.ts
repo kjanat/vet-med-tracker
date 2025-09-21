@@ -344,11 +344,18 @@ describe("RegimenWorkflowService", () => {
         mutateAsync: async () => {},
       };
 
+      // Mock window.dispatchEvent to prevent test environment issues
+      const originalDispatchEvent = window.dispatchEvent;
+      window.dispatchEvent = () => true;
+
       const result = await RegimenWorkflowService.processRegimenArchive(
         "reg-1",
         "household-1",
         mockDeleteMutation,
       );
+
+      // Restore original function
+      window.dispatchEvent = originalDispatchEvent;
 
       expect(result.success).toBe(true);
     });
@@ -370,12 +377,19 @@ describe("RegimenWorkflowService", () => {
         mutateAsync: async () => {},
       };
 
+      // Mock window.dispatchEvent to prevent test environment issues
+      const originalDispatchEvent = window.dispatchEvent;
+      window.dispatchEvent = () => true;
+
       const result = await RegimenWorkflowService.processRegimenTogglePause(
         "reg-1",
         true, // Currently active
         "household-1",
         { pause: mockPauseMutation },
       );
+
+      // Restore original function
+      window.dispatchEvent = originalDispatchEvent;
 
       expect(result.success).toBe(true);
     });
@@ -385,12 +399,19 @@ describe("RegimenWorkflowService", () => {
         mutateAsync: async () => {},
       };
 
+      // Mock window.dispatchEvent to prevent test environment issues
+      const originalDispatchEvent = window.dispatchEvent;
+      window.dispatchEvent = () => true;
+
       const result = await RegimenWorkflowService.processRegimenTogglePause(
         "reg-1",
         false, // Currently paused
         "household-1",
         { resume: mockResumeMutation },
       );
+
+      // Restore original function
+      window.dispatchEvent = originalDispatchEvent;
 
       expect(result.success).toBe(true);
     });

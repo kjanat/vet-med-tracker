@@ -336,3 +336,6 @@ renovate.json
 vapid_*.pem
 
 certificates
+
+.lighthouseci/
+

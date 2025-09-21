@@ -87,15 +87,15 @@ function AnimalList({
   return (
     <div className="space-y-6">
       {/* Add button */}
-      {/* <div className="flex items-center justify-between">
-				<p className="text-muted-foreground">
-					Manage animal profiles and medical information
-				</p>
-				<Button onClick={() => openForm()} className="gap-2">
-					<Plus className="h-4 w-4" />
-					Add Animal
-				</Button>
-			</div> */}
+      <div className="flex items-center justify-between">
+        <p className="text-muted-foreground">
+          Manage animal profiles and medical information
+        </p>
+        <Button className="gap-2" onClick={() => openAnimalForm()}>
+          <Plus className="h-4 w-4" />
+          Add Animal
+        </Button>
+      </div>
 
       {/* Search bar */}
       <div className="relative max-w-sm">

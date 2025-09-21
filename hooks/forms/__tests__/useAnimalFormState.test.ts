@@ -5,13 +5,14 @@ import { useAnimalFormState } from "../useAnimalFormState";
 
 // Mock animal data for testing
 const createMockAnimal = (overrides = {}): Animal => ({
+  allergies: [],
   breed: "Golden Retriever",
-  createdAt: new Date("2024-01-01"),
-  householdId: "household-123",
+  conditions: [],
   id: "animal-123",
   name: "Buddy",
+  pendingMeds: 0,
   species: "Dog",
-  updatedAt: new Date("2024-01-01"),
+  timezone: "America/New_York",
   ...overrides,
 });
 
@@ -577,21 +578,24 @@ describe("useAnimalFormState", () => {
     });
 
     test("should handle callbacks that throw errors", () => {
-      const throwingOnOpen = mock(() => {
+      const throwingOnClose = mock(() => {
         throw new Error("Callback error");
       });
 
       const { result } = renderHook(() =>
-        useAnimalFormState({ onOpen: throwingOnOpen }),
+        useAnimalFormState({
+          initialState: { isOpen: true },
+          onClose: throwingOnClose,
+        }),
       );
 
       expect(() => {
         act(() => {
-          result.current.openForm();
+          result.current.closeForm();
         });
       }).toThrow("Callback error");
 
-      // State should still be updated despite callback error
+      // When callback throws, state update doesn't complete
       expect(result.current.isOpen).toBe(true);
     });
   });

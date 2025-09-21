@@ -42,7 +42,7 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
     "checkJs": true,
-    "types": ["bun-types"]
+    "types": ["bun-types", "jest", "@testing-library/jest-dom"]
   },
   "include": [
     "**/*.ts",
@@ -51,5 +51,5 @@
     "next-env.d.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "happydom.ts"]
 }

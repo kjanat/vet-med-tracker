@@ -41,7 +41,7 @@
     "test:coverage": "bun test --coverage",
     "typecheck": "next typegen && tsc --noEmit",
     "typegen": "next typegen",
-    "validate": "next typegen; tsc --noEmit; biome lint; cross-env AGENT=1 bun test --coverage; bun run build"
+    "validate": "next typegen && tsc --noEmit && biome lint && cross-env AGENT=1 bun test --coverage && bun run build"
   },
   "trustedDependencies": [
     "@tailwindcss/oxide",
@@ -154,6 +154,7 @@
     "@types/bun": "^1.2.22",
     "@types/jest": "^30.0.0",
     "@types/jest-axe": "^3.5.9",
+    "@types/jsdom": "^21.1.7",
     "@types/luxon": "^3.7.1",
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
