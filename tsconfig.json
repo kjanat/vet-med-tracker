@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "baseUrl": ".",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -21,17 +20,17 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/app/*": ["app/*"],
-      "@/components/*": ["components/*"],
-      "@/hooks/*": ["hooks/*"],
-      "@/lib/*": ["lib/*"],
-      "@/utils/*": ["utils/*"],
-      "@/types/*": ["types/*"],
-      "@/db/*": ["db/*"],
-      "@/stack": ["stack/*"],
-      "@/server/*": ["server/*"],
-      "@/server/trpc/*": ["server/trpc/*"],
-      "@/tests/*": ["tests/*"]
+      "@/app/*": ["./app/*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/types/*": ["./types/*"],
+      "@/db/*": ["./db/*"],
+      "@/stack": ["./stack/*"],
+      "@/server/*": ["./server/*"],
+      "@/server/trpc/*": ["./server/trpc/*"],
+      "@/tests/*": ["./tests/*"]
     },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
