@@ -23,8 +23,10 @@ export function HouseholdCard({
   membership: _membership,
   onEdit: _onEdit,
   onLeave: _onLeave,
-  onMakeActive,
+  onMakeActive: _onMakeActive,
 }: HouseholdCardProps) {
+  if (!household) return null;
+
   return (
     <Card
       className="cursor-pointer transition-colors hover:bg-muted/50"
