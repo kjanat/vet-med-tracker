@@ -1,43 +1,97 @@
 "use client";
 
-import { AnimalForm } from "@/components/settings/animals/animal-form";
-import { useAnimalForm } from "@/hooks/forms/useAnimalForm";
-import type { Animal } from "@/lib/utils/types";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-/**
- * Animal form dialog component that manages its own state
- *
- * This component provides a complete animal form dialog with state management,
- * validation, and saving functionality.
- */
-export function AnimalFormDialog() {
-  const { isOpen, editingAnimal, closeForm, saveForm } = useAnimalForm({
-    autoClose: true,
-    showSuccessToast: true,
-  });
-
-  return (
-    <AnimalForm
-      animal={editingAnimal}
-      onOpenChange={closeForm}
-      onSave={saveForm}
-      open={isOpen}
-    />
-  );
-}
-
-/**
- * Hook that provides animal form controls and state
- *
- * This hook can be used by components that need to trigger the animal form
- * or check its state.
- */
 export function useAnimalFormDialog() {
-  const { openForm, isOpen, isLoading } = useAnimalForm();
+  const [isOpen, setIsOpen] = useState(false);
 
   return {
-    isFormLoading: isLoading,
-    isFormOpen: isOpen,
-    openAnimalForm: (animal?: Animal | null) => openForm(animal),
+    closeDialog: () => setIsOpen(false),
+    isOpen,
+    openAnimalForm: () => setIsOpen(true), // Alias for backward compatibility
+    openDialog: () => setIsOpen(true),
   };
+}
+
+interface AnimalFormDialogProps {
+  children?: React.ReactNode;
+  onSubmit?: (data: { name: string; species: string }) => void;
+}
+
+export function AnimalFormDialog({
+  children,
+  onSubmit,
+}: AnimalFormDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [species, setSpecies] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name && species) {
+      onSubmit?.({ name, species });
+      setOpen(false);
+      setName("");
+      setSpecies("");
+    }
+  };
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogTrigger asChild>
+        {children || <Button>Add Animal</Button>}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Animal</DialogTitle>
+          <DialogDescription>
+            Enter the basic information for your new animal.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter animal name"
+              required
+              value={name}
+            />
+          </div>
+          <div>
+            <Label htmlFor="species">Species</Label>
+            <Input
+              id="species"
+              onChange={(e) => setSpecies(e.target.value)}
+              placeholder="e.g., Dog, Cat, Bird"
+              required
+              value={species}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              onClick={() => setOpen(false)}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button type="submit">Add Animal</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }

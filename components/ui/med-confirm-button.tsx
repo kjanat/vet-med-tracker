@@ -1,180 +1,62 @@
 "use client";
 
-import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useScreenReaderAnnouncements } from "@/components/ui/screen-reader-announcer";
-import { TRANSITIONS } from "@/lib/utils/animation-config";
 import { cn } from "@/lib/utils/general";
 
 interface MedConfirmButtonProps {
-  onConfirm: () => void;
+  status?: "pending" | "confirmed" | "overdue";
+  onClick?: () => void;
   disabled?: boolean;
-  requiresCoSign?: boolean;
   className?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function MedConfirmButton({
-  onConfirm,
-  disabled = false,
-  requiresCoSign = false,
+  status = "pending",
+  onClick,
+  disabled,
   className,
   children,
 }: MedConfirmButtonProps) {
-  const [isHolding, setIsHolding] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-  const timeoutRef = useRef<number | undefined>(undefined);
-  const intervalRef = useRef<number | undefined>(undefined);
-  const startTimeRef = useRef<number | undefined>(undefined);
-  const { announce } = useScreenReaderAnnouncements();
-
-  const HOLD_DURATION = 3000; // 3 seconds
-
-  const startHold = () => {
-    if (disabled || isComplete) return;
-
-    setIsHolding(true);
-    setProgress(0);
-    startTimeRef.current = Date.now();
-
-    // Announce hold start
-    announce(
-      `Hold started. ${requiresCoSign ? "Co-sign required after confirmation." : "Continue holding for 3 seconds to confirm."}`,
-      "polite",
-    );
-
-    // Progress animation
-    intervalRef.current = window.setInterval(() => {
-      const elapsed = Date.now() - (startTimeRef.current || 0);
-      const newProgress = Math.min((elapsed / HOLD_DURATION) * 100, 100);
-      setProgress(newProgress);
-    }, 16); // ~60fps
-
-    // Complete after hold duration
-    timeoutRef.current = window.setTimeout(() => {
-      setIsComplete(true);
-      setIsHolding(false);
-      setProgress(100);
-
-      // Announce confirmation success
-      announce(
-        `Medication confirmation completed${requiresCoSign ? ". Awaiting co-sign." : "."}`,
-        "assertive",
-      );
-
-      onConfirm();
-
-      // Reset after brief delay
-      setTimeout(() => {
-        setIsComplete(false);
-        setProgress(0);
-      }, 1000);
-    }, HOLD_DURATION);
-  };
-
-  const cancelHold = () => {
-    if (isHolding) {
-      // Announce cancellation only if we were actually holding
-      announce("Hold cancelled. Medication confirmation cancelled.", "polite");
-    }
-
-    setIsHolding(false);
-    setProgress(0);
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+  const getStatusConfig = () => {
+    switch (status) {
+      case "confirmed":
+        return {
+          className: "bg-green-600 hover:bg-green-700",
+          icon: Check,
+          text: children || "Confirmed",
+          variant: "default" as const,
+        };
+      case "overdue":
+        return {
+          className: "bg-red-600 hover:bg-red-700",
+          icon: AlertTriangle,
+          text: children || "Overdue",
+          variant: "destructive" as const,
+        };
+      default:
+        return {
+          className: "",
+          icon: Clock,
+          text: children || "Confirm",
+          variant: "outline" as const,
+        };
     }
   };
 
-  useEffect(
-    () => () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    },
-    [],
-  );
+  const config = getStatusConfig();
+  const Icon = config.icon;
 
   return (
-    <div className="relative">
-      <Button
-        aria-describedby="hold-instruction"
-        aria-label={`Hold for 3 seconds to confirm medication${requiresCoSign ? " (requires co-sign)" : ""}`}
-        aria-live={isHolding ? "polite" : undefined}
-        aria-pressed={isHolding}
-        aria-valuemax={100}
-        aria-valuemin={0}
-        aria-valuenow={progress}
-        aria-valuetext={
-          isHolding ? `Hold progress: ${Math.round(progress)}%` : undefined
-        }
-        className={cn(
-          "relative overflow-hidden",
-          TRANSITIONS.all,
-          isHolding && "scale-95",
-          isComplete && "bg-green-600 hover:bg-green-600",
-          requiresCoSign && "bg-orange-600 hover:bg-orange-700",
-          className,
-        )}
-        disabled={disabled}
-        onPointerDown={startHold}
-        onPointerLeave={cancelHold}
-        onPointerUp={cancelHold}
-        onTouchEnd={cancelHold}
-        onTouchStart={startHold}
-        type="button"
-      >
-        {/* Progress bar background */}
-        <div
-          className="absolute inset-0 origin-left bg-white/20 transition-transform duration-75 ease-out"
-          style={{
-            transform: `scaleX(${progress / 100})`,
-          }}
-        />
-
-        {/* Button content */}
-        <span className="relative z-10 flex items-center justify-center gap-2">
-          {isComplete ? (
-            <>
-              <span className="text-lg">✓</span>
-              Recorded!
-            </>
-          ) : (
-            children
-          )}
-        </span>
-      </Button>
-
-      {/* Progress indicator */}
-      {isHolding && (
-        <div
-          aria-label="Hold progress"
-          aria-valuemax={100}
-          aria-valuemin={0}
-          aria-valuenow={progress}
-          className="-bottom-1 absolute right-0 left-0 h-1 overflow-hidden rounded-full bg-background"
-          role="progressbar"
-        >
-          <div
-            className="h-full origin-left bg-primary transition-transform duration-75 ease-out"
-            style={{
-              transform: `scaleX(${progress / 100})`,
-            }}
-          />
-        </div>
-      )}
-
-      {/* Screen reader instructions */}
-      <div className="sr-only" id="hold-instruction">
-        Hold and keep pressed for 3 seconds to confirm medication
-        administration.
-        {requiresCoSign &&
-          " This medication requires co-signature within 10 minutes."}
-      </div>
-    </div>
+    <Button
+      className={cn("gap-2", config.className, className)}
+      disabled={disabled}
+      onClick={onClick}
+      variant={config.variant}
+    >
+      <Icon className="h-4 w-4" />
+      {config.text}
+    </Button>
   );
 }

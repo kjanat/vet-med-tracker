@@ -32,7 +32,17 @@ import {
   type SortOrder,
   type TransformedRegimen,
 } from "@/lib/dashboard/next-actions";
-import { getUtcDayRange } from "@/lib/date/get-utc-day-range";
+
+// Inline UTC day range utility
+const getUtcDayRange = (date: Date) => {
+  const start = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+  const endExclusive = new Date(start);
+  endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+  return { endExclusive, start };
+};
+
 import type { Animal } from "@/lib/utils/types";
 import { trpc } from "@/server/trpc/client";
 
@@ -62,7 +72,7 @@ export default function DashboardPage() {
   // Fetch due regimens
   const { data: dueRegimens, isLoading } = trpc.regimen.listDue.useQuery(
     {
-      householdId: selectedHousehold?.id,
+      householdId: selectedHousehold?.id || "",
       includeUpcoming: true,
     },
     {
@@ -77,8 +87,8 @@ export default function DashboardPage() {
   const { data: todayAdmins } = trpc.admin.list.useQuery(
     {
       householdId: selectedHousehold?.id || "",
-      startDate: todayStartUtc,
-      endDate: todayEndExclusive,
+      startDate: todayStartUtc.toISOString(),
+      endDate: todayEndExclusive.toISOString(),
     },
     {
       enabled: Boolean(selectedHousehold?.id),
@@ -312,7 +322,7 @@ export default function DashboardPage() {
                       className="w-20 shrink-0"
                       onClick={() =>
                         router.push(
-                          `/auth/admin/record?regimenId=${action.id}&from=home`,
+                          `/auth/admin/record?regimenId=${action.id}&from=home` as any,
                         )
                       }
                       size="sm"

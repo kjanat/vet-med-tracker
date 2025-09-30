@@ -1,169 +1,45 @@
 "use client";
 
-import { AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils/general";
-import type { InventorySource } from "@/types/inventory";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface InventorySourceSelectProps {
-  sources: InventorySource[];
-  selectedId?: string;
-  onSelect: (sourceId: string | null) => void;
-  allowOverride?: boolean;
-  onOverrideChange?: (override: boolean) => void;
+  value?: string;
+  onValueChange?: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
+const INVENTORY_SOURCES = [
+  { label: "Pharmacy", value: "pharmacy" },
+  { label: "Veterinarian", value: "veterinarian" },
+  { label: "Online Store", value: "online" },
+  { label: "Other", value: "other" },
+];
+
 export function InventorySourceSelect({
-  sources,
-  selectedId,
-  onSelect,
-  allowOverride = false,
-  onOverrideChange,
+  value,
+  onValueChange,
+  placeholder = "Select source",
+  disabled,
 }: InventorySourceSelectProps) {
-  const [open, setOpen] = useState(false);
-  const [override, setOverride] = useState(false);
-
-  const selectedSource = sources.find((s) => s.id === selectedId);
-  const hasIssues =
-    selectedSource && (selectedSource.isExpired || selectedSource.isWrongMed);
-
-  const handleOverrideChange = (checked: boolean) => {
-    setOverride(checked);
-    onOverrideChange?.(checked);
-  };
-
   return (
-    <div className="space-y-3">
-      <Popover onOpenChange={setOpen} open={open}>
-        <PopoverTrigger asChild>
-          <Button
-            aria-expanded={open}
-            className="w-full justify-between bg-transparent"
-            variant="outline"
-          >
-            {selectedSource ? (
-              <div className="flex items-center gap-2">
-                <span>{selectedSource.name}</span>
-                {selectedSource.brandName && (
-                  <Badge variant="secondary">{selectedSource.brandName}</Badge>
-                )}
-                {selectedSource.lot && (
-                  <Badge variant="secondary">Lot {selectedSource.lot}</Badge>
-                )}
-                {selectedSource.inUse && (
-                  <Badge variant="default">In Use</Badge>
-                )}
-              </div>
-            ) : (
-              "Select inventory source..."
-            )}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
-          <Command>
-            <CommandInput placeholder="Search inventory..." />
-            <CommandList>
-              <CommandEmpty>No inventory found.</CommandEmpty>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => {
-                    onSelect(null);
-                    setOpen(false);
-                  }}
-                  value="no-source"
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      !selectedId ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  No source specified
-                </CommandItem>
-                {sources.map((source) => (
-                  <CommandItem
-                    key={source.id}
-                    onSelect={() => {
-                      onSelect(source.id);
-                      setOpen(false);
-                    }}
-                    value={source.id}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedId === source.id ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span>{source.name}</span>
-                        {source.brandName && (
-                          <Badge variant="secondary">{source.brandName}</Badge>
-                        )}
-                        {source.lot && (
-                          <Badge variant="secondary">Lot {source.lot}</Badge>
-                        )}
-                        {source.inUse && (
-                          <Badge variant="default">In Use</Badge>
-                        )}
-                      </div>
-                      <div className="text-muted-foreground text-xs">
-                        {source.unitsRemaining} units • Expires{" "}
-                        {source.expiresOn?.toLocaleDateString() ?? "N/A"}
-                      </div>
-                    </div>
-                    {(source.isExpired || source.isWrongMed) && (
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-
-      {hasIssues && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            {selectedSource.isExpired && "This medication is expired. "}
-            {selectedSource.isWrongMed &&
-              "This may not be the correct medication. "}
-            {allowOverride && (
-              <div className="mt-2 flex items-center space-x-2">
-                <Checkbox
-                  checked={override}
-                  id="override"
-                  onCheckedChange={handleOverrideChange}
-                />
-                <label className="text-sm" htmlFor="override">
-                  Override and continue anyway
-                </label>
-              </div>
-            )}
-          </AlertDescription>
-        </Alert>
-      )}
-    </div>
+    <Select disabled={disabled} onValueChange={onValueChange} value={value}>
+      <SelectTrigger>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {INVENTORY_SOURCES.map((source) => (
+          <SelectItem key={source.value} value={source.value}>
+            {source.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

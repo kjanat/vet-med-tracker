@@ -36,7 +36,7 @@ export function FloatingActionBar({
     return null;
   }
 
-  const selectedIdsArray = Array.from(selectedIds);
+  const selectedIdsArray = Array.from(selectedIds) as string[];
 
   return (
     <div

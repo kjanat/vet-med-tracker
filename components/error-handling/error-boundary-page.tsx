@@ -1,185 +1,104 @@
 "use client";
 
-import { AlertCircle, ArrowLeft, Home, RefreshCw } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import type React from "react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ErrorBoundary } from "./error-boundary";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface PageErrorBoundaryProps {
-  children: React.ReactNode;
-  pageName: string;
-  customMessage?: string;
-  showBackButton?: boolean;
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
 }
 
-/**
- * Page-specific error boundary with contextual recovery options
- */
-export function PageErrorBoundary({
-  children,
-  pageName,
-  customMessage,
-  showBackButton = true,
-}: PageErrorBoundaryProps) {
-  const router = useRouter();
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+}
 
-  const fallback = (
-    <div className="container mx-auto px-4 py-8">
-      <Card className="mx-auto max-w-2xl">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-destructive" />
-            <CardTitle>Error in {pageName}</CardTitle>
-          </div>
-          <CardDescription>
-            {customMessage ||
-              `We encountered an error while loading the ${pageName.toLowerCase()} page.`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+class ErrorBoundaryComponent extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { error, hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Error boundary caught an error:", error, errorInfo);
+    this.props.onError?.(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      return (
+        <Card className="mx-auto mt-8 max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Something went wrong
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <p className="text-muted-foreground text-sm">
-              This might be a temporary issue. You can try refreshing the page
-              or navigating to a different section.
+              We encountered an unexpected error. Please try refreshing the
+              page.
             </p>
-            {/* Context-specific suggestions based on page */}
-            {pageName === "Record Administration" && (
-              <div className="rounded-lg bg-muted p-4">
-                <p className="font-medium text-sm">Offline Mode Available</p>
-                <p className="mt-1 text-muted-foreground text-sm">
-                  Your medication records are saved locally and will sync when
-                  the connection is restored.
-                </p>
-              </div>
+            {this.state.error && process.env.NODE_ENV === "development" && (
+              <details className="text-xs">
+                <summary>Error details (dev only)</summary>
+                <pre className="mt-2 overflow-auto rounded bg-muted p-2 text-xs">
+                  {this.state.error.message}
+                </pre>
+              </details>
             )}
-            {pageName === "Inventory" && (
-              <div className="rounded-lg bg-muted p-4">
-                <p className="font-medium text-sm">Inventory Data</p>
-                <p className="mt-1 text-muted-foreground text-sm">
-                  Your inventory changes are queued and will be saved once the
-                  issue is resolved.
-                </p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => window.location.reload()}
-            size="sm"
-            variant="default"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh Page
-          </Button>
-          {showBackButton && (
-            <Button onClick={() => router.back()} size="sm" variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Back
+            <Button
+              className="w-full"
+              onClick={() => {
+                this.setState({ error: undefined, hasError: false });
+                window.location.reload();
+              }}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
             </Button>
-          )}
-          <Button asChild size="sm" variant="outline">
-            <Link href="/">
-              <Home className="mr-2 h-4 w-4" />
-              Go Home
-            </Link>
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
-  );
+          </CardContent>
+        </Card>
+      );
+    }
 
-  return (
-    <ErrorBoundary errorBoundaryId={`page-${pageName}`} fallback={fallback}>
-      {children}
-    </ErrorBoundary>
-  );
+    return this.props.children;
+  }
 }
 
-/**
- * Specific error boundaries for each critical page
- */
-export function RecordAdminErrorBoundary({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// Named exports for specific use cases
+export function InventoryErrorBoundary({ children }: { children: ReactNode }) {
   return (
-    <PageErrorBoundary
-      customMessage="Unable to load the medication recording page. Please check your connection and try again."
-      pageName="Record Administration"
+    <ErrorBoundaryComponent
+      onError={(error) => console.error("Inventory error:", error)}
     >
       {children}
-    </PageErrorBoundary>
+    </ErrorBoundaryComponent>
   );
 }
 
-export function InventoryErrorBoundary({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function PageErrorBoundary({ children }: { children: ReactNode }) {
   return (
-    <PageErrorBoundary
-      customMessage="Unable to load inventory data. Any pending changes are saved locally."
-      pageName="Inventory"
+    <ErrorBoundaryComponent
+      onError={(error) => console.error("Page error:", error)}
     >
       {children}
-    </PageErrorBoundary>
+    </ErrorBoundaryComponent>
   );
 }
 
-export function HistoryErrorBoundary({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <PageErrorBoundary
-      customMessage="Unable to load medication history. Please try again later."
-      pageName="History"
-    >
-      {children}
-    </PageErrorBoundary>
-  );
-}
-
-export function InsightsErrorBoundary({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <PageErrorBoundary
-      customMessage="Unable to generate insights and reports. Your data is safe."
-      pageName="Insights"
-    >
-      {children}
-    </PageErrorBoundary>
-  );
-}
-
-export function SettingsErrorBoundary({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <PageErrorBoundary
-      customMessage="Unable to load settings. Your preferences are saved."
-      pageName="Settings"
-    >
-      {children}
-    </PageErrorBoundary>
-  );
-}
+export { ErrorBoundaryComponent as ErrorBoundary };

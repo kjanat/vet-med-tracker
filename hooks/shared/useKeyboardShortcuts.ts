@@ -132,31 +132,31 @@ export function useGlobalKeyboardShortcuts(
   useEffect(() => {
     // Navigation shortcuts
     registerShortcut({
-      action: () => router.push("/auth/admin/record"),
+      action: () => router.push("/auth/admin/record" as any),
       description: "Navigating to record medication page",
       key: "Ctrl+R",
     });
 
     registerShortcut({
-      action: () => router.push("/auth/medications/inventory"),
+      action: () => router.push("/auth/medications/inventory" as any),
       description: "Navigating to inventory page",
       key: "Ctrl+I",
     });
 
     registerShortcut({
-      action: () => router.push("/auth/dashboard/history"),
+      action: () => router.push("/auth/dashboard/history" as any),
       description: "Navigating to history page",
       key: "Ctrl+H",
     });
 
     registerShortcut({
-      action: () => router.push("/auth/manage/animals"),
+      action: () => router.push("/auth/manage/animals" as any),
       description: "Navigating to manage animals page",
       key: "Ctrl+N",
     });
 
     registerShortcut({
-      action: () => router.push("/auth/settings"),
+      action: () => router.push("/auth/settings" as any),
       description: "Navigating to settings page",
       key: "Ctrl+S",
     });
@@ -172,7 +172,7 @@ export function useGlobalKeyboardShortcuts(
 
     // Quick actions
     registerShortcut({
-      action: () => router.push("/auth/admin/record"),
+      action: () => router.push("/auth/admin/record" as any),
       description: "Quick action: record medication",
       key: "Ctrl+Shift+A",
     });
@@ -186,7 +186,7 @@ export function useGlobalKeyboardShortcuts(
     });
 
     registerShortcut({
-      action: () => router.push("/auth/medications/regimens"),
+      action: () => router.push("/auth/medications/regimens" as any),
       description: "Quick action: create new regimen",
       key: "Ctrl+Shift+R",
     });

@@ -43,7 +43,6 @@ const AnimalInfoCard = ({
         <AnimalAvatar
           animal={{
             ...animalData,
-            avatar: animalData.photoUrl || animalData.photo || undefined,
             pendingMeds: animalData.pendingMeds || 0,
           }}
           size="lg"
@@ -136,10 +135,9 @@ const EmergencyContactsCard = ({
                   <Button
                     className="ml-auto"
                     onClick={() =>
-                      EmergencyDialService.dialVeterinarian({
-                        name: animalData.vetName || "Primary Veterinarian",
-                        phone: animalData.vetPhone,
-                      })
+                      EmergencyDialService.dialVeterinarian(
+                        animalData.vetPhone || "",
+                      )
                     }
                     size="sm"
                     variant="destructive"
@@ -176,13 +174,9 @@ const EmergencyContactsCard = ({
                     <Button
                       className="ml-auto"
                       onClick={() =>
-                        EmergencyDialService.dialEmergencyContact({
-                          id: contact.id,
-                          name: contact.contactName,
-                          phone: contact.contactPhone,
-                          relationship: contact.relationship,
-                          isPrimary: contact.isPrimary,
-                        })
+                        EmergencyDialService.dialEmergencyContact(
+                          contact.contactPhone || "",
+                        )
                       }
                       size="sm"
                       variant="destructive"
@@ -377,7 +371,7 @@ export default function EmergencyCardPage() {
           <EmergencyContactsCard
             animalData={animalData}
             canMakePhoneCalls={canMakePhoneCalls}
-            emergencyContacts={emergencyContacts?.map((contact) => ({
+            emergencyContacts={emergencyContacts?.map((contact: any) => ({
               id: contact.id,
               contactName: contact.contactName,
               contactPhone: contact.contactPhone,

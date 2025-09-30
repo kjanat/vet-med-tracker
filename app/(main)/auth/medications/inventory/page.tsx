@@ -159,7 +159,7 @@ function InventoryContent() {
 
     try {
       await setInUseMutation.mutateAsync({
-        id: itemId,
+        itemId,
         householdId: selectedHousehold.id,
         inUse,
       });
@@ -195,7 +195,7 @@ function InventoryContent() {
 
     try {
       await assignMutation.mutateAsync({
-        id: itemId,
+        itemId,
         householdId: selectedHousehold.id,
         animalId,
       });
@@ -225,7 +225,7 @@ function InventoryContent() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const _handleDelete = async (id: string) => {
     if (!selectedHousehold?.id) return;
 
     try {
@@ -463,19 +463,18 @@ function InventoryContent() {
 
       {/* Assign Modal */}
       <AssignModal
-        item={assignModalItem}
+        inventoryItem={assignModalItem}
         onAssign={handleAssign}
-        onOpenChange={(open) => !open && setAssignModalItem(null)}
+        onOpenChange={(open: boolean) => !open && setAssignModalItem(null)}
         open={Boolean(assignModalItem)}
       />
 
       {/* Edit Modal */}
       <EditItemModal
+        isOpen={Boolean(editModalItem)}
         item={editModalItem}
-        onDelete={handleDelete}
-        onOpenChange={(open) => !open && setEditModalItem(null)}
-        onUpdate={handleUpdate}
-        open={Boolean(editModalItem)}
+        onOpenChange={(open: boolean) => !open && setEditModalItem(null)}
+        onSave={handleUpdate}
       />
 
       {/* Inventory Form Dialog */}

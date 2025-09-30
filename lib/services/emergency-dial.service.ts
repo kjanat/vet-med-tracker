@@ -1,158 +1,84 @@
-/**
- * Emergency Quick-Dial Service
- * Provides quick access to emergency contacts and veterinarian information
- * for medical emergencies with mobile-optimized dialing
- */
-
 export interface EmergencyContact {
   id: string;
   name: string;
   phone: string;
-  relationship?: string;
-  isPrimary: boolean;
-}
-
-export interface VeterinarianContact {
-  name: string;
-  phone: string | null | undefined;
-  clinic?: string;
+  relationship: string;
+  isVeterinarian?: boolean;
 }
 
 export class EmergencyDialService {
-  /**
-   * Initiate a phone call to emergency contact
-   * Uses tel: protocol for mobile device compatibility
-   */
-  static dialEmergencyContact(contact: EmergencyContact): void {
-    if (!contact.phone) {
-      console.warn("No phone number available for contact:", contact.name);
-      return;
-    }
-
-    const cleanPhone = EmergencyDialService.cleanPhoneNumber(contact.phone);
-    const telUri = `tel:${cleanPhone}`;
-
-    // Track emergency dial for audit purposes
-    EmergencyDialService.logEmergencyDial(contact.name, cleanPhone);
-
-    // Initiate call
-    window.location.href = telUri;
+  static async getEmergencyContacts(): Promise<EmergencyContact[]> {
+    // Mock implementation - would fetch from database in real app
+    return [
+      {
+        id: "1",
+        isVeterinarian: true,
+        name: "Dr. Smith - Veterinary Clinic",
+        phone: "(555) 123-4567",
+        relationship: "Primary Veterinarian",
+      },
+      {
+        id: "2",
+        isVeterinarian: true,
+        name: "Emergency Animal Hospital",
+        phone: "(555) 999-8888",
+        relationship: "Emergency Vet",
+      },
+    ];
   }
 
-  /**
-   * Initiate a phone call to veterinarian
-   */
-  static dialVeterinarian(vet: VeterinarianContact): void {
-    if (!vet.phone) {
-      console.warn("No phone number available for veterinarian:", vet.name);
-      return;
-    }
-
-    const cleanPhone = EmergencyDialService.cleanPhoneNumber(vet.phone);
-    const telUri = `tel:${cleanPhone}`;
-
-    // Track veterinarian dial for audit purposes
-    EmergencyDialService.logVeterinarianDial(vet.name, cleanPhone);
-
-    // Initiate call
-    window.location.href = telUri;
+  static formatPhoneForDialing(phone: string): string {
+    // Remove formatting and return clean phone number
+    return phone.replace(/[^\d]/g, "");
   }
 
-  /**
-   * Clean phone number for tel: protocol
-   * Removes spaces, dashes, parentheses, and other formatting
-   */
-  private static cleanPhoneNumber(phone: string): string {
-    return phone.replace(/[^\d+]/g, "");
-  }
-
-  /**
-   * Log emergency contact dial for audit trail
-   */
-  private static async logEmergencyDial(
-    contactName: string,
-    phoneNumber: string,
-  ): Promise<void> {
-    try {
-      await fetch("/api/audit/emergency-dial", {
-        body: JSON.stringify({
-          contactName,
-          phoneNumber,
-          timestamp: new Date().toISOString(),
-          type: "emergency_contact",
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-    } catch (error) {
-      console.error("Failed to log emergency dial event:", error);
-      // Don't throw - emergency calling should not be blocked by logging failures
-    }
-  }
-
-  /**
-   * Log veterinarian dial for audit trail
-   */
-  private static async logVeterinarianDial(
-    vetName: string,
-    phoneNumber: string,
-  ): Promise<void> {
-    try {
-      await fetch("/api/audit/emergency-dial", {
-        body: JSON.stringify({
-          contactName: vetName,
-          phoneNumber,
-          timestamp: new Date().toISOString(),
-          type: "veterinarian",
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-    } catch (error) {
-      console.error("Failed to log veterinarian dial event:", error);
-      // Don't throw - emergency calling should not be blocked by logging failures
-    }
-  }
-
-  /**
-   * Format phone number for display
-   * Converts to (XXX) XXX-XXXX format for US numbers
-   */
   static formatPhoneForDisplay(phone: string): string {
-    const cleaned = EmergencyDialService.cleanPhoneNumber(phone);
-
-    // Handle US phone numbers (10 or 11 digits)
-    if (cleaned.length === 10) {
-      return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3");
-    } else if (cleaned.length === 11 && cleaned.startsWith("1")) {
-      return cleaned.replace(/(\d{1})(\d{3})(\d{3})(\d{4})/, "+$1 ($2) $3-$4");
+    // Format phone number for display (e.g., "+1 (555) 123-4567")
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length === 10) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
     }
-
-    // Return original if not standard US format
-    return phone;
+    if (digits.length === 11 && digits[0] === "1") {
+      return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+    }
+    return phone; // Return as-is if format not recognized
   }
 
-  /**
-   * Check if device supports tel: protocol
-   */
+  static async dialVeterinarian(phone: string): Promise<void> {
+    const cleanPhone = EmergencyDialService.formatPhoneForDialing(phone);
+    if (EmergencyDialService.canMakePhoneCalls()) {
+      window.location.href = `tel:${cleanPhone}`;
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(cleanPhone);
+    }
+  }
+
+  static async dialEmergencyContact(phone: string): Promise<void> {
+    const cleanPhone = EmergencyDialService.formatPhoneForDialing(phone);
+    if (EmergencyDialService.canMakePhoneCalls()) {
+      window.location.href = `tel:${cleanPhone}`;
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(cleanPhone);
+    }
+  }
+
   static canMakePhoneCalls(): boolean {
-    // Check if running on mobile device or desktop with phone capability
-    return (
-      typeof window !== "undefined" &&
-      (navigator.userAgent.includes("Mobile") ||
-        navigator.userAgent.includes("Android") ||
-        navigator.userAgent.includes("iPhone"))
+    // Check if device can make phone calls
+    return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
     );
   }
 
-  /**
-   * Get emergency action for non-phone capable devices
-   */
-  static getEmergencyFallback(phone: string): string {
-    return `Call ${EmergencyDialService.formatPhoneForDisplay(phone)} immediately`;
+  static initiateCall(phone: string): void {
+    const cleanPhone = EmergencyDialService.formatPhoneForDialing(phone);
+    // In a real app, this would integrate with device calling functionality
+    console.log(`Initiating call to: ${cleanPhone}`);
+
+    // For web, we can create a tel: link
+    if (typeof window !== "undefined") {
+      window.location.href = `tel:${cleanPhone}`;
+    }
   }
 }

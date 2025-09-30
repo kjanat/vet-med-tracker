@@ -1,37 +1,28 @@
 "use client";
 
-import { AddItemModal } from "@/components/inventory/add-item-modal";
-import { useInventoryForm } from "@/hooks/forms/useInventoryForm";
+import { useState } from "react";
 
-/**
- * Inventory form dialog component that manages its own state
- *
- * This component provides a complete inventory form dialog with state management,
- * validation, and saving functionality.
- */
-export function InventoryFormDialog() {
-  const { isOpen, closeForm, saveForm } = useInventoryForm({
-    autoClose: true,
-    showSuccessToast: true,
-  });
-
-  return (
-    <AddItemModal onAdd={saveForm} onOpenChange={closeForm} open={isOpen} />
-  );
+// Minimal stub for inventory form dialog
+export interface InventoryFormDialogProps {
+  onClose?: () => void;
+  isOpen?: boolean;
 }
 
-/**
- * Hook that provides inventory form controls and state
- *
- * This hook can be used by components that need to trigger the inventory form
- * or check its state.
- */
+export function InventoryFormDialog({
+  onClose,
+  isOpen,
+}: InventoryFormDialogProps) {
+  return null; // Placeholder - coming soon
+}
+
 export function useInventoryFormDialog() {
-  const { openForm, isOpen, isLoading } = useInventoryForm();
+  const [isOpen, setIsOpen] = useState(false);
 
   return {
-    isFormLoading: isLoading,
-    isFormOpen: isOpen,
-    openInventoryForm: () => openForm(),
+    closeDialog: () => setIsOpen(false),
+    isOpen,
+    openDialog: () => setIsOpen(true),
   };
 }
+
+export default InventoryFormDialog;

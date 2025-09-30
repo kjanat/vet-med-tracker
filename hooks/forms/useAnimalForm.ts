@@ -187,7 +187,7 @@ export function useAnimalForm(
     onSuccess: (data): void => {
       // Invalidate queries to refresh data
       utils.animal.list.invalidate();
-      utils.household.getAnimals.invalidate();
+      utils.animals.list.invalidate();
 
       if (showSuccessToast && data) {
         const message: string =
@@ -215,7 +215,7 @@ export function useAnimalForm(
     onSuccess: (data): void => {
       // Invalidate queries to refresh data
       utils.animal.list.invalidate();
-      utils.household.getAnimals.invalidate();
+      utils.animals.list.invalidate();
 
       if (showSuccessToast && data) {
         const message: string =

@@ -1,31 +1,57 @@
 "use client";
 
-import * as PopoverPrimitive from "@radix-ui/react-popover";
-import React, { type ComponentRef } from "react";
+import { type ReactNode, useState } from "react";
 
-import { cn } from "@/lib/utils/general";
+// Minimal stub for popover
+export interface PopoverProps {
+  trigger: ReactNode;
+  children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
 
-const Popover = PopoverPrimitive.Root;
+export function Popover({
+  trigger,
+  children,
+  open,
+  onOpenChange,
+}: PopoverProps) {
+  const [isOpen, setIsOpen] = useState(open || false);
 
-const PopoverTrigger = PopoverPrimitive.Trigger;
+  const handleToggle = () => {
+    const newOpen = !isOpen;
+    setIsOpen(newOpen);
+    onOpenChange?.(newOpen);
+  };
 
-const PopoverContent = React.forwardRef<
-  ComponentRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
-      align={align}
-      className={cn(
-        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden data-[state=closed]:animate-out data-[state=open]:animate-in",
-        className,
+  return (
+    <div className="relative">
+      <div onClick={handleToggle}>{trigger}</div>
+      {isOpen && (
+        <div className="absolute z-10 mt-1 rounded border bg-white p-4 shadow-lg">
+          {children}
+        </div>
       )}
-      ref={ref}
-      sideOffset={sideOffset}
-      {...props}
-    />
-  </PopoverPrimitive.Portal>
-));
-PopoverContent.displayName = PopoverPrimitive.Content.displayName;
+    </div>
+  );
+}
 
-export { Popover, PopoverTrigger, PopoverContent };
+export interface PopoverTriggerProps {
+  children: ReactNode;
+  asChild?: boolean;
+}
+
+export function PopoverTrigger({ children }: PopoverTriggerProps) {
+  return <>{children}</>;
+}
+
+export interface PopoverContentProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function PopoverContent({ children, className }: PopoverContentProps) {
+  return <div className={className}>{children}</div>;
+}
+
+export default Popover;

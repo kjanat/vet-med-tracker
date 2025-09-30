@@ -28,13 +28,13 @@ export default function UsersPage() {
     selectedAnimal?.timezone || selectedHousehold?.timezone || "UTC";
 
   // Get household members
-  const { data: members, isLoading } = trpc.household.getMembers.useQuery(
+  const { data: members, isLoading } = trpc.households.getMembers.useQuery(
     { householdId: selectedHousehold?.id || "" },
     { enabled: Boolean(selectedHousehold) },
   );
 
   // Check user's role in household
-  const { data: userMembership } = trpc.user.getMembership.useQuery(
+  const { data: userMembership } = trpc.households.getMembership.useQuery(
     { householdId: selectedHousehold?.id || "" },
     { enabled: Boolean(selectedHousehold) },
   );
@@ -42,7 +42,7 @@ export default function UsersPage() {
   const canManageUsers = userMembership?.role === "OWNER";
 
   const filteredMembers = members?.filter(
-    (member) =>
+    (member: any) =>
       member.user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.user.email?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -93,7 +93,7 @@ export default function UsersPage() {
 
       {/* Users List */}
       <div className="grid gap-4">
-        {filteredMembers?.map((member) => {
+        {filteredMembers?.map((member: any) => {
           const initials =
             member.user.name
               ?.split(" ")

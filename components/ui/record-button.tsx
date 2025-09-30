@@ -1,64 +1,34 @@
-"use client";
-
 import { Plus } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/general";
 
 interface RecordButtonProps {
-  onRecord?: () => void;
-  prefilled?: boolean;
+  onClick?: () => void;
   className?: string;
+  disabled?: boolean;
+  children?: React.ReactNode;
+  prefilled?: boolean;
 }
 
 export function RecordButton({
-  onRecord,
-  prefilled = false,
+  onClick,
   className,
+  disabled = false,
+  children = "Record",
+  prefilled = false,
 }: RecordButtonProps) {
-  const [isHolding, setIsHolding] = useState(false);
-  const [holdProgress, setHoldProgress] = useState(0);
-
-  const handleMouseDown = () => {
-    setIsHolding(true);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 2;
-      setHoldProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setIsHolding(false);
-        setHoldProgress(0);
-        onRecord?.();
-      }
-    }, 30);
-
-    const handleMouseUp = () => {
-      clearInterval(interval);
-      setIsHolding(false);
-      setHoldProgress(0);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-
-    document.addEventListener("mouseup", handleMouseUp);
-  };
-
   return (
     <Button
       className={cn(
-        "relative overflow-hidden",
-        prefilled && "ring-2 ring-primary ring-offset-2",
+        "gap-2",
+        prefilled ? "bg-green-600 hover:bg-green-700" : "",
         className,
       )}
-      onMouseDown={handleMouseDown}
-      size="lg"
+      disabled={disabled}
+      onClick={onClick}
     >
-      <div
-        className="absolute inset-0 bg-primary-foreground/20 transition-all duration-75"
-        style={{ width: `${holdProgress}%` }}
-      />
-      <Plus className="mr-2 h-4 w-4" />
-      {isHolding ? "Hold to Record..." : "Record"}
+      <Plus className="h-4 w-4" />
+      {children}
     </Button>
   );
 }

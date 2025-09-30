@@ -1,31 +1,21 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import { useInventoryFormDialog } from "@/components/forms/inventory-form-dialog";
-import { Button } from "@/components/ui/button";
-
-interface AddItemButtonProps {
-  className?: string;
-  size?: "sm" | "default" | "lg";
-  variant?: "default" | "outline" | "ghost" | "destructive" | "secondary";
+// Minimal stub for add item button
+export interface AddItemButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
-export function AddItemButton({
-  className,
-  size,
-  variant,
-}: AddItemButtonProps) {
-  const { openInventoryForm } = useInventoryFormDialog();
-
+export function AddItemButton({ onClick, disabled }: AddItemButtonProps) {
   return (
-    <Button
-      className={`gap-2 ${className || ""}`}
-      onClick={openInventoryForm}
-      size={size}
-      variant={variant}
+    <button
+      className="rounded bg-blue-500 px-4 py-2 text-white"
+      disabled={disabled}
+      onClick={onClick}
     >
-      <Plus className="h-4 w-4" />
       Add Item
-    </Button>
+    </button>
   );
 }
+
+export default AddItemButton;

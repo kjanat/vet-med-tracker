@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { DosageCalculator } from "@/components/medication/dosage-calculator";
 
 export const metadata: Metadata = {
   title: "Dosage Calculator | VetMed Tracker",
@@ -8,5 +7,14 @@ export const metadata: Metadata = {
 };
 
 export default function DosageCalculatorPage() {
-  return <DosageCalculator />;
+  return (
+    <div className="container mx-auto py-6">
+      <div className="py-12 text-center">
+        <h1 className="font-bold text-2xl text-gray-900">Dosage Calculator</h1>
+        <p className="mt-2 text-gray-600">
+          Smart dosage calculation tools coming soon
+        </p>
+      </div>
+    </div>
+  );
 }

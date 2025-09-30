@@ -1,129 +1,46 @@
-import { Building2, Edit2, LogOut, MoreVertical, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface HouseholdCardProps {
-  membership: {
-    household: {
-      id: string;
-      name: string;
-      createdAt: Date;
-      timezone?: string | null;
-      _count?: {
-        members?: number;
-        animals?: number;
-      };
-    };
-    role: string;
+  household?: {
+    id: string;
+    name: string;
+    memberCount?: number;
+    animalCount?: number;
   };
-  isSelected: boolean;
-  onMakeActive: () => void;
-  onEdit: () => void;
-  onLeave: () => void;
+  onClick?: (household: any) => void;
+  isSelected?: boolean;
+  membership?: any;
+  onEdit?: () => void;
+  onLeave?: () => void;
+  onMakeActive?: () => void;
 }
 
 export function HouseholdCard({
-  membership,
+  household,
+  onClick,
   isSelected,
-  onMakeActive,
+  membership,
   onEdit,
   onLeave,
+  onMakeActive,
 }: HouseholdCardProps) {
-  const isOwner = membership.role === "OWNER";
-
   return (
-    <Card className={isSelected ? "border-primary" : ""}>
+    <Card
+      className="cursor-pointer transition-colors hover:bg-muted/50"
+      onClick={() => onClick?.(household)}
+    >
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-muted p-3">
-              <Building2 className="h-5 w-5" />
-            </div>
-            <div>
-              <CardTitle className="text-xl">
-                {membership.household.name}
-              </CardTitle>
-              <CardDescription>
-                Created {membership.household.createdAt.toLocaleDateString()}
-                {membership.household.timezone && (
-                  <span className="ml-2">
-                    • {membership.household.timezone}
-                  </span>
-                )}
-              </CardDescription>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={isOwner ? "default" : "secondary"}>
-              {membership.role}
-            </Badge>
-            {isSelected && (
-              <Badge className="border-primary" variant="outline">
-                Active
-              </Badge>
-            )}
-          </div>
-        </div>
+        <CardTitle className="text-lg">{household.name}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6 text-muted-foreground text-sm">
-            <div className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              <span>{membership.household._count?.members || 0} members</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>{membership.household._count?.animals || 0} animals</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {!isSelected && (
-              <Button onClick={onMakeActive} size="sm" variant="outline">
-                Make Active
-              </Button>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {isOwner && (
-                  <>
-                    <DropdownMenuItem onClick={onEdit}>
-                      <Edit2 className="mr-2 h-4 w-4" />
-                      Edit Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                {!isOwner && (
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={onLeave}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Leave Household
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+        <div className="flex gap-2">
+          {household.memberCount && (
+            <Badge variant="secondary">{household.memberCount} members</Badge>
+          )}
+          {household.animalCount && (
+            <Badge variant="outline">{household.animalCount} animals</Badge>
+          )}
         </div>
       </CardContent>
     </Card>

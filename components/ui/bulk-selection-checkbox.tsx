@@ -1,26 +1,37 @@
 "use client";
 
-import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils/general";
 
 interface BulkSelectionCheckboxProps {
-  id: string;
-  "aria-label"?: string;
+  checked: boolean | "indeterminate";
+  onCheckedChange: (checked: boolean) => void;
+  label?: string;
+  className?: string;
+  disabled?: boolean;
 }
 
 export function BulkSelectionCheckbox({
-  id,
-  "aria-label": ariaLabel,
+  checked,
+  onCheckedChange,
+  label = "Select all",
+  className,
+  disabled = false,
 }: BulkSelectionCheckboxProps) {
-  const { isSelected, toggle } = useBulkSelection();
-
-  const checked = isSelected(id);
-
   return (
-    <Checkbox
-      aria-label={ariaLabel || `Select item ${id}`}
-      checked={checked}
-      onCheckedChange={() => toggle(id)}
-    />
+    <div className={cn("flex items-center space-x-2", className)}>
+      <Checkbox
+        checked={checked}
+        disabled={disabled}
+        id="bulk-select-all"
+        onCheckedChange={onCheckedChange}
+      />
+      <label
+        className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        htmlFor="bulk-select-all"
+      >
+        {label}
+      </label>
+    </div>
   );
 }

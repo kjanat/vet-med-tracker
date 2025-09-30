@@ -1,41 +1,33 @@
-/**
- * Dashboard Layout Component - Strategy Pattern Implementation
- *
- * Enhanced sidebar layout with dashboard-specific features
- */
+"use client";
 
-import type { ReactNode } from "react";
-import { SidebarLayout } from "./sidebar-layout";
+import { cn } from "@/lib/utils/general";
 
-export interface DashboardLayoutProps {
-  children: ReactNode;
-  variant?: "default" | "compact" | "wide";
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  sidebar?: React.ReactNode;
+  header?: React.ReactNode;
+  className?: string;
 }
 
 export function DashboardLayout({
   children,
-  variant = "default",
+  sidebar,
+  header,
+  className,
 }: DashboardLayoutProps) {
-  const sidebarConfig = {
-    defaultOpen: variant !== "compact",
-    variant: "sidebar" as const,
-  };
-
-  const headerConfig = {
-    showBreadcrumb: true,
-    showSearch: variant !== "compact",
-  };
-
   return (
-    <SidebarLayout headerConfig={headerConfig} sidebarConfig={sidebarConfig}>
-      <div
-        className={`dashboard-content ${variant === "wide" ? "max-w-none" : "mx-auto max-w-7xl"}
-          ${variant === "compact" ? "space-y-2" : "space-y-4"}
-        `}
-        data-variant={variant}
-      >
-        {children}
+    <div className={cn("min-h-screen bg-background", className)}>
+      {header && (
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          {header}
+        </header>
+      )}
+      <div className="flex">
+        {sidebar && (
+          <aside className="w-64 border-r bg-muted/40">{sidebar}</aside>
+        )}
+        <main className="flex-1 p-6">{children}</main>
       </div>
-    </SidebarLayout>
+    </div>
   );
 }

@@ -346,20 +346,15 @@ async function processAndStoreFile(file: File, userId: string) {
   const fileName = generateFileName(file.name, userId, file.type);
   const { url, downloadUrl } = await storeFile(file, fileName);
 
-  await auditHelpers.logDataAccess(
-    "file_uploaded",
-    userId,
-    "animal_photo",
-    fileName,
-    {
-      fileName: file.name,
-      fileSize: file.size,
-      contentType: file.type,
-      storedAs: fileName,
-      blobUrl: url,
-      downloadUrl,
-    },
-  );
+  await auditHelpers.logDataAccess(userId, "animal_photo", fileName, {
+    eventType: "file_uploaded",
+    fileName: file.name,
+    fileSize: file.size,
+    contentType: file.type,
+    storedAs: fileName,
+    blobUrl: url,
+    downloadUrl,
+  });
 
   return { url, downloadUrl, fileName };
 }

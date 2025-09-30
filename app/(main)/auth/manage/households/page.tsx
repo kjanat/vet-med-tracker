@@ -55,7 +55,7 @@ export default function HouseholdsPage() {
   }));
 
   // Get detailed data for selected household
-  const { data: rawSelectedHouseholdData } = trpc.household.get.useQuery(
+  const { data: rawSelectedHouseholdData } = trpc.households.get.useQuery(
     { householdId: selectedHousehold?.id ?? "" },
     { enabled: Boolean(selectedHousehold?.id) },
   );
@@ -69,14 +69,14 @@ export default function HouseholdsPage() {
     : undefined;
 
   // Get members for selected household
-  const { data: membersData } = trpc.household.getMembers.useQuery(
+  const { data: membersData } = trpc.households.getMembers.useQuery(
     { householdId: selectedHousehold?.id ?? "" },
     { enabled: Boolean(selectedHousehold?.id) },
   );
 
   // Transform members data
   const members: Member[] =
-    membersData?.map((member) => ({
+    membersData?.map((member: any) => ({
       id: member.id,
       userId: member.userId,
       email: member.user.email,
@@ -89,13 +89,13 @@ export default function HouseholdsPage() {
 
   // Find current user's role in selected household
   const currentUserMembership = membersData?.find(
-    (member) => member.userId === user?.id,
+    (member: any) => member.userId === user?.id,
   );
   const userRoleInSelected = currentUserMembership?.role;
 
   // Mutations
-  const updateHouseholdMutation = trpc.household.update.useMutation({
-    onSuccess: (data) => {
+  const updateHouseholdMutation = trpc.households.update.useMutation({
+    onSuccess: (data: any) => {
       toast({
         title: "Household updated",
         description: "Your household settings have been saved.",
@@ -108,7 +108,7 @@ export default function HouseholdsPage() {
       setEditingHouseholdId(null);
       refetch();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to update household",
         description: error.message,
@@ -117,7 +117,7 @@ export default function HouseholdsPage() {
     },
   });
 
-  const leaveHouseholdMutation = trpc.household.leave.useMutation({
+  const leaveHouseholdMutation = trpc.households.leave.useMutation({
     onSuccess: () => {
       toast({
         title: "Left household",
@@ -131,7 +131,7 @@ export default function HouseholdsPage() {
       setLeavingHouseholdId(null);
       refetch();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to leave household",
         description: error.message,
@@ -153,7 +153,7 @@ export default function HouseholdsPage() {
   const handleSaveHousehold = () => {
     if (!editingHouseholdId) return;
     updateHouseholdMutation.mutate({
-      householdId: editingHouseholdId,
+      id: editingHouseholdId,
       name: editedName,
       timezone: editedTimezone,
     });

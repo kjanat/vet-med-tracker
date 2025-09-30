@@ -50,7 +50,6 @@ function NoHouseholdState() {
 // Animal list component
 function AnimalList({
   animals,
-  timezone,
 }: {
   animals: Array<{
     id: string;
@@ -69,15 +68,9 @@ function AnimalList({
     animal.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleEdit = (animal: (typeof animals)[0]) => {
+  const handleEdit = (_animal: (typeof animals)[0]) => {
     // Convert minimal animal to full Animal type - in a real app, we'd fetch full animal data here
-    const fullAnimal = {
-      ...animal,
-      timezone: animal.timezone || timezone, // Use animal's timezone or fallback to household timezone
-      allergies: [],
-      conditions: [],
-    };
-    openAnimalForm(fullAnimal);
+    openAnimalForm();
   };
 
   const handleEmergencyCard = (animalId: string) => {

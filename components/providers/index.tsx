@@ -1,20 +1,14 @@
 // =============================================================================
-// PROVIDER EXPORTS
+// PROVIDER EXPORTS - CONSOLIDATED ARCHITECTURE
 // =============================================================================
 
+// Main consolidated provider (recommended)
+// Hooks from consolidated provider
 export {
-  AccessibilityProvider,
-  useAccessibility,
-} from "./accessibility-provider";
-// Original consolidated provider (for gradual migration)
-export { ConsolidatedAppProvider } from "./app-provider-consolidated";
-// New modular architecture
-// Main app hook (backwards compatible)
-// Legacy compatibility hooks
-export {
-  AppProviders,
+  ConsolidatedAppProvider,
   useApp,
   useAppLegacy,
+  useAuth,
   useDateTimeFormatting,
   useHouseholdInfo,
   useNotificationPreferences,
@@ -22,19 +16,15 @@ export {
   useScreenReaderAnnouncements,
   useUserPreferencesContext,
   useUserTimezone,
-} from "./app-providers";
-export { AuthProvider, useAuth } from "./auth-provider";
-// Other providers
-export { BulkSelectionProvider } from "./bulk-selection-provider";
-export { HouseholdProvider, useHousehold } from "./household-provider";
-export { PreferencesProvider, usePreferences } from "./preferences-provider";
+} from "./app-provider-consolidated";
+
+// All functionality is now consolidated in the main provider
 
 // =============================================================================
 // TYPE EXPORTS
 // =============================================================================
 
-export type { AccessibilityContextType } from "./accessibility-provider";
-// Legacy types
+// All types are consolidated
 export type {
   AppContextType,
   HouseholdSettings,
@@ -42,10 +32,3 @@ export type {
   UserProfile,
   VetMedPreferences,
 } from "./app-provider-consolidated";
-export type { AuthContextType } from "./auth-provider";
-export type {
-  Animal,
-  Household,
-  HouseholdContextType,
-} from "./household-provider";
-export type { PreferencesContextType } from "./preferences-provider";

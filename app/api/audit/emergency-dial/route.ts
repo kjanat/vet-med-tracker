@@ -85,11 +85,11 @@ async function logEmergencyDialEvent(
       : "emergency_contact_dial";
 
   await auditHelpers.logDataAccess(
-    eventType,
     userId,
     "emergency_communication",
     data.contactName,
     {
+      eventType,
       contactName: data.contactName,
       phoneNumber: data.phoneNumber.replace(
         /(\d{3})(\d{3})(\d{4})/,

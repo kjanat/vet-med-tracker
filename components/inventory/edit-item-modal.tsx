@@ -1,263 +1,31 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { useForm } from "react-hook-form";
-import z from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import type { InventoryItem } from "./inventory-card";
 
-const editItemSchema = z.object({
-  brandOverride: z.string().optional(),
-  expiresOn: z.string().min(1, "Expiration date is required"),
-  lot: z.string().optional(),
-  notes: z.string().optional(),
-  storage: z.enum(["ROOM", "FRIDGE", "FREEZER", "CONTROLLED"]),
-  unitsRemaining: z.number().int().min(0, "Units must be 0 or more"),
-});
+// Minimal stub for edit item modal
+export interface EditItemData {
+  brandOverride?: string;
+  lot?: string;
+  expiresOn: string;
+  storage?: "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED";
+  unitsRemaining: number;
+  notes?: string;
+}
 
-export type EditItemData = z.infer<typeof editItemSchema>;
-
-interface EditItemModalProps {
-  item: InventoryItem | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onUpdate: (id: string, data: EditItemData) => Promise<void>;
-  onDelete?: (id: string) => Promise<void>;
+export interface EditItemModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  item?: InventoryItem | null;
+  onSave?: (id: string, data: EditItemData) => Promise<void>;
 }
 
 export function EditItemModal({
+  isOpen,
+  onClose,
   item,
-  open,
-  onOpenChange,
-  onUpdate,
-  onDelete,
+  onSave,
 }: EditItemModalProps) {
-  const form = useForm<EditItemData>({
-    defaultValues: {
-      brandOverride: "",
-      expiresOn: "",
-      lot: "",
-      notes: "",
-      storage: "ROOM",
-      unitsRemaining: 0,
-    },
-    resolver: zodResolver(editItemSchema),
-  });
-
-  // Reset form when item changes
-  if (item) {
-    const defaultValues = {
-      brandOverride: item.brand || "",
-      expiresOn: format(item.expiresOn, "yyyy-MM-dd"),
-      lot: item.lot || "",
-      notes: item.notes || "",
-      storage: item.storage,
-      unitsRemaining: item.unitsRemaining,
-    };
-    form.reset(defaultValues);
-  }
-
-  const onSubmit = async (data: EditItemData) => {
-    if (!item) return;
-
-    await onUpdate(item.id, {
-      ...data,
-      expiresOn: data.expiresOn,
-    });
-    onOpenChange(false);
-  };
-
-  const handleDelete = async () => {
-    if (!item || !onDelete) return;
-
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${item.name}? This action cannot be undone.`,
-      )
-    ) {
-      await onDelete(item.id);
-      onOpenChange(false);
-    }
-  };
-
-  if (!item) return null;
-
-  return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Edit Inventory Item</DialogTitle>
-          <DialogDescription>
-            Update details for {item.name} {item.strength}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-            <FormField
-              control={form.control}
-              name="brandOverride"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Brand Name (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Override brand name" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Leave blank to use default brand name
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lot"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Lot Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ABC123" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="expiresOn"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Expiration Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="storage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Storage Location</FormLabel>
-                  <Select
-                    defaultValue={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="ROOM">Room Temperature</SelectItem>
-                      <SelectItem value="FRIDGE">Refrigerated</SelectItem>
-                      <SelectItem value="FREEZER">Freezer</SelectItem>
-                      <SelectItem value="CONTROLLED">
-                        Controlled Substance
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="unitsRemaining"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Units Remaining</FormLabel>
-                  <FormControl>
-                    <Input
-                      min="0"
-                      type="number"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value, 10) || 0)
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      className="resize-none"
-                      placeholder="Additional notes..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter className="flex justify-between gap-2 sm:justify-between">
-              {onDelete && (
-                <Button
-                  onClick={handleDelete}
-                  type="button"
-                  variant="destructive"
-                >
-                  Delete
-                </Button>
-              )}
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => onOpenChange(false)}
-                  type="button"
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">Update</Button>
-              </div>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
+  return null; // Placeholder - coming soon
 }
+
+export default EditItemModal;

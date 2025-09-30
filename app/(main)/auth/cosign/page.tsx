@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { SignaturePad } from "@/components/cosign/signature-pad";
+// Simple inline signature pad replacement
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -454,11 +454,18 @@ function ApprovalDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <SignaturePad
-            height={150}
-            onSignatureChange={onSignatureChange}
-            width={400}
-          />
+          <div className="rounded-md border border-gray-300 bg-gray-50 p-4">
+            <div className="text-center text-gray-500 text-sm">
+              Digital signature capture coming soon
+            </div>
+            <textarea
+              className="mt-2 w-full rounded border p-2 text-sm"
+              onChange={(e) => onSignatureChange(e.target.value || null)}
+              placeholder="For now, type your digital signature here"
+              rows={3}
+              value={signature || ""}
+            />
+          </div>
 
           <div className="flex gap-2">
             <Button

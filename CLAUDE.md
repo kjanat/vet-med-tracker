@@ -1,0 +1,1 @@
+- instead of running `npx tsc --noEmit`, use the much faster `npx tsgo --noEmit`, or even better use the alias script with more options specified: `bun typecheck`

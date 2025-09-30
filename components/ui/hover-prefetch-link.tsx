@@ -1,40 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import type React from "react";
-import { type ComponentProps, useState } from "react";
+import * as React from "react";
+import { cn } from "@/lib/utils/general";
 
-interface HoverPrefetchLinkProps
-  extends Omit<ComponentProps<typeof Link>, "prefetch"> {
-  /**
-   * Children to render inside the link
-   */
+interface HoverPrefetchLinkProps {
+  href: string;
   children: React.ReactNode;
+  className?: string;
+  prefetch?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-/**
- * Link component that only prefetches on hover to reduce resource usage.
- * Useful for large lists of links like tables or infinite scroll.
- *
- * @example
- * ```tsx
- * <HoverPrefetchLink href="/dashboard/history">
- *   View History
- * </HoverPrefetchLink>
- * ```
- */
 export function HoverPrefetchLink({
+  href,
   children,
-  ...props
+  className,
+  prefetch = true,
+  onMouseEnter,
+  onMouseLeave,
 }: HoverPrefetchLinkProps) {
-  const [shouldPrefetch, setShouldPrefetch] = useState(false);
+  const [isPrefetched, setIsPrefetched] = React.useState(false);
+
+  const handleMouseEnter = React.useCallback(() => {
+    if (!isPrefetched && prefetch) {
+      // Trigger prefetch on hover
+      setIsPrefetched(true);
+    }
+    onMouseEnter?.();
+  }, [isPrefetched, prefetch, onMouseEnter]);
+
+  const handleMouseLeave = React.useCallback(() => {
+    onMouseLeave?.();
+  }, [onMouseLeave]);
 
   return (
     <Link
-      {...props}
-      onFocus={() => setShouldPrefetch(true)}
-      onMouseEnter={() => setShouldPrefetch(true)}
-      prefetch={shouldPrefetch}
+      className={cn("transition-colors hover:text-foreground", className)}
+      href={href}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      prefetch={isPrefetched}
     >
       {children}
     </Link>

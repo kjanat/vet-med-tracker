@@ -67,7 +67,7 @@ function HistoryContent() {
       scheduledFor: record.scheduledFor ? new Date(record.scheduledFor) : null,
       recordedAt: new Date(record.recordedAt),
       coSignedAt: record.coSignedAt ? new Date(record.coSignedAt) : null,
-      editedAt: record.editedAt ? new Date(record.editedAt) : null,
+      editedAt: record.updatedAt ? new Date(record.updatedAt) : null,
     }));
 
     return transformMedicalRecords(rawRecords);
@@ -357,7 +357,7 @@ function HistoryContent() {
           <HistoryList
             groups={groupedRecords}
             hasMore={false}
-            onCosign={(id) => handleCosign(id)} // Implement pagination logic
+            onCosign={(id: string) => handleCosign(id)} // Implement pagination logic
             onDelete={handleDelete}
             onLoadMore={handleLoadMore}
             onUndo={handleUndo}

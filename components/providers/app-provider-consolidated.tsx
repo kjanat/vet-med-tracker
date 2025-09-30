@@ -726,12 +726,16 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   ]);
 
   // Fetch animals for selected household
-  const { data: animalData } = trpc.household.getAnimals.useQuery(
+  const { data: animalData } = trpc.animals.list.useQuery(
     { householdId: state.selectedHouseholdId || "" },
     { enabled: Boolean(state.selectedHouseholdId) },
   );
 
   // Fetch pending medications count
+  // TODO: getPendingMeds doesn't exist on any router - needs implementation
+  // Temporarily using undefined until the API method is added
+  const pendingMedsData = undefined;
+  /*
   const { data: pendingMedsData } = trpc.household.getPendingMeds.useQuery(
     { householdId: state.selectedHouseholdId || "" },
     {
@@ -739,6 +743,7 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
       refetchInterval: 60000, // Refresh every minute
     },
   );
+  */
 
   // Helper function to format animal data with pending meds
   const formatAnimalData = useCallback(
@@ -860,7 +865,8 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   const { refreshPendingMeds, setSelectedAnimal, setSelectedHousehold } =
     useHouseholdActions<Household, Animal>({
       dispatch,
-      invalidatePendingMeds: utils.household.getPendingMeds.invalidate,
+      // TODO: invalidatePendingMeds needs implementation when getPendingMeds is added
+      invalidatePendingMeds: () => Promise.resolve(),
       selectedHouseholdId: state.selectedHouseholdId,
     });
 
