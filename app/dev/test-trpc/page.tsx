@@ -395,7 +395,7 @@ export default function TestTRPCPage() {
       {/* Household Details */}
       {selectedHouseholdId && (
         <HouseholdDetails
-          details={householdDetails}
+          details={householdDetails as HouseholdDetailsData | undefined}
           isLoading={detailsLoading}
         />
       )}
