@@ -78,18 +78,18 @@ export default function HouseholdsPage() {
   const members: Member[] =
     membersData?.map((member) => ({
       id: member.id,
-      userId: member.userId,
+      userId: member.user.id,
       email: member.user.email,
-      name: member.user.name || undefined,
-      avatar: member.user.image || undefined,
+      name: member.user.name ?? "",
+      avatar: member.user.image ?? undefined,
       role: member.role,
-      joinedAt: new Date(member.createdAt),
-      lastActiveAt: member.updatedAt ? new Date(member.updatedAt) : undefined,
+      joinedAt: member.joinedAt,
+      lastActiveAt: undefined,
     })) ?? [];
 
   // Find current user's role in selected household
   const currentUserMembership = membersData?.find(
-    (member) => member.userId === user?.id,
+    (member) => member.user.id === user?.id,
   );
   const userRoleInSelected = currentUserMembership?.role;
 
