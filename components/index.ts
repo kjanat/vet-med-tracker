@@ -131,7 +131,7 @@ export {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-export { toast, useToast } from "./ui/use-toast";
+// export { toast, useToast } from "./ui/use-toast"; // File doesn't exist, use sonner instead
 
 // ===========================
 // BUSINESS COMPONENTS
@@ -149,7 +149,7 @@ export { AnimalSwitcherDropdown } from "./ui/animal-switcher-dropdown";
 export { BulkSelectionCheckbox } from "./ui/bulk-selection-checkbox";
 export { BulkSelectionTable } from "./ui/bulk-selection-table";
 // Class variants and utilities
-export * as ClassVariants from "./ui/class-variants";
+// export * as ClassVariants from "./ui/class-variants"; // File doesn't exist
 
 // Specialized form components
 export { DateInput } from "./ui/date-input";
@@ -176,24 +176,24 @@ export { MobileConfirmLayout } from "./ui/mobile-confirm-layout";
 export { NotificationDropdown } from "./ui/notification-dropdown";
 export { PhotoGallery } from "./ui/photo-gallery";
 export { PhotoGalleryDemo } from "./ui/photo-gallery-demo";
-// Photo uploader complex component
-export { PhotoUploader } from "./ui/photo-uploader";
-export { ProgressiveImage } from "./ui/progressive-image";
+// Photo uploader complex component - commented out, files don't exist
+// export { PhotoUploader } from "./ui/photo-uploader";
+// export { ProgressiveImage } from "./ui/progressive-image";
 export { RecordButton } from "./ui/record-button";
 export {
   ScreenReaderAnnouncer,
   SkipNavigation,
   useScreenReaderAnnouncements,
 } from "./ui/screen-reader-announcer";
-export { SelectAllCheckbox } from "./ui/select-all-checkbox";
+// export { SelectAllCheckbox } from "./ui/select-all-checkbox"; // File doesn't exist
 // Sidebar components
-export { Sidebar } from "./ui/sidebar";
+// export { Sidebar } from "./ui/sidebar"; // File doesn't exist
 export { SidebarMenuButton as SidebarCSS } from "./ui/sidebar-css";
 export * from "./ui/skeleton-variants";
-// Tablet-specific components
-export { TabletConfirmLayout } from "./ui/tablet-confirm-layout";
-export { TabletRecordLayout } from "./ui/tablet-record-layout";
-export { TabletSuccessLayout } from "./ui/tablet-success-layout";
+// Tablet-specific components - files don't exist
+// export { TabletConfirmLayout } from "./ui/tablet-confirm-layout";
+// export { TabletRecordLayout } from "./ui/tablet-record-layout";
+// export { TabletSuccessLayout } from "./ui/tablet-success-layout";
 export { TimezoneCombobox } from "./ui/timezone-combobox";
 
 // ===========================
