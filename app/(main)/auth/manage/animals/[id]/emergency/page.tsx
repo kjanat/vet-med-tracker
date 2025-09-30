@@ -371,13 +371,15 @@ export default function EmergencyCardPage() {
           <EmergencyContactsCard
             animalData={animalData}
             canMakePhoneCalls={canMakePhoneCalls}
-            emergencyContacts={emergencyContacts?.map((contact: any) => ({
-              id: contact.id,
-              contactName: contact.contactName,
-              contactPhone: contact.contactPhone,
-              relationship: contact.relationship || undefined,
-              isPrimary: contact.isPrimary || false,
-            }))}
+            emergencyContacts={
+              (emergencyContacts as any[] | undefined)?.map((contact: any) => ({
+                id: contact.id,
+                contactName: contact.contactName,
+                contactPhone: contact.contactPhone,
+                relationship: contact.relationship || undefined,
+                isPrimary: contact.isPrimary || false,
+              })) || []
+            }
           />
           <MedicalAlertsCard animalData={animalData} />
           <MedicationsCard regimens={regimens} />

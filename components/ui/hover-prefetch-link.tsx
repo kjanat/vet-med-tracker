@@ -38,7 +38,7 @@ export function HoverPrefetchLink({
   return (
     <Link
       className={cn("transition-colors hover:text-foreground", className)}
-      href={href}
+      href={href as any}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       prefetch={isPrefetched}

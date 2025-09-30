@@ -1,44 +1,39 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
+import * as React from "react";
 
-// Minimal stub for popover
+const PopoverContext = React.createContext<{
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}>({ open: false, setOpen: () => {} });
+
+// Minimal stub for popover - Radix UI compatible API
 export interface PopoverProps {
-  trigger: ReactNode;
   children: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
 export function Popover({
-  trigger,
   children,
-  open,
+  open: controlledOpen,
   onOpenChange,
 }: PopoverProps) {
-  const [isOpen, setIsOpen] = useState(open || false);
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
 
-  const handleToggle = () => {
-    const newOpen = !isOpen;
-    setIsOpen(newOpen);
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen;
+  const setOpen = (newOpen: boolean) => {
+    if (controlledOpen === undefined) {
+      setUncontrolledOpen(newOpen);
+    }
     onOpenChange?.(newOpen);
   };
 
   return (
-    <div className="relative">
-      <button
-        className="inline-flex items-center"
-        onClick={handleToggle}
-        type="button"
-      >
-        {trigger}
-      </button>
-      {isOpen && (
-        <div className="absolute z-10 mt-1 rounded border bg-white p-4 shadow-lg">
-          {children}
-        </div>
-      )}
-    </div>
+    <PopoverContext.Provider value={{ open, setOpen }}>
+      <div className="relative inline-block">{children}</div>
+    </PopoverContext.Provider>
   );
 }
 
@@ -47,17 +42,44 @@ export interface PopoverTriggerProps {
   asChild?: boolean;
 }
 
-export function PopoverTrigger({ children }: PopoverTriggerProps) {
-  return <>{children}</>;
+export function PopoverTrigger({ children, asChild }: PopoverTriggerProps) {
+  const { open, setOpen } = React.useContext(PopoverContext);
+
+  const handleClick = () => {
+    setOpen(!open);
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(children as any, {
+      onClick: handleClick,
+    });
+  }
+
+  return (
+    <button onClick={handleClick} type="button">
+      {children}
+    </button>
+  );
 }
 
 export interface PopoverContentProps {
   children: ReactNode;
   className?: string;
+  align?: "start" | "center" | "end";
 }
 
 export function PopoverContent({ children, className }: PopoverContentProps) {
-  return <div className={className}>{children}</div>;
+  const { open } = React.useContext(PopoverContext);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className={`absolute z-10 mt-1 rounded border bg-white p-4 shadow-lg ${className || ""}`}
+    >
+      {children}
+    </div>
+  );
 }
 
 export default Popover;

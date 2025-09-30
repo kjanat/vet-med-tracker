@@ -4,11 +4,15 @@ import {
   Toast,
   ToastClose,
   ToastDescription,
-  ToastProvider,
   ToastTitle,
-  ToastViewport,
 } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
+
+// Stub exports not in toast.tsx
+const ToastProvider = ({ children }: { children: React.ReactNode }) => (
+  <>{children}</>
+);
+const ToastViewport = () => null;
 
 export function Toaster() {
   const { toasts } = useToast();

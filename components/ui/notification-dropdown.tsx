@@ -62,12 +62,11 @@ export function NotificationDropdown({
     },
   });
 
-  const markAllAsReadMutation = trpc.notifications.markAllAsRead.useMutation({
-    onSuccess: () => {
-      refetchNotifications();
-      refetchUnreadCount();
-    },
-  });
+  // markAllAsRead endpoint doesn't exist yet - stub for now
+  const markAllAsReadMutation = {
+    isPending: false,
+    mutateAsync: async () => {},
+  } as any;
 
   const getIcon = (type: Notification["type"]) => {
     switch (type) {

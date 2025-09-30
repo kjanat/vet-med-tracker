@@ -175,7 +175,7 @@ export { MobileConfirmLayout } from "./ui/mobile-confirm-layout";
 // export { GuardedLink as NavigationGuard } from "./ui/navigation-guard"; // Commented out - export doesn't exist
 export { NotificationDropdown } from "./ui/notification-dropdown";
 export { PhotoGallery } from "./ui/photo-gallery";
-export { PhotoGalleryDemo } from "./ui/photo-gallery-demo";
+// export { PhotoGalleryDemo } from "./ui/photo-gallery-demo"; // disabled - demo file
 // Photo uploader complex component - commented out, files don't exist
 // export { PhotoUploader } from "./ui/photo-uploader";
 // export { ProgressiveImage } from "./ui/progressive-image";
