@@ -20,11 +20,14 @@ export function getTimezoneList(): string[] {
 export function getTimezoneOffset(timezone: string): number {
   try {
     const now = new Date();
-    const utc = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
-    const target = new Date(
-      utc.toLocaleString("en-US", { timeZone: timezone }),
-    );
-    return (target.getTime() - utc.getTime()) / 3600000; // Convert to hours
+    // Get UTC time
+    const utcStr = now.toLocaleString("en-US", { timeZone: "UTC" });
+    const utcDate = new Date(utcStr);
+    // Get target timezone time
+    const targetStr = now.toLocaleString("en-US", { timeZone: timezone });
+    const targetDate = new Date(targetStr);
+    // Calculate offset in hours
+    return (targetDate.getTime() - utcDate.getTime()) / 3600000;
   } catch {
     return 0;
   }
@@ -34,7 +37,7 @@ export function formatTimezoneDisplay(timezone: string): string {
   const offset = getTimezoneOffset(timezone);
   const sign = offset >= 0 ? "+" : "-";
   const hours = Math.abs(Math.floor(offset));
-  const minutes = Math.abs((offset % 1) * 60);
+  const minutes = Math.round(Math.abs((offset % 1) * 60));
 
   return `${timezone} (UTC${sign}${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")})`;
 }
