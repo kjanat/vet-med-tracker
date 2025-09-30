@@ -403,10 +403,7 @@ export namespace VetUnitConversions {
       ) {
         return false;
       }
-      if (fromUnit === "lbs" && value > MAX_SAFE_WEIGHT_LBS) {
-        return false;
-      }
-      return true;
+      return !(fromUnit === "lbs" && value > MAX_SAFE_WEIGHT_LBS);
     }
 
     function isVolumeSafetyPassed(

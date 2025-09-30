@@ -68,7 +68,7 @@ function AuthErrorContent() {
         };
       default:
         return {
-          title: message ? "Authentication Error" : "Authentication Error",
+          title: "Authentication Error",
           description:
             message ||
             "An unexpected error occurred during authentication. Please try again.",

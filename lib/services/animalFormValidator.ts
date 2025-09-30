@@ -10,10 +10,7 @@ export class AnimalFormValidator {
       return false;
     }
     // Require household context for new animals
-    if (!context?.isEditing && !context?.household) {
-      return false;
-    }
-    return true;
+    return !(!context?.isEditing && !context?.household);
   }
 
   static getErrorMessage(

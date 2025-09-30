@@ -63,7 +63,10 @@ function createSuccessResponse(
 // CORS helpers
 function getAllowedOrigins(): string[] {
   return process.env.NODE_ENV === "production"
-    ? [process.env.NEXT_PUBLIC_APP_URL || "https://vetmed-tracker.vercel.app"]
+    ? [
+        process.env["NEXT_PUBLIC_APP_URL"] ||
+          "https://vetmed-tracker.vercel.app",
+      ]
     : ["http://localhost:3000", "http://127.0.0.1:3000"];
 }
 
@@ -506,7 +509,10 @@ export async function OPTIONS(request: NextRequest) {
   // In production, restrict to specific origins
   const allowedOrigins =
     process.env.NODE_ENV === "production"
-      ? [process.env.NEXT_PUBLIC_APP_URL || "https://vetmed-tracker.vercel.app"]
+      ? [
+          process.env["NEXT_PUBLIC_APP_URL"] ||
+            "https://vetmed-tracker.vercel.app",
+        ]
       : ["http://localhost:3000", "http://127.0.0.1:3000"];
 
   const reqOrigin = request.headers.get("origin") || "";

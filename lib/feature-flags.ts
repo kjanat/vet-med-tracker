@@ -71,10 +71,10 @@ function getEnvironmentFlags(): Partial<FeatureFlags> {
   // Development environment overrides
   if (env === "development") {
     return {
-      debugMode: process.env.FEATURE_DEBUG_MODE === "true",
-      experimentalUI: process.env.FEATURE_EXPERIMENTAL_UI === "true",
-      mockData: process.env.FEATURE_MOCK_DATA === "true",
-      testingTools: process.env.FEATURE_TESTING_TOOLS === "true",
+      debugMode: process.env["FEATURE_DEBUG_MODE"] === "true",
+      experimentalUI: process.env["FEATURE_EXPERIMENTAL_UI"] === "true",
+      mockData: process.env["FEATURE_MOCK_DATA"] === "true",
+      testingTools: process.env["FEATURE_TESTING_TOOLS"] === "true",
     };
   }
 
@@ -91,21 +91,21 @@ function getEnvironmentFlags(): Partial<FeatureFlags> {
 
   // Production environment overrides from env vars
   return {
-    adminPanel: process.env.FEATURE_ADMIN_PANEL === "true",
-    advancedReporting: process.env.FEATURE_ADVANCED_REPORTING === "true",
-    backgroundSync: process.env.FEATURE_BACKGROUND_SYNC === "true",
-    bulkOperations: process.env.FEATURE_BULK_OPERATIONS === "true",
-    caching: process.env.FEATURE_CACHING === "true",
-    darkMode: process.env.FEATURE_DARK_MODE === "true",
+    adminPanel: process.env["FEATURE_ADMIN_PANEL"] === "true",
+    advancedReporting: process.env["FEATURE_ADVANCED_REPORTING"] === "true",
+    backgroundSync: process.env["FEATURE_BACKGROUND_SYNC"] === "true",
+    bulkOperations: process.env["FEATURE_BULK_OPERATIONS"] === "true",
+    caching: process.env["FEATURE_CACHING"] === "true",
+    darkMode: process.env["FEATURE_DARK_MODE"] === "true",
     debugMode: false, // Always disabled in production
-    experimentalUI: process.env.FEATURE_EXPERIMENTAL_UI === "true",
-    mobileOptimizations: process.env.FEATURE_MOBILE_OPTIMIZATIONS === "true",
+    experimentalUI: process.env["FEATURE_EXPERIMENTAL_UI"] === "true",
+    mobileOptimizations: process.env["FEATURE_MOBILE_OPTIMIZATIONS"] === "true",
     mockData: false, // Always disabled in production
-    pushNotifications: process.env.FEATURE_PUSH_NOTIFICATIONS === "true",
-    serviceWorker: process.env.FEATURE_SERVICE_WORKER === "true",
-    systemMetrics: process.env.FEATURE_SYSTEM_METRICS === "true",
+    pushNotifications: process.env["FEATURE_PUSH_NOTIFICATIONS"] === "true",
+    serviceWorker: process.env["FEATURE_SERVICE_WORKER"] === "true",
+    systemMetrics: process.env["FEATURE_SYSTEM_METRICS"] === "true",
     testingTools: false, // Always disabled in production
-    userManagement: process.env.FEATURE_USER_MANAGEMENT === "true",
+    userManagement: process.env["FEATURE_USER_MANAGEMENT"] === "true",
   };
 }
 
@@ -155,7 +155,7 @@ export function getClientFeatureFlags(): Partial<FeatureFlags> {
  * Set EMERGENCY_DISABLE_FEATURES=true to disable non-essential features
  */
 export function getEmergencyModeFlags(): Partial<FeatureFlags> {
-  if (process.env.EMERGENCY_DISABLE_FEATURES === "true") {
+  if (process.env["EMERGENCY_DISABLE_FEATURES"] === "true") {
     console.warn("Emergency mode enabled - non-essential features disabled");
 
     return {

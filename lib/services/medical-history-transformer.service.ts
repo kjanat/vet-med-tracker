@@ -40,11 +40,11 @@ interface RawAdministrationRecord {
 export class MedicalHistoryTransformer {
   static transformRecord(rawRecord: Record<string, unknown>): MedicalRecord {
     return {
-      date: new Date((rawRecord.date as string | number) || Date.now()),
-      description: (rawRecord.description as string) || "No description",
-      dosage: rawRecord.dosage as string | undefined,
-      id: (rawRecord.id as string) || "unknown",
-      medication: rawRecord.medication as string | undefined,
+      date: new Date((rawRecord["date"] as string | number) || Date.now()),
+      description: (rawRecord["description"] as string) || "No description",
+      dosage: rawRecord["dosage"] as string | undefined,
+      id: (rawRecord["id"] as string) || "unknown",
+      medication: rawRecord["medication"] as string | undefined,
     };
   }
 

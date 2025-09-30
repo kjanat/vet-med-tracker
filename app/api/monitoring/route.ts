@@ -265,7 +265,7 @@ export async function POST(request: Request) {
       context: {
         userId: body.userId,
         sessionId: body.sessionId,
-        buildId: process.env.VERCEL_DEPLOYMENT_ID,
+        buildId: process.env["VERCEL_DEPLOYMENT_ID"],
         featureFlags: body.featureFlags,
       },
       severity: body.severity || "error",
