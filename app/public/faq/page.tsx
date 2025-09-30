@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { siteConfig } from "@/app/config";
 import {
   Accordion,
   AccordionContent,
@@ -134,8 +135,7 @@ export default function FAQPage() {
         },
         {
           question: "How do I report a bug?",
-          answer:
-            "Report bugs via the Help menu or email support@vetmedtracker.com. Include: device type, browser, what you were doing, what went wrong, and screenshots if possible. We typically respond within 24 hours.",
+          answer: `Report bugs via the Help menu or email ${siteConfig.contact.support}. Include: device type, browser, what you were doing, what went wrong, and screenshots if possible. We typically respond within 24 hours.`,
         },
       ],
     },
@@ -218,7 +218,9 @@ export default function FAQPage() {
             <Link href="/public/help">Visit Help Center</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="mailto:support@vetmedtracker.com">Email Support</Link>
+            <Link href={`mailto:${siteConfig.contact.support}`}>
+              Email Support
+            </Link>
           </Button>
         </div>
       </div>

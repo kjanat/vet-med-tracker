@@ -1,5 +1,7 @@
 "use cache";
 
+import { siteConfig } from "@/app/config";
+
 // export const experimental_ppr = true;
 
 export default async function CookiesPage() {
@@ -158,9 +160,9 @@ export default async function CookiesPage() {
             us at{" "}
             <a
               className="text-primary hover:underline"
-              href="mailto:privacy@vetmedtracker.com"
+              href={`mailto:${siteConfig.contact.privacy}`}
             >
-              privacy@vetmedtracker.com
+              {siteConfig.contact.privacy}
             </a>
           </p>
         </section>

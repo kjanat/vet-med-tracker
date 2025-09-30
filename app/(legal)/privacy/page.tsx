@@ -1,6 +1,7 @@
 "use cache";
 
 import Link from "next/link";
+import { siteConfig } from "@/app/config";
 
 export default async function PrivacyPage() {
   return (
@@ -158,9 +159,9 @@ export default async function PrivacyPage() {
             To exercise these rights, contact us at{" "}
             <a
               className="text-primary hover:underline"
-              href="mailto:privacy@vetmedtracker.com"
+              href={`mailto:${siteConfig.contact.privacy}`}
             >
-              privacy@vetmedtracker.com
+              {siteConfig.contact.privacy}
             </a>
           </p>
         </section>
@@ -236,9 +237,9 @@ export default async function PrivacyPage() {
               Email:{" "}
               <a
                 className="text-primary hover:underline"
-                href="mailto:privacy@vetmedtracker.com"
+                href={`mailto:${siteConfig.contact.privacy}`}
               >
-                privacy@vetmedtracker.com
+                {siteConfig.contact.privacy}
               </a>
             </li>
           </ul>

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { siteConfig } from "@/app/config";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -74,8 +75,8 @@ export default async function HelpPage() {
       icon: Mail,
       title: "Email Support",
       description: "Get help via email within 24 hours",
-      action: "support@vetmedtracker.com",
-      href: "mailto:support@vetmedtracker.com",
+      action: siteConfig.contact.support,
+      href: `mailto:${siteConfig.contact.support}`,
     },
     {
       icon: MessageCircle,
@@ -262,7 +263,9 @@ export default async function HelpPage() {
           with us!
         </p>
         <Button asChild>
-          <Link href="mailto:feedback@vetmedtracker.com">Send Feedback</Link>
+          <Link href={`mailto:${siteConfig.contact.feedback}`}>
+            Send Feedback
+          </Link>
         </Button>
       </div>
     </div>

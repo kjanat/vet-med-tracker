@@ -2,8 +2,6 @@ import { redirect } from "next/navigation";
 import { LandingPageContent } from "@/components/landing/landing-page-content";
 import { stackServerApp } from "@/stack/server";
 
-export const experimental_ppr = true;
-
 /**
  * Homepage - serves landing page directly or redirects authenticated users
  *

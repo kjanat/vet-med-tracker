@@ -1,29 +1,32 @@
-"use client";
+import { CtaSection } from "@/components/landing/cta-section";
+import { FeaturesSection } from "@/components/landing/features-section";
+import { HeroSection } from "@/components/landing/hero-section";
+import { HowItWorksSection } from "@/components/landing/how-it-works-section";
+import { AnimatedBackground } from "@/components/landing/primitives/animated-background";
+import { TestimonialsSection } from "@/components/landing/testimonials-section";
+import { PublicFooter } from "@/components/layout/public-footer";
+import { PublicHeader } from "@/components/layout/public-header";
 
-// Minimal stub for landing page content
-export interface LandingPageContentProps {
-  className?: string;
-}
-
-export function LandingPageContent({ className }: LandingPageContentProps) {
+/**
+ * Complete landing page content with layout
+ * Used at the root route for unauthenticated users
+ */
+export function LandingPageContent() {
   return (
-    <div className={className}>
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="mb-4 font-bold text-4xl">VetMed Tracker</h1>
-        <p className="mb-8 text-gray-600 text-xl">
-          Simplify medication management for your pets
-        </p>
-        <div className="space-y-4">
-          <a
-            className="inline-block rounded-lg bg-blue-500 px-6 py-3 text-white hover:bg-blue-600"
-            href="/auth/sign-in"
-          >
-            Get Started
-          </a>
+    <div className="flex min-h-screen flex-col">
+      <PublicHeader />
+      <main className="relative flex-1" id="main-content">
+        {/* Unified animated background for all sections */}
+        <AnimatedBackground variant="default" />
+        <div className="relative z-10">
+          <HeroSection />
+          <FeaturesSection />
+          <HowItWorksSection />
+          <TestimonialsSection />
+          <CtaSection />
         </div>
-      </div>
+      </main>
+      <PublicFooter />
     </div>
   );
 }
-
-export default LandingPageContent;

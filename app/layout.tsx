@@ -4,19 +4,24 @@ import type { ReactNode } from "react";
 import { stackServerApp } from "@/stack/server";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
 import { TRPCProvider } from "@/server/trpc/client";
-import { inter } from "./fonts";
+import { siteConfig } from "./config";
+
+export const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://vetmed.kjanat.com"),
+  metadataBase: new URL(siteConfig.url),
   title: {
-    template: "%s | VetMed",
-    default: "VetMed Tracker",
+    template: `%s | ${siteConfig.shortName}`,
+    default: siteConfig.name,
   },
-  description:
-    "Track pet medications, set reminders, and manage veterinary prescriptions with ease.",
+  description: siteConfig.description,
   keywords: [
     "pet medication tracker",
     "veterinary medicine management",
@@ -28,10 +33,10 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "VetMed Tracker",
+    title: siteConfig.name,
     description: "Pet Medication Management",
-    url: "https://vetmed.kjanat.com",
-    siteName: "VetMed Tracker",
+    url: siteConfig.url,
+    siteName: siteConfig.name,
     images: [
       {
         url: "/icon0.svg",
@@ -43,12 +48,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "VetMed Tracker - Pet Medication Management",
+    title: `${siteConfig.name} - Pet Medication Management`,
     description:
       "Track pet medications and never miss a dose. Simple, reliable medication management for your furry friends.",
   },
   appleWebApp: {
-    title: "VetMed",
+    title: siteConfig.shortName,
   },
   icons: {
     icon: "/icon0.svg",
@@ -70,7 +75,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       suppressHydrationWarning
     >
       <head />
-      <body className={inter.className}>
+      <body>
         <StackProvider app={stackServerApp}>
           <StackTheme>
             <ThemeProvider

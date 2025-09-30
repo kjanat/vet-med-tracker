@@ -1,6 +1,7 @@
 "use cache";
 
 import Link from "next/link";
+import { siteConfig } from "@/app/config";
 
 export default async function CookiesPage() {
   return (
@@ -158,9 +159,9 @@ export default async function CookiesPage() {
             us at{" "}
             <Link
               className="text-primary hover:underline"
-              href="mailto:privacy@vetmedtracker.com"
+              href={`mailto:${siteConfig.contact.privacy}`}
             >
-              privacy@vetmedtracker.com
+              {siteConfig.contact.privacy}
             </Link>
           </p>
         </section>

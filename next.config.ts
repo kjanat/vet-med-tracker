@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
     turbopackSourceMaps: true,
     typedEnv: true,
     useCache: true,
-    cacheComponents: true,
+    // cacheComponents: true,
     // ppr: "incremental",
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB"],
   },

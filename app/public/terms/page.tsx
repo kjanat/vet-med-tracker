@@ -1,6 +1,7 @@
 "use cache";
 
 import Link from "next/link";
+import { siteConfig } from "@/app/config";
 
 export default async function TermsPage() {
   return (
@@ -182,9 +183,9 @@ export default async function TermsPage() {
               Email:{" "}
               <a
                 className="text-primary hover:underline"
-                href="mailto:legal@vetmedtracker.com"
+                href={`mailto:${siteConfig.contact.legal}`}
               >
-                legal@vetmedtracker.com
+                {siteConfig.contact.legal}
               </a>
             </li>
           </ul>
