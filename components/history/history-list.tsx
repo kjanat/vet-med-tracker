@@ -1,9 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 
 interface HistoryListProps {
-  records?: any[];
-  onRecordSelect?: (record: any) => void;
-  groups?: { date: Date; records: any[] }[];
+  records?: Record<string, unknown>[];
+  onRecordSelect?: (record: Record<string, unknown>) => void;
+  groups?: { date: Date; records: Record<string, unknown>[] }[];
   hasMore?: boolean;
   onCosign?: (id: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 
 interface FilterBarProps {
-  onFilterChange?: (filters: any) => void;
+  onFilterChange?: (filters: Record<string, unknown>) => void;
 }
 
 export function FilterBar({ onFilterChange: _onFilterChange }: FilterBarProps) {

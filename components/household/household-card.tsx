@@ -8,9 +8,14 @@ interface HouseholdCardProps {
     memberCount?: number;
     animalCount?: number;
   };
-  onClick?: (household: any) => void;
+  onClick?: (household: {
+    id: string;
+    name: string;
+    memberCount?: number;
+    animalCount?: number;
+  }) => void;
   isSelected?: boolean;
-  membership?: any;
+  membership?: Record<string, unknown>;
   onEdit?: () => void;
   onLeave?: () => void;
   onMakeActive?: () => void;

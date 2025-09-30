@@ -8,7 +8,7 @@ interface HouseholdDetailsProps {
     name: string;
     timezone?: string;
     createdAt?: Date;
-    membership?: any;
+    membership?: Record<string, unknown>;
     updatedAt?: Date;
   };
   onEdit?: () => void;
@@ -19,8 +19,8 @@ interface HouseholdDetailsProps {
 export function HouseholdDetails({
   household,
   onEdit,
-  onLeave,
-  userRole,
+  onLeave: _onLeave,
+  userRole: _userRole,
 }: HouseholdDetailsProps) {
   if (!household) {
     return (

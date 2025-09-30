@@ -27,6 +27,7 @@ export function ViewportTester({ className }: ViewportTesterProps) {
             }`}
             key={vp.name}
             onClick={() => setViewport(vp.name)}
+            type="button"
           >
             {vp.name}
           </button>

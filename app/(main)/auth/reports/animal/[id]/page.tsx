@@ -379,7 +379,7 @@ const ReportContent = ({
 
 export default function AnimalReportPage() {
   const params = useParams();
-  const animalId = params["id"] as string;
+  const animalId = params.id as string;
 
   // Get selected household from context (secure)
   const { selectedHousehold, selectedAnimal } = useApp();

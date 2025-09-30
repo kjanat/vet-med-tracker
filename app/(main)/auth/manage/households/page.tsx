@@ -76,7 +76,7 @@ export default function HouseholdsPage() {
 
   // Transform members data
   const members: Member[] =
-    membersData?.map((member: any) => ({
+    membersData?.map((member) => ({
       id: member.id,
       userId: member.userId,
       email: member.user.email,
@@ -89,13 +89,13 @@ export default function HouseholdsPage() {
 
   // Find current user's role in selected household
   const currentUserMembership = membersData?.find(
-    (member: any) => member.userId === user?.id,
+    (member) => member.userId === user?.id,
   );
   const userRoleInSelected = currentUserMembership?.role;
 
   // Mutations
   const updateHouseholdMutation = trpc.households.update.useMutation({
-    onSuccess: (data: any) => {
+    onSuccess: (data) => {
       toast({
         title: "Household updated",
         description: "Your household settings have been saved.",
@@ -108,7 +108,7 @@ export default function HouseholdsPage() {
       setEditingHouseholdId(null);
       refetch();
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Failed to update household",
         description: error.message,
@@ -131,7 +131,7 @@ export default function HouseholdsPage() {
       setLeavingHouseholdId(null);
       refetch();
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Failed to leave household",
         description: error.message,

@@ -14,7 +14,7 @@ interface HistoryCalendarProps {
   month?: Date;
   onMonthChange?: (date: Date) => void;
   onSelectDay?: (day: Date) => void;
-  records?: any[];
+  records?: Record<string, unknown>[];
 }
 
 export function HistoryCalendar({
@@ -24,7 +24,7 @@ export function HistoryCalendar({
   month: _month,
   onMonthChange: _onMonthChange,
   onSelectDay: _onSelectDay,
-  records,
+  records: _records,
 }: HistoryCalendarProps) {
   return (
     <Card>

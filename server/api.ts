@@ -147,7 +147,7 @@ type DueStatusResult = {
 
 // Removed unused createPRNResult function
 
-function determineSection(
+function _determineSection(
   minutesUntilDue: number,
   includeUpcoming: boolean,
 ): "due" | "later" | "prn" {
@@ -1051,16 +1051,16 @@ export const appRouter = createTRPCRouter({
           unitType: restInput.unitType,
         };
 
-        if (restInput["brandOverride"])
-          values["brandOverride"] = restInput["brandOverride"];
-        if (restInput["lot"]) values["lot"] = restInput["lot"];
-        if (restInput["notes"]) values["notes"] = restInput["notes"];
-        if (restInput["assignedAnimalId"])
-          values["assignedAnimalId"] = restInput["assignedAnimalId"];
-        if (restInput["supplier"]) values["supplier"] = restInput["supplier"];
-        if (restInput["purchasePrice"])
-          values["purchasePrice"] = restInput["purchasePrice"];
-        if (purchaseDate) values["purchaseDate"] = purchaseDate;
+        if (restInput.brandOverride)
+          values.brandOverride = restInput.brandOverride;
+        if (restInput.lot) values.lot = restInput.lot;
+        if (restInput.notes) values.notes = restInput.notes;
+        if (restInput.assignedAnimalId)
+          values.assignedAnimalId = restInput.assignedAnimalId;
+        if (restInput.supplier) values.supplier = restInput.supplier;
+        if (restInput.purchasePrice)
+          values.purchasePrice = restInput.purchasePrice;
+        if (purchaseDate) values.purchaseDate = purchaseDate;
 
         const cleanValues = Object.fromEntries(
           Object.entries(values).filter(([, value]) => value !== undefined),
@@ -1239,7 +1239,7 @@ export const appRouter = createTRPCRouter({
         };
 
         if (expiresOn) {
-          updates["expiresOn"] = expiresOn;
+          updates.expiresOn = expiresOn;
         }
 
         const updated = await ctx.db
