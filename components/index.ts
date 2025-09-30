@@ -167,7 +167,7 @@ export { Logo } from "./ui/logo";
 export { MedConfirmButton } from "./ui/med-confirm-button";
 // Mobile-specific components
 export { MobileConfirmLayout } from "./ui/mobile-confirm-layout";
-export { MobileMedicationCard } from "./ui/mobile-medication-card";
+// export { MobileMedicationCard } from "./ui/mobile-medication-card"; // Commented out - file doesn't exist yet
 export { MobileRecordHeader } from "./ui/mobile-record-header";
 export { MobileRecordLayout } from "./ui/mobile-record-layout";
 export { MobileSuccessLayout } from "./ui/mobile-success-layout";
