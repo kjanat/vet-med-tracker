@@ -34,7 +34,7 @@ class ErrorBoundaryComponent extends Component<
     this.props.onError?.(error, errorInfo);
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
