@@ -222,7 +222,7 @@ export { TimezoneCombobox } from "./ui/timezone-combobox";
 // LEGACY SUPPORT
 // ===========================
 
-export { ErrorBoundary } from "./error-handling/error-boundary";
+export { ErrorBoundary } from "./error-handling/error-boundary-page";
 // Dosage calculator
 export { DosageCalculator } from "./medication/dosage-calculator";
 // Error boundary components (these may not exist or have different exports)
