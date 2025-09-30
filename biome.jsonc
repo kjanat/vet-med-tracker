@@ -37,7 +37,8 @@
       "recommended": true,
       "complexity": {
         "noExcessiveCognitiveComplexity": "on",
-        "noStaticOnlyClass": "off"
+        "noStaticOnlyClass": "off",
+        "useLiteralKeys": "off"
       },
       "nursery": {
         "useSortedClasses": {
