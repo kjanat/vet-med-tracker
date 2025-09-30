@@ -30,7 +30,6 @@ import {
   DEFAULT_FILTERS,
   type SortKey,
   type SortOrder,
-  type TransformedRegimen,
 } from "@/lib/dashboard/next-actions";
 
 // Inline UTC day range utility

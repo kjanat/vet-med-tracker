@@ -246,7 +246,7 @@ const store = new ToastStore();
 // Public API
 function toast(props: ToastInput): ToastAPI {
   const id: string = idGen.next();
-  const duration: number = props["duration"] ?? DEFAULT_DURATION;
+  const duration: number = props.duration ?? DEFAULT_DURATION;
 
   const api: ToastAPI = {
     dismiss: (): void =>
@@ -264,7 +264,7 @@ function toast(props: ToastInput): ToastAPI {
     id,
     onOpenChange: (open: boolean): void => {
       if (!open) api.dismiss();
-      props["onOpenChange"]?.(open);
+      props.onOpenChange?.(open);
     },
     open: true,
   };

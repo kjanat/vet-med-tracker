@@ -241,7 +241,7 @@ export function useInventoryForm(
       if (!selectedHousehold) {
         throw new Error("No household selected");
       }
-      return InventoryDataTransformer.toApiPayload(data, selectedHousehold);
+      return InventoryDataTransformer.toApiPayload(data, selectedHousehold.id);
     },
     [selectedHousehold],
   );

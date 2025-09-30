@@ -1,31 +1,58 @@
-import { z } from "zod";
+import type { InventoryFormData } from "@/lib/schemas/inventory";
+import { inventoryFormSchema } from "@/lib/schemas/inventory";
 
-export const InventoryFormSchema = z.object({
-  assignedAnimalId: z.string().optional(),
-  expirationDate: z.date().optional(),
-  inUse: z.boolean().default(false),
-  itemId: z.string().min(1, "Item is required"),
-  location: z.string().optional(),
-  lotNumber: z.string().optional(),
-  notes: z.string().optional(),
-  quantity: z.number().positive("Quantity must be positive"),
-  quantityUnit: z.string().optional(),
-});
+export const InventoryFormSchema = inventoryFormSchema;
 
-export type InventoryFormValues = z.infer<typeof InventoryFormSchema>;
+export type InventoryFormValues = InventoryFormData;
 
-export function validateInventoryForm(data: unknown): InventoryFormValues {
-  return InventoryFormSchema.parse(data);
+export interface ValidationResult {
+  isValid: boolean;
+  errors?: string[];
+}
+
+export function validateInventoryForm(
+  data: InventoryFormData,
+  options?: {
+    householdId?: string;
+    validateQuantity?: boolean;
+    allowPastExpiry?: boolean;
+  },
+): ValidationResult {
+  try {
+    inventoryFormSchema.parse(data);
+
+    // Additional validation logic
+    if (options?.validateQuantity && data.unitsRemaining > data.quantityUnits) {
+      return {
+        errors: ["Units remaining cannot exceed total quantity"],
+        isValid: false,
+      };
+    }
+
+    if (!options?.allowPastExpiry && data.expiresOn < new Date()) {
+      return {
+        errors: ["Expiry date cannot be in the past"],
+        isValid: false,
+      };
+    }
+
+    return { isValid: true };
+  } catch (error) {
+    return {
+      errors: [error instanceof Error ? error.message : "Validation error"],
+      isValid: false,
+    };
+  }
 }
 
 export class InventoryFormValidator {
   static validate = validateInventoryForm;
   static schema = InventoryFormSchema;
 
-  static getDisplayMessage(error: unknown): string {
-    if (error instanceof Error) {
-      return error.message;
+  static getDisplayMessage(result: ValidationResult): string {
+    if (!result.isValid && result.errors) {
+      return result.errors.join(", ");
     }
-    return "Validation error";
+    return "";
   }
 }

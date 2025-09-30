@@ -312,6 +312,10 @@ export function useAnimalForm(
       clearError();
 
       try {
+        if (!selectedHousehold) {
+          throw new Error("No household selected");
+        }
+
         const isNew: boolean = !editingAnimal;
         fireInstrumentationEvent(data, isNew);
 
@@ -320,11 +324,15 @@ export function useAnimalForm(
           const updatePayload = AnimalDataTransformer.toUpdatePayload(
             data,
             editingAnimal.id,
+            selectedHousehold.id,
           );
           await updateMutation.mutateAsync(updatePayload);
         } else {
           // Create new animal
-          const createPayload = AnimalDataTransformer.toCreatePayload(data);
+          const createPayload = AnimalDataTransformer.toCreatePayload(
+            data,
+            selectedHousehold.id,
+          );
           await createMutation.mutateAsync(createPayload);
         }
 

@@ -38,8 +38,10 @@ const getStatusOrder = (regimen: RegimenData) => {
   return STATUS_ORDER[status];
 };
 
-const compareString = (a?: string, b?: string) =>
-  (a ?? "").localeCompare(b ?? "");
+const compareString = (
+  a: string | null | undefined,
+  b: string | null | undefined,
+) => (a ?? "").localeCompare(b ?? "");
 
 const passesSectionFilter = (
   regimen: RegimenData,

@@ -1,29 +1,27 @@
 // Inventory data transformer service
 
-export interface InventoryFormData {
-  itemId: string;
-  quantity: number;
-  quantityUnit?: string;
-  expirationDate?: Date;
-  lotNumber?: string;
-  location?: string;
-  notes?: string;
-  inUse: boolean;
-  assignedAnimalId?: string;
-}
+import type { InventoryFormData } from "@/lib/schemas/inventory";
 
 export interface InventoryApiData {
   id: string;
   householdId: string;
-  itemId: string;
-  quantity: number;
-  quantityUnit?: string | null;
-  expirationDate?: string | null;
-  lotNumber?: string | null;
-  location?: string | null;
-  notes?: string | null;
-  inUse: boolean;
   assignedAnimalId?: string | null;
+  barcode?: string | null;
+  brand?: string | null;
+  concentration?: string | null;
+  expiresOn: string;
+  form: string;
+  isCustomMedication: boolean;
+  lot?: string | null;
+  medicationId?: string | null;
+  name: string;
+  notes?: string | null;
+  quantityUnits: number;
+  route: string;
+  storage: string;
+  strength?: string | null;
+  unitsRemaining: number;
+  unitType: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,18 +29,22 @@ export interface InventoryApiData {
 export function transformInventoryFormToApi(
   formData: InventoryFormData,
   householdId: string,
-): Omit<InventoryApiData, "id" | "createdAt" | "updatedAt"> {
+) {
+  // The API expects different field names than the form
+  // Map: quantityUnits -> unitsTotal, use medicationId or create placeholder
   return {
-    assignedAnimalId: formData.assignedAnimalId || null,
-    expirationDate: formData.expirationDate?.toISOString() || null,
+    assignedAnimalId: formData.assignedAnimalId,
+    brandOverride: formData.brand,
+    expiresOn: formData.expiresOn, // API expects Date object
     householdId,
-    inUse: formData.inUse,
-    itemId: formData.itemId,
-    location: formData.location || null,
-    lotNumber: formData.lotNumber || null,
-    notes: formData.notes || null,
-    quantity: formData.quantity,
-    quantityUnit: formData.quantityUnit || null,
+    lot: formData.lot,
+    medicationId:
+      formData.medicationId || "00000000-0000-0000-0000-000000000000", // Required by API
+    notes: formData.notes,
+    storage: formData.storage as "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED",
+    unitsRemaining: formData.unitsRemaining,
+    unitsTotal: formData.quantityUnits, // Map form field to API field
+    unitType: formData.unitType,
   };
 }
 
@@ -51,16 +53,23 @@ export function transformInventoryApiToForm(
 ): InventoryFormData {
   return {
     assignedAnimalId: apiData.assignedAnimalId || undefined,
-    expirationDate: apiData.expirationDate
-      ? new Date(apiData.expirationDate)
-      : undefined,
-    inUse: apiData.inUse,
-    itemId: apiData.itemId,
-    location: apiData.location || undefined,
-    lotNumber: apiData.lotNumber || undefined,
+    barcode: apiData.barcode || undefined,
+    brand: apiData.brand || undefined,
+    concentration: apiData.concentration || undefined,
+    expiresOn: new Date(apiData.expiresOn),
+    form: apiData.form,
+    isCustomMedication: apiData.isCustomMedication,
+    lot: apiData.lot || undefined,
+    medicationId: apiData.medicationId || undefined,
+    name: apiData.name,
     notes: apiData.notes || undefined,
-    quantity: apiData.quantity,
-    quantityUnit: apiData.quantityUnit || undefined,
+    quantityUnits: apiData.quantityUnits,
+    route: apiData.route,
+    setInUse: false,
+    storage: apiData.storage as "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED",
+    strength: apiData.strength || undefined,
+    unitsRemaining: apiData.unitsRemaining,
+    unitType: apiData.unitType,
   };
 }
 
@@ -72,12 +81,32 @@ export class InventoryDataTransformer {
     return ["refrigerator", "freezer", "room temperature", "cabinet"];
   }
 
-  static setDefaultValues(data: Partial<InventoryFormData>): InventoryFormData {
+  static setDefaultValues(options: {
+    expiryDays?: number;
+    storage?: "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED";
+  }): InventoryFormData {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + (options.expiryDays || 365));
+
     return {
-      inUse: false,
-      itemId: "",
-      quantity: 0,
-      ...data,
+      assignedAnimalId: undefined,
+      barcode: undefined,
+      brand: undefined,
+      concentration: undefined,
+      expiresOn: expiryDate,
+      form: "",
+      isCustomMedication: false,
+      lot: undefined,
+      medicationId: undefined,
+      name: "",
+      notes: undefined,
+      quantityUnits: 1,
+      route: "",
+      setInUse: false,
+      storage: options.storage || "ROOM",
+      strength: undefined,
+      unitsRemaining: 1,
+      unitType: "",
     };
   }
 
@@ -89,19 +118,39 @@ export class InventoryDataTransformer {
     return { action: "create", formData: data };
   }
 
-  static createFreshDefaults(): InventoryFormData {
-    return {
-      inUse: false,
-      itemId: "",
-      quantity: 1,
-    };
+  static createFreshDefaults(options: {
+    expiryDays?: number;
+    storage?: "ROOM" | "FRIDGE" | "FREEZER" | "CONTROLLED";
+  }): InventoryFormData {
+    return InventoryDataTransformer.setDefaultValues(options);
   }
 
-  static syncRemainingUnits(data: InventoryFormData) {
+  static syncRemainingUnits(data: InventoryFormData, quantityUnits: number) {
+    if (data.unitsRemaining > quantityUnits) {
+      return { ...data, unitsRemaining: quantityUnits };
+    }
     return data;
   }
 
   static calculateDerivedFields(data: InventoryFormData) {
-    return data;
+    const percentRemaining =
+      data.quantityUnits > 0
+        ? (data.unitsRemaining / data.quantityUnits) * 100
+        : 0;
+
+    const daysUntilExpiry = Math.ceil(
+      (data.expiresOn.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+    );
+
+    const isExpiringSoon = daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+    const isExpired = daysUntilExpiry <= 0;
+
+    return {
+      daysUntilExpiry,
+      isExpired,
+      isExpiringSoon,
+      percentRemaining,
+      storageDescription: data.storage,
+    };
   }
 }

@@ -114,16 +114,23 @@ export class AnimalDataTransformer {
       vetEmail: (record as Animal).vetEmail ?? undefined,
       vetName: record.vetName,
       vetPhone: (record as Animal).vetPhone ?? undefined,
-      weightKg: record.weightKg,
+      weightKg:
+        typeof record.weightKg === "string"
+          ? parseFloat(record.weightKg)
+          : record.weightKg,
     };
   }
 
-  static toUpdatePayload(data: AnimalFormData) {
-    return data;
+  static toUpdatePayload(
+    data: AnimalFormData,
+    animalId: string,
+    householdId: string,
+  ) {
+    return { ...data, householdId, id: animalId };
   }
 
-  static toCreatePayload(data: AnimalFormData) {
-    return data;
+  static toCreatePayload(data: AnimalFormData, householdId: string) {
+    return { ...data, householdId };
   }
 
   static calculateCompleteness(data: AnimalFormData): number {
