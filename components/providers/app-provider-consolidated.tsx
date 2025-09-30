@@ -545,7 +545,7 @@ export function useApp() {
 // CONSOLIDATED PROVIDER
 // =============================================================================
 
-export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
+function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const stackUser = useUser();
   // Stack Auth loads synchronously - no isLoaded check needed
@@ -1126,28 +1126,34 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   );
 
   return (
+    <AppContext.Provider value={contextValue}>
+      {children}
+      {/* Global accessibility live regions */}
+      <output
+        aria-atomic="true"
+        aria-live="polite"
+        className="sr-only"
+        id="global-announcer-polite"
+      >
+        {state.accessibility.announcements.polite}
+      </output>
+      <div
+        aria-atomic="true"
+        aria-live="assertive"
+        className="sr-only"
+        id="global-announcer-assertive"
+        role="alert"
+      >
+        {state.accessibility.announcements.assertive}
+      </div>
+    </AppContext.Provider>
+  );
+}
+
+export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
+  return (
     <Suspense fallback={<div>Loading...</div>}>
-      <AppContext.Provider value={contextValue}>
-        {children}
-        {/* Global accessibility live regions */}
-        <output
-          aria-atomic="true"
-          aria-live="polite"
-          className="sr-only"
-          id="global-announcer-polite"
-        >
-          {state.accessibility.announcements.polite}
-        </output>
-        <div
-          aria-atomic="true"
-          aria-live="assertive"
-          className="sr-only"
-          id="global-announcer-assertive"
-          role="alert"
-        >
-          {state.accessibility.announcements.assertive}
-        </div>
-      </AppContext.Provider>
+      <ConsolidatedAppProviderInner>{children}</ConsolidatedAppProviderInner>
     </Suspense>
   );
 }

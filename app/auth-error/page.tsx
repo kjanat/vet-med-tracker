@@ -2,6 +2,7 @@
 
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
@@ -247,5 +248,19 @@ export default function AuthErrorPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
+      <AuthErrorContent />
+    </Suspense>
   );
 }
