@@ -34,12 +34,6 @@ import {
 } from "@/server/api/trpc";
 import { createAuditLog } from "@/server/utils/audit-log";
 
-// Utility functions (simplified)
-function _calculateDueStatus() {
-  // Removed for simplification
-  return "due";
-}
-
 // Types for regimen processing
 interface ProcessedRegimen {
   id: string;
@@ -744,7 +738,7 @@ export const appRouter = createTRPCRouter({
           limit: z.number().default(50),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ ctx }) => {
         // Simplified audit log - return mock data
         return [
           {
@@ -873,7 +867,7 @@ export const appRouter = createTRPCRouter({
         await ctx.db
           .update(administrations)
           .set({
-            needsCoSign: true,
+            cosignPending: true,
           })
           .where(
             and(
@@ -1120,7 +1114,7 @@ export const appRouter = createTRPCRouter({
         if (purchaseDate) values.purchaseDate = purchaseDate;
 
         const cleanValues = Object.fromEntries(
-          Object.entries(values).filter(([_, value]) => value !== undefined),
+          Object.entries(values).filter(([, value]) => value !== undefined),
         ) as typeof inventoryItems.$inferInsert;
 
         const newItem = await ctx.db

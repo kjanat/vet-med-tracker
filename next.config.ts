@@ -21,7 +21,6 @@ const nextConfig: NextConfig = {
     position: "bottom-right",
   },
   experimental: {
-    reactCompiler: true,
     turbopackMinify: true,
     turbopackTreeShaking: false,
     turbopackSourceMaps: true,

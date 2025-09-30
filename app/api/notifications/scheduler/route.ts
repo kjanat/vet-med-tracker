@@ -6,17 +6,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db/drizzle";
-import { getNotificationScheduler } from "@/lib/push-notifications/notification-scheduler";
+import { NotificationScheduler } from "@/lib/push-notifications/notification-scheduler";
 import { stackServerApp } from "@/stack/server";
 
-// Lazy initialization to prevent build-time errors
-let scheduler: ReturnType<typeof getNotificationScheduler> | null = null;
-
+// Use NotificationScheduler class directly
 function getScheduler() {
-  if (!scheduler) {
-    scheduler = getNotificationScheduler(db);
-  }
-  return scheduler;
+  return NotificationScheduler;
 }
 
 // Force dynamic rendering and disable caching for the status endpoint
@@ -59,7 +54,7 @@ export async function POST(request: NextRequest) {
     // For now, we'll restrict to specific user IDs or implement role-based checks
     const isAdmin =
       user.serverMetadata?.role === "admin" ||
-      process.env.ADMIN_USER_IDS?.split(",").includes(user.id);
+      process.env["ADMIN_USER_IDS"]?.split(",").includes(user.id);
 
     if (!isAdmin) {
       console.warn(

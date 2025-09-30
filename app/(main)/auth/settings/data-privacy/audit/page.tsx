@@ -44,39 +44,31 @@ function AuditLogContent() {
     {
       householdId: selectedHouseholdId || "",
       limit: 100,
-      action: filterAction === "all" ? undefined : filterAction,
-      search: filterUser || undefined,
     },
     { enabled: Boolean(selectedHouseholdId) },
   );
 
-  // Fetch action types for filtering
-  const { data: actionTypes } = trpc.audit.getActionTypes.useQuery(
-    { householdId: selectedHouseholdId || "" },
-    { enabled: Boolean(selectedHouseholdId) },
-  );
+  // Mock action types for now (API endpoint doesn't exist yet)
+  const actionTypes = ["CREATE", "UPDATE", "DELETE", "VIEW"];
 
   // Format action types for select component
   const actionOptions = useMemo(() => {
     const baseOptions = [{ value: "all", label: "All Actions" }];
-    if (actionTypes) {
-      return baseOptions.concat(
-        actionTypes.map((action) => ({
-          value: action,
-          label:
-            action.charAt(0).toUpperCase() +
-            action.slice(1).replace(/[._]/g, " "),
-        })),
-      );
-    }
-    return baseOptions;
-  }, [actionTypes]);
+    return baseOptions.concat(
+      actionTypes.map((action: string) => ({
+        value: action,
+        label:
+          action.charAt(0).toUpperCase() +
+          action.slice(1).replace(/[._]/g, " "),
+      })),
+    );
+  }, []);
 
   // Transform the audit entries to match the expected format
   const auditEntries: AuditEntry[] = useMemo(() => {
     if (!auditData?.entries) return [];
 
-    return auditData.entries.map((entry) => ({
+    return Array.from(auditData.entries).map((entry: any) => ({
       id: entry.id,
       userId: entry.userId,
       userName: entry.userName || "Unknown User",

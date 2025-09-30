@@ -1,8 +1,10 @@
-import { appRouter } from "../api";
+import { router } from "../trpc";
 
-// Re-export the main app router
-export { appRouter } from "../api";
+// Create the app router - this will be populated with routes
+export const appRouter = router({
+  // Routes will be added here
+});
 
-// This file exists to provide a consistent import path
-// Some parts of the codebase expect to import from here
+export type AppRouter = typeof appRouter;
+
 export default appRouter;

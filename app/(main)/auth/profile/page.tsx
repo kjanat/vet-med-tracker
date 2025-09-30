@@ -21,6 +21,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import type { UserProfile } from "@/components/providers/app-provider-consolidated";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,8 +53,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { TimezoneCombobox } from "@/components/ui/timezone-combobox";
 import { trpc } from "@/server/trpc/client";
-import type { UserProfile } from "@/types/app-state";
-import { BROWSER_ZONE } from "@/utils/timezone-helpers";
+import { getUserTimezone } from "@/utils/timezone-helpers";
 
 // Schemas for all three sections
 const ProfileDataSchema = z.object({
@@ -97,7 +97,7 @@ const HouseholdSettingsSchema = z.object({
     city: z.string().default(""),
     state: z.string().min(2).max(2).default(""),
     zipCode: z.string().default(""),
-    timezone: z.string().default(BROWSER_ZONE || "America/New_York"),
+    timezone: z.string().default(getUserTimezone() || "America/New_York"),
   }),
   householdRoles: z.array(z.string()).default(["Owner", "Primary Caregiver"]),
   preferredVeterinarian: z.object({
@@ -113,7 +113,7 @@ const HouseholdSettingsSchema = z.object({
 });
 
 const VetMedPreferencesSchema = z.object({
-  defaultTimezone: z.string().default(BROWSER_ZONE || "America/New_York"),
+  defaultTimezone: z.string().default(getUserTimezone() || "America/New_York"),
   preferredPhoneNumber: z.string().default(""),
   emergencyContactName: z.string().default(""),
   emergencyContactPhone: z.string().default(""),
@@ -216,7 +216,7 @@ export default function ProfilePage() {
       city: "",
       state: "",
       zipCode: "",
-      timezone: BROWSER_ZONE || "America/New_York",
+      timezone: getUserTimezone() || "America/New_York",
     },
     householdRoles: ["Owner", "Primary Caregiver"],
     preferredVeterinarian: {
@@ -232,7 +232,7 @@ export default function ProfilePage() {
   };
 
   const defaultPreferences: VetMedPreferences = {
-    defaultTimezone: BROWSER_ZONE || "America/New_York",
+    defaultTimezone: getUserTimezone() || "America/New_York",
     preferredPhoneNumber: "",
     emergencyContactName: "",
     emergencyContactPhone: "",
@@ -907,7 +907,6 @@ export default function ProfilePage() {
                         onChange={(value) =>
                           updatePreferences({ defaultTimezone: value })
                         }
-                        placeholder="Select timezone"
                         value={preferences.defaultTimezone}
                       />
                     </div>

@@ -163,8 +163,6 @@ const ReportContent = ({
             <AnimalAvatar
               animal={{
                 ...animal,
-                avatar:
-                  animal.photoUrl || animal.photo || animal.avatar || undefined,
                 pendingMeds: animal.pendingMeds || 0,
               }}
               size="lg"
@@ -381,14 +379,14 @@ const ReportContent = ({
 
 export default function AnimalReportPage() {
   const params = useParams();
-  const animalId = params.id as string;
+  const animalId = params["id"] as string;
 
   // Get selected household from context (secure)
   const { selectedHousehold, selectedAnimal } = useApp();
   const selectedHouseholdId = selectedHousehold?.id || "";
 
   // First fetch the animal to get its timezone
-  const { data: animalData } = trpc.animal.getById.useQuery(
+  const { data: animalData } = trpc.animals.getById.useQuery(
     {
       id: animalId,
       householdId: selectedHouseholdId,
