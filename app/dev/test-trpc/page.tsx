@@ -28,6 +28,12 @@ interface HouseholdListItem {
   id: string;
   name: string;
   timezone: string;
+  createdAt: Date;
+  membership: {
+    id: string;
+    joinedAt: Date;
+    role: "OWNER" | "CAREGIVER" | "VETREADONLY";
+  };
   role: "OWNER" | "CAREGIVER" | "VETREADONLY";
 }
 
@@ -168,8 +174,12 @@ function HouseholdItem({
           <h3 className="font-semibold">{household.name}</h3>
           <p className="text-muted-foreground text-sm">{household.timezone}</p>
         </div>
-        <Badge variant={household.role === "OWNER" ? "default" : "secondary"}>
-          {household.role}
+        <Badge
+          variant={
+            household.membership.role === "OWNER" ? "default" : "secondary"
+          }
+        >
+          {household.membership.role}
         </Badge>
       </div>
     </button>
@@ -271,12 +281,12 @@ function DetailSection<T extends { id?: string }>({
 function CreateHouseholdForm({ onSuccess }: { onSuccess: () => void }) {
   const [newHouseholdName, setNewHouseholdName] = useState("");
 
-  const createHouseholdMutation = trpc.household.create.useMutation({
+  const createHouseholdMutation = trpc.households.create.useMutation({
     onSuccess: () => {
       onSuccess();
       setNewHouseholdName("");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Error creating household:", error);
     },
   });
@@ -354,7 +364,7 @@ export default function TestTRPCPage() {
 
   // Get selected household details
   const { data: householdDetails, isLoading: detailsLoading } =
-    trpc.household.get.useQuery(
+    trpc.households.get.useQuery(
       { householdId: selectedHouseholdId || "" },
       { enabled: Boolean(selectedHouseholdId) },
     );
