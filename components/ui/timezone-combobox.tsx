@@ -30,6 +30,7 @@ export function TimezoneCombobox({
         className="w-full rounded border px-3 py-2 text-left"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
+        type="button"
       >
         {value || "Select timezone..."}
       </button>
@@ -43,6 +44,7 @@ export function TimezoneCombobox({
                 onChange?.(tz);
                 setIsOpen(false);
               }}
+              type="button"
             >
               {tz}
             </button>

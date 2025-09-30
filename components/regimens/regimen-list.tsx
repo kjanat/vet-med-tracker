@@ -22,12 +22,14 @@ export function RegimenList({
             <button
               className="text-blue-500"
               onClick={() => onEdit?.(regimen.id)}
+              type="button"
             >
               Edit
             </button>
             <button
               className="text-red-500"
               onClick={() => onDelete?.(regimen.id)}
+              type="button"
             >
               Delete
             </button>

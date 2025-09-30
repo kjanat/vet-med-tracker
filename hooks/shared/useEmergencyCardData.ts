@@ -19,10 +19,11 @@ export function useEmergencyCardData() {
   const animalId = params["id"] as string;
   const { selectedHousehold, selectedAnimal } = useApp();
 
-  const { data: emergencyContacts } = trpc.emergencyContacts.list.useQuery();
+  // Stub for emergency contacts - endpoint doesn't exist yet
+  const emergencyContacts = undefined;
 
   const { data: animalResponse, isLoading: animalLoading } =
-    trpc.animal.getById.useQuery(
+    trpc.animals.getById.useQuery(
       {
         householdId: selectedHousehold?.id || "",
         id: animalId,
@@ -33,7 +34,7 @@ export function useEmergencyCardData() {
     );
 
   const { data: regimensResponse, isLoading: regimensLoading } =
-    trpc.regimen.list.useQuery(
+    trpc.regimens.list.useQuery(
       {
         activeOnly: true,
         animalId: animalId,

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils/general";
 
-interface Photo {
+export interface Photo {
   id: string;
   url: string;
   alt?: string;
@@ -64,17 +64,21 @@ export function PhotoGallery({
 
       switch (event.key) {
         case "ArrowRight":
-          navigateToNext();
+          if (selectedIndex < photos.length - 1) {
+            setSelectedIndex(selectedIndex + 1);
+          }
           break;
         case "ArrowLeft":
-          navigateToPrevious();
+          if (selectedIndex > 0) {
+            setSelectedIndex(selectedIndex - 1);
+          }
           break;
         case "Escape":
-          closeModal();
+          setSelectedIndex(null);
           break;
       }
     },
-    [selectedIndex, closeModal, navigateToNext, navigateToPrevious],
+    [selectedIndex, photos.length],
   );
 
   React.useEffect(() => {
@@ -104,6 +108,7 @@ export function PhotoGallery({
               )}
               key={photo.id}
               onClick={() => openModal(index)}
+              type="button"
             >
               <Image
                 alt={photo.alt || `Photo ${index + 1}`}
@@ -124,12 +129,12 @@ export function PhotoGallery({
               <div className="relative aspect-video w-full">
                 <Image
                   alt={
-                    photos[selectedIndex].alt || `Photo ${selectedIndex + 1}`
+                    photos[selectedIndex]?.alt || `Photo ${selectedIndex + 1}`
                   }
                   className="object-contain"
                   fill
                   sizes="(max-width: 768px) 100vw, 80vw"
-                  src={photos[selectedIndex].url}
+                  src={photos[selectedIndex]?.url || ""}
                 />
               </div>
 
@@ -158,9 +163,9 @@ export function PhotoGallery({
               )}
 
               {/* Caption */}
-              {photos[selectedIndex].caption && (
+              {photos[selectedIndex]?.caption && (
                 <div className="mt-4 text-center text-muted-foreground text-sm">
-                  {photos[selectedIndex].caption}
+                  {photos[selectedIndex]?.caption}
                 </div>
               )}
 

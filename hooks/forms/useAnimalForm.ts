@@ -64,8 +64,8 @@ interface UseAnimalFormReturn extends AnimalFormActions {
   clearErrorAction: () => void;
 
   // tRPC mutations (for backward compatibility)
-  createMutation: ReturnType<typeof trpc.animal.create.useMutation>;
-  updateMutation: ReturnType<typeof trpc.animal.update.useMutation>;
+  createMutation: ReturnType<typeof trpc.animals.create.useMutation>;
+  updateMutation: ReturnType<typeof trpc.animals.update.useMutation>;
 }
 
 /**
@@ -174,7 +174,7 @@ export function useAnimalForm(
   });
 
   // tRPC mutations
-  const createMutation = trpc.animal.create.useMutation({
+  const createMutation = trpc.animals.create.useMutation({
     onError: (error): void => {
       console.error("Error creating animal:", error);
       toast({
@@ -186,7 +186,6 @@ export function useAnimalForm(
     },
     onSuccess: (data): void => {
       // Invalidate queries to refresh data
-      utils.animal.list.invalidate();
       utils.animals.list.invalidate();
 
       if (showSuccessToast && data) {
@@ -202,7 +201,7 @@ export function useAnimalForm(
     },
   });
 
-  const updateMutation = trpc.animal.update.useMutation({
+  const updateMutation = trpc.animals.update.useMutation({
     onError: (error): void => {
       console.error("Error updating animal:", error);
       toast({
@@ -214,7 +213,6 @@ export function useAnimalForm(
     },
     onSuccess: (data): void => {
       // Invalidate queries to refresh data
-      utils.animal.list.invalidate();
       utils.animals.list.invalidate();
 
       if (showSuccessToast && data) {

@@ -26,7 +26,13 @@ export function Popover({
 
   return (
     <div className="relative">
-      <div onClick={handleToggle}>{trigger}</div>
+      <button
+        className="inline-flex items-center"
+        onClick={handleToggle}
+        type="button"
+      >
+        {trigger}
+      </button>
       {isOpen && (
         <div className="absolute z-10 mt-1 rounded border bg-white p-4 shadow-lg">
           {children}
