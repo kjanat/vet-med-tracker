@@ -175,13 +175,15 @@ export async function GET(_request: Request) {
     const features = getFeatureStatus();
     const errors = getErrorMetrics();
 
+    const deploymentUrl = process.env.VERCEL_URL;
+
     const metrics: MonitoringMetrics = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || "unknown",
       version: process.env.npm_package_version || "unknown",
       deployment: {
         id: process.env.VERCEL_DEPLOYMENT_ID,
-        url: vercelUrl ? `https://${vercelUrl}` : undefined,
+        url: deploymentUrl ? `https://${deploymentUrl}` : undefined,
         region: process.env.VERCEL_REGION,
       },
       performance: {
