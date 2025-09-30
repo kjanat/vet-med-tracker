@@ -13,7 +13,6 @@ export function OnboardingChecker({ children }: OnboardingCheckerProps) {
   useEffect(() => {
     // Check if user needs onboarding
     if (isAuthenticated && userProfile && !userProfile.onboarding.complete) {
-      console.log("User needs onboarding");
       // Could redirect to onboarding flow here
     }
   }, [isAuthenticated, userProfile]);
