@@ -15,7 +15,7 @@ export interface EditItemData {
 export interface EditItemModalProps {
   isOpen?: boolean;
   onClose?: () => void;
-  onOpenChange?: (open: boolean) => undefined | false;
+  onOpenChange?: (open: boolean) => void;
   item?: InventoryItem | null;
   onSave?: (id: string, data: EditItemData) => Promise<void>;
 }

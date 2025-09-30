@@ -16,7 +16,7 @@ interface AnimalAvatarProps {
   species?: string;
   animal?: Animal;
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   showBadge?: boolean;
 }
 
@@ -38,6 +38,7 @@ export function AnimalAvatar({
     lg: "h-12 w-12",
     md: "h-10 w-10",
     sm: "h-8 w-8",
+    xs: "h-6 w-6",
   };
 
   const getInitials = (name: string) => {
