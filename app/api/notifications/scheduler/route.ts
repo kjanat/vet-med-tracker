@@ -18,7 +18,7 @@ function getScheduler() {
 // export const dynamic = "force-dynamic";
 // export const revalidate = 0;
 
-const adminUserIds = process.env["ADMIN_USER_IDS"]?.split(",") || [];
+const adminUserIds = process.env.ADMIN_USER_IDS?.split(",") || [];
 
 const BodySchema = z.object({
   action: z.enum(["start", "stop", "restart"]),

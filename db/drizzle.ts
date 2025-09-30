@@ -104,11 +104,11 @@ const monitor: {
 } | null = null;
 
 // Connection URLs - use pooled for high-frequency operations, unpooled for long-running operations
-const databaseUrl = process.env["DATABASE_URL"];
+const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
   throw new Error("DATABASE_URL environment variable is required");
 }
-const databaseUrlUnpooled = process.env["DATABASE_URL_UNPOOLED"] || databaseUrl;
+const databaseUrlUnpooled = process.env.DATABASE_URL_UNPOOLED || databaseUrl;
 
 // Configure Neon client with timeout settings
 const neonConfig = {

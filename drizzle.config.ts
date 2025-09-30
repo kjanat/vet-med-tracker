@@ -10,7 +10,7 @@ export default defineConfig({
   dialect: "postgresql",
   dbCredentials: {
     // Use unpooled connection for migrations and schema operations
-    url: process.env["DATABASE_URL_UNPOOLED"] || process.env["DATABASE_URL"]!,
+    url: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL!,
   },
   // tablesFilter: ["vetmed_*"], // Prefix all tables with vetmed_
   verbose: true,
