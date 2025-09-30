@@ -138,12 +138,6 @@ function mergeUserPreferences(
 }
 
 // Helper function for regimen due status calculation
-type DueStatusResult = {
-  section: "due" | "later" | "prn";
-  targetTime?: string;
-  isOverdue: boolean;
-  minutesUntilDue: number;
-};
 
 // Removed unused createPRNResult function
 
@@ -1051,15 +1045,15 @@ export const appRouter = createTRPCRouter({
           unitType: restInput.unitType,
         };
 
-        if (restInput.brandOverride)
-          values.brandOverride = restInput.brandOverride;
-        if (restInput.lot) values.lot = restInput.lot;
-        if (restInput.notes) values.notes = restInput.notes;
-        if (restInput.assignedAnimalId)
-          values.assignedAnimalId = restInput.assignedAnimalId;
-        if (restInput.supplier) values.supplier = restInput.supplier;
-        if (restInput.purchasePrice)
-          values.purchasePrice = restInput.purchasePrice;
+        if (restInput["brandOverride"])
+          values.brandOverride = restInput["brandOverride"];
+        if (restInput["lot"]) values.lot = restInput["lot"];
+        if (restInput["notes"]) values.notes = restInput["notes"];
+        if (restInput["assignedAnimalId"])
+          values.assignedAnimalId = restInput["assignedAnimalId"];
+        if (restInput["supplier"]) values.supplier = restInput["supplier"];
+        if (restInput["purchasePrice"])
+          values.purchasePrice = restInput["purchasePrice"];
         if (purchaseDate) values.purchaseDate = purchaseDate;
 
         const cleanValues = Object.fromEntries(
@@ -1238,8 +1232,8 @@ export const appRouter = createTRPCRouter({
           ...updateData,
         };
 
-        if (expiresOn) {
-          updates.expiresOn = expiresOn;
+        if (input["expiresOn"]) {
+          updates.expiresOn = input["expiresOn"];
         }
 
         const updated = await ctx.db

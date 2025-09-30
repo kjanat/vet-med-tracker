@@ -30,10 +30,10 @@ export const useStackMetadataPreferences = ({
       return;
     }
 
-    const vetMedPrefs = metadata.vetMedPreferences as
+    const vetMedPrefs = metadata["vetMedPreferences"] as
       | Partial<VetMedPreferences>
       | undefined;
-    const householdSettings = metadata.householdSettings as
+    const householdSettings = metadata["householdSettings"] as
       | Partial<HouseholdSettings>
       | undefined;
 

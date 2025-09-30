@@ -12,7 +12,7 @@ interface SummaryCardsProps {
   };
 }
 
-export function SummaryCards({ data, range }: SummaryCardsProps) {
+export function SummaryCards({ data }: SummaryCardsProps) {
   const { adherence = 0, totalMedications = 0, missedDoses = 0 } = data || {};
 
   const cards = [
@@ -35,8 +35,8 @@ export function SummaryCards({ data, range }: SummaryCardsProps) {
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      {cards.map((card, index) => (
-        <Card key={index}>
+      {cards.map((card) => (
+        <Card key={card.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="font-medium text-sm">{card.title}</CardTitle>
           </CardHeader>

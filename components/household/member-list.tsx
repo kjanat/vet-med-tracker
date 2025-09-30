@@ -26,7 +26,6 @@ export function MemberList({
   members = [],
   onInviteMember,
   onMemberAction,
-  userRole,
 }: MemberListProps) {
   const getRoleVariant = (role: string) => {
     switch (role.toLowerCase()) {

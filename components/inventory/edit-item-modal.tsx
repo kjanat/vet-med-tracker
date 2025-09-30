@@ -20,12 +20,7 @@ export interface EditItemModalProps {
   onSave?: (id: string, data: EditItemData) => Promise<void>;
 }
 
-export function EditItemModal({
-  isOpen,
-  onClose,
-  item,
-  onSave,
-}: EditItemModalProps) {
+export function EditItemModal(_props: EditItemModalProps) {
   return null; // Placeholder - coming soon
 }
 

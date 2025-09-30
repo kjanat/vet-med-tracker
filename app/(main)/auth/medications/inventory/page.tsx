@@ -473,7 +473,9 @@ function InventoryContent() {
       <EditItemModal
         isOpen={Boolean(editModalItem)}
         item={editModalItem}
-        onOpenChange={(open: boolean) => !open && setEditModalItem(null)}
+        onOpenChange={(open: boolean) => {
+          if (!open) setEditModalItem(null);
+        }}
         onSave={handleUpdate}
       />
 

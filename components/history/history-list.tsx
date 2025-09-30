@@ -1,9 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
+import type { AdministrationRecord } from "@/lib/utils/types";
 
 interface HistoryListProps {
-  records?: Record<string, unknown>[];
-  onRecordSelect?: (record: Record<string, unknown>) => void;
-  groups?: { date: Date; records: Record<string, unknown>[] }[];
+  records?: AdministrationRecord[];
+  onRecordSelect?: (record: AdministrationRecord) => void;
+  groups?: { date: Date; records: AdministrationRecord[] }[];
   hasMore?: boolean;
   onCosign?: (id: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
@@ -30,13 +31,12 @@ export function HistoryList({
           </CardContent>
         </Card>
       ) : (
-        records.map((record, index) => (
-          <Card
-            className="cursor-pointer hover:bg-muted/50"
-            key={record.id || `record-${index}`}
-          >
+        records.map((record) => (
+          <Card className="cursor-pointer hover:bg-muted/50" key={record.id}>
             <CardContent className="p-4">
-              <p className="text-sm">Record {index + 1}</p>
+              <p className="text-sm">
+                {record.medicationName} - {record.animalName}
+              </p>
             </CardContent>
           </Card>
         ))

@@ -10,12 +10,7 @@ export interface AssignModalProps {
   onAssign?: (itemId: string, animalId: string | null) => Promise<void>;
 }
 
-export function AssignModal({
-  open,
-  onOpenChange,
-  inventoryItem,
-  onAssign,
-}: AssignModalProps) {
+export function AssignModal(_props: AssignModalProps) {
   return null; // Placeholder - coming soon
 }
 
