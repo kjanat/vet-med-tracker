@@ -284,7 +284,7 @@ export default function DashboardPage() {
                 </p>
               </div>
             ) : (
-              nextActions.map((action: TransformedRegimen) => {
+              nextActions.map((action) => {
                 const foundAnimal = animals.find(
                   (a) => a.id === action.animalId,
                 );

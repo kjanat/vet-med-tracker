@@ -1,21 +1,11 @@
 import type { inferRouterOutputs } from "@trpc/server";
 
-import type { AppRouter } from "@/server/api/routers/_app";
+import type { appRouter } from "@/server/api";
 import { formatTimeInTimezone } from "@/utils/tz";
 
-// type RouterOutputs = inferRouterOutputs<AppRouter>;
-// Temporary stub type until regimen router is implemented
-type RegimenData = {
-  id: string;
-  animalId: string;
-  animalName?: string;
-  medicationName?: string;
-  strength?: string;
-  route?: string;
-  targetTime?: string;
-  section?: "due" | "later" | "prn";
-  isOverdue?: boolean;
-};
+type RouterOutputs = inferRouterOutputs<typeof appRouter>;
+// Use actual router output type for regimen.listDue
+type RegimenData = RouterOutputs["regimen"]["listDue"][number];
 
 type RegimenStatus = "overdue" | "due" | "later" | "prn";
 
@@ -44,9 +34,7 @@ const STATUS_ORDER: Record<RegimenStatus, number> = {
 };
 
 const getStatusOrder = (regimen: RegimenData) => {
-  const status: RegimenStatus = regimen.isOverdue
-    ? "overdue"
-    : (regimen.section ?? "prn");
+  const status: RegimenStatus = regimen.isPRN ? "prn" : "due";
   return STATUS_ORDER[status];
 };
 
@@ -57,18 +45,18 @@ const passesSectionFilter = (
   regimen: RegimenData,
   filters: DashboardFilters,
 ) => {
-  if (regimen.section === "due" && !filters.showDue) return false;
-  if (regimen.section === "later" && !filters.showLater) return false;
-  if (regimen.section === "prn" && !filters.showPRN) return false;
-  return !(regimen.isOverdue && !filters.showOverdue);
+  if (regimen.isPRN && !filters.showPRN) return false;
+  if (!regimen.isPRN && !filters.showDue) return false;
+  return true;
 };
 
 const matchesSearchQuery = (regimen: RegimenData, query: string) => {
   if (!query) return true;
   const normalized = query.toLowerCase();
   return (
-    regimen.animalName?.toLowerCase().includes(normalized) ||
-    regimen.medicationName?.toLowerCase().includes(normalized)
+    regimen.animal.name?.toLowerCase().includes(normalized) ||
+    regimen.regimen.name?.toLowerCase().includes(normalized) ||
+    regimen.regimen.medicationName?.toLowerCase().includes(normalized)
   );
 };
 
@@ -87,16 +75,22 @@ const getSortingComparator = (sortBy: SortKey) => {
   switch (sortBy) {
     case "animal":
       return (a: RegimenData, b: RegimenData) =>
-        compareString(a.animalName, b.animalName);
+        compareString(a.animal.name, b.animal.name);
     case "medication":
       return (a: RegimenData, b: RegimenData) =>
-        compareString(a.medicationName, b.medicationName);
+        compareString(
+          a.regimen.medicationName ?? a.regimen.name,
+          b.regimen.medicationName ?? b.regimen.name,
+        );
     case "status":
       return (a: RegimenData, b: RegimenData) =>
         getStatusOrder(a) - getStatusOrder(b);
     default:
       return (a: RegimenData, b: RegimenData) =>
-        compareString(a.targetTime, b.targetTime);
+        compareString(
+          a.regimen.startDate?.toString(),
+          b.regimen.startDate?.toString(),
+        );
   }
 };
 
@@ -122,21 +116,16 @@ export type TransformedRegimen = {
 
 const transformRegimens = (regimens: RegimenData[], timezone: string) =>
   regimens.slice(0, 10).map((regimen) => ({
-    animal: regimen.animalName,
-    animalId: regimen.animalId,
-    dueTime: regimen.targetTime
-      ? formatTimeInTimezone(new Date(regimen.targetTime), timezone)
+    animal: regimen.animal.name,
+    animalId: regimen.animal.id,
+    dueTime: regimen.regimen.startDate
+      ? formatTimeInTimezone(new Date(regimen.regimen.startDate), timezone)
       : "As needed",
-    id: regimen.id,
-    medication: [regimen.medicationName, regimen.strength]
-      .filter(Boolean)
-      .join(" "),
-    route: regimen.route,
-    status: regimen.isOverdue
-      ? ("overdue" as const)
-      : regimen.section === "due"
-        ? ("due" as const)
-        : ("upcoming" as const),
+    id: regimen.regimen.id,
+    medication:
+      regimen.regimen.medicationName ?? regimen.regimen.name ?? "Unknown",
+    route: regimen.regimen.route,
+    status: regimen.isPRN ? ("upcoming" as const) : ("due" as const),
   }));
 
 export const computeNextActions = ({
