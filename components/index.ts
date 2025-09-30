@@ -223,8 +223,8 @@ export { TimezoneCombobox } from "./ui/timezone-combobox";
 // ===========================
 
 export { ErrorBoundary } from "./error-handling/error-boundary-page";
-// Dosage calculator
-export { DosageCalculator } from "./medication/dosage-calculator";
+// Dosage calculator - file doesn't exist
+// export { DosageCalculator } from "./medication/dosage-calculator";
 // Error boundary components (these may not exist or have different exports)
 // Maintain legacy theme provider export
 export { ThemeProvider } from "./providers/theme-provider";
