@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,7 +25,7 @@ export function useAnimalFormDialog() {
 }
 
 interface AnimalFormDialogProps {
-  children?: React.ReactNode;
+  children?: ReactNode;
   onSubmit?: (data: { name: string; species: string }) => void;
 }
 

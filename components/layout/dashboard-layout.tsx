@@ -1,11 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils/general";
 
 interface DashboardLayoutProps {
-  children: React.ReactNode;
-  sidebar?: React.ReactNode;
-  header?: React.ReactNode;
+  children: ReactNode;
+  sidebar?: ReactNode;
+  header?: ReactNode;
   className?: string;
 }
 

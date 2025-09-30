@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/general";
 
@@ -12,7 +13,7 @@ interface MobileConfirmLayoutProps {
   cancelText?: string;
   confirmText?: string;
   isLoading?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 

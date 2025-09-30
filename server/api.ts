@@ -1,7 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gte, isNull, lte, sql } from "drizzle-orm";
+import type { NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { z } from "zod";
-
+import type * as schema from "@/db/schema";
 // Database imports
 import {
   vetmedAdministrations as administrations,
@@ -33,36 +34,6 @@ import {
   protectedProcedure,
 } from "@/server/api/trpc";
 import { createAuditLog } from "@/server/utils/audit-log";
-
-// Types for regimen processing (unused, kept for potential future use)
-// interface ProcessedRegimen {
-//   id: string;
-//   animalId: string;
-//   animalName: string;
-//   animalSpecies: string;
-//   animalPhotoUrl: string | null;
-//   medicationName: string;
-//   brandName: string | null;
-//   route: string;
-//   form: string;
-//   strength: string;
-//   dose: string;
-//   targetTime?: string;
-//   isPRN: boolean;
-//   isHighRisk: boolean;
-//   requiresCoSign: boolean;
-//   compliance: number;
-//   section: "due" | "later" | "prn";
-//   isOverdue: boolean;
-//   minutesUntilDue: number;
-//   instructions: string | null;
-//   prnReason: string | null;
-//   lastAdministration: {
-//     id: string;
-//     recordedAt: string;
-//     status: string;
-//   } | null;
-// }
 
 // Types for report data
 interface ComplianceData {
@@ -163,7 +134,7 @@ function mergeUserPreferences(
 
 // Helper functions for reports
 async function calculateComplianceData(
-  db: any,
+  db: NeonHttpDatabase<typeof schema>,
   animalId: string,
   householdId: string,
   startDate: Date,
@@ -249,7 +220,7 @@ async function calculateComplianceData(
   `;
 
   const streakResult = await db.execute(streakQuery);
-  const streak = Number(streakResult.rows[0]?.streak_days) || 0;
+  const streak = Number(streakResult.rows[0]?.["streak_days"]) || 0;
 
   return {
     adherencePct,
@@ -263,7 +234,7 @@ async function calculateComplianceData(
 }
 
 async function getRegimenSummaries(
-  db: any,
+  db: NeonHttpDatabase<typeof schema>,
   animalId: string,
   householdId: string,
   startDate: Date,
@@ -338,7 +309,7 @@ async function getRegimenSummaries(
 }
 
 async function getNotableEvents(
-  db: any,
+  db: NeonHttpDatabase<typeof schema>,
   animalId: string,
   householdId: string,
   startDate: Date,
@@ -1233,7 +1204,7 @@ export const appRouter = createTRPCRouter({
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        const { id, householdId, expiresOn, ...updateData } = input;
+        const { id, householdId, ...updateData } = input;
 
         const updates: Record<string, unknown> = {
           ...updateData,

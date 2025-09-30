@@ -88,7 +88,13 @@ export class MedicalHistoryTransformer {
             name: record.sourceItemName,
           }
         : undefined,
-      status: (record.status as any) || "PRN",
+      status:
+        (record.status as
+          | "ON_TIME"
+          | "LATE"
+          | "VERY_LATE"
+          | "MISSED"
+          | "PRN") || "PRN",
       strength: record.strength || "",
     }));
   }
