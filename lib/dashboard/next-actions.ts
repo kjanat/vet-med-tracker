@@ -3,8 +3,19 @@ import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@/server/api/routers/_app";
 import { formatTimeInTimezone } from "@/utils/tz";
 
-type RouterOutputs = inferRouterOutputs<AppRouter>;
-type RegimenData = RouterOutputs["regimen"]["listDue"][number];
+// type RouterOutputs = inferRouterOutputs<AppRouter>;
+// Temporary stub type until regimen router is implemented
+type RegimenData = {
+  id: string;
+  animalId: string;
+  animalName?: string;
+  medicationName?: string;
+  strength?: string;
+  route?: string;
+  targetTime?: string;
+  section?: "due" | "later" | "prn";
+  isOverdue?: boolean;
+};
 
 type RegimenStatus = "overdue" | "due" | "later" | "prn";
 
@@ -32,8 +43,12 @@ const STATUS_ORDER: Record<RegimenStatus, number> = {
   prn: 3,
 };
 
-const getStatusOrder = (regimen: RegimenData) =>
-  STATUS_ORDER[regimen.isOverdue ? "overdue" : (regimen.section ?? "prn")];
+const getStatusOrder = (regimen: RegimenData) => {
+  const status: RegimenStatus = regimen.isOverdue
+    ? "overdue"
+    : (regimen.section ?? "prn");
+  return STATUS_ORDER[status];
+};
 
 const compareString = (a?: string, b?: string) =>
   (a ?? "").localeCompare(b ?? "");

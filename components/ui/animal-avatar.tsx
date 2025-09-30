@@ -23,7 +23,6 @@ interface AnimalAvatarProps {
 export function AnimalAvatar({
   name,
   photoUrl,
-  species = "unknown",
   animal,
   className,
   size = "md",

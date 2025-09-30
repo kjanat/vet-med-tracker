@@ -141,18 +141,19 @@ function mergeUserPreferences(
 
 // Removed unused createPRNResult function
 
-function determineSection(
-  minutesUntilDue: number,
-  includeUpcoming: boolean,
-): "due" | "later" | "prn" {
-  if (minutesUntilDue < 60 && minutesUntilDue > -180) {
-    return "due";
-  }
-  if (minutesUntilDue >= 60 && includeUpcoming) {
-    return "later";
-  }
-  return "prn";
-}
+// Commented out unused determineSection function
+// function determineSection(
+//   minutesUntilDue: number,
+//   includeUpcoming: boolean,
+// ): "due" | "later" | "prn" {
+//   if (minutesUntilDue < 60 && minutesUntilDue > -180) {
+//     return "due";
+//   }
+//   if (minutesUntilDue >= 60 && includeUpcoming) {
+//     return "later";
+//   }
+//   return "prn";
+// }
 
 // Removed unused parseTimeToMinutes function
 
@@ -1046,15 +1047,15 @@ export const appRouter = createTRPCRouter({
         };
 
         if (restInput.brandOverride)
-          values.brandOverride = restInput.brandOverride;
-        if (restInput.lot) values.lot = restInput.lot;
-        if (restInput.notes) values.notes = restInput.notes;
+          values["brandOverride"] = restInput.brandOverride;
+        if (restInput.lot) values["lot"] = restInput.lot;
+        if (restInput.notes) values["notes"] = restInput.notes;
         if (restInput.assignedAnimalId)
-          values.assignedAnimalId = restInput.assignedAnimalId;
-        if (restInput.supplier) values.supplier = restInput.supplier;
+          values["assignedAnimalId"] = restInput.assignedAnimalId;
+        if (restInput.supplier) values["supplier"] = restInput.supplier;
         if (restInput.purchasePrice)
-          values.purchasePrice = restInput.purchasePrice;
-        if (purchaseDate) values.purchaseDate = purchaseDate;
+          values["purchasePrice"] = restInput.purchasePrice;
+        if (purchaseDate) values["purchaseDate"] = purchaseDate;
 
         const cleanValues = Object.fromEntries(
           Object.entries(values).filter(([, value]) => value !== undefined),
@@ -1233,7 +1234,7 @@ export const appRouter = createTRPCRouter({
         };
 
         if (input.expiresOn) {
-          updates.expiresOn = input.expiresOn;
+          updates["expiresOn"] = input.expiresOn;
         }
 
         const updated = await ctx.db
