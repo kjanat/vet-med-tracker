@@ -149,10 +149,10 @@ export function useInsightsFilters() {
       const updates: Record<string, string> = {};
 
       if (!hasFromParam) {
-        updates.from = defaultDates.from;
+        updates["from"] = defaultDates.from;
       }
       if (!hasToParam) {
-        updates.to = defaultDates.to;
+        updates["to"] = defaultDates.to;
       }
 
       const queryString = updateSearchParams(

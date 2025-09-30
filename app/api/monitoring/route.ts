@@ -101,7 +101,7 @@ function getFeatureStatus() {
 async function getHealthStatus(): Promise<MonitoringMetrics["health"]> {
   try {
     // Make internal request to health endpoint
-    const vercelUrl = process.env.VERCEL_URL;
+    const vercelUrl = process.env["VERCEL_URL"];
     const baseUrl = vercelUrl
       ? `https://${vercelUrl}`
       : "http://localhost:3000";
@@ -175,16 +175,16 @@ export async function GET(_request: Request) {
     const features = getFeatureStatus();
     const errors = getErrorMetrics();
 
-    const deploymentUrl = process.env.VERCEL_URL;
+    const deploymentUrl = process.env["VERCEL_URL"];
 
     const metrics: MonitoringMetrics = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || "unknown",
-      version: process.env.npm_package_version || "unknown",
+      version: process.env["npm_package_version"] || "unknown",
       deployment: {
-        id: process.env.VERCEL_DEPLOYMENT_ID,
+        id: process.env["VERCEL_DEPLOYMENT_ID"],
         url: deploymentUrl ? `https://${deploymentUrl}` : undefined,
-        region: process.env.VERCEL_REGION,
+        region: process.env["VERCEL_REGION"],
       },
       performance: {
         uptime,
@@ -265,7 +265,7 @@ export async function POST(request: Request) {
       context: {
         userId: body.userId,
         sessionId: body.sessionId,
-        buildId: process.env.VERCEL_DEPLOYMENT_ID,
+        buildId: process.env["VERCEL_DEPLOYMENT_ID"],
         featureFlags: body.featureFlags,
       },
       severity: body.severity || "error",

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "bun:test";
-import React from "react";
 
 describe("AppProvider", () => {
   it("exports ConsolidatedAppProvider", async () => {

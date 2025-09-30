@@ -314,10 +314,10 @@ export default function ProfilePage() {
       location: profile.location ?? "",
       website: profile.website ?? "",
       socialLinks: {
-        linkedin: (profile.socialLinks?.linkedin as string) || "",
-        twitter: (profile.socialLinks?.twitter as string) || "",
-        github: (profile.socialLinks?.github as string) || "",
-        instagram: (profile.socialLinks?.instagram as string) || "",
+        linkedin: (profile.socialLinks?.["linkedin"] as string) || "",
+        twitter: (profile.socialLinks?.["twitter"] as string) || "",
+        github: (profile.socialLinks?.["github"] as string) || "",
+        instagram: (profile.socialLinks?.["instagram"] as string) || "",
       },
       profileVisibility: {
         name: profile.profileVisibility?.name ?? true,
