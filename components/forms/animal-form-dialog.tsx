@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/app/button";
 import {
   Dialog,
   DialogContent,

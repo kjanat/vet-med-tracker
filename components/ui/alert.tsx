@@ -1,20 +1,22 @@
+/** biome-ignore-all assist/source/useSortedKeys: https://ui.shadcn.com/docs/components/alert */
+
 import { cva, type VariantProps } from "class-variance-authority";
-import React from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils/general";
 
 const alertVariants = cva(
   "relative w-full rounded-lg border p-4 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:top-4 [&>svg]:left-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
   {
-    defaultVariants: {
-      variant: "default",
-    },
     variants: {
       variant: {
         default: "bg-background text-foreground",
         destructive:
           "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
       },
+    },
+    defaultVariants: {
+      variant: "default",
     },
   },
 );

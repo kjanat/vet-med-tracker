@@ -2,7 +2,7 @@
 
 import { type Label as LabelPrimitive, Slot as SlotPrimitive } from "radix-ui";
 
-import React, { type ComponentRef } from "react";
+import * as React from "react";
 import {
   Controller,
   type ControllerProps,
@@ -86,7 +86,7 @@ const FormItem = React.forwardRef<
 FormItem.displayName = "FormItem";
 
 const FormLabel = React.forwardRef<
-  ComponentRef<typeof LabelPrimitive.Root>,
+  React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(({ className, ...props }, ref) => {
   const { error, formItemId } = useFormField();
@@ -103,7 +103,7 @@ const FormLabel = React.forwardRef<
 FormLabel.displayName = "FormLabel";
 
 const FormControl = React.forwardRef<
-  ComponentRef<typeof SlotPrimitive.Slot>,
+  React.ElementRef<typeof SlotPrimitive.Slot>,
   React.ComponentPropsWithoutRef<typeof SlotPrimitive.Slot>
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } =
@@ -116,7 +116,7 @@ const FormControl = React.forwardRef<
           ? `${formDescriptionId}`
           : `${formDescriptionId} ${formMessageId}`
       }
-      aria-invalid={Boolean(error)}
+      aria-invalid={!!error}
       id={formItemId}
       ref={ref}
       {...props}
@@ -147,7 +147,7 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField();
-  const body = error ? String(error?.message) : children;
+  const body = error ? String(error?.message ?? "") : children;
 
   if (!body) {
     return null;

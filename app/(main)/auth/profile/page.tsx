@@ -21,9 +21,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 import type { UserProfile } from "@/components/providers/app-provider-consolidated";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

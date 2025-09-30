@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimalAvatar } from "@/components";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/app/badge";
 import { cn } from "@/lib/utils/general";
 import { useApp } from "../providers/app-provider-consolidated";
 import { ScrollArea, ScrollBar } from "./scroll-area";

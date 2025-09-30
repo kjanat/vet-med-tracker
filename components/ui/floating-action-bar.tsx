@@ -2,8 +2,8 @@
 
 import { Download, Trash2, X } from "lucide-react";
 import type React from "react";
+import { Button } from "@/components/app/button";
 import { useBulkSelection } from "@/components/providers/bulk-selection-provider";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/general";
 
 interface FloatingActionBarProps {

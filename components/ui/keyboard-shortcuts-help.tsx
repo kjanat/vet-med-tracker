@@ -3,8 +3,8 @@
 import { HelpCircle, Keyboard, X } from "lucide-react";
 import type React from "react";
 import { useRef, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 import {
   Dialog,
   DialogContent,

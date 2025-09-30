@@ -14,7 +14,7 @@ const SheetTrigger = SheetPrimitive.Trigger;
 
 const SheetClose = SheetPrimitive.Close;
 
-// SheetPortal already imported from @stackframe/stack-ui, no need to redeclare
+// Fix: Remove duplicate SheetPortal declaration (already imported from @stackframe/stack-ui)
 
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,

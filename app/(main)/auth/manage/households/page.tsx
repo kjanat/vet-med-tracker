@@ -3,6 +3,7 @@
 import { Building2, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/app/button";
 import { HouseholdCard } from "@/components/household/household-card";
 import { HouseholdDetails } from "@/components/household/household-details";
 import {
@@ -11,7 +12,6 @@ import {
 } from "@/components/household/household-dialogs";
 import { type Member, MemberList } from "@/components/household/member-list";
 import { useApp } from "@/components/providers/app-provider-consolidated";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/server/trpc/client";

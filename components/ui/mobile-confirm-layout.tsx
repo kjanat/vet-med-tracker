@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/app/button";
 import { cn } from "@/lib/utils/general";
 
 interface MobileConfirmLayoutProps {

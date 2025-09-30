@@ -3,13 +3,13 @@
 import { FileText, Plus, Search } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
+import { Button } from "@/components/app/button";
 import {
   AnimalFormDialog,
   useAnimalFormDialog,
 } from "@/components/forms/animal-form-dialog";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 

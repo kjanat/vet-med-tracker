@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { siteConfig } from "@/app/config";
+import { Button } from "@/components/app/button";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
 
 export default function FAQPage() {
   const [searchTerm, setSearchTerm] = useState("");

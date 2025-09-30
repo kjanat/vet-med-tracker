@@ -2,10 +2,10 @@
 
 import { MoreVertical, Search, Shield, UserPlus } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,

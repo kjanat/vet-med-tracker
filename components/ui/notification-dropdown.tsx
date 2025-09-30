@@ -3,9 +3,9 @@
 import { formatDistanceToNow } from "date-fns";
 import { Bell, CheckCircle, Clock, Package } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 import { useApp } from "@/components/providers/app-provider-consolidated";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,

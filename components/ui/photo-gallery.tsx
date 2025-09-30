@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/app/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils/general";
 

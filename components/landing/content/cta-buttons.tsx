@@ -4,7 +4,7 @@ import { useStackApp, useUser } from "@stackframe/stack";
 import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/app/button";
 import { cn } from "@/lib/utils/general";
 
 interface CtaButtonsProps {

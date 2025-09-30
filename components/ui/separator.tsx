@@ -1,12 +1,13 @@
+/** biome-ignore-all assist/source/useSortedAttributes: https://ui.shadcn.com/docs/components/separator */
 "use client";
 
 import { Separator as SeparatorPrimitive } from "radix-ui";
-import React, { type ComponentRef } from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils/general";
 
 const Separator = React.forwardRef<
-  ComponentRef<typeof SeparatorPrimitive.Root>,
+  React.ElementRef<typeof SeparatorPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
 >(
   (
@@ -14,14 +15,14 @@ const Separator = React.forwardRef<
     ref,
   ) => (
     <SeparatorPrimitive.Root
-      className={cn(
-        "shrink-0 bg-border",
-        orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
-        className,
-      )}
+      ref={ref}
       decorative={decorative}
       orientation={orientation}
-      ref={ref}
+      className={cn(
+        "shrink-0 bg-border",
+        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+        className,
+      )}
       {...props}
     />
   ),

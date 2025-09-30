@@ -1,5 +1,5 @@
 import { Download, FileText, Table } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/app/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ExportPanelProps {

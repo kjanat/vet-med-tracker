@@ -1,24 +1,25 @@
+/** biome-ignore-all assist/source/useSortedAttributes: https://ui.shadcn.com/docs/components/progress */
 "use client";
 
 import { Progress as ProgressPrimitive } from "radix-ui";
-import React, { type ComponentRef } from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils/general";
 
 const Progress = React.forwardRef<
-  ComponentRef<typeof ProgressPrimitive.Root>,
+  React.ElementRef<typeof ProgressPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
 >(({ className, value, ...props }, ref) => (
   <ProgressPrimitive.Root
+    ref={ref}
     className={cn(
-      "relative h-3 w-full overflow-hidden rounded-full bg-secondary/50 dark:bg-secondary/30",
+      "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
       className,
     )}
-    ref={ref}
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all dark:bg-primary/90"
+      className="h-full w-full flex-1 bg-primary transition-all"
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
   </ProgressPrimitive.Root>

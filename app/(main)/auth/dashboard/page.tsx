@@ -4,14 +4,14 @@ import { AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 import {
   AnimalFormDialog,
   useAnimalFormDialog,
 } from "@/components/forms/animal-form-dialog";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

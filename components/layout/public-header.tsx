@@ -5,15 +5,15 @@ import { Menu } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/ui/logo";
+import { Button } from "@/components/app/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "@/components/app/sheet";
+import { Logo } from "@/components/ui/logo";
 
 const navigation = [
   { href: "#features", name: "Features" },

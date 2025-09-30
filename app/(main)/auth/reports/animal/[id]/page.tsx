@@ -13,10 +13,10 @@ import {
 import { DateTime } from "luxon";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
   ComplianceData,

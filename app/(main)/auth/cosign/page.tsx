@@ -11,12 +11,12 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 // Simple inline signature pad replacement
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

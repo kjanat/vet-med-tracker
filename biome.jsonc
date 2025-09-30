@@ -49,6 +49,17 @@
           }
         }
       },
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "@/components/ui": "Import from '@/components/app' instead to use upgrade-safe wrappers.",
+              "@/components/ui/index": "Import from '@/components/app' instead to use upgrade-safe wrappers."
+            }
+          }
+        }
+      },
       "suspicious": {
         "noGlobalIsNan": {
           "level": "warn",
@@ -84,6 +95,16 @@
     }
   },
   "overrides": [
+    {
+      "includes": ["components/app/**", "components/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
+          }
+        }
+      }
+    },
     {
       "includes": [
         "tests/**",

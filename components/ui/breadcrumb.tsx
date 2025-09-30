@@ -1,6 +1,9 @@
+/** biome-ignore-all lint/a11y/useFocusableInteractive: https://ui.shadcn.com/docs/components/breadcrumb */
+/** biome-ignore-all lint/a11y/useSemanticElements: https://ui.shadcn.com/docs/components/breadcrumb */
+
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { Slot as SlotPrimitive } from "radix-ui";
-import React from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils/general";
 
@@ -63,8 +66,10 @@ const BreadcrumbPage = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <span
     aria-current="page"
+    aria-disabled="true"
     className={cn("font-normal text-foreground", className)}
     ref={ref}
+    role="link"
     {...props}
   />
 ));

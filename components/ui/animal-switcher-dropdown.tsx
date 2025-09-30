@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AnimalAvatar } from "@/components";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/app/badge";
 import {
   Select,
   SelectContent,

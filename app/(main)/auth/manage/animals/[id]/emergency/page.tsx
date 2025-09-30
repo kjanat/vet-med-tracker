@@ -1,10 +1,9 @@
 "use client";
 
 import { AlertTriangle, Loader2, Phone, Pill } from "lucide-react";
-
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEmergencyCardData } from "@/hooks/shared/useEmergencyCardData";
 import { EmergencyDialService } from "@/lib/services/emergency-dial.service";

@@ -15,7 +15,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/app/config";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/app/button";
 import {
   Card,
   CardContent,

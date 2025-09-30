@@ -48,7 +48,7 @@ done
 test "$type_ok" = "1" || errors="$errors • invalid type or format\n"
 
 # Length check  
-test "$len" -le 72 || errors="$errors • too long ($len > 72)\n"
+test "$len" -le 72 || errors="$errors • too long ($len > 72), shorten the commit message title (first line)\n"
 
 # Subject check
 case "$header" in

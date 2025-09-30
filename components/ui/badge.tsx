@@ -1,29 +1,26 @@
+/** biome-ignore-all assist/source/useSortedKeys: https://ui.shadcn.com/docs/components/badge */
+
 import { cva, type VariantProps } from "class-variance-authority";
-import type React from "react";
+import type * as React from "react";
 
 import { cn } from "@/lib/utils/general";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-xs transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
-    defaultVariants: {
-      variant: "default",
-    },
     variants: {
       variant: {
         default:
           "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        info: "border-transparent bg-blue-100 text-blue-800 hover:bg-blue-200",
-        outline: "text-foreground",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        success:
-          "border-transparent bg-green-100 text-green-800 hover:bg-green-200",
-        warning:
-          "border-transparent bg-amber-100 text-amber-800 hover:bg-amber-200",
+        destructive:
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-foreground",
       },
+    },
+    defaultVariants: {
+      variant: "default",
     },
   },
 );

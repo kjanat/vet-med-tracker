@@ -3,6 +3,7 @@
 import { differenceInDays } from "date-fns";
 import { AlertTriangle, Package, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/app/button";
 import { InventoryErrorBoundary } from "@/components/error-handling/error-boundary-page";
 import { InventoryFormDialog } from "@/components/forms/inventory-form-dialog";
 import { AddItemButton } from "@/components/inventory/add-item-button";
@@ -17,7 +18,6 @@ import {
 } from "@/components/inventory/inventory-card";
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,

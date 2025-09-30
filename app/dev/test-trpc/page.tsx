@@ -3,9 +3,9 @@
 import { AlertCircle } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
+import { Badge } from "@/components/app/badge";
+import { Button } from "@/components/app/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

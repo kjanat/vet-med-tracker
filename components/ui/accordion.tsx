@@ -1,36 +1,37 @@
+/** biome-ignore-all assist/source/useSortedAttributes: https://ui.shadcn.com/docs/components/accordion */
 "use client";
 
 import { ChevronDown } from "lucide-react";
 import { Accordion as AccordionPrimitive } from "radix-ui";
-import React, { type ComponentRef } from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils/general";
 
 const Accordion = AccordionPrimitive.Root;
 
 const AccordionItem = React.forwardRef<
-  ComponentRef<typeof AccordionPrimitive.Item>,
+  React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
-    className={cn("border-b", className)}
     ref={ref}
+    className={cn("border-b", className)}
     {...props}
   />
 ));
 AccordionItem.displayName = "AccordionItem";
 
 const AccordionTrigger = React.forwardRef<
-  ComponentRef<typeof AccordionPrimitive.Trigger>,
+  React.ElementRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Header className="flex">
     <AccordionPrimitive.Trigger
+      ref={ref}
       className={cn(
         "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
         className,
       )}
-      ref={ref}
       {...props}
     >
       {children}
@@ -41,12 +42,12 @@ const AccordionTrigger = React.forwardRef<
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 
 const AccordionContent = React.forwardRef<
-  ComponentRef<typeof AccordionPrimitive.Content>,
+  React.ElementRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
-    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
     ref={ref}
+    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
     {...props}
   >
     <div className={cn("pt-0 pb-4", className)}>{children}</div>
