@@ -1,8 +1,14 @@
 "use client";
 
 // Minimal stub for regimen list
+type Regimen = {
+  id: string;
+  medicationName: string;
+  instructions: string;
+};
+
 export interface RegimenListProps {
-  regimens?: any[];
+  regimens?: Regimen[];
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }

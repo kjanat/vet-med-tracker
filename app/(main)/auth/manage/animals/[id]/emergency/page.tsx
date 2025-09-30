@@ -10,6 +10,14 @@ import { useEmergencyCardData } from "@/hooks/shared/useEmergencyCardData";
 import { EmergencyDialService } from "@/lib/services/emergency-dial.service";
 import type { EmergencyAnimal, EmergencyRegimen } from "@/lib/utils/types";
 
+type EmergencyContact = {
+  id: string;
+  contactName: string;
+  contactPhone: string;
+  relationship?: string;
+  isPrimary: boolean;
+};
+
 // Helper components to reduce cognitive complexity
 const EmptyState = ({ message }: { message: string }) => (
   <div className="flex min-h-screen items-center justify-center bg-background">
@@ -372,13 +380,15 @@ export default function EmergencyCardPage() {
             animalData={animalData}
             canMakePhoneCalls={canMakePhoneCalls}
             emergencyContacts={
-              (emergencyContacts as any[] | undefined)?.map((contact: any) => ({
-                id: contact.id,
-                contactName: contact.contactName,
-                contactPhone: contact.contactPhone,
-                relationship: contact.relationship || undefined,
-                isPrimary: contact.isPrimary || false,
-              })) || []
+              (emergencyContacts as EmergencyContact[] | undefined)?.map(
+                (contact) => ({
+                  id: contact.id,
+                  contactName: contact.contactName,
+                  contactPhone: contact.contactPhone,
+                  relationship: contact.relationship || undefined,
+                  isPrimary: contact.isPrimary || false,
+                }),
+              ) || []
             }
           />
           <MedicalAlertsCard animalData={animalData} />

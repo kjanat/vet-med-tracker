@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     // For now, we'll restrict to specific user IDs or implement role-based checks
     const isAdmin =
       user.serverMetadata?.role === "admin" ||
-      process.env.ADMIN_USER_IDS?.split(",").includes(user.id);
+      process.env["ADMIN_USER_IDS"]?.split(",").includes(user.id);
 
     if (!isAdmin) {
       console.warn(

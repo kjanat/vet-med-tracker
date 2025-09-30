@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
@@ -321,7 +322,7 @@ export default function DashboardPage() {
                       className="w-20 shrink-0"
                       onClick={() =>
                         router.push(
-                          `/auth/admin/record?regimenId=${action.id}&from=home` as any,
+                          `/auth/admin/record?regimenId=${action.id}&from=home` as Route,
                         )
                       }
                       size="sm"

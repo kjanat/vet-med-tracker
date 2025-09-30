@@ -30,10 +30,10 @@ export const useStackMetadataPreferences = ({
       return;
     }
 
-    const vetMedPrefs = metadata.vetMedPreferences as
+    const vetMedPrefs = metadata["vetMedPreferences"] as
       | Partial<VetMedPreferences>
       | undefined;
-    const householdSettings = metadata.householdSettings as
+    const householdSettings = metadata["householdSettings"] as
       | Partial<HouseholdSettings>
       | undefined;
 
@@ -52,7 +52,7 @@ export const useStackMetadataPreferences = ({
     }
 
     const hasPreferences = Boolean(vetMedPrefs) || Boolean(householdSettings);
-    const hasCompletedOnboarding = Boolean(metadata.onboardingComplete);
+    const hasCompletedOnboarding = Boolean(metadata["onboardingComplete"]);
     onFirstTimeUserChange(!hasPreferences && !hasCompletedOnboarding);
   }, [
     defaultHouseholdSettings,

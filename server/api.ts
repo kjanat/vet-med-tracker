@@ -1046,16 +1046,22 @@ export const appRouter = createTRPCRouter({
           unitType: restInput.unitType,
         };
 
-        if (restInput.brandOverride)
-          values.brandOverride = restInput.brandOverride;
-        if (restInput.lot) values.lot = restInput.lot;
-        if (restInput.notes) values.notes = restInput.notes;
-        if (restInput.assignedAnimalId)
-          values.assignedAnimalId = restInput.assignedAnimalId;
-        if (restInput.supplier) values.supplier = restInput.supplier;
-        if (restInput.purchasePrice)
-          values.purchasePrice = restInput.purchasePrice;
-        if (purchaseDate) values.purchaseDate = purchaseDate;
+        const optionalFields = restInput as Record<string, unknown>;
+        if (optionalFields["brandOverride"])
+          values["brandOverride"] = optionalFields["brandOverride"] as string;
+        if (optionalFields["lot"])
+          values["lot"] = optionalFields["lot"] as string;
+        if (optionalFields["notes"])
+          values["notes"] = optionalFields["notes"] as string;
+        if (optionalFields["assignedAnimalId"])
+          values["assignedAnimalId"] = optionalFields[
+            "assignedAnimalId"
+          ] as string;
+        if (optionalFields["supplier"])
+          values["supplier"] = optionalFields["supplier"] as string;
+        if (optionalFields["purchasePrice"])
+          values["purchasePrice"] = optionalFields["purchasePrice"] as string;
+        if (purchaseDate) values["purchaseDate"] = purchaseDate;
 
         const cleanValues = Object.fromEntries(
           Object.entries(values).filter(([, value]) => value !== undefined),
@@ -1233,8 +1239,9 @@ export const appRouter = createTRPCRouter({
           ...updateData,
         };
 
-        if (input.expiresOn) {
-          updates.expiresOn = input.expiresOn;
+        const optionalInput = input as Record<string, unknown>;
+        if (optionalInput["expiresOn"]) {
+          updates["expiresOn"] = optionalInput["expiresOn"] as Date;
         }
 
         const updated = await ctx.db

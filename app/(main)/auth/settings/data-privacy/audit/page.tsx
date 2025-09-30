@@ -68,19 +68,19 @@ function AuditLogContent() {
   const auditEntries: AuditEntry[] = useMemo(() => {
     if (!auditData?.entries) return [];
 
-    return Array.from(auditData.entries()).map((entry: any) => ({
+    return Array.from(auditData.entries()).map(([_, entry]) => ({
       id: entry.id,
       userId: entry.userId,
-      userName: entry.userName || "Unknown User",
-      userEmail: entry.userEmail,
+      userName: "Unknown User",
+      userEmail: "",
       action: entry.action,
-      resourceType: entry.resourceType,
+      resourceType: entry.resource,
       resourceId: entry.resourceId,
       details: entry.details,
       timestamp: new Date(entry.timestamp),
-      ipAddress: entry.ipAddress,
-      userAgent: entry.userAgent,
-      sessionId: entry.sessionId,
+      ipAddress: null,
+      userAgent: null,
+      sessionId: null,
     }));
   }, [auditData]);
 

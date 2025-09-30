@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 import { cn } from "@/lib/utils/general";
@@ -38,7 +39,7 @@ export function HoverPrefetchLink({
   return (
     <Link
       className={cn("transition-colors hover:text-foreground", className)}
-      href={href as any}
+      href={href as Route}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       prefetch={isPrefetched}

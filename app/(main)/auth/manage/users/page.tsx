@@ -18,6 +18,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/server/trpc/client";
 
+type HouseholdMember = {
+  user: {
+    name: string | null;
+    email: string;
+    image: string | null;
+    id: string;
+  };
+  role: "CAREGIVER" | "OWNER" | "VETREADONLY";
+  id: string;
+  joinedAt: Date;
+};
+
 export default function UsersPage() {
   const { selectedHousehold, selectedAnimal } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +54,7 @@ export default function UsersPage() {
   const canManageUsers = userMembership?.role === "OWNER";
 
   const filteredMembers = members?.filter(
-    (member: any) =>
+    (member: HouseholdMember) =>
       member.user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.user.email?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -93,7 +105,7 @@ export default function UsersPage() {
 
       {/* Users List */}
       <div className="grid gap-4">
-        {filteredMembers?.map((member: any) => {
+        {filteredMembers?.map((member: HouseholdMember) => {
           const initials =
             member.user.name
               ?.split(" ")
@@ -135,10 +147,9 @@ export default function UsersPage() {
                       </p>
                       <p className="mt-1 text-muted-foreground text-xs">
                         Joined{" "}
-                        {new Date(member.createdAt).toLocaleDateString(
-                          "en-US",
-                          { timeZone: timezone },
-                        )}
+                        {new Date(member.joinedAt).toLocaleDateString("en-US", {
+                          timeZone: timezone,
+                        })}
                       </p>
                     </div>
                   </div>
