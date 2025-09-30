@@ -162,36 +162,7 @@ function determineSection(
 
 // Removed unused parseTimeToMinutes function
 
-// Removed unused calculateScheduledResult function
-
-function _calculateScheduledResult(
-  scheduledMinutes: number,
-  currentTimeMinutes: number,
-  nowLocal: Date,
-  timeStr: string,
-  includeUpcoming: boolean,
-): DueStatusResult | null {
-  if (scheduledMinutes < currentTimeMinutes - 60) {
-    return null;
-  }
-
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  const targetTime = new Date(nowLocal);
-  targetTime.setHours(hours ?? 0, minutes ?? 0, 0, 0);
-
-  const minutesUntilDue = scheduledMinutes - currentTimeMinutes;
-  const isOverdue = minutesUntilDue < 0;
-  const section = determineSection(minutesUntilDue, includeUpcoming);
-
-  return {
-    isOverdue,
-    minutesUntilDue,
-    section,
-    targetTime: targetTime.toISOString(),
-  };
-}
-
-// Remove unused _calculateDueStatus function
+// Removed unused calculateScheduledResult, parseTimeToMinutes, and _calculateDueStatus functions
 
 // ============================================================================
 
@@ -1081,16 +1052,15 @@ export const appRouter = createTRPCRouter({
         };
 
         if (restInput["brandOverride"])
-          values.brandOverride = restInput["brandOverride"];
-        if (restInput["lot"]) values.lot = restInput["lot"];
-        if (restInput["notes"]) values.notes = restInput["notes"];
+          values["brandOverride"] = restInput["brandOverride"];
+        if (restInput["lot"]) values["lot"] = restInput["lot"];
+        if (restInput["notes"]) values["notes"] = restInput["notes"];
         if (restInput["assignedAnimalId"])
-          values.assignedAnimalId = restInput["assignedAnimalId"];
-        if (restInput["supplier"]) values.supplier = restInput["supplier"];
+          values["assignedAnimalId"] = restInput["assignedAnimalId"];
+        if (restInput["supplier"]) values["supplier"] = restInput["supplier"];
         if (restInput["purchasePrice"])
-          values.purchasePrice = restInput["purchasePrice"];
-        if (restInput["purchaseDate"])
-          values.purchaseDate = restInput["purchaseDate"];
+          values["purchasePrice"] = restInput["purchasePrice"];
+        if (purchaseDate) values["purchaseDate"] = purchaseDate;
 
         const cleanValues = Object.fromEntries(
           Object.entries(values).filter(([, value]) => value !== undefined),
@@ -1269,7 +1239,7 @@ export const appRouter = createTRPCRouter({
         };
 
         if (expiresOn) {
-          updates.expiresOn = expiresOn;
+          updates["expiresOn"] = expiresOn;
         }
 
         const updated = await ctx.db
