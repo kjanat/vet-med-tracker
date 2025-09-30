@@ -69,9 +69,9 @@ export default function ErrorPage({
         <div className="border-t pt-4">
           <p className="text-muted-foreground text-sm">
             If this problem persists, please{" "}
-            <Link className="text-primary hover:underline" href="/help">
+            <a className="text-primary hover:underline" href="/help">
               contact support
-            </Link>{" "}
+            </a>{" "}
             or check our{" "}
             <Link
               className="text-primary hover:underline"

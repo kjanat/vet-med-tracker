@@ -34,35 +34,35 @@ import {
 } from "@/server/api/trpc";
 import { createAuditLog } from "@/server/utils/audit-log";
 
-// Types for regimen processing
-interface ProcessedRegimen {
-  id: string;
-  animalId: string;
-  animalName: string;
-  animalSpecies: string;
-  animalPhotoUrl: string | null;
-  medicationName: string;
-  brandName: string | null;
-  route: string;
-  form: string;
-  strength: string;
-  dose: string;
-  targetTime?: string;
-  isPRN: boolean;
-  isHighRisk: boolean;
-  requiresCoSign: boolean;
-  compliance: number;
-  section: "due" | "later" | "prn";
-  isOverdue: boolean;
-  minutesUntilDue: number;
-  instructions: string | null;
-  prnReason: string | null;
-  lastAdministration: {
-    id: string;
-    recordedAt: string;
-    status: string;
-  } | null;
-}
+// Types for regimen processing (unused, kept for potential future use)
+// interface ProcessedRegimen {
+//   id: string;
+//   animalId: string;
+//   animalName: string;
+//   animalSpecies: string;
+//   animalPhotoUrl: string | null;
+//   medicationName: string;
+//   brandName: string | null;
+//   route: string;
+//   form: string;
+//   strength: string;
+//   dose: string;
+//   targetTime?: string;
+//   isPRN: boolean;
+//   isHighRisk: boolean;
+//   requiresCoSign: boolean;
+//   compliance: number;
+//   section: "due" | "later" | "prn";
+//   isOverdue: boolean;
+//   minutesUntilDue: number;
+//   instructions: string | null;
+//   prnReason: string | null;
+//   lastAdministration: {
+//     id: string;
+//     recordedAt: string;
+//     status: string;
+//   } | null;
+// }
 
 // Types for report data
 interface ComplianceData {
@@ -198,7 +198,7 @@ function calculateScheduledResult(
   };
 }
 
-function calculateDueStatus(
+function _calculateDueStatus(
   regimen: {
     scheduleType: string;
     timesLocal: string[] | null;
@@ -897,7 +897,7 @@ export const appRouter = createTRPCRouter({
         await ctx.db
           .update(administrations)
           .set({
-            cosignPending: true,
+            needsCosign: true,
           })
           .where(
             and(
@@ -1133,14 +1133,14 @@ export const appRouter = createTRPCRouter({
         };
 
         if (restInput.brandOverride)
-          values.brandOverride = restInput.brandOverride;
-        if (restInput.lot) values.lot = restInput.lot;
-        if (restInput.notes) values.notes = restInput.notes;
+          values.brandOverride = restInput["brandOverride"];
+        if (restInput.lot) values.lot = restInput["lot"];
+        if (restInput.notes) values.notes = restInput["notes"];
         if (restInput.assignedAnimalId)
-          values.assignedAnimalId = restInput.assignedAnimalId;
-        if (restInput.supplier) values.supplier = restInput.supplier;
+          values.assignedAnimalId = restInput["assignedAnimalId"];
+        if (restInput.supplier) values.supplier = restInput["supplier"];
         if (restInput.purchasePrice)
-          values.purchasePrice = restInput.purchasePrice;
+          values.purchasePrice = restInput["purchasePrice"];
         if (purchaseDate) values.purchaseDate = purchaseDate;
 
         const cleanValues = Object.fromEntries(
@@ -1319,7 +1319,7 @@ export const appRouter = createTRPCRouter({
         };
 
         if (expiresOn) {
-          updates.expiresOn = expiresOn;
+          updates.expiresOn = input["expiresOn"];
         }
 
         const updated = await ctx.db
@@ -2247,7 +2247,9 @@ export const appRouter = createTRPCRouter({
             currentProfile.profileCompletedAt || new Date().toISOString(),
           profileVisibility,
           pronouns: input.pronouns ?? currentProfile.pronouns,
-          socialLinks: input.socialLinks ?? currentProfile.socialLinks ?? {},
+          socialLinks: (input.socialLinks ??
+            currentProfile.socialLinks ??
+            {}) as Record<string, string>,
           website: input.website ?? currentProfile.website,
         };
 

@@ -17,7 +17,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -208,46 +208,52 @@ export default function ProfilePage() {
   const [isHouseholdSaving, setIsHouseholdSaving] = useState(false);
   const [isVetMedSaving, setIsVetMedSaving] = useState(false);
 
-  // Default values
-  const defaultSettings: HouseholdSettings = {
-    primaryHouseholdName: "",
-    defaultLocation: {
-      address: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      timezone: getUserTimezone() || "America/New_York",
-    },
-    householdRoles: ["Owner", "Primary Caregiver"],
-    preferredVeterinarian: {
-      name: "",
-      phone: "",
-      address: "",
-    },
-    inventoryPreferences: {
-      lowStockThreshold: 7,
-      autoReorderEnabled: false,
-      expirationWarningDays: 30,
-    },
-  };
+  // Default values - memoized to avoid recreating on every render
+  const defaultSettings = useMemo<HouseholdSettings>(
+    () => ({
+      primaryHouseholdName: "",
+      defaultLocation: {
+        address: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        timezone: getUserTimezone() || "America/New_York",
+      },
+      householdRoles: ["Owner", "Primary Caregiver"],
+      preferredVeterinarian: {
+        name: "",
+        phone: "",
+        address: "",
+      },
+      inventoryPreferences: {
+        lowStockThreshold: 7,
+        autoReorderEnabled: false,
+        expirationWarningDays: 30,
+      },
+    }),
+    [],
+  );
 
-  const defaultPreferences: VetMedPreferences = {
-    defaultTimezone: getUserTimezone() || "America/New_York",
-    preferredPhoneNumber: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
-    notificationPreferences: {
-      emailReminders: true,
-      smsReminders: false,
-      pushNotifications: true,
-      reminderLeadTime: 15,
-    },
-    displayPreferences: {
-      use24HourTime: false,
-      temperatureUnit: "fahrenheit",
-      weightUnit: "lbs",
-    },
-  };
+  const defaultPreferences = useMemo<VetMedPreferences>(
+    () => ({
+      defaultTimezone: getUserTimezone() || "America/New_York",
+      preferredPhoneNumber: "",
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      notificationPreferences: {
+        emailReminders: true,
+        smsReminders: false,
+        pushNotifications: true,
+        reminderLeadTime: 15,
+      },
+      displayPreferences: {
+        use24HourTime: false,
+        temperatureUnit: "fahrenheit",
+        weightUnit: "lbs",
+      },
+    }),
+    [],
+  );
 
   // State
   const [settings, setSettings] = useState<HouseholdSettings>(defaultSettings);
@@ -308,10 +314,10 @@ export default function ProfilePage() {
       location: profile.location ?? "",
       website: profile.website ?? "",
       socialLinks: {
-        linkedin: (profile.socialLinks?.linkedin as string) || "",
-        twitter: (profile.socialLinks?.twitter as string) || "",
-        github: (profile.socialLinks?.github as string) || "",
-        instagram: (profile.socialLinks?.instagram as string) || "",
+        linkedin: (profile.socialLinks?.["linkedin"] as string) || "",
+        twitter: (profile.socialLinks?.["twitter"] as string) || "",
+        github: (profile.socialLinks?.["github"] as string) || "",
+        instagram: (profile.socialLinks?.["instagram"] as string) || "",
       },
       profileVisibility: {
         name: profile.profileVisibility?.name ?? true,

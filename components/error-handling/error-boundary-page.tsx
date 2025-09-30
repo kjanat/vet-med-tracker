@@ -25,11 +25,11 @@ class ErrorBoundaryComponent extends Component<
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static override getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { error, hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Error boundary caught an error:", error, errorInfo);
     this.props.onError?.(error, errorInfo);
   }
