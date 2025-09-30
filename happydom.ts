@@ -1,7 +1,10 @@
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
-// Import jest-dom matchers for React Testing Library
-import "@testing-library/jest-dom";
+// Register happy-dom globals
+GlobalRegistrator.register();
+
+// Note: @testing-library/jest-dom is not imported here to avoid Node.DOCUMENT_POSITION issues
+// Import it directly in tests that need it instead
 
 type MockFn = ((...args: unknown[]) => unknown) & {
   mockClear: () => MockFn;
@@ -80,9 +83,6 @@ const isMockFunction = (fn?: unknown): boolean =>
     (fn as { mockClear?: unknown; mock?: unknown }).mockClear ||
       (fn as { mock?: unknown }).mock,
   );
-
-// puts window/DOM globals in place (happy-dom) :contentReference[oaicite:1]{index=1}
-GlobalRegistrator.register();
 
 // Add Jest timer compatibility for React Testing Library
 // This is required because @testing-library/dom internally checks for jest.advanceTimersByTime
