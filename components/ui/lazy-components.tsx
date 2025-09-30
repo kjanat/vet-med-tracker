@@ -57,54 +57,56 @@ export const LoadingTable = () => (
 // ADMIN COMPONENTS
 // =============================================================================
 
-export const LazyBulkRecordingForm = dynamic(
-  () =>
-    import("@/components/admin/bulk-recording-form").then((mod) => ({
-      default: mod.BulkRecordingForm,
-    })),
-  {
-    loading: () => <LoadingForm />,
-    ssr: false,
-  },
-);
+// Commented out - component files don't exist yet
+// export const LazyBulkRecordingForm = dynamic(
+//   () =>
+//     import("@/components/admin/bulk-recording-form").then((mod) => ({
+//       default: mod.BulkRecordingForm,
+//     })),
+//   {
+//     loading: () => <LoadingForm />,
+//     ssr: false,
+//   },
+// );
 
-export const LazyBulkRecordingDemo = dynamic(
-  () =>
-    import("@/components/admin/bulk-recording-demo").then((mod) => ({
-      default: mod.BulkRecordingDemo,
-    })),
-  {
-    loading: () => <LoadingCard />,
-    ssr: false,
-  },
-);
+// export const LazyBulkRecordingDemo = dynamic(
+//   () =>
+//     import("@/components/admin/bulk-recording-demo").then((mod) => ({
+//       default: mod.BulkRecordingDemo,
+//     })),
+//   {
+//     loading: () => <LoadingCard />,
+//     ssr: false,
+//   },
+// );
 
 // =============================================================================
 // DOSAGE COMPONENTS
 // =============================================================================
 
-export const LazyDosageCalculator = dynamic(
-  () => import("@/components/medication/dosage-calculator"),
-  {
-    loading: () => <LoadingForm />,
-    ssr: false,
-  },
-);
+// Commented out - component files don't exist yet
+// export const LazyDosageCalculator = dynamic(
+//   () => import("@/components/medication/dosage-calculator"),
+//   {
+//     loading: () => <LoadingForm />,
+//     ssr: false,
+//   },
+// );
 
 // =============================================================================
 // REGIMEN COMPONENTS
 // =============================================================================
 
-export const LazyRegimenForm = dynamic(
-  () =>
-    import("@/components/regimens/regimen-form").then((mod) => ({
-      default: mod.RegimenForm,
-    })),
-  {
-    loading: () => <LoadingForm />,
-    ssr: false,
-  },
-);
+// export const LazyRegimenForm = dynamic(
+//   () =>
+//     import("@/components/regimens/regimen-form").then((mod) => ({
+//       default: mod.RegimenForm,
+//     })),
+//   {
+//     loading: () => <LoadingForm />,
+//     ssr: false,
+//   },
+// );
 
 export const LazyRegimenList = dynamic(
   () =>
@@ -121,42 +123,44 @@ export const LazyRegimenList = dynamic(
 // MEDICATION COMPONENTS
 // =============================================================================
 
-export const LazyHybridMedicationInput = dynamic(
-  () =>
-    import("@/components/medication/hybrid-medication-input").then((mod) => ({
-      default: mod.HybridMedicationInput,
-    })),
-  {
-    loading: () => <LoadingForm />,
-    ssr: false,
-  },
-);
+// Commented out - component files don't exist yet
+// export const LazyHybridMedicationInput = dynamic(
+//   () =>
+//     import("@/components/medication/hybrid-medication-input").then((mod) => ({
+//       default: mod.HybridMedicationInput,
+//     })),
+//   {
+//     loading: () => <LoadingForm />,
+//     ssr: false,
+//   },
+// );
 
 // =============================================================================
 // SETTINGS COMPONENTS
 // =============================================================================
 
-export const LazyAnimalList = dynamic(
-  () =>
-    import("@/components/settings/animals/animal-list").then((mod) => ({
-      default: mod.AnimalList,
-    })),
-  {
-    loading: () => <LoadingTable />,
-    ssr: false,
-  },
-);
+// Commented out - component files don't exist yet
+// export const LazyAnimalList = dynamic(
+//   () =>
+//     import("@/components/settings/animals/animal-list").then((mod) => ({
+//       default: mod.AnimalList,
+//     })),
+//   {
+//     loading: () => <LoadingTable />,
+//     ssr: false,
+//   },
+// );
 
-export const LazyBulkAnimalTable = dynamic(
-  () =>
-    import("@/components/settings/animals/bulk-animal-table").then((mod) => ({
-      default: mod.BulkAnimalTable,
-    })),
-  {
-    loading: () => <LoadingTable />,
-    ssr: false,
-  },
-);
+// export const LazyBulkAnimalTable = dynamic(
+//   () =>
+//     import("@/components/settings/animals/bulk-animal-table").then((mod) => ({
+//       default: mod.BulkAnimalTable,
+//     })),
+//   {
+//     loading: () => <LoadingTable />,
+//     ssr: false,
+//   },
+// );
 
 export const LazyPrefsPanel = dynamic(
   () =>
@@ -207,16 +211,17 @@ export const LazyHouseholdDialogs = dynamic(
 // ONBOARDING COMPONENTS
 // =============================================================================
 
-export const LazyWelcomeFlow = dynamic(
-  () =>
-    import("@/components/onboarding/welcome-flow").then((mod) => ({
-      default: mod.WelcomeFlow,
-    })),
-  {
-    loading: () => <LoadingForm />,
-    ssr: false,
-  },
-);
+// Commented out - component file doesn't exist yet
+// export const LazyWelcomeFlow = dynamic(
+//   () =>
+//     import("@/components/onboarding/welcome-flow").then((mod) => ({
+//       default: mod.WelcomeFlow,
+//     })),
+//   {
+//     loading: () => <LoadingForm />,
+//     ssr: false,
+//   },
+// );
 
 // =============================================================================
 // CHART COMPONENTS (Heavy dependencies)
@@ -263,27 +268,27 @@ export function createLazyComponent<T = Record<string, unknown>>(
   });
 }
 
-// Utility for preloading components
+// Utility for preloading components - commented out missing imports
 export const preloadComponent = {
-  bulkRecording: () => import("@/components/admin/bulk-recording-form"),
+  // bulkRecording: () => import("@/components/admin/bulk-recording-form"),
   chart: () => import("@/components/ui/chart"),
-  dosageCalculator: () => import("@/components/medication/dosage-calculator"),
-  regimenForm: () => import("@/components/regimens/regimen-form"),
-  welcomeFlow: () => import("@/components/onboarding/welcome-flow"),
+  // dosageCalculator: () => import("@/components/medication/dosage-calculator"),
+  // regimenForm: () => import("@/components/regimens/regimen-form"),
+  // welcomeFlow: () => import("@/components/onboarding/welcome-flow"),
 };
 
 // =============================================================================
 // ROUTE-BASED LAZY LOADING
 // =============================================================================
 
-// Admin route components
-export const LazyAdminRoute = dynamic(
-  () => import("@/app/(main)/auth/admin/record/page"),
-  {
-    loading: () => <LoadingForm />,
-    ssr: false,
-  },
-);
+// Admin route components - commented out (missing file)
+// export const LazyAdminRoute = dynamic(
+//   () => import("@/app/(main)/auth/admin/record/page"),
+//   {
+//     loading: () => <LoadingForm />,
+//     ssr: false,
+//   },
+// );
 
 // Settings route components
 export const LazySettingsRoute = dynamic(
