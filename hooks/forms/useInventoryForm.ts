@@ -3,9 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useMemo } from "react";
 import { type UseFormReturn, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import type { z } from "zod";
 import { useApp } from "@/components/providers/app-provider-consolidated";
-import { useToast } from "@/hooks/shared/use-toast";
 import { inventoryFormSchema } from "@/lib/schemas/inventory";
 import { InventoryDataTransformer } from "@/lib/services/inventoryDataTransformer";
 import { InventoryFormValidator } from "@/lib/services/inventoryFormValidator";
@@ -136,7 +136,6 @@ export function useInventoryForm(
   } = options;
 
   const { selectedHousehold } = useApp();
-  const { toast } = useToast();
   const utils = trpc.useUtils();
 
   // Use focused form state management hook
@@ -168,11 +167,7 @@ export function useInventoryForm(
       console.error("Error creating inventory item:", error);
       const errorMessage = "Failed to add inventory item. Please try again.";
       formState.setError(errorMessage);
-      toast({
-        description: errorMessage,
-        title: "Error",
-        variant: "destructive",
-      });
+      toast.error(errorMessage);
       onError?.(error, form.getValues());
     },
     onSuccess: async (data) => {
@@ -182,7 +177,7 @@ export function useInventoryForm(
       if (showSuccessToast && data) {
         const message =
           successMessage?.(form.getValues()) || `Added medication to inventory`;
-        toast({ description: message, title: "Success" });
+        toast.success(message);
       }
 
       if (data) {
@@ -194,12 +189,9 @@ export function useInventoryForm(
   const setInUseMutation = trpc.inventory.setInUse.useMutation({
     onError: (error) => {
       console.error("Error setting inventory item in use:", error);
-      toast({
-        description:
-          "Item was created but failed to set as in use. You can update this later.",
-        title: "Warning",
-        variant: "destructive",
-      });
+      toast.warning(
+        "Item was created but failed to set as in use. You can update this later.",
+      );
     },
     onSuccess: async () => {
       // Invalidate queries to refresh data
@@ -221,11 +213,7 @@ export function useInventoryForm(
           InventoryFormValidator.getDisplayMessage(validationResult);
         if (errorMessage) {
           formState.setError(errorMessage);
-          toast({
-            description: errorMessage,
-            title: "Error",
-            variant: "destructive",
-          });
+          toast.error(errorMessage);
         }
         return false;
       }
@@ -233,7 +221,7 @@ export function useInventoryForm(
       formState.clearError();
       return true;
     },
-    [selectedHousehold, validateQuantity, toast, formState],
+    [selectedHousehold, validateQuantity, formState],
   );
 
   const transformInventoryData = useCallback(

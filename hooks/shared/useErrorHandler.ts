@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { toast } from "sonner";
 import {
   ApiErrorHandler,
   ErrorHandler,
@@ -8,14 +9,11 @@ import {
   FormErrorHandler,
   type StandardError,
 } from "@/lib/utils/error-handling";
-import { useToast } from "./use-toast";
 
 /**
  * Hook for consistent error handling across the application
  */
 export function useErrorHandler() {
-  const { toast } = useToast();
-
   /**
    * Generic error handler that processes errors and shows appropriate feedback
    */
@@ -32,16 +30,12 @@ export function useErrorHandler() {
 
       // Show toast notification if requested and not already shown by ErrorHandler
       if (options?.showToast && standardError.userMessage) {
-        toast({
-          description: standardError.userMessage,
-          title: options.toastTitle || "Error",
-          variant: "destructive",
-        });
+        toast.error(standardError.userMessage);
       }
 
       return standardError;
     },
-    [toast],
+    [],
   );
 
   return {

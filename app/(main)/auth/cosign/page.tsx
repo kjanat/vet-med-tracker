@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { toast } from "sonner";
 // Simple inline signature pad replacement
 import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -33,15 +34,12 @@ import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/shared/use-toast";
 import { getAvatarColor } from "@/lib/utils/avatar-utils";
 import { cn } from "@/lib/utils/general";
 import { trpc } from "@/server/trpc/client";
 
 // Hook for request management logic
 function useCoSignRequests(householdId: string | undefined) {
-  const { toast } = useToast();
-
   const pendingQuery = trpc.cosigner.listPending.useQuery(
     { householdId: householdId || "" },
     { enabled: Boolean(householdId) },
@@ -59,35 +57,21 @@ function useCoSignRequests(householdId: string | undefined) {
 
   const approveMutation = trpc.cosigner.approve.useMutation({
     onSuccess: () => {
-      toast({
-        title: "Request approved",
-        description: "The co-sign request has been approved successfully.",
-      });
+      toast.success("The co-sign request has been approved successfully.");
       refetchAll();
     },
     onError: (error) => {
-      toast({
-        title: "Error approving request",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(`Error approving request: ${error.message}`);
     },
   });
 
   const rejectMutation = trpc.cosigner.reject.useMutation({
     onSuccess: () => {
-      toast({
-        title: "Request rejected",
-        description: "The co-sign request has been rejected.",
-      });
+      toast.success("The co-sign request has been rejected.");
       refetchAll();
     },
     onError: (error) => {
-      toast({
-        title: "Error rejecting request",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(`Error rejecting request: ${error.message}`);
     },
   });
 

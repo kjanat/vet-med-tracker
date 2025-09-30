@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
+import { Toaster } from "@/components/ui/sonner";
 import { TRPCProvider } from "@/server/trpc/client";
 import { siteConfig } from "./config";
 
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <TRPCProvider>
                 <main id="main-content">{children}</main>
               </TRPCProvider>
+              <Toaster />
               <Analytics />
             </ThemeProvider>
           </StackTheme>

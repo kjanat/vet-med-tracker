@@ -110,6 +110,7 @@ export {
   SheetTrigger,
 } from "./ui/sheet";
 export { Skeleton } from "./ui/skeleton";
+export { Toaster } from "./ui/sonner";
 export { Spinner } from "./ui/spinner";
 export { Switch } from "./ui/switch";
 export {
@@ -124,14 +125,13 @@ export {
 } from "./ui/table";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 export { Textarea } from "./ui/textarea";
-export { Toaster } from "./ui/toaster";
 export {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-// export { toast, useToast } from "./ui/use-toast"; // File doesn't exist, use sonner instead
+// export { toast, useToast } from "./ui/use-toast"; // Deprecated - use sonner instead
 
 // ===========================
 // BUSINESS COMPONENTS

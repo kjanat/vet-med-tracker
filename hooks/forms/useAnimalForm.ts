@@ -3,9 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { useApp } from "@/components/providers/app-provider-consolidated";
-import { useToast } from "@/hooks/shared/use-toast";
 import type { AnimalFormData } from "@/lib/schemas/animal";
 import { AnimalDataTransformer } from "@/lib/services/animalDataTransformer";
 import { AnimalFormValidator } from "@/lib/services/animalFormValidator";
@@ -147,7 +147,6 @@ export function useAnimalForm(
   } = options;
 
   const { selectedHousehold } = useApp();
-  const { toast } = useToast();
   const utils = trpc.useUtils();
 
   // Use the extracted state management service
@@ -177,11 +176,7 @@ export function useAnimalForm(
   const createMutation = trpc.animals.create.useMutation({
     onError: (error): void => {
       console.error("Error creating animal:", error);
-      toast({
-        description: "Failed to create animal. Please try again.",
-        title: "Error",
-        variant: "destructive",
-      });
+      toast.error("Failed to create animal. Please try again.");
       onError?.(error, editingAnimal);
     },
     onSuccess: (data): void => {
@@ -192,7 +187,7 @@ export function useAnimalForm(
         const message: string =
           successMessage?.(data as unknown as Animal, true) ||
           `Created ${data.name}`;
-        toast({ description: message, title: "Success" });
+        toast.success(message);
       }
 
       if (data) {
@@ -204,11 +199,7 @@ export function useAnimalForm(
   const updateMutation = trpc.animals.update.useMutation({
     onError: (error): void => {
       console.error("Error updating animal:", error);
-      toast({
-        description: "Failed to update animal. Please try again.",
-        title: "Error",
-        variant: "destructive",
-      });
+      toast.error("Failed to update animal. Please try again.");
       onError?.(error, editingAnimal);
     },
     onSuccess: (data): void => {
@@ -219,7 +210,7 @@ export function useAnimalForm(
         const message: string =
           successMessage?.(data as unknown as Animal, false) ||
           `Updated ${data.name}`;
-        toast({ description: message, title: "Success" });
+        toast.success(message);
       }
 
       if (data) {
@@ -299,11 +290,7 @@ export function useAnimalForm(
         );
         if (errorMessage) {
           setError(errorMessage);
-          toast({
-            description: errorMessage,
-            title: "Validation Error",
-            variant: "destructive",
-          });
+          toast.error(errorMessage);
         }
         return;
       }
@@ -357,7 +344,6 @@ export function useAnimalForm(
       autoClose,
       closeForm,
       setIsDirty,
-      toast,
     ],
   );
 

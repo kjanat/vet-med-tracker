@@ -2,6 +2,7 @@
 
 import { Building2, Plus } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { HouseholdCard } from "@/components/household/household-card";
 import { HouseholdDetails } from "@/components/household/household-details";
 import {
@@ -13,13 +14,11 @@ import { useApp } from "@/components/providers/app-provider-consolidated";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/shared/use-toast";
 import { trpc } from "@/server/trpc/client";
 
 export default function HouseholdsPage() {
   const { user, selectedHousehold, selectedAnimal, setSelectedHousehold } =
     useApp();
-  const { toast } = useToast();
 
   // Get timezone from animal or household context
   const timezone =
@@ -96,10 +95,7 @@ export default function HouseholdsPage() {
   // Mutations
   const updateHouseholdMutation = trpc.households.update.useMutation({
     onSuccess: (data) => {
-      toast({
-        title: "Household updated",
-        description: "Your household settings have been saved.",
-      });
+      toast.success("Your household settings have been saved.");
       // Update the selected household in context if it was updated
       if (selectedHousehold && data.id === selectedHousehold.id) {
         setSelectedHousehold({ ...selectedHousehold, name: data.name });
@@ -109,20 +105,13 @@ export default function HouseholdsPage() {
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Failed to update household",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(`Failed to update household: ${error.message}`);
     },
   });
 
   const leaveHouseholdMutation = trpc.households.leave.useMutation({
     onSuccess: () => {
-      toast({
-        title: "Left household",
-        description: "You have successfully left the household.",
-      });
+      toast.success("You have successfully left the household.");
       // Clear selected if leaving current household
       if (leavingHouseholdId === selectedHousehold?.id) {
         setSelectedHousehold(null);
@@ -132,11 +121,7 @@ export default function HouseholdsPage() {
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Failed to leave household",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(`Failed to leave household: ${error.message}`);
     },
   });
 
