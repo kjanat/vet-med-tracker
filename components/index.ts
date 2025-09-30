@@ -172,7 +172,7 @@ export { MobileConfirmLayout } from "./ui/mobile-confirm-layout";
 // export { MobileRecordHeader } from "./ui/mobile-record-header";
 // export { MobileRecordLayout } from "./ui/mobile-record-layout";
 // export { MobileSuccessLayout } from "./ui/mobile-success-layout";
-export { GuardedLink as NavigationGuard } from "./ui/navigation-guard";
+// export { GuardedLink as NavigationGuard } from "./ui/navigation-guard"; // Commented out - export doesn't exist
 export { NotificationDropdown } from "./ui/notification-dropdown";
 export { PhotoGallery } from "./ui/photo-gallery";
 export { PhotoGalleryDemo } from "./ui/photo-gallery-demo";
