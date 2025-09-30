@@ -1,41 +1,31 @@
-import { z } from "zod";
-
-export const AnimalFormSchema = z.object({
-  breed: z.string().optional(),
-  color: z.string().optional(),
-  dateOfBirth: z.date().optional(),
-  microchipNumber: z.string().optional(),
-  name: z.string().min(1, "Animal name is required"),
-  notes: z.string().optional(),
-  sex: z.enum(["male", "female", "unknown"]).optional(),
-  species: z.string().min(1, "Species is required"),
-  weight: z.number().positive().optional(),
-  weightUnit: z.enum(["kg", "lbs"]).optional(),
-});
-
-export type AnimalFormValues = z.infer<typeof AnimalFormSchema>;
-
-export function validateAnimalForm(data: unknown): AnimalFormValues {
-  return AnimalFormSchema.parse(data);
-}
+import type { AnimalFormData } from "@/lib/schemas/animal";
 
 export class AnimalFormValidator {
-  static validate = validateAnimalForm;
-  static schema = AnimalFormSchema;
-
-  static canSubmit(data: unknown): boolean {
-    try {
-      validateAnimalForm(data);
-      return true;
-    } catch {
+  static canSubmit(
+    data: AnimalFormData,
+    context?: { household?: unknown; isEditing?: boolean },
+  ): boolean {
+    // Basic validation
+    if (!data.name || !data.species || !data.timezone) {
       return false;
     }
+    // Require household context for new animals
+    if (!context?.isEditing && !context?.household) {
+      return false;
+    }
+    return true;
   }
 
-  static getErrorMessage(error: unknown): string {
-    if (error instanceof Error) {
-      return error.message;
+  static getErrorMessage(
+    data: AnimalFormData,
+    context?: { household?: unknown; isEditing?: boolean },
+  ): string | null {
+    if (!data.name) return "Name is required";
+    if (!data.species) return "Species is required";
+    if (!data.timezone) return "Timezone is required";
+    if (!context?.isEditing && !context?.household) {
+      return "Household is required for new animals";
     }
-    return "Validation error";
+    return null;
   }
 }

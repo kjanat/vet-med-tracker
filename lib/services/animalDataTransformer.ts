@@ -1,51 +1,31 @@
 // Animal data transformer service
 
-export interface AnimalFormData {
-  name: string;
-  species: string;
-  breed?: string;
-  dateOfBirth?: Date;
-  weight?: number;
-  weightUnit?: "kg" | "lbs";
-  sex?: "male" | "female" | "unknown";
-  color?: string;
-  microchipNumber?: string;
-  notes?: string;
-}
-
-export interface AnimalApiData {
-  id: string;
-  name: string;
-  species: string;
-  breed?: string | null;
-  dateOfBirth?: string | null;
-  weight?: number | null;
-  weightUnit?: string | null;
-  sex?: string | null;
-  color?: string | null;
-  microchipNumber?: string | null;
-  notes?: string | null;
-  householdId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { AnimalApiData, AnimalFormData } from "@/lib/schemas/animal";
+import type { Animal } from "@/lib/utils/types";
 
 export function transformAnimalFormToApi(
   formData: AnimalFormData,
   householdId: string,
 ): Omit<AnimalApiData, "id" | "createdAt" | "updatedAt"> {
   return {
-    breed: formData.breed || null,
-    color: formData.color || null,
-    dateOfBirth: formData.dateOfBirth?.toISOString() || null,
+    allergies: formData.allergies,
+    breed: formData.breed,
+    clinicName: formData.clinicName,
+    color: formData.color,
+    conditions: formData.conditions,
+    dob: formData.dob?.toISOString(),
     householdId,
-    microchipNumber: formData.microchipNumber || null,
+    microchipId: formData.microchipId,
     name: formData.name,
-    notes: formData.notes || null,
-    sex: formData.sex || null,
+    neutered: formData.neutered,
+    notes: formData.notes,
+    sex: formData.sex,
     species: formData.species,
-    weight: formData.weight || null,
-    weightUnit: formData.weightUnit || null,
+    timezone: formData.timezone,
+    vetEmail: formData.vetEmail,
+    vetName: formData.vetName,
+    vetPhone: formData.vetPhone,
+    weightKg: formData.weightKg?.toString(),
   };
 }
 
@@ -53,18 +33,24 @@ export function transformAnimalApiToForm(
   apiData: AnimalApiData,
 ): AnimalFormData {
   return {
-    breed: apiData.breed || undefined,
-    color: apiData.color || undefined,
-    dateOfBirth: apiData.dateOfBirth
-      ? new Date(apiData.dateOfBirth)
-      : undefined,
-    microchipNumber: apiData.microchipNumber || undefined,
+    allergies: apiData.allergies ?? [],
+    breed: apiData.breed,
+    clinicName: apiData.clinicName,
+    color: apiData.color,
+    conditions: apiData.conditions ?? [],
+    dob: apiData.dob ? new Date(apiData.dob) : undefined,
+    microchipId: apiData.microchipId,
     name: apiData.name,
-    notes: apiData.notes || undefined,
-    sex: (apiData.sex as "male" | "female" | "unknown") || undefined,
+    neutered: apiData.neutered,
+    notes: apiData.notes,
+    photoUrl: undefined,
+    sex: apiData.sex,
     species: apiData.species,
-    weight: apiData.weight || undefined,
-    weightUnit: (apiData.weightUnit as "kg" | "lbs") || undefined,
+    timezone: apiData.timezone,
+    vetEmail: apiData.vetEmail,
+    vetName: apiData.vetName,
+    vetPhone: apiData.vetPhone,
+    weightKg: apiData.weightKg ? parseFloat(apiData.weightKg) : undefined,
   };
 }
 
@@ -74,17 +60,62 @@ export class AnimalDataTransformer {
 
   static createDefaultValues(): AnimalFormData {
     return {
+      allergies: [],
+      breed: undefined,
+      clinicName: undefined,
+      color: undefined,
+      conditions: [],
+      dob: undefined,
+      microchipId: undefined,
       name: "",
+      neutered: false,
+      notes: undefined,
+      photoUrl: undefined,
+      sex: undefined,
       species: "",
+      timezone: "UTC",
+      vetEmail: undefined,
+      vetName: undefined,
+      vetPhone: undefined,
+      weightKg: undefined,
     };
   }
 
-  static toInstrumentationData(data: AnimalFormData) {
-    return { action: "create", formData: data };
+  static toInstrumentationData(
+    data: AnimalFormData,
+    isNew: boolean,
+    animalId?: string,
+  ) {
+    return {
+      detail: { animalId, data, isNew },
+      eventType: isNew ? "animal:created" : "animal:updated",
+    };
   }
 
-  static fromAnimalRecord(record: AnimalApiData): AnimalFormData {
-    return transformAnimalApiToForm(record);
+  static fromAnimalRecord(record: Animal | AnimalApiData): AnimalFormData {
+    // Handle both Animal and AnimalApiData types
+    const dob = record.dob instanceof Date ? record.dob : undefined;
+
+    return {
+      allergies: record.allergies ?? [],
+      breed: record.breed,
+      clinicName: (record as Animal).clinicName ?? undefined,
+      color: record.color,
+      conditions: record.conditions ?? [],
+      dob,
+      microchipId: record.microchipId,
+      name: record.name,
+      neutered: record.neutered ?? false,
+      notes: (record as Animal).notes ?? undefined,
+      photoUrl: undefined,
+      sex: record.sex,
+      species: record.species,
+      timezone: record.timezone,
+      vetEmail: (record as Animal).vetEmail ?? undefined,
+      vetName: record.vetName,
+      vetPhone: (record as Animal).vetPhone ?? undefined,
+      weightKg: record.weightKg,
+    };
   }
 
   static toUpdatePayload(data: AnimalFormData) {
