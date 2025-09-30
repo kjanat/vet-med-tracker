@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import type { AdministrationRecord } from "@/lib/utils/types";
+
 interface HistoryCalendarProps {
   selectedDate?: Date;
   onDateSelect?: (date: Date) => void;
@@ -14,7 +16,7 @@ interface HistoryCalendarProps {
   month?: Date;
   onMonthChange?: (date: Date) => void;
   onSelectDay?: (day: Date) => void;
-  records?: Record<string, unknown>[];
+  records?: AdministrationRecord[];
 }
 
 export function HistoryCalendar({

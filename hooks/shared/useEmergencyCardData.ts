@@ -16,7 +16,7 @@ const calculateAge = (dob: Date | string | null) => {
 
 export function useEmergencyCardData() {
   const params = useParams();
-  const animalId = params.id as string;
+  const animalId = params["id"] as string;
   const { selectedHousehold, selectedAnimal } = useApp();
 
   const { data: emergencyContacts } = trpc.emergencyContacts.list.useQuery();

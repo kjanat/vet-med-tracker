@@ -52,7 +52,7 @@ export const useStackMetadataPreferences = ({
     }
 
     const hasPreferences = Boolean(vetMedPrefs) || Boolean(householdSettings);
-    const hasCompletedOnboarding = Boolean(metadata.onboardingComplete);
+    const hasCompletedOnboarding = Boolean(metadata["onboardingComplete"]);
     onFirstTimeUserChange(!hasPreferences && !hasCompletedOnboarding);
   }, [
     defaultHouseholdSettings,
