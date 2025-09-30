@@ -5,7 +5,6 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/db/drizzle";
 import { NotificationScheduler } from "@/lib/push-notifications/notification-scheduler";
 import { stackServerApp } from "@/stack/server";
 

@@ -105,7 +105,7 @@ export interface UserProfileSchema {
   pronouns: string | null;
   location: string | null;
   website: string | null;
-  socialLinks: Record<string, unknown>;
+  socialLinks: Record<string, string>;
   profileVisibility: Record<string, boolean>;
   profileCompletedAt: string | null;
   legacyProfileData?: Record<string, unknown> | null;

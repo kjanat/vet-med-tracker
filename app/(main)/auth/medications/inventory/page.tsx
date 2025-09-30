@@ -225,7 +225,7 @@ function InventoryContent() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const _handleDelete = async (id: string) => {
     if (!selectedHousehold?.id) return;
 
     try {
