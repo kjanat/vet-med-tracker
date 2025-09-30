@@ -34,7 +34,6 @@ interface HouseholdListItem {
     joinedAt: Date;
     role: "OWNER" | "CAREGIVER" | "VETREADONLY";
   };
-  role: "OWNER" | "CAREGIVER" | "VETREADONLY";
 }
 
 interface HouseholdDetailsData {
