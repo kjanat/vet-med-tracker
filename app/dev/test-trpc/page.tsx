@@ -286,7 +286,7 @@ function CreateHouseholdForm({ onSuccess }: { onSuccess: () => void }) {
       onSuccess();
       setNewHouseholdName("");
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       console.error("Error creating household:", error);
     },
   });
