@@ -216,6 +216,14 @@ describe("Date Utils", () => {
       expect(result).toContain("in");
       expect(result).toContain("minute");
     });
+
+    it("formats time in days when more than 24 hours", () => {
+      const pastDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000); // 2 days ago
+      const result = formatTimeAgo(pastDate);
+
+      expect(result).toContain("ago");
+      expect(result).toContain("day");
+    });
   });
 
   describe("convertToTimezone", () => {
@@ -320,6 +328,19 @@ describe("Date Utils", () => {
       const schedule = generateDoseSchedule(startDate, "Q8H", 1);
 
       expect(schedule.length).toBe(3); // 3 doses per day
+    });
+
+    it("generates schedule with timezone", () => {
+      const startDate = new Date("2024-03-15T08:00:00Z");
+      const schedule = generateDoseSchedule(
+        startDate,
+        "BID",
+        2,
+        "America/New_York",
+      );
+
+      expect(schedule.length).toBe(4);
+      expect(schedule[0]).toBeInstanceOf(Date);
     });
   });
 
