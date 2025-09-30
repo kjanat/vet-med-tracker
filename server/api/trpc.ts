@@ -200,6 +200,7 @@ const t = initTRPC.context<Context>().create({
 });
 
 // Export router and procedure helpers
+export const router = t.router;
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 

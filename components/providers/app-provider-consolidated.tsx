@@ -65,6 +65,20 @@ export interface UserProfile {
   email: string | null;
   name: string | null;
   image: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  pronouns?: string | null;
+  bio?: string | null;
+  location?: string | null;
+  website?: string | null;
+  socialLinks?: Record<string, string> | null;
+  profileVisibility?: {
+    showEmail?: boolean | null;
+    showPhone?: boolean | null;
+    showBio?: boolean | null;
+    showLocation?: boolean | null;
+    showSocialLinks?: boolean | null;
+  } | null;
   preferences: {
     timezone: string | null;
     phoneNumber: string | null;

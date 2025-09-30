@@ -9,7 +9,62 @@ interface ScheduledNotification {
   metadata?: Record<string, any>;
 }
 
+interface SchedulerStatus {
+  isRunning: boolean;
+  lastRun?: Date;
+  nextRun?: Date;
+  scheduledCount: number;
+}
+
 export class NotificationScheduler {
+  private static isRunning = false;
+  private static lastRun?: Date;
+  private static intervalId?: NodeJS.Timeout;
+
+  static getStatus(): SchedulerStatus {
+    return {
+      isRunning: NotificationScheduler.isRunning,
+      lastRun: NotificationScheduler.lastRun,
+      nextRun: NotificationScheduler.lastRun
+        ? new Date(NotificationScheduler.lastRun.getTime() + 60000)
+        : undefined,
+      scheduledCount: 0,
+    };
+  }
+
+  static start(): void {
+    if (NotificationScheduler.isRunning) {
+      console.log("Notification scheduler already running");
+      return;
+    }
+
+    NotificationScheduler.isRunning = true;
+    console.log("Starting notification scheduler");
+
+    // Run scheduler every minute
+    NotificationScheduler.intervalId = setInterval(() => {
+      NotificationScheduler.lastRun = new Date();
+      console.log(
+        "Notification scheduler tick:",
+        NotificationScheduler.lastRun,
+      );
+    }, 60000);
+  }
+
+  static stop(): void {
+    if (!NotificationScheduler.isRunning) {
+      console.log("Notification scheduler not running");
+      return;
+    }
+
+    NotificationScheduler.isRunning = false;
+    if (NotificationScheduler.intervalId) {
+      clearInterval(NotificationScheduler.intervalId);
+      NotificationScheduler.intervalId = undefined;
+    }
+    console.log("Stopped notification scheduler");
+  }
+
   static async scheduleNotification(
     notification: Omit<ScheduledNotification, "id">,
   ): Promise<string> {

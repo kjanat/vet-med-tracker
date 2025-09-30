@@ -664,6 +664,36 @@ export const appRouter = createTRPCRouter({
 
         return { success: true };
       }),
+    getById: householdProcedure
+      .input(
+        z.object({
+          householdId: z.uuid(),
+          id: z.uuid(),
+        }),
+      )
+      .query(async ({ ctx, input }) => {
+        const result = await ctx.db
+          .select()
+          .from(animals)
+          .where(
+            and(
+              eq(animals.id, input.id),
+              eq(animals.householdId, input.householdId),
+              isNull(animals.deletedAt),
+            ),
+          )
+          .limit(1);
+
+        if (!result[0]) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Animal not found",
+          });
+        }
+
+        return result[0];
+      }),
+
     list: householdProcedure
       .input(z.object({ householdId: z.uuid() }))
       .query(async ({ ctx, input }) => {

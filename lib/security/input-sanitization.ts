@@ -45,6 +45,17 @@ export class InputSanitizer {
     const num = typeof input === "number" ? input : parseFloat(input);
     return Number.isNaN(num) ? null : num;
   }
+
+  /**
+   * Sanitize file names to prevent directory traversal and other attacks
+   */
+  static sanitizeFileName(fileName: string): string {
+    // Remove path components
+    const name = fileName.replace(/^.*[/\\]/, "");
+
+    // Remove any non-alphanumeric characters except dots, dashes, and underscores
+    return name.replace(/[^a-zA-Z0-9._-]/g, "_").substring(0, 255);
+  }
 }
 
 // Export for schema compatibility
@@ -52,6 +63,11 @@ import { z } from "zod";
 
 export function createSecurityValidator<T extends z.ZodTypeAny>(schema: T) {
   return schema;
+}
+
+// Export sanitizeFileName as a standalone function
+export function sanitizeFileName(fileName: string): string {
+  return InputSanitizer.sanitizeFileName(fileName);
 }
 
 export const secureSchemas = {
