@@ -47,15 +47,17 @@ export function InventoryCard({
   return (
     <div className="rounded border p-4">
       <h3>{item?.name || "Inventory Item"}</h3>
-      <p>Quantity: {item?.quantity || 0}</p>
+      <p>
+        Quantity: {item?.unitsRemaining || 0} / {item?.unitsTotal || 0}
+      </p>
       <div className="mt-2 flex gap-2">
-        <button className="text-blue-500" onClick={onEdit}>
+        <button className="text-blue-500" onClick={onEdit} type="button">
           Edit
         </button>
-        <button className="text-green-500" onClick={onAssign}>
+        <button className="text-green-500" onClick={onAssign} type="button">
           Assign
         </button>
-        <button className="text-red-500" onClick={onDelete}>
+        <button className="text-red-500" onClick={onDelete} type="button">
           Delete
         </button>
       </div>

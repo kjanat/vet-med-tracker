@@ -233,7 +233,6 @@ function InventoryContent() {
         id,
         householdId: selectedHousehold.id,
       });
-      // Item deleted successfully
     } catch (error) {
       console.error("Failed to delete item:", error);
     }
@@ -454,6 +453,7 @@ function InventoryContent() {
               item={item}
               key={item.id}
               onAssign={() => setAssignModalItem(item)}
+              onDelete={() => handleDelete(item.id)}
               onDetails={() => setEditModalItem(item)}
               onUseThis={() => handleSetInUse(item.id, !item.inUse)}
             />

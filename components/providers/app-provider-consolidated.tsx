@@ -12,7 +12,7 @@ import {
   useReducer,
   useRef,
 } from "react";
-import type { vetmedAnimals, vetmedHouseholds, vetmedUsers } from "@/db/schema";
+import type { vetmedAnimals, vetmedUsers } from "@/db/schema";
 import {
   defaultUserPreferences,
   defaultUserProfile,
@@ -36,9 +36,16 @@ interface StackUserForConversion {
 }
 
 // tRPC query result types
-type HouseholdListItem = typeof vetmedHouseholds.$inferSelect & {
-  role: string;
-  joinedAt: Date;
+type HouseholdListItem = {
+  createdAt: Date;
+  id: string;
+  name: string;
+  timezone: string;
+  membership: {
+    id: string;
+    joinedAt: Date;
+    role: "OWNER" | "CAREGIVER" | "VETREADONLY";
+  };
 };
 
 type AnimalFromDatabase = typeof vetmedAnimals.$inferSelect;
@@ -541,7 +548,7 @@ export function useApp() {
 export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const stackUser = useUser();
-  const _isLoaded = true; // Stack Auth loads synchronously
+  // Stack Auth loads synchronously - no isLoaded check needed
   const utils = trpc.useUtils();
   const { mutateAsync: persistPreferences } =
     trpc.user.updatePreferences.useMutation();
@@ -813,7 +820,9 @@ export function ConsolidatedAppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!animalData) return;
 
-    const pendingByAnimal = pendingMedsData?.byAnimal || {};
+    const pendingByAnimal =
+      (pendingMedsData as { byAnimal?: Record<string, number> } | undefined)
+        ?.byAnimal || {};
     const formattedAnimals = formatAnimalData(animalData, pendingByAnimal);
 
     dispatch({ payload: formattedAnimals, type: "SET_ANIMALS" });
