@@ -9,8 +9,8 @@ export interface InventoryFormDialogProps {
 }
 
 export function InventoryFormDialog({
-  onClose,
-  isOpen,
+  onClose: _onClose,
+  isOpen: _isOpen,
 }: InventoryFormDialogProps) {
   return null; // Placeholder - coming soon
 }

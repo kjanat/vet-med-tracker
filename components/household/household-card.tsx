@@ -19,10 +19,10 @@ interface HouseholdCardProps {
 export function HouseholdCard({
   household,
   onClick,
-  isSelected,
-  membership,
-  onEdit,
-  onLeave,
+  isSelected: _isSelected,
+  membership: _membership,
+  onEdit: _onEdit,
+  onLeave: _onLeave,
   onMakeActive,
 }: HouseholdCardProps) {
   return (

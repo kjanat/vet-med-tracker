@@ -18,12 +18,12 @@ interface HistoryCalendarProps {
 }
 
 export function HistoryCalendar({
-  selectedDate,
-  onDateSelect,
-  counts,
-  month,
-  onMonthChange,
-  onSelectDay,
+  selectedDate: _selectedDate,
+  onDateSelect: _onDateSelect,
+  counts: _counts,
+  month: _month,
+  onMonthChange: _onMonthChange,
+  onSelectDay: _onSelectDay,
   records,
 }: HistoryCalendarProps) {
   return (

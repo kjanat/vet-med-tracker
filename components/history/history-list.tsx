@@ -13,13 +13,13 @@ interface HistoryListProps {
 
 export function HistoryList({
   records = [],
-  onRecordSelect,
-  groups,
-  hasMore,
-  onCosign,
-  onDelete,
-  onLoadMore,
-  onUndo,
+  onRecordSelect: _onRecordSelect,
+  groups: _groups,
+  hasMore: _hasMore,
+  onCosign: _onCosign,
+  onDelete: _onDelete,
+  onLoadMore: _onLoadMore,
+  onUndo: _onUndo,
 }: HistoryListProps) {
   return (
     <div className="space-y-2">
@@ -30,8 +30,11 @@ export function HistoryList({
           </CardContent>
         </Card>
       ) : (
-        records.map((_record, index) => (
-          <Card className="cursor-pointer hover:bg-muted/50" key={index}>
+        records.map((record, index) => (
+          <Card
+            className="cursor-pointer hover:bg-muted/50"
+            key={record.id || `record-${index}`}
+          >
             <CardContent className="p-4">
               <p className="text-sm">Record {index + 1}</p>
             </CardContent>

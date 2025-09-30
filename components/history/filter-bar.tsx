@@ -4,7 +4,7 @@ interface FilterBarProps {
   onFilterChange?: (filters: any) => void;
 }
 
-export function FilterBar({ onFilterChange }: FilterBarProps) {
+export function FilterBar({ onFilterChange: _onFilterChange }: FilterBarProps) {
   return (
     <div className="flex gap-2 border-b p-4">
       <Button size="sm" variant="outline">

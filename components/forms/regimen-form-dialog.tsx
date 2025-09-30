@@ -10,9 +10,9 @@ export interface RegimenFormDialogProps {
 }
 
 export function RegimenFormDialog({
-  onClose,
-  isOpen,
-  animalId,
+  onClose: _onClose,
+  isOpen: _isOpen,
+  animalId: _animalId,
 }: RegimenFormDialogProps) {
   return null; // Placeholder - coming soon
 }

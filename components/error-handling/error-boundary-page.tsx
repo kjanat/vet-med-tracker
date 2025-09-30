@@ -25,7 +25,7 @@ class ErrorBoundaryComponent extends Component<
     this.state = { hasError: false };
   }
 
-  static override getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { error, hasError: true };
   }
 

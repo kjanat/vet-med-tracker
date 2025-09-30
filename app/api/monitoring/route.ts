@@ -101,8 +101,9 @@ function getFeatureStatus() {
 async function getHealthStatus(): Promise<MonitoringMetrics["health"]> {
   try {
     // Make internal request to health endpoint
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
+    const vercelUrl = process.env.VERCEL_URL;
+    const baseUrl = vercelUrl
+      ? `https://${vercelUrl}`
       : "http://localhost:3000";
     const response = await fetch(`${baseUrl}/api/health?type=simple`, {
       headers: {
@@ -180,9 +181,7 @@ export async function GET(_request: Request) {
       version: process.env.npm_package_version || "unknown",
       deployment: {
         id: process.env.VERCEL_DEPLOYMENT_ID,
-        url: process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : undefined,
+        url: vercelUrl ? `https://${vercelUrl}` : undefined,
         region: process.env.VERCEL_REGION,
       },
       performance: {
