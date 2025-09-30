@@ -18,6 +18,8 @@ function getScheduler() {
 // export const dynamic = "force-dynamic";
 // export const revalidate = 0;
 
+const adminUserIds = process.env["ADMIN_USER_IDS"]?.split(",") || [];
+
 const BodySchema = z.object({
   action: z.enum(["start", "stop", "restart"]),
 });
@@ -52,8 +54,7 @@ export async function POST(request: NextRequest) {
     // Note: In a real implementation, you'd check user roles from your database
     // For now, we'll restrict to specific user IDs or implement role-based checks
     const isAdmin =
-      user.serverMetadata?.role === "admin" ||
-      process.env["ADMIN_USER_IDS"]?.split(",").includes(user.id);
+      user.serverMetadata?.role === "admin" || adminUserIds.includes(user.id);
 
     if (!isAdmin) {
       console.warn(

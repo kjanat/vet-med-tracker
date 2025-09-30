@@ -20,7 +20,8 @@ export function useEmergencyCardData() {
   const { selectedHousehold, selectedAnimal } = useApp();
 
   // Stub for emergency contacts - endpoint doesn't exist yet
-  const emergencyContacts: any[] | undefined = undefined;
+  const emergencyContacts: Array<Record<string, unknown>> | undefined =
+    undefined;
 
   const { data: animalResponse, isLoading: animalLoading } =
     trpc.animals.getById.useQuery(

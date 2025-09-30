@@ -63,10 +63,13 @@ export function NotificationDropdown({
   });
 
   // markAllAsRead endpoint doesn't exist yet - stub for now
-  const markAllAsReadMutation = {
+  const markAllAsReadMutation: {
+    isPending: boolean;
+    mutateAsync: () => Promise<void>;
+  } = {
     isPending: false,
     mutateAsync: async () => {},
-  } as any;
+  };
 
   const getIcon = (type: Notification["type"]) => {
     switch (type) {
@@ -110,9 +113,7 @@ export function NotificationDropdown({
 
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsReadMutation.mutateAsync({
-        householdId: effectiveHouseholdId || undefined,
-      });
+      await markAllAsReadMutation.mutateAsync();
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
     }

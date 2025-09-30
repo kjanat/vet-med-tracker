@@ -50,9 +50,12 @@ export function PopoverTrigger({ children, asChild }: PopoverTriggerProps) {
   };
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as any, {
-      onClick: handleClick,
-    });
+    return React.cloneElement(
+      children as React.ReactElement<{ onClick?: () => void }>,
+      {
+        onClick: handleClick,
+      },
+    );
   }
 
   return (

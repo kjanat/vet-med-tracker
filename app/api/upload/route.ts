@@ -325,8 +325,8 @@ async function extractAndValidateFile(
   const validation = await validateFile(file);
   if (!validation.isValid) {
     await auditHelpers.logValidationFailure(
-      file.name,
       "file_upload_validation",
+      { fileName: file.name },
       clientIp,
       userId,
     );

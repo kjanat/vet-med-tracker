@@ -1,5 +1,6 @@
 "use client";
 
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -43,19 +44,27 @@ export function NavigationGuard({
       const originalReplace = router.replace;
 
       // Override router methods to show confirmation
-      router.push = (href: any, options?: any) => {
+      router.push = ((href: string, options?: unknown) => {
         if (window.confirm(message)) {
-          return originalPush.call(router, href, options);
+          return originalPush.call(
+            router,
+            href as Parameters<typeof originalPush>[0],
+            options as Parameters<typeof originalPush>[1],
+          );
         }
         return Promise.resolve(false);
-      };
+      }) as AppRouterInstance["push"];
 
-      router.replace = (href: any, options?: any) => {
+      router.replace = ((href: string, options?: unknown) => {
         if (window.confirm(message)) {
-          return originalReplace.call(router, href, options);
+          return originalReplace.call(
+            router,
+            href as Parameters<typeof originalReplace>[0],
+            options as Parameters<typeof originalReplace>[1],
+          );
         }
         return Promise.resolve(false);
-      };
+      }) as AppRouterInstance["replace"];
 
       return () => {
         // Restore original methods

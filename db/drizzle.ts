@@ -104,12 +104,11 @@ const monitor: {
 } | null = null;
 
 // Connection URLs - use pooled for high-frequency operations, unpooled for long-running operations
-const DATABASE_URL = process.env["DATABASE_URL"];
-if (!DATABASE_URL) {
+const databaseUrl = process.env["DATABASE_URL"];
+if (!databaseUrl) {
   throw new Error("DATABASE_URL environment variable is required");
 }
-const DATABASE_URL_UNPOOLED =
-  process.env["DATABASE_URL_UNPOOLED"] || DATABASE_URL;
+const databaseUrlUnpooled = process.env["DATABASE_URL_UNPOOLED"] || databaseUrl;
 
 // Configure Neon client with timeout settings
 const neonConfig = {
@@ -126,7 +125,7 @@ const neonConfig = {
 
 // Primary pooled connection for API routes (short-lived queries)
 // This is optimized for serverless environments with connection pooling
-const sql = neon(DATABASE_URL, neonConfig);
+const sql = neon(databaseUrl, neonConfig);
 
 // Drizzle instance with monitoring integration using pooled connection
 export const db = drizzle(sql, {
@@ -136,7 +135,7 @@ export const db = drizzle(sql, {
 
 // Unpooled connection for migrations, batch operations, and long-running queries
 // Use when you need dedicated connections or transactions
-const sqlUnpooled = neon(DATABASE_URL_UNPOOLED, {
+const sqlUnpooled = neon(databaseUrlUnpooled, {
   ...neonConfig,
   ...(typeof globalThis !== "undefined" && {
     fetchOptions: {
@@ -162,7 +161,7 @@ if (
   try {
     _pool = new Pool({
       allowExitOnIdle: true, // Allow process to exit when idle
-      connectionString: DATABASE_URL,
+      connectionString: databaseUrl,
       connectionTimeoutMillis: 10000, // 10 seconds connection timeout
       idleTimeoutMillis: 30000, // 30 seconds idle timeout
       // Optimized for Neon's connection limits and serverless patterns

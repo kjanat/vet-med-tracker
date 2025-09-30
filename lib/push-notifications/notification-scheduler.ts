@@ -6,7 +6,7 @@ interface ScheduledNotification {
   userId: string;
   householdId?: string;
   type: "medication" | "appointment" | "reminder";
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface SchedulerStatus {

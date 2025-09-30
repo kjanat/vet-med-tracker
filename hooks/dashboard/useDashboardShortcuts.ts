@@ -34,8 +34,8 @@ const createDashboardShortcuts = ({
     key: "Ctrl+/",
   },
   {
-    action: () => router.push("/auth/admin/record" as any),
-    description: "Record medication",
+    action: () => void router.push("/auth/medications/inventory"),
+    description: "View medication inventory",
     key: "Ctrl+R",
   },
   {

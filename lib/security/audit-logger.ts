@@ -78,7 +78,7 @@ export const auditHelpers = {
     userId: string,
     resource: string,
     resourceId?: string,
-    metadata?: any,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     console.log("[DATA_ACCESS]", {
       metadata,
@@ -93,7 +93,7 @@ export const auditHelpers = {
     severity: string,
     clientIp?: string,
     userId?: string,
-    metadata?: any,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     console.log("[SECURITY]", {
       clientIp,
@@ -107,7 +107,7 @@ export const auditHelpers = {
 
   async logValidationFailure(
     type: string,
-    details: any,
+    details: Record<string, unknown>,
     clientIp?: string,
     userId?: string,
   ): Promise<void> {

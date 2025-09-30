@@ -71,10 +71,10 @@ function getEnvironmentFlags(): Partial<FeatureFlags> {
   // Development environment overrides
   if (env === "development") {
     return {
-      debugMode: process.env["FEATURE_DEBUG_MODE"] !== "false",
+      debugMode: process.env["FEATURE_DEBUG_MODE"] === "true",
       experimentalUI: process.env["FEATURE_EXPERIMENTAL_UI"] === "true",
       mockData: process.env["FEATURE_MOCK_DATA"] === "true",
-      testingTools: process.env["FEATURE_TESTING_TOOLS"] !== "false",
+      testingTools: process.env["FEATURE_TESTING_TOOLS"] === "true",
     };
   }
 
@@ -91,22 +91,21 @@ function getEnvironmentFlags(): Partial<FeatureFlags> {
 
   // Production environment overrides from env vars
   return {
-    adminPanel: process.env["FEATURE_ADMIN_PANEL"] !== "false",
-    advancedReporting: process.env["FEATURE_ADVANCED_REPORTING"] !== "false",
-    backgroundSync: process.env["FEATURE_BACKGROUND_SYNC"] !== "false",
-    bulkOperations: process.env["FEATURE_BULK_OPERATIONS"] !== "false",
-    caching: process.env["FEATURE_CACHING"] !== "false",
-    darkMode: process.env["FEATURE_DARK_MODE"] !== "false",
+    adminPanel: process.env["FEATURE_ADMIN_PANEL"] === "true",
+    advancedReporting: process.env["FEATURE_ADVANCED_REPORTING"] === "true",
+    backgroundSync: process.env["FEATURE_BACKGROUND_SYNC"] === "true",
+    bulkOperations: process.env["FEATURE_BULK_OPERATIONS"] === "true",
+    caching: process.env["FEATURE_CACHING"] === "true",
+    darkMode: process.env["FEATURE_DARK_MODE"] === "true",
     debugMode: false, // Always disabled in production
     experimentalUI: process.env["FEATURE_EXPERIMENTAL_UI"] === "true",
-    mobileOptimizations:
-      process.env["FEATURE_MOBILE_OPTIMIZATIONS"] !== "false",
+    mobileOptimizations: process.env["FEATURE_MOBILE_OPTIMIZATIONS"] === "true",
     mockData: false, // Always disabled in production
-    pushNotifications: process.env["FEATURE_PUSH_NOTIFICATIONS"] !== "false",
-    serviceWorker: process.env["FEATURE_SERVICE_WORKER"] !== "false",
-    systemMetrics: process.env["FEATURE_SYSTEM_METRICS"] !== "false",
+    pushNotifications: process.env["FEATURE_PUSH_NOTIFICATIONS"] === "true",
+    serviceWorker: process.env["FEATURE_SERVICE_WORKER"] === "true",
+    systemMetrics: process.env["FEATURE_SYSTEM_METRICS"] === "true",
     testingTools: false, // Always disabled in production
-    userManagement: process.env["FEATURE_USER_MANAGEMENT"] !== "false",
+    userManagement: process.env["FEATURE_USER_MANAGEMENT"] === "true",
   };
 }
 
