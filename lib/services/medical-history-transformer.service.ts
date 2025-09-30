@@ -60,43 +60,83 @@ export class MedicalHistoryTransformer {
   static transformAdministrationRecords(
     rawRecords: RawAdministrationRecord[],
   ): AdministrationRecord[] {
-    return rawRecords.map((record) => ({
+    return rawRecords.map((record) =>
+      MedicalHistoryTransformer.transformSingleRecord(record),
+    );
+  }
+
+  private static transformSingleRecord(
+    record: RawAdministrationRecord,
+  ): AdministrationRecord {
+    const baseFields = MedicalHistoryTransformer.extractBaseFields(record);
+    const trackingFields =
+      MedicalHistoryTransformer.extractTrackingFields(record);
+    const medicationFields =
+      MedicalHistoryTransformer.extractMedicationFields(record);
+
+    return {
+      ...baseFields,
+      ...trackingFields,
+      ...medicationFields,
+      sourceItem: MedicalHistoryTransformer.buildSourceItem(record),
+      status: MedicalHistoryTransformer.normalizeStatus(record.status),
+    };
+  }
+
+  private static extractBaseFields(record: RawAdministrationRecord) {
+    return {
       animalId: record.animalId,
       animalName: record.animalName || "Unknown",
       caregiverName: record.caregiverName || "Unknown",
+      id: record.id,
+      media: record.media || undefined,
+      notes: record.notes || undefined,
+      recordedAt: record.recordedAt,
+      scheduledFor: record.scheduledFor || undefined,
+      slot: record.slot || undefined,
+    };
+  }
+
+  private static extractTrackingFields(record: RawAdministrationRecord) {
+    return {
       cosignedAt: record.coSignedAt || undefined,
       cosignPending: record.cosignPending || false,
       cosignUser: record.cosignUser || undefined,
       editedAt: record.editedAt || undefined,
       editedBy: record.editedBy || undefined,
-      form: record.form || "",
-      id: record.id,
       isDeleted: record.isDeleted || false,
       isEdited: record.isEdited || false,
-      media: record.media || undefined,
+    };
+  }
+
+  private static extractMedicationFields(record: RawAdministrationRecord) {
+    return {
+      form: record.form || "",
       medicationName: record.medicationName || "Unknown",
-      notes: record.notes || undefined,
-      recordedAt: record.recordedAt,
       route: record.route || "",
-      scheduledFor: record.scheduledFor || undefined,
       site: record.site || undefined,
-      slot: record.slot || undefined,
-      sourceItem: record.sourceItemName
-        ? {
-            expiresOn: record.sourceItemExpiresOn || undefined,
-            lot: record.sourceItemLot || undefined,
-            name: record.sourceItemName,
-          }
-        : undefined,
-      status:
-        (record.status as
-          | "ON_TIME"
-          | "LATE"
-          | "VERY_LATE"
-          | "MISSED"
-          | "PRN") || "PRN",
       strength: record.strength || "",
-    }));
+    };
+  }
+
+  private static buildSourceItem(
+    record: RawAdministrationRecord,
+  ): { name: string; lot?: string; expiresOn?: Date } | undefined {
+    if (!record.sourceItemName) return undefined;
+
+    return {
+      expiresOn: record.sourceItemExpiresOn || undefined,
+      lot: record.sourceItemLot || undefined,
+      name: record.sourceItemName,
+    };
+  }
+
+  private static normalizeStatus(
+    status?: string,
+  ): "ON_TIME" | "LATE" | "VERY_LATE" | "MISSED" | "PRN" {
+    return (
+      (status as "ON_TIME" | "LATE" | "VERY_LATE" | "MISSED" | "PRN") || "PRN"
+    );
   }
 }
 
