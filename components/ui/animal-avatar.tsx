@@ -32,7 +32,6 @@ export function AnimalAvatar({
   // Use animal object if provided, otherwise use individual props
   const animalName = animal?.name || name || "Unknown";
   const animalPhoto = animal?.photoUrl || photoUrl;
-  const _animalSpecies = animal?.species || species;
   const pendingMeds = animal?.pendingMeds || 0;
   const sizeClasses = {
     lg: "h-12 w-12",

@@ -141,7 +141,7 @@ function mergeUserPreferences(
 
 // Removed unused createPRNResult function
 
-function _determineSection(
+function determineSection(
   minutesUntilDue: number,
   includeUpcoming: boolean,
 ): "due" | "later" | "prn" {
@@ -1045,15 +1045,15 @@ export const appRouter = createTRPCRouter({
           unitType: restInput.unitType,
         };
 
-        if (restInput["brandOverride"])
-          values.brandOverride = restInput["brandOverride"];
-        if (restInput["lot"]) values.lot = restInput["lot"];
-        if (restInput["notes"]) values.notes = restInput["notes"];
-        if (restInput["assignedAnimalId"])
-          values.assignedAnimalId = restInput["assignedAnimalId"];
-        if (restInput["supplier"]) values.supplier = restInput["supplier"];
-        if (restInput["purchasePrice"])
-          values.purchasePrice = restInput["purchasePrice"];
+        if (restInput.brandOverride)
+          values.brandOverride = restInput.brandOverride;
+        if (restInput.lot) values.lot = restInput.lot;
+        if (restInput.notes) values.notes = restInput.notes;
+        if (restInput.assignedAnimalId)
+          values.assignedAnimalId = restInput.assignedAnimalId;
+        if (restInput.supplier) values.supplier = restInput.supplier;
+        if (restInput.purchasePrice)
+          values.purchasePrice = restInput.purchasePrice;
         if (purchaseDate) values.purchaseDate = purchaseDate;
 
         const cleanValues = Object.fromEntries(
@@ -1232,8 +1232,8 @@ export const appRouter = createTRPCRouter({
           ...updateData,
         };
 
-        if (input["expiresOn"]) {
-          updates.expiresOn = input["expiresOn"];
+        if (input.expiresOn) {
+          updates.expiresOn = input.expiresOn;
         }
 
         const updated = await ctx.db

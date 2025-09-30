@@ -354,7 +354,6 @@ export function useAnimalForm(
   );
 
   // Watch form changes to set dirty state
-  const _watchedValues = form.watch();
   const formState = form.formState;
 
   // Set dirty state when form data changes

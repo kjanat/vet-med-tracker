@@ -311,8 +311,8 @@ export function useInventoryForm(
         ) {
           await setInUseMutation.mutateAsync({
             householdId: selectedHousehold.id,
-            id: result.id,
             inUse: true,
+            itemId: result.id,
           });
         }
 

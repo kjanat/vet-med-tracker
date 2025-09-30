@@ -67,3 +67,46 @@ export function transformAnimalApiToForm(
     weightUnit: (apiData.weightUnit as "kg" | "lbs") || undefined,
   };
 }
+
+export class AnimalDataTransformer {
+  static toApi = transformAnimalFormToApi;
+  static toForm = transformAnimalApiToForm;
+
+  static createDefaultValues(): AnimalFormData {
+    return {
+      name: "",
+      species: "",
+    };
+  }
+
+  static toInstrumentationData(data: AnimalFormData) {
+    return { action: "create", formData: data };
+  }
+
+  static fromAnimalRecord(record: AnimalApiData): AnimalFormData {
+    return transformAnimalApiToForm(record);
+  }
+
+  static toUpdatePayload(data: AnimalFormData) {
+    return data;
+  }
+
+  static toCreatePayload(data: AnimalFormData) {
+    return data;
+  }
+
+  static calculateCompleteness(data: AnimalFormData): number {
+    const fields = Object.values(data).filter(
+      (v) => v !== undefined && v !== "",
+    );
+    return (fields.length / Object.keys(data).length) * 100;
+  }
+
+  static isCompleteRecord(data: AnimalFormData): boolean {
+    return !!data.name && !!data.species;
+  }
+
+  static hasRequiredFields(data: AnimalFormData): boolean {
+    return !!data.name && !!data.species;
+  }
+}

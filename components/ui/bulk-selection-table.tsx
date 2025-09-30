@@ -19,7 +19,6 @@ export function BulkSelectionTable({
   selectedItems,
   totalItems,
   onSelectAll,
-  onSelectItem,
   className,
 }: BulkSelectionTableProps) {
   const allSelected = selectedItems.size === totalItems && totalItems > 0;

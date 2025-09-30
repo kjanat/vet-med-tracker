@@ -17,3 +17,15 @@ export type InventoryFormValues = z.infer<typeof InventoryFormSchema>;
 export function validateInventoryForm(data: unknown): InventoryFormValues {
   return InventoryFormSchema.parse(data);
 }
+
+export class InventoryFormValidator {
+  static validate = validateInventoryForm;
+  static schema = InventoryFormSchema;
+
+  static getDisplayMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return "Validation error";
+  }
+}

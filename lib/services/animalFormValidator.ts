@@ -18,3 +18,24 @@ export type AnimalFormValues = z.infer<typeof AnimalFormSchema>;
 export function validateAnimalForm(data: unknown): AnimalFormValues {
   return AnimalFormSchema.parse(data);
 }
+
+export class AnimalFormValidator {
+  static validate = validateAnimalForm;
+  static schema = AnimalFormSchema;
+
+  static canSubmit(data: unknown): boolean {
+    try {
+      validateAnimalForm(data);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  static getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return "Validation error";
+  }
+}

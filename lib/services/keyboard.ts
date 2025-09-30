@@ -8,46 +8,147 @@ export interface KeyboardShortcut {
   handler: () => void;
 }
 
+export interface ShortcutConfig {
+  key: string;
+  description: string;
+  action: () => void;
+}
+
+export interface UseKeyboardShortcutsOptions {
+  enabled?: boolean;
+  respectInputs?: boolean;
+}
+
 export class KeyboardService {
-  private static shortcuts: Map<string, KeyboardShortcut> = new Map();
-  private static isInitialized = false;
+  private shortcuts: Map<string, ShortcutConfig> = new Map();
+  private activeShortcuts: Set<string> = new Set();
+  private options: UseKeyboardShortcutsOptions;
+  private onShortcutsChange: (shortcuts: Map<string, ShortcutConfig>) => void;
+  private onActiveChange: (active: Set<string>) => void;
+  private announce: (message: string) => void;
+  private handleKeyDownBound: (event: KeyboardEvent) => void;
 
-  static initialize(): void {
-    if (KeyboardService.isInitialized || typeof window === "undefined") return;
-
-    document.addEventListener(
-      "keydown",
-      KeyboardService.handleKeyDown.bind(KeyboardService),
-    );
-    KeyboardService.isInitialized = true;
+  constructor(
+    options: UseKeyboardShortcutsOptions,
+    onShortcutsChange: (shortcuts: Map<string, ShortcutConfig>) => void,
+    onActiveChange: (active: Set<string>) => void,
+    announce: (message: string) => void,
+  ) {
+    this.options = options;
+    this.onShortcutsChange = onShortcutsChange;
+    this.onActiveChange = onActiveChange;
+    this.announce = announce;
+    this.handleKeyDownBound = this.handleKeyDown.bind(this);
   }
 
-  static registerShortcut(shortcut: KeyboardShortcut): void {
-    const key = KeyboardService.getShortcutKey(shortcut);
-    KeyboardService.shortcuts.set(key, shortcut);
+  updateOptions(options: UseKeyboardShortcutsOptions): void {
+    this.options = options;
   }
 
-  static unregisterShortcut(shortcut: KeyboardShortcut): void {
-    const key = KeyboardService.getShortcutKey(shortcut);
-    KeyboardService.shortcuts.delete(key);
+  startListening(): void {
+    if (typeof window !== "undefined") {
+      document.addEventListener("keydown", this.handleKeyDownBound);
+    }
   }
 
-  static getRegisteredShortcuts(): KeyboardShortcut[] {
-    return Array.from(KeyboardService.shortcuts.values());
+  destroy(options?: { silent?: boolean }): void {
+    if (typeof window !== "undefined") {
+      document.removeEventListener("keydown", this.handleKeyDownBound);
+    }
+    if (!options?.silent) {
+      this.shortcuts.clear();
+      this.activeShortcuts.clear();
+    }
   }
 
-  private static getShortcutKey(shortcut: KeyboardShortcut): string {
+  registerShortcut(config: ShortcutConfig): void {
+    this.shortcuts.set(config.key, config);
+    this.onShortcutsChange(this.shortcuts);
+  }
+
+  unregisterShortcut(key: string): void {
+    this.shortcuts.delete(key);
+    this.onShortcutsChange(this.shortcuts);
+  }
+
+  isShortcutActive(key: string): boolean {
+    return this.activeShortcuts.has(key);
+  }
+
+  getShortcuts(): ShortcutConfig[] {
+    return Array.from(this.shortcuts.values());
+  }
+
+  private handleKeyDown(event: KeyboardEvent): void {
+    if (!this.options.enabled) return;
+
+    // Don't trigger shortcuts when typing in inputs
+    if (this.options.respectInputs) {
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+    }
+
+    const key = this.buildShortcutKey(event);
+    const shortcut = this.shortcuts.get(key);
+
+    if (shortcut) {
+      event.preventDefault();
+      this.activeShortcuts.add(key);
+      this.onActiveChange(this.activeShortcuts);
+      this.announce(shortcut.description);
+      shortcut.action();
+
+      setTimeout(() => {
+        this.activeShortcuts.delete(key);
+        this.onActiveChange(this.activeShortcuts);
+      }, 500);
+    }
+  }
+
+  private buildShortcutKey(event: KeyboardEvent): string {
+    const parts = [];
+    if (event.ctrlKey) parts.push("Ctrl");
+    if (event.altKey) parts.push("Alt");
+    if (event.shiftKey) parts.push("Shift");
+    if (event.metaKey) parts.push("Meta");
+    parts.push(event.key);
+    return parts.join("+");
+  }
+}
+
+// Legacy static methods for backward compatibility
+export const KeyboardServiceLegacy = {
+  cleanup(): void {
+    if (typeof window !== "undefined") {
+      document.removeEventListener(
+        "keydown",
+        KeyboardServiceLegacy.handleKeyDown.bind(KeyboardServiceLegacy),
+      );
+    }
+    KeyboardServiceLegacy.shortcuts.clear();
+    KeyboardServiceLegacy.isInitialized = false;
+  },
+
+  getRegisteredShortcuts(): KeyboardShortcut[] {
+    return Array.from(KeyboardServiceLegacy.shortcuts.values());
+  },
+
+  getShortcutKey(shortcut: KeyboardShortcut): string {
     const modifiers = [];
     if (shortcut.ctrlKey) modifiers.push("ctrl");
     if (shortcut.altKey) modifiers.push("alt");
     if (shortcut.shiftKey) modifiers.push("shift");
     if (shortcut.metaKey) modifiers.push("meta");
-
     return `${modifiers.join("+")}-${shortcut.key.toLowerCase()}`;
-  }
+  },
 
-  private static handleKeyDown(event: KeyboardEvent): void {
-    // Don't trigger shortcuts when typing in inputs
+  handleKeyDown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement;
     if (
       target.tagName === "INPUT" ||
@@ -57,7 +158,7 @@ export class KeyboardService {
       return;
     }
 
-    const key = KeyboardService.getShortcutKey({
+    const key = KeyboardServiceLegacy.getShortcutKey({
       altKey: event.altKey,
       ctrlKey: event.ctrlKey,
       description: "",
@@ -67,21 +168,32 @@ export class KeyboardService {
       shiftKey: event.shiftKey,
     });
 
-    const shortcut = KeyboardService.shortcuts.get(key);
+    const shortcut = KeyboardServiceLegacy.shortcuts.get(key);
     if (shortcut) {
       event.preventDefault();
       shortcut.handler();
     }
-  }
+  },
 
-  static cleanup(): void {
-    if (typeof window !== "undefined") {
-      document.removeEventListener(
-        "keydown",
-        KeyboardService.handleKeyDown.bind(KeyboardService),
-      );
-    }
-    KeyboardService.shortcuts.clear();
-    KeyboardService.isInitialized = false;
-  }
-}
+  initialize(): void {
+    if (KeyboardServiceLegacy.isInitialized || typeof window === "undefined")
+      return;
+    document.addEventListener(
+      "keydown",
+      KeyboardServiceLegacy.handleKeyDown.bind(KeyboardServiceLegacy),
+    );
+    KeyboardServiceLegacy.isInitialized = true;
+  },
+  isInitialized: false,
+
+  registerShortcut(shortcut: KeyboardShortcut): void {
+    const key = KeyboardServiceLegacy.getShortcutKey(shortcut);
+    KeyboardServiceLegacy.shortcuts.set(key, shortcut);
+  },
+  shortcuts: new Map<string, KeyboardShortcut>(),
+
+  unregisterShortcut(shortcut: KeyboardShortcut): void {
+    const key = KeyboardServiceLegacy.getShortcutKey(shortcut);
+    KeyboardServiceLegacy.shortcuts.delete(key);
+  },
+};

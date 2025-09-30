@@ -63,3 +63,45 @@ export function transformInventoryApiToForm(
     quantityUnit: apiData.quantityUnit || undefined,
   };
 }
+
+export class InventoryDataTransformer {
+  static toApi = transformInventoryFormToApi;
+  static toForm = transformInventoryApiToForm;
+
+  static getStorageOptions() {
+    return ["refrigerator", "freezer", "room temperature", "cabinet"];
+  }
+
+  static setDefaultValues(data: Partial<InventoryFormData>): InventoryFormData {
+    return {
+      inUse: false,
+      itemId: "",
+      quantity: 0,
+      ...data,
+    };
+  }
+
+  static toApiPayload(data: InventoryFormData, householdId: string) {
+    return transformInventoryFormToApi(data, householdId);
+  }
+
+  static createInstrumentationData(data: InventoryFormData) {
+    return { action: "create", formData: data };
+  }
+
+  static createFreshDefaults(): InventoryFormData {
+    return {
+      inUse: false,
+      itemId: "",
+      quantity: 1,
+    };
+  }
+
+  static syncRemainingUnits(data: InventoryFormData) {
+    return data;
+  }
+
+  static calculateDerivedFields(data: InventoryFormData) {
+    return data;
+  }
+}

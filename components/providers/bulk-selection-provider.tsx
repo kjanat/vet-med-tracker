@@ -11,6 +11,9 @@ export interface BulkSelectionContextValue {
   isSelected: (id: string) => boolean;
   selectedCount: number;
   selectionCount: number; // alias for selectedCount
+  setAvailableIds: (ids: string[]) => void;
+  isAllSelected: boolean;
+  isPartiallySelected: boolean;
 }
 
 const BulkSelectionContext = React.createContext<
@@ -23,6 +26,7 @@ export function BulkSelectionProvider({
   children: React.ReactNode;
 }) {
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [availableIds, setAvailableIds] = React.useState<string[]>([]);
 
   const selectItem = React.useCallback((id: string) => {
     setSelectedIds((prev) => new Set(prev).add(id));
@@ -49,16 +53,29 @@ export function BulkSelectionProvider({
     [selectedIds],
   );
 
+  const isAllSelected = React.useMemo(
+    () => availableIds.length > 0 && selectedIds.size === availableIds.length,
+    [selectedIds, availableIds],
+  );
+
+  const isPartiallySelected = React.useMemo(
+    () => selectedIds.size > 0 && selectedIds.size < availableIds.length,
+    [selectedIds, availableIds],
+  );
+
   const value = React.useMemo(
     () => ({
       clearSelection,
       deselectItem,
+      isAllSelected,
+      isPartiallySelected,
       isSelected,
       selectAll,
       selectedCount: selectedIds.size,
       selectedIds,
       selectItem,
       selectionCount: selectedIds.size, // alias
+      setAvailableIds,
     }),
     [
       selectedIds,
@@ -67,6 +84,8 @@ export function BulkSelectionProvider({
       selectAll,
       clearSelection,
       isSelected,
+      isAllSelected,
+      isPartiallySelected,
     ],
   );
 
