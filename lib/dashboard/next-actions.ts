@@ -1,7 +1,7 @@
 import type { inferRouterOutputs } from "@trpc/server";
 
 import type { AppRouter } from "@/server/api/routers/_app";
-import { formatTimeLocal } from "@/utils/tz";
+import { formatTimeInTimezone } from "@/utils/tz";
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 type RegimenData = RouterOutputs["regimen"]["listDue"][number];
@@ -110,7 +110,7 @@ const transformRegimens = (regimens: RegimenData[], timezone: string) =>
     animal: regimen.animalName,
     animalId: regimen.animalId,
     dueTime: regimen.targetTime
-      ? formatTimeLocal(new Date(regimen.targetTime), timezone)
+      ? formatTimeInTimezone(new Date(regimen.targetTime), timezone)
       : "As needed",
     id: regimen.id,
     medication: [regimen.medicationName, regimen.strength]

@@ -7,7 +7,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SkipNavigation } from "@/components/ui/screen-reader-announcer";
 import { TRPCProvider } from "@/server/trpc/client";
-import { inter, jetbrainsMono } from "./fonts";
+import { inter } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://vetmed.kjanat.com"),
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   // noinspection HtmlRequiredTitleElement
   return (
     <html
-      className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
+      className={`${inter.className} scroll-smooth`}
       lang="en"
       suppressHydrationWarning
     >

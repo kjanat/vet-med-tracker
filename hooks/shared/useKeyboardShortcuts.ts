@@ -7,7 +7,7 @@ import type {
   ShortcutConfig,
   UseKeyboardShortcutsOptions,
 } from "@/lib/services/keyboard";
-import { KeyboardShortcutService } from "@/lib/services/keyboard";
+import { KeyboardService } from "@/lib/services/keyboard";
 
 // Re-export types for backward compatibility
 export type { ShortcutConfig, UseKeyboardShortcutsOptions };
@@ -44,7 +44,7 @@ export function useKeyboardShortcuts(
     new Set(),
   );
   const { announce } = useScreenReaderAnnouncements();
-  const serviceRef = useRef<KeyboardShortcutService | null>(null);
+  const serviceRef = useRef<KeyboardService | null>(null);
   const optionsRef = useRef(options);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function useKeyboardShortcuts(
 
   // Initialize service
   useEffect(() => {
-    const service = new KeyboardShortcutService(
+    const service = new KeyboardService(
       optionsRef.current,
       (newShortcuts) => setShortcuts(new Map(newShortcuts)),
       (newActiveShortcuts) => setActiveShortcuts(new Set(newActiveShortcuts)),
