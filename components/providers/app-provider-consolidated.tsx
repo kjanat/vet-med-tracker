@@ -73,11 +73,11 @@ export interface UserProfile {
   website?: string | null;
   socialLinks?: Record<string, string> | null;
   profileVisibility?: {
-    showEmail?: boolean | null;
-    showPhone?: boolean | null;
-    showBio?: boolean | null;
-    showLocation?: boolean | null;
-    showSocialLinks?: boolean | null;
+    name?: boolean | null;
+    email?: boolean | null;
+    bio?: boolean | null;
+    location?: boolean | null;
+    social?: boolean | null;
   } | null;
   preferences: {
     timezone: string | null;
