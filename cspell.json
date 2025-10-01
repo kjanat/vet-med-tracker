@@ -1,0 +1,32 @@
+{
+  "version": "0.2",
+  "ignorePaths": [],
+  "dictionaryDefinitions": [],
+  "dictionaries": [],
+  "words": [
+    "autorun",
+    "Contentful",
+    "fulltext",
+    "healthcheck",
+    "HMAC",
+    "HSTS",
+    "indexeddb",
+    "lightbox",
+    "nosniff",
+    "passwordless",
+    "percy",
+    "pgmock",
+    "phylopic",
+    "postgresql",
+    "psql",
+    "shadcn",
+    "srcset",
+    "trunc",
+    "tsvector",
+    "vetmed",
+    "VETREADONLY",
+    "WCAG"
+  ],
+  "ignoreWords": [],
+  "import": []
+}

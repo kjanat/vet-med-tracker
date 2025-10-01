@@ -1,0 +1,37 @@
+# bunfig.toml  [https://bun.com/docs/runtime/bunfig]
+# [llms](https://bun.sh/llms-full.txt)
+
+logLevel = "debug"  # Log levels: "debug" | "warn" | "error"
+telemetry = false
+
+[run]
+bun = true     # equivalent to `bun --bun` for all `bun run` commands
+silent = false  # suppress reporting the command being run
+
+[test]
+root = "./src/tests"
+preload = ["./happydom.ts"]
+coverage = true               # Enables coverage reporting. Default false. Use --coverage to override.
+coverageThreshold = 0.7       # { lines = 0.9, functions = 0.9, statements = 0.9 }
+#coverageSkipTestFiles = true # Whether to skip test files when computing coverage statistics.
+#coveragePathIgnorePatterns = "**/*.spec.ts" # Exclude files from coverage reports: string | string[]
+coverageReporter = ["text", "lcov"]  # default ["text"]
+coverageDir = "coverage"
+#bail = 0         # Abort the test run early after a pre-determined number of test failures
+#smol = true      # Reduce memory usage at the cost of performance
+
+[test.reporter]
+junit = "junit.xml"
+
+[install]
+registry = "https://registry.npmjs.org"  # set default registry as a string
+
+[install.scopes]
+jsr = "https://npm.jsr.io"
+
+[install.lockfile]
+save = true      # Generate a lockfile on bun install
+print = "yarn"   # Generate a non-Bun lockfile alongside bun.lock
+
+#[install.security]
+#scanner = "bun-osv-scanner"

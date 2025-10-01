@@ -1,5 +1,6 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  // "plugins": [".github/linters/object_assign.grit"],
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -14,15 +15,15 @@
       "!.claude",
       "!logs",
       "!.next",
-      "!.git",
+      "!dist",
+      "!build",
       "!node_modules",
-      "!playwright-report",
       "!sample-components",
       "!screenshots",
       "!test-results",
       "!.vercel",
-      "!.vscode"
-      /* "!drizzle" */
+      "!.vscode",
+      "!migrations"
     ]
   },
   "formatter": {
@@ -35,7 +36,9 @@
     "rules": {
       "recommended": true,
       "complexity": {
-        "noExcessiveCognitiveComplexity": "on"
+        "noExcessiveCognitiveComplexity": "on",
+        "noStaticOnlyClass": "off",
+        "useLiteralKeys": "off"
       },
       "nursery": {
         "useSortedClasses": {
@@ -46,18 +49,29 @@
           }
         }
       },
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "@/components/ui": "Import from '@/components/app' instead to use upgrade-safe wrappers.",
+              "@/components/ui/index": "Import from '@/components/app' instead to use upgrade-safe wrappers."
+            }
+          }
+        }
+      },
       "suspicious": {
         "noGlobalIsNan": {
           "level": "warn",
-          "fix": "safe",
-          "options": {}
+          "fix": "safe"
         }
       }
     },
     "domains": {
-      "next": "all",
+      "next": "recommended",
+      "react": "recommended",
       "project": "recommended",
-      "test": "all"
+      "test": "recommended"
     }
   },
   "javascript": {
@@ -74,11 +88,23 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": "on",
+        "useSortedKeys": "on",
+        "useSortedAttributes": "on"
       }
     }
   },
   "overrides": [
+    {
+      "includes": ["components/app/**", "components/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
+          }
+        }
+      }
+    },
     {
       "includes": [
         "tests/**",
@@ -98,35 +124,33 @@
       }
     },
     {
-      "includes": ["db/*", "drizzle.config.ts", "drizzle/*"],
-      "formatter": {
-        "enabled": false
-      },
+      "includes": ["**/*.css"],
       "linter": {
         "rules": {
-          "style": {
-            "noNonNullAssertion": "off"
-          },
-          "correctness": {
-            "noUnusedImports": "off"
-          }
-        }
-      },
-      "assist": {
-        "actions": {
-          "source": {
-            "organizeImports": "off"
+          "suspicious": {
+            "noUnknownAtRules": "off"
           }
         }
       }
     },
     {
-      "includes": ["lib/lazy-load.tsx", "lib/connection-middleware.ts"],
+      "includes": [
+        "**/*.jsonc",
+        "**/*.json",
+        "**/*.config.ts",
+        "app/**",
+        "/*.js"
+      ],
+      "assist": {
+        "actions": {
+          "source": {
+            "useSortedKeys": "off"
+          }
+        }
+      },
       "linter": {
         "rules": {
-          "suspicious": {
-            "noExplicitAny": "off"
-          }
+          "performance": { "noImgElement": "off" }
         }
       }
     }

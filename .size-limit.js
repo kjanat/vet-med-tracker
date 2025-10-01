@@ -1,51 +1,51 @@
-module.exports = [
+export default [
   {
+    limit: "120 KB",
     name: "Initial JS bundle",
     path: ".next/static/chunks/main-*.js",
-    limit: "120 KB",
     webpack: false,
   },
   {
+    limit: "180 KB",
     name: "Framework bundle",
     path: ".next/static/chunks/framework-*.js",
-    limit: "180 KB",
     webpack: false,
   },
   {
+    limit: "50 KB",
     name: "Main app bundle",
     path: ".next/static/chunks/main-app-*.js",
-    limit: "50 KB",
     webpack: false,
   },
   {
+    limit: "110 KB",
     name: "Polyfills",
     path: ".next/static/chunks/polyfills-*.js",
-    limit: "110 KB",
     webpack: false,
   },
   {
+    limit: "95 KB",
     name: "Admin record page",
     path: ".next/static/chunks/app/**/admin/record/page-*.js",
-    limit: "95 KB",
     webpack: false,
   },
   {
+    limit: "85 KB",
     name: "Reports page",
     path: ".next/static/chunks/app/**/reports/page-*.js",
-    limit: "85 KB",
     webpack: false,
   },
   {
+    ignore: ["**/chunks/app/**"], // Ignore app-specific chunks
+    limit: "700 KB", // Combined limit for all heavy chunks
     name: "Heavy chunks (shared libraries)",
     path: ".next/static/chunks/[0-9]*-*.js",
-    limit: "700 KB", // Combined limit for all heavy chunks
     webpack: false,
-    ignore: ["**/chunks/app/**"], // Ignore app-specific chunks
   },
   {
+    limit: "30 KB",
     name: "CSS bundle",
     path: ".next/static/css/*.css",
-    limit: "30 KB",
     webpack: false,
   },
 ];
