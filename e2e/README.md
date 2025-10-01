@@ -31,7 +31,7 @@ bun run test:e2e:firefox
 
 ### Run specific test file
 ```bash
-bun run test:e2e landing.spec.ts
+bun run test:e2e landing.e2e.ts
 ```
 
 ### Run tests matching a pattern
@@ -41,20 +41,22 @@ bun run test:e2e -g "should load"
 
 ## Test Files
 
-- **`landing.spec.ts`** - Tests for the landing page, including:
+**Note**: E2E tests use the `.e2e.ts` extension to avoid conflicts with unit tests.
+
+- **`landing.e2e.ts`** - Tests for the landing page, including:
   - Page load and title verification
   - Main heading and CTA visibility
   - Navigation to FAQ and Help pages
   - Accessibility checks
   - Responsive design on mobile
 
-- **`auth.spec.ts`** - Tests for authentication flows:
+- **`auth.e2e.ts`** - Tests for authentication flows:
   - Sign up CTA for unauthenticated users
   - Access to public pages without auth
   - Redirect to sign in for protected routes
   - Authentication state in navigation
 
-- **`navigation.spec.ts`** - Tests for site navigation:
+- **`navigation.e2e.ts`** - Tests for site navigation:
   - Public page navigation
   - Footer links
   - Browser back/forward functionality
