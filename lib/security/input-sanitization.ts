@@ -1,8 +1,11 @@
+const maxFileNameLength: number = 255;
+
 export class InputSanitizer {
   /**
    * Sanitize user input to prevent XSS attacks
    */
   static sanitizeString(input: string): string {
+    // noinspection SuspiciousTypeOfGuard
     if (typeof input !== "string") return "";
 
     return input
@@ -49,12 +52,15 @@ export class InputSanitizer {
   /**
    * Sanitize file names to prevent directory traversal and other attacks
    */
-  static sanitizeFileName(fileName: string): string {
+  static sanitizeFileName(
+    fileName: string,
+    maxNameLength: number = maxFileNameLength,
+  ): string {
     // Remove path components
     const name = fileName.replace(/^.*[/\\]/, "");
 
     // Remove any non-alphanumeric characters except dots, dashes, and underscores
-    return name.replace(/[^a-zA-Z0-9._-]/g, "_").substring(0, 255);
+    return name.replace(/[^a-zA-Z0-9._-]/g, "_").substring(0, maxNameLength);
   }
 }
 
@@ -71,7 +77,7 @@ export function sanitizeFileName(fileName: string): string {
 }
 
 export const secureSchemas = {
-  email: z.string().email(),
+  email: z.email(),
   limitedArray: <T extends z.ZodTypeAny>(itemSchema: T, maxItems = 100) =>
     z.array(itemSchema).max(maxItems),
   phone: z.string().max(20),
@@ -84,10 +90,10 @@ export const secureSchemas = {
     maxDate.setFullYear(maxDate.getFullYear() + maxYearsFuture);
     return z.date().min(minDate).max(maxDate);
   },
-  safeNumber: z.number().finite(),
+  safeNumber: z.number(),
   safeString: (maxLength = 1000) => z.string().min(1).max(maxLength),
   safeText: (maxLength = 10000) => z.string().max(maxLength),
-  safeUuid: z.string().uuid(),
-  url: () => z.string().url(),
-  uuid: z.string().uuid(),
+  safeUuid: z.uuid(),
+  url: () => z.url(),
+  uuid: z.uuid(),
 };

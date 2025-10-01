@@ -1,3 +1,5 @@
+// noinspection HttpUrlsUsage,MagicNumberJS
+
 import { describe, expect, it } from "bun:test";
 import {
   InputSanitizer,

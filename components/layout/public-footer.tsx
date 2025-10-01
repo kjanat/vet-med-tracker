@@ -2,38 +2,30 @@ import type { Route } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 
+type NavLink = { href: Route; name: string };
+
 const footerLinks = {
-  company: [
-    { href: "/about" as Route, name: "About" },
-    { href: "/blog" as Route, name: "Blog" },
-    { href: "/contact" as Route, name: "Contact" },
-    { href: "/careers" as Route, name: "Careers" },
-  ],
   legal: [
-    { href: "/privacy" as Route, name: "Privacy Policy" },
-    { href: "/terms" as Route, name: "Terms of Service" },
-    { href: "/cookies" as Route, name: "Cookie Policy" },
+    { href: "/privacy", name: "Privacy Policy" },
+    { href: "/terms", name: "Terms of Service" },
+    { href: "/cookies", name: "Cookie Policy" },
   ],
   product: [
-    { href: "/#features" as Route, name: "Features" },
-    { href: "/#demo" as Route, name: "How It Works" },
-    { href: "/#pricing" as Route, name: "Pricing" },
-    { href: "/security" as Route, name: "Security" },
+    { href: "/#features", name: "Features" },
+    { href: "/#demo", name: "How It Works" },
   ],
   support: [
-    { href: "/help" as Route, name: "Help Center" },
-    { href: "/faq" as Route, name: "FAQ" },
-    { href: "/status" as Route, name: "Status" },
-    { href: "/docs" as Route, name: "API Docs" },
+    { href: "/help", name: "Help Center" },
+    { href: "/faq", name: "FAQ" },
   ],
-};
+} as const satisfies Record<string, readonly NavLink[]>;
 
 export function PublicFooter() {
   return (
     <footer className="border-t bg-muted/50">
       <div className="container mx-auto max-w-6xl px-4 py-12">
         {/* Main footer content */}
-        <div className="mb-8 grid grid-cols-2 gap-8 md:grid-cols-5">
+        <div className="mb-8 grid grid-cols-2 gap-8 md:grid-cols-4">
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <div className="mb-4 flex items-center gap-2">
@@ -50,22 +42,6 @@ export function PublicFooter() {
             <h3 className="mb-3 font-semibold">Product</h3>
             <ul className="space-y-2">
               {footerLinks.product.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    className="text-muted-foreground text-sm transition-colors hover:text-foreground"
-                    href={link.href}
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-3 font-semibold">Company</h3>
-            <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
                     className="text-muted-foreground text-sm transition-colors hover:text-foreground"

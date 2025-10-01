@@ -8,9 +8,7 @@ describe("general utilities", () => {
     });
 
     it("should handle conditional classes", () => {
-      expect(cn("base", true && "conditional", false && "excluded")).toBe(
-        "base conditional",
-      );
+      expect(cn("base", "conditional", false)).toBe("base conditional");
     });
 
     it("should handle empty inputs", () => {

@@ -102,7 +102,7 @@ export default function HouseholdsPage() {
       }
       setIsEditDialogOpen(false);
       setEditingHouseholdId(null);
-      refetch();
+      void refetch();
     },
     onError: (error) => {
       toast.error(`Failed to update household: ${error.message}`);
@@ -118,7 +118,7 @@ export default function HouseholdsPage() {
       }
       setIsLeaveDialogOpen(false);
       setLeavingHouseholdId(null);
-      refetch();
+      void refetch();
     },
     onError: (error) => {
       toast.error(`Failed to leave household: ${error.message}`);

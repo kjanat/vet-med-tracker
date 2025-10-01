@@ -35,7 +35,7 @@ export function ActiveLink({
   ...props
 }: ActiveLinkProps) {
   const pathname = usePathname();
-  const hrefString = typeof href === "string" ? href : "";
+  const hrefString = href;
 
   // Determine if link is active
   const isLinkActive = React.useMemo(() => {

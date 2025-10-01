@@ -443,21 +443,6 @@ export const appRouter = createTRPCRouter({
         return { success: true };
       }),
 
-    getAllAdministrations: protectedProcedure
-      .input(
-        z.object({
-          endDate: z.string().optional(),
-          householdId: z.uuid(),
-          startDate: z.string().optional(),
-        }),
-      )
-      .query(async ({ ctx, input }) => {
-        return await ctx.db
-          .select()
-          .from(administrations)
-          .where(eq(administrations.householdId, input.householdId))
-          .orderBy(desc(administrations.recordedAt));
-      }),
     list: protectedProcedure
       .input(
         z.object({
@@ -467,7 +452,7 @@ export const appRouter = createTRPCRouter({
         }),
       )
       .query(async ({ ctx, input }) => {
-        return await ctx.db
+        return ctx.db
           .select()
           .from(administrations)
           .where(eq(administrations.householdId, input.householdId))
@@ -589,7 +574,7 @@ export const appRouter = createTRPCRouter({
     list: householdProcedure
       .input(z.object({ householdId: z.uuid() }))
       .query(async ({ ctx, input }) => {
-        return await ctx.db
+        return ctx.db
           .select()
           .from(animals)
           .where(
@@ -727,7 +712,7 @@ export const appRouter = createTRPCRouter({
         }),
       )
       .query(async ({ ctx, input }) => {
-        return await ctx.db
+        return ctx.db
           .select()
           .from(administrations)
           .where(eq(administrations.householdId, input.householdId))
@@ -740,7 +725,7 @@ export const appRouter = createTRPCRouter({
         }),
       )
       .query(async ({ ctx, input }) => {
-        return await ctx.db
+        return ctx.db
           .select()
           .from(administrations)
           .where(
@@ -869,7 +854,7 @@ export const appRouter = createTRPCRouter({
     getMembers: protectedProcedure
       .input(z.object({ householdId: z.uuid() }))
       .query(async ({ ctx, input }) => {
-        return await ctx.db
+        return ctx.db
           .select({
             id: memberships.id,
             joinedAt: memberships.createdAt,
@@ -1332,7 +1317,7 @@ export const appRouter = createTRPCRouter({
           conditions.push(eq(notifications.read, false));
         }
 
-        return await ctx.db
+        return ctx.db
           .select()
           .from(notifications)
           .where(and(...conditions))

@@ -57,8 +57,8 @@ export function NotificationDropdown({
   // Mutations
   const markAsReadMutation = trpc.notifications.markAsRead.useMutation({
     onSuccess: () => {
-      refetchNotifications();
-      refetchUnreadCount();
+      void refetchNotifications();
+      void refetchUnreadCount();
     },
   });
 

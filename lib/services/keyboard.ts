@@ -23,10 +23,12 @@ export class KeyboardService {
   private shortcuts: Map<string, ShortcutConfig> = new Map();
   private activeShortcuts: Set<string> = new Set();
   private options: UseKeyboardShortcutsOptions;
-  private onShortcutsChange: (shortcuts: Map<string, ShortcutConfig>) => void;
-  private onActiveChange: (active: Set<string>) => void;
-  private announce: (message: string) => void;
-  private handleKeyDownBound: (event: KeyboardEvent) => void;
+  private readonly onShortcutsChange: (
+    shortcuts: Map<string, ShortcutConfig>,
+  ) => void;
+  private readonly onActiveChange: (active: Set<string>) => void;
+  private readonly announce: (message: string) => void;
+  private readonly handleKeyDownBound: (event: KeyboardEvent) => void;
 
   constructor(
     options: UseKeyboardShortcutsOptions,

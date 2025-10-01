@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { AnimalAvatar } from "@/components";
 import { Badge } from "@/components/app/badge";
+import { useApp } from "@/components/providers";
 import {
   Select,
   SelectContent,
@@ -10,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useApp } from "../providers/app-provider-consolidated";
 
 // Pages where animal context is relevant
 const ANIMAL_CONTEXT_PATHS = [

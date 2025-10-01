@@ -51,8 +51,8 @@ function useCoSignRequests(householdId: string | undefined) {
   );
 
   const refetchAll = () => {
-    pendingQuery.refetch();
-    allQuery.refetch();
+    void pendingQuery.refetch();
+    void allQuery.refetch();
   };
 
   const approveMutation = trpc.cosigner.approve.useMutation({

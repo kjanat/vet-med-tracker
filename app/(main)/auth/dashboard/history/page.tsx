@@ -175,7 +175,7 @@ function HistoryContent() {
   const undoMutation = trpc.admin.undo.useMutation({
     onSuccess: () => {
       // Refetch the administration list
-      utils.admin.list.invalidate();
+      void utils.admin.list.invalidate();
     },
     onError: (error) => {
       console.error("Failed to undo administration:", error);
@@ -186,7 +186,7 @@ function HistoryContent() {
   const deleteMutation = trpc.admin.delete.useMutation({
     onSuccess: () => {
       // Refetch the administration list
-      utils.admin.list.invalidate();
+      void utils.admin.list.invalidate();
     },
     onError: (error) => {
       console.error("Failed to delete administration:", error);
@@ -197,7 +197,7 @@ function HistoryContent() {
   const cosignMutation = trpc.admin.cosign.useMutation({
     onSuccess: () => {
       // Refetch the administration list
-      utils.admin.list.invalidate();
+      void utils.admin.list.invalidate();
     },
     onError: (error) => {
       console.error("Failed to co-sign administration:", error);

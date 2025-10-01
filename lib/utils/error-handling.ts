@@ -272,8 +272,7 @@ export async function withErrorHandling<T>(
   try {
     return await promise;
   } catch (error) {
-    const standardError = ErrorHandler.handle(error, context);
-    throw standardError;
+    throw ErrorHandler.handle(error, context);
   }
 }
 
@@ -287,8 +286,7 @@ export function withSyncErrorHandling<T>(
   try {
     return fn();
   } catch (error) {
-    const standardError = ErrorHandler.handle(error, context);
-    throw standardError;
+    throw ErrorHandler.handle(error, context);
   }
 }
 

@@ -215,7 +215,7 @@ export default function FAQPage() {
         </p>
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
           <Button asChild>
-            <Link href="/public/help">Visit Help Center</Link>
+            <Link href="/help">Visit Help Center</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href={`mailto:${siteConfig.contact.support}`}>

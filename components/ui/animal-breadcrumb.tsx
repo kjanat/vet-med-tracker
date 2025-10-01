@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Badge } from "@/components/app/badge";
+import { useApp } from "@/components/providers";
 import { AnimalAvatar } from "@/components/ui/animal-avatar";
 import {
   Breadcrumb,
@@ -18,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils/general";
-import { useApp } from "../providers/app-provider-consolidated";
 
 // Pages where animal context is relevant
 const ANIMAL_CONTEXT_PATHS = [

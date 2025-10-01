@@ -319,147 +319,26 @@ function InventoryContent() {
         <AddItemButton />
       </div>
 
-      {/* Alert Banners */}
-      {(alerts.expiringSoon.length > 0 || alerts.lowStock.length > 0) && (
-        <div className="space-y-2">
-          {alerts.lowStock.map((alert) => (
-            <Alert
-              className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950"
-              key={alert.id}
-            >
-              <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <AlertDescription className="flex items-center justify-between">
-                <span className="text-orange-800 dark:text-orange-200">
-                  {alert.message}
-                </span>
-                <Button
-                  className="border-orange-200 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900"
-                  onClick={() => handleAlertClick(alert.id)}
-                  size="sm"
-                  variant="outline"
-                >
-                  View Item
-                </Button>
-              </AlertDescription>
-            </Alert>
-          ))}
+      <InventoryAlerts alerts={alerts} onAlertClick={handleAlertClick} />
 
-          {alerts.expiringSoon.map((alert) => (
-            <Alert
-              className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950"
-              key={alert.id}
-            >
-              <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-              <AlertDescription className="flex items-center justify-between">
-                <span className="text-yellow-800 dark:text-yellow-200">
-                  {alert.message}
-                </span>
-                <Button
-                  className="border-yellow-200 text-yellow-600 hover:bg-yellow-100 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900"
-                  onClick={() => handleAlertClick(alert.id)}
-                  size="sm"
-                  variant="outline"
-                >
-                  View Item
-                </Button>
-              </AlertDescription>
-            </Alert>
-          ))}
-        </div>
-      )}
+      <InventoryFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        setShowMobileSearch={setShowMobileSearch}
+        setSortBy={setSortBy}
+        showMobileSearch={showMobileSearch}
+        sortBy={sortBy}
+      />
 
-      {/* Filters */}
-      <div className="flex items-center gap-2">
-        {/* Priority dropdown on the left for mobile */}
-        <Select onValueChange={setSortBy} value={sortBy}>
-          <SelectTrigger className="w-[140px] sm:w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="priority">Priority</SelectItem>
-            <SelectItem value="name">Name A-Z</SelectItem>
-            <SelectItem value="expiry">Expiry Date</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* Search - expandable on mobile */}
-        <div className="relative flex-1">
-          <div className="hidden sm:block">
-            <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
-            <Input
-              className="pl-10"
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search medications..."
-              value={searchQuery}
-            />
-          </div>
-          <div className="block sm:hidden">
-            {showMobileSearch ? (
-              <div className="relative">
-                <Input
-                  autoFocus
-                  className="pr-10"
-                  onBlur={() => {
-                    // Hide search if empty when user taps away
-                    if (!searchQuery) {
-                      setShowMobileSearch(false);
-                    }
-                  }}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search..."
-                  value={searchQuery}
-                />
-                <Button
-                  className="absolute top-0 right-0 h-full"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setShowMobileSearch(false);
-                  }}
-                  size="icon"
-                  variant="ghost"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <Button
-                onClick={() => setShowMobileSearch(true)}
-                size="icon"
-                variant="outline"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Items List */}
-      {filteredAndSortedItems.length === 0 ? (
-        <div className="py-12 text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
-          <h3 className="mb-2 font-medium text-lg">No items found</h3>
-          <p className="text-muted-foreground">
-            {searchQuery
-              ? "Try adjusting your search terms"
-              : "Add your first medication to get started"}
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {filteredAndSortedItems.map((item) => (
-            <InventoryCard
-              daysLeft={daysLeftMap.get(item.id) || null}
-              item={item}
-              key={item.id}
-              onAssign={() => setAssignModalItem(item)}
-              onDelete={() => handleDelete(item.id)}
-              onDetails={() => setEditModalItem(item)}
-              onUseThis={() => handleSetInUse(item.id, !item.inUse)}
-            />
-          ))}
-        </div>
-      )}
+      <InventoryList
+        daysLeftMap={daysLeftMap}
+        items={filteredAndSortedItems}
+        onAssignItem={setAssignModalItem}
+        onDeleteItem={handleDelete}
+        onEditItem={setEditModalItem}
+        onToggleInUse={handleSetInUse}
+        searchQuery={searchQuery}
+      />
 
       {/* Assign Modal */}
       <AssignModal
@@ -485,18 +364,217 @@ function InventoryContent() {
   );
 }
 
+// =============================================================================
+// EXTRACTED COMPONENTS
+// =============================================================================
+
+type AlertItem = {
+  id: string;
+  message: string;
+  type: "expiring" | "low-stock";
+};
+
+function InventoryAlerts({
+  alerts,
+  onAlertClick,
+}: {
+  alerts: { expiringSoon: AlertItem[]; lowStock: AlertItem[] };
+  onAlertClick: (alertId: string) => void;
+}) {
+  if (alerts.expiringSoon.length === 0 && alerts.lowStock.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-2">
+      {alerts.lowStock.map((alert) => (
+        <Alert
+          className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950"
+          key={alert.id}
+        >
+          <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-orange-800 dark:text-orange-200">
+              {alert.message}
+            </span>
+            <Button
+              className="border-orange-200 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900"
+              onClick={() => onAlertClick(alert.id)}
+              size="sm"
+              variant="outline"
+            >
+              View Item
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ))}
+
+      {alerts.expiringSoon.map((alert) => (
+        <Alert
+          className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950"
+          key={alert.id}
+        >
+          <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-yellow-800 dark:text-yellow-200">
+              {alert.message}
+            </span>
+            <Button
+              className="border-yellow-200 text-yellow-600 hover:bg-yellow-100 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900"
+              onClick={() => onAlertClick(alert.id)}
+              size="sm"
+              variant="outline"
+            >
+              View Item
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ))}
+    </div>
+  );
+}
+
+function InventoryFilters({
+  sortBy,
+  setSortBy,
+  searchQuery,
+  setSearchQuery,
+  showMobileSearch,
+  setShowMobileSearch,
+}: {
+  sortBy: string;
+  setSortBy: (value: string) => void;
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  showMobileSearch: boolean;
+  setShowMobileSearch: (value: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      {/* Priority dropdown on the left for mobile */}
+      <Select onValueChange={setSortBy} value={sortBy}>
+        <SelectTrigger className="w-[140px] sm:w-[180px]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="priority">Priority</SelectItem>
+          <SelectItem value="name">Name A-Z</SelectItem>
+          <SelectItem value="expiry">Expiry Date</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {/* Search - expandable on mobile */}
+      <div className="relative flex-1">
+        <div className="hidden sm:block">
+          <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
+          <Input
+            className="pl-10"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search medications..."
+            value={searchQuery}
+          />
+        </div>
+        <div className="block sm:hidden">
+          {showMobileSearch ? (
+            <div className="relative">
+              <Input
+                autoFocus
+                className="pr-10"
+                onBlur={() => {
+                  if (!searchQuery) {
+                    setShowMobileSearch(false);
+                  }
+                }}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                value={searchQuery}
+              />
+              <Button
+                className="absolute top-0 right-0 h-full"
+                onClick={() => {
+                  setSearchQuery("");
+                  setShowMobileSearch(false);
+                }}
+                size="icon"
+                variant="ghost"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => setShowMobileSearch(true)}
+              size="icon"
+              variant="outline"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InventoryList({
+  items,
+  searchQuery,
+  daysLeftMap,
+  onAssignItem,
+  onDeleteItem,
+  onEditItem,
+  onToggleInUse,
+}: {
+  items: InventoryItem[];
+  searchQuery: string;
+  daysLeftMap: Map<string, number | null>;
+  onAssignItem: (item: InventoryItem) => void;
+  onDeleteItem: (id: string) => void;
+  onEditItem: (item: InventoryItem) => void;
+  onToggleInUse: (itemId: string, inUse: boolean) => Promise<void>;
+}) {
+  if (items.length === 0) {
+    return (
+      <div className="py-12 text-center">
+        <Package className="mx-auto mb-4 h-12 w-12 text-muted-foreground opacity-50" />
+        <h3 className="mb-2 font-medium text-lg">No items found</h3>
+        <p className="text-muted-foreground">
+          {searchQuery
+            ? "Try adjusting your search terms"
+            : "Add your first medication to get started"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4">
+      {items.map((item) => (
+        <InventoryCard
+          daysLeft={daysLeftMap.get(item.id) || null}
+          item={item}
+          key={item.id}
+          onAssign={() => onAssignItem(item)}
+          onDelete={() => onDeleteItem(item.id)}
+          onDetails={() => onEditItem(item)}
+          onUseThis={async () => await onToggleInUse(item.id, !item.inUse)}
+        />
+      ))}
+    </div>
+  );
+}
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
 // Helper function to generate inventory alerts
 function generateInventoryAlerts(
   items: InventoryItem[],
   daysLeftMap: Map<string, number | null>,
-) {
-  const expiringSoon: Array<{
-    id: string;
-    message: string;
-    type: "expiring";
-  }> = [];
-  const lowStock: Array<{ id: string; message: string; type: "low-stock" }> =
-    [];
+): { expiringSoon: AlertItem[]; lowStock: AlertItem[] } {
+  const expiringSoon: AlertItem[] = [];
+  const lowStock: AlertItem[] = [];
 
   for (const item of items) {
     const daysUntilExpiry = differenceInDays(item.expiresOn, new Date());

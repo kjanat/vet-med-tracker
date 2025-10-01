@@ -2,8 +2,8 @@
 
 import { AnimalAvatar } from "@/components";
 import { Badge } from "@/components/app/badge";
+import { useApp } from "@/components/providers";
 import { cn } from "@/lib/utils/general";
-import { useApp } from "../providers/app-provider-consolidated";
 import { ScrollArea, ScrollBar } from "./scroll-area";
 
 export function AnimalSwitcher() {

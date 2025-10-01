@@ -419,10 +419,7 @@ export namespace VetUnitConversions {
       ) {
         return false;
       }
-      if (fromUnit === "ml" && value > MAX_SAFE_VOLUME_ML) {
-        return false;
-      }
-      return true;
+      return !(fromUnit === "ml" && value > MAX_SAFE_VOLUME_ML);
     }
 
     function isDosageSafetyPassed(
@@ -438,10 +435,7 @@ export namespace VetUnitConversions {
       ) {
         return false;
       }
-      if (fromUnit === "mg" && value > MAX_SAFE_DOSAGE_MG) {
-        return false;
-      }
-      return true;
+      return !(fromUnit === "mg" && value > MAX_SAFE_DOSAGE_MG);
     }
 
     /**

@@ -124,55 +124,49 @@ export const createTRPCContext = async (
     return baseContext;
   }
 
-  try {
-    // Sync user to database and get user data
-    const dbUser = await syncStackUserToDatabase(stackUser);
-    if (!dbUser) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to sync user to database",
-      });
-    }
-
-    // Get user's households
-    const availableHouseholds = await getUserHouseholds(dbUser.id);
-
-    // Determine current household
-    let currentHouseholdId = null;
-    let currentMembership = null;
-
-    if (requestedHouseholdId) {
-      // Use requested household if user has access
-      const requestedHousehold = availableHouseholds.find(
-        (h) => h.id === requestedHouseholdId,
-      );
-      if (requestedHousehold) {
-        currentHouseholdId = requestedHousehold.id;
-        currentMembership = requestedHousehold.membership;
-      }
-    }
-
-    // Fall back to the first available household
-    if (!currentHouseholdId && availableHouseholds.length > 0) {
-      const firstHousehold = availableHouseholds[0];
-      if (firstHousehold) {
-        currentHouseholdId = firstHousehold.id;
-        currentMembership = firstHousehold.membership;
-      }
-    }
-
-    return {
-      ...baseContext,
-      availableHouseholds,
-      currentHouseholdId,
-      currentMembership,
-      dbUser,
-    };
-  } catch (error) {
-    console.error("Error setting up user context:", error);
-    // Return base context if sync fails
-    return baseContext;
+  // Sync user to database and get user data
+  const dbUser = await syncStackUserToDatabase(stackUser);
+  if (!dbUser) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to sync user to database",
+    });
   }
+
+  // Get user's households
+  const availableHouseholds = await getUserHouseholds(dbUser.id);
+
+  // Determine current household
+  let currentHouseholdId = null;
+  let currentMembership = null;
+
+  if (requestedHouseholdId) {
+    // Use requested household if user has access
+    const requestedHousehold = availableHouseholds.find(
+      (h) => h.id === requestedHouseholdId,
+    );
+    if (requestedHousehold) {
+      currentHouseholdId = requestedHousehold.id;
+      currentMembership = requestedHousehold.membership;
+    }
+  }
+
+  // Fall back to the first available household
+  if (!currentHouseholdId && availableHouseholds.length > 0) {
+    const firstHousehold = availableHouseholds[0];
+    if (firstHousehold) {
+      currentHouseholdId = firstHousehold.id;
+      currentMembership = firstHousehold.membership;
+    }
+  }
+
+  return {
+    ...baseContext,
+    availableHouseholds,
+    currentHouseholdId,
+    currentMembership,
+    dbUser,
+  };
 };
 
 // Global error handling simplified

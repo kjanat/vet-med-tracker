@@ -43,8 +43,8 @@ export function DateInput({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
         <Calendar
+          autoFocus
           disabled={disabled}
-          initialFocus
           mode="single"
           onSelect={onChange}
           selected={value}

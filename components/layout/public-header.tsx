@@ -15,11 +15,16 @@ import {
 } from "@/components/app/sheet";
 import { Logo } from "@/components/ui/logo";
 
-const navigation = [
-  { href: "#features", name: "Features" },
-  { href: "#demo", name: "How It Works" },
-  { href: "#testimonials", name: "Testimonials" },
-  { href: "#pricing", name: "Pricing" },
+type NavLink = {
+  href: Route;
+  name: string;
+};
+
+const navigation: NavLink[] = [
+  { href: "/#features", name: "Features" },
+  { href: "/#demo", name: "How It Works" },
+  { href: "/#testimonials", name: "Testimonials" },
+  { href: "/#pricing", name: "Pricing" },
 ];
 
 export function PublicHeader() {
@@ -45,7 +50,7 @@ export function PublicHeader() {
           {navigation.map((item) => (
             <Link
               className="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-              href={item.href as Route}
+              href={item.href}
               key={item.name}
             >
               {item.name}
@@ -89,7 +94,7 @@ export function PublicHeader() {
               {navigation.map((item) => (
                 <Link
                   className="font-medium text-lg transition-colors hover:text-primary"
-                  href={item.href as Route}
+                  href={item.href}
                   key={item.name}
                   onClick={() => setIsOpen(false)}
                 >

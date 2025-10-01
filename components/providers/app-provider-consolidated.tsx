@@ -399,94 +399,77 @@ function handleAnimalChange(state: AppState, animal: Animal | null): AppState {
   };
 }
 
+// Reducer handlers - each handles a specific action type
+type ReducerHandler<T = AppAction> = (state: AppState, action: T) => AppState;
+
+// biome-ignore lint/suspicious/noExplicitAny: Required for reducer pattern with discriminated union actions
+const reducerHandlers: Record<AppAction["type"], ReducerHandler<any>> = {
+  ANNOUNCE: (state, action) => ({
+    ...state,
+    accessibility: {
+      ...state.accessibility,
+      announcements: {
+        ...state.accessibility.announcements,
+        [action.payload.priority]: action.payload.message,
+      },
+    },
+  }),
+  SET_ACCESSIBILITY: (state, action) => ({
+    ...state,
+    accessibility: { ...state.accessibility, ...action.payload },
+  }),
+  SET_ANIMAL: (state, action) => handleAnimalChange(state, action.payload),
+  SET_ANIMALS: (state, action) => ({ ...state, animals: action.payload }),
+  SET_AUTH_STATUS: (state, action) => ({
+    ...state,
+    authStatus: action.payload,
+    isAuthenticated: action.payload === "authenticated",
+  }),
+  SET_ERROR: (state, action) => ({
+    ...state,
+    errors: { ...state.errors, [action.payload.key]: action.payload.value },
+  }),
+  SET_FIRST_TIME_USER: (state, action) => ({
+    ...state,
+    isFirstTimeUser: action.payload,
+  }),
+  SET_HOUSEHOLD: (state, action) =>
+    handleHouseholdChange(state, action.payload),
+  SET_HOUSEHOLD_SETTINGS: (state, action) => ({
+    ...state,
+    householdSettings: { ...state.householdSettings, ...action.payload },
+  }),
+  SET_HOUSEHOLDS: (state, action) => ({ ...state, households: action.payload }),
+  SET_LOADING: (state, action) => ({
+    ...state,
+    loading: {
+      ...state.loading,
+      [action.payload.key]: action.payload.value,
+    },
+  }),
+  SET_PENDING_SYNC_COUNT: (state, action) => ({
+    ...state,
+    pendingSyncCount: action.payload,
+  }),
+  SET_PREFERENCES: (state, action) => ({
+    ...state,
+    preferences: { ...state.preferences, ...action.payload },
+  }),
+  SET_USER: (state, action) => ({
+    ...state,
+    authStatus: action.payload ? "authenticated" : "unauthenticated",
+    isAuthenticated: Boolean(action.payload),
+    user: action.payload,
+  }),
+  SET_USER_PROFILE: (state, action) => ({
+    ...state,
+    userProfile: action.payload,
+  }),
+};
+
 function appReducer(state: AppState, action: AppAction): AppState {
-  switch (action.type) {
-    case "SET_HOUSEHOLD":
-      return handleHouseholdChange(state, action.payload);
-
-    case "SET_ANIMAL":
-      return handleAnimalChange(state, action.payload);
-
-    case "SET_HOUSEHOLDS":
-      return { ...state, households: action.payload };
-
-    case "SET_ANIMALS":
-      return { ...state, animals: action.payload };
-
-    case "SET_USER":
-      return {
-        ...state,
-        authStatus: action.payload ? "authenticated" : "unauthenticated",
-        isAuthenticated: Boolean(action.payload),
-        user: action.payload,
-      };
-
-    case "SET_USER_PROFILE":
-      return { ...state, userProfile: action.payload };
-
-    case "SET_AUTH_STATUS":
-      return {
-        ...state,
-        authStatus: action.payload,
-        isAuthenticated: action.payload === "authenticated",
-      };
-
-    case "SET_PREFERENCES":
-      return {
-        ...state,
-        preferences: { ...state.preferences, ...action.payload },
-      };
-
-    case "SET_HOUSEHOLD_SETTINGS":
-      return {
-        ...state,
-        householdSettings: { ...state.householdSettings, ...action.payload },
-      };
-
-    case "SET_FIRST_TIME_USER":
-      return { ...state, isFirstTimeUser: action.payload };
-
-    case "SET_ACCESSIBILITY":
-      return {
-        ...state,
-        accessibility: { ...state.accessibility, ...action.payload },
-      };
-
-    case "SET_PENDING_SYNC_COUNT":
-      return { ...state, pendingSyncCount: action.payload };
-
-    case "SET_LOADING":
-      return {
-        ...state,
-        loading: {
-          ...state.loading,
-          [action.payload.key]: action.payload.value,
-        },
-      };
-
-    case "SET_ERROR":
-      return {
-        ...state,
-        errors: { ...state.errors, [action.payload.key]: action.payload.value },
-      };
-
-    case "ANNOUNCE": {
-      const { message, priority } = action.payload;
-      return {
-        ...state,
-        accessibility: {
-          ...state.accessibility,
-          announcements: {
-            ...state.accessibility.announcements,
-            [priority]: message,
-          },
-        },
-      };
-    }
-
-    default:
-      return state;
-  }
+  const handler = reducerHandlers[action.type];
+  return handler ? handler(state, action) : state;
 }
 
 // =============================================================================
@@ -542,40 +525,13 @@ export function useApp() {
 }
 
 // =============================================================================
-// CONSOLIDATED PROVIDER
+// CUSTOM HOOKS FOR EXTRACTED LOGIC
 // =============================================================================
 
-function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(appReducer, initialState);
-  const stackUser = useUser();
-  // Stack Auth loads synchronously - no isLoaded check needed
-  const utils = trpc.useUtils();
-  const { mutateAsync: persistPreferences } =
-    trpc.user.updatePreferences.useMutation();
-
-  // Refs for cleanup
-  const timeoutRefs = useRef<Map<string, number>>(new Map());
-
-  // =============================================================================
-  // COMPUTED VALUES
-  // =============================================================================
-
-  const selectedHousehold = useMemo(
-    () =>
-      state.households.find((h) => h.id === state.selectedHouseholdId) || null,
-    [state.households, state.selectedHouseholdId],
-  );
-
-  const selectedAnimal = useMemo(
-    () => state.animals.find((a) => a.id === state.selectedAnimalId) || null,
-    [state.animals, state.selectedAnimalId],
-  );
-
-  // =============================================================================
-  // USER & AUTH MANAGEMENT
-  // =============================================================================
-
-  // Convert Stack user to internal user format
+function useUserAuthManagement(
+  stackUser: ReturnType<typeof useUser>,
+  dispatch: React.Dispatch<AppAction>,
+) {
   const convertStackUser = useCallback(
     (stackUser: StackUserForConversion): User => ({
       createdAt: new Date(),
@@ -596,44 +552,35 @@ function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
     [],
   );
 
-  // Update user when Stack user changes
   useEffect(() => {
-    const isLoaded = true; // Stack Auth loads synchronously
-    if (isLoaded) {
-      if (stackUser) {
-        const user = convertStackUser(stackUser);
-        dispatch({ payload: user, type: "SET_USER" });
-        dispatch({ payload: "authenticated", type: "SET_AUTH_STATUS" });
-      } else {
-        dispatch({ payload: null, type: "SET_USER" });
-        dispatch({ payload: "unauthenticated", type: "SET_AUTH_STATUS" });
-      }
-      dispatch({ payload: { key: "user", value: false }, type: "SET_LOADING" });
+    if (stackUser) {
+      const user = convertStackUser(stackUser);
+      dispatch({ payload: user, type: "SET_USER" });
+      dispatch({ payload: "authenticated", type: "SET_AUTH_STATUS" });
+    } else {
+      dispatch({ payload: null, type: "SET_USER" });
+      dispatch({ payload: "unauthenticated", type: "SET_AUTH_STATUS" });
     }
-  }, [stackUser, convertStackUser]);
+    dispatch({ payload: { key: "user", value: false }, type: "SET_LOADING" });
+  }, [stackUser, convertStackUser, dispatch]);
 
-  // Get user profile data from tRPC
   const { data: rawUserProfile, refetch: refetchProfile } =
     trpc.user.getProfile.useQuery(undefined, { enabled: Boolean(stackUser) });
 
-  // Transform API response to match UserProfile interface with proper Date objects
   const userProfile = useMemo(() => {
     if (!rawUserProfile) return null;
-
     return {
       ...rawUserProfile,
-      availableHouseholds: rawUserProfile.availableHouseholds.map(
-        (household) => ({
-          ...household,
-          createdAt: new Date(household.createdAt),
-          membership: {
-            ...household.membership,
-            createdAt: new Date(household.membership.createdAt),
-            updatedAt: new Date(household.membership.updatedAt),
-          },
-          updatedAt: new Date(household.updatedAt),
-        }),
-      ),
+      availableHouseholds: rawUserProfile.availableHouseholds.map((h) => ({
+        ...h,
+        createdAt: new Date(h.createdAt),
+        membership: {
+          ...h.membership,
+          createdAt: new Date(h.membership.createdAt),
+          updatedAt: new Date(h.membership.updatedAt),
+        },
+        updatedAt: new Date(h.updatedAt),
+      })),
       onboarding: {
         ...rawUserProfile.onboarding,
         completedAt: rawUserProfile.onboarding.completedAt
@@ -647,13 +594,264 @@ function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
     if (userProfile) {
       dispatch({ payload: userProfile, type: "SET_USER_PROFILE" });
     }
-  }, [userProfile]);
+  }, [userProfile, dispatch]);
 
-  // =============================================================================
-  // PREFERENCES MANAGEMENT
-  // =============================================================================
+  return { refetchProfile };
+}
 
-  // Load preferences from Stack user metadata
+function useHouseholdsManagement(
+  stackUser: ReturnType<typeof useUser>,
+  selectedHouseholdId: string | null,
+  dispatch: React.Dispatch<AppAction>,
+) {
+  const { data: householdData } = trpc.household.list.useQuery(undefined, {
+    enabled: Boolean(stackUser),
+  });
+
+  const formatHouseholdData = useCallback(
+    (data: HouseholdListItem[]) =>
+      data.map((h) => ({
+        avatar: undefined,
+        id: h.id,
+        name: h.name,
+        timezone: h.timezone,
+      })),
+    [],
+  );
+
+  const restoreHouseholdFromStorage = useCallback(
+    (households: Household[]): Household | null => {
+      if (typeof window === "undefined") return null;
+      const savedHouseholdId = localStorage.getItem("selectedHouseholdId");
+      return households.find((h) => h.id === savedHouseholdId) || null;
+    },
+    [],
+  );
+
+  const selectDefaultHousehold = useCallback(
+    (households: Household[]) => {
+      const savedHousehold = restoreHouseholdFromStorage(households);
+      if (savedHousehold) {
+        dispatch({ payload: savedHousehold, type: "SET_HOUSEHOLD" });
+      } else if (households.length > 0) {
+        dispatch({ payload: households[0] || null, type: "SET_HOUSEHOLD" });
+      }
+    },
+    [restoreHouseholdFromStorage, dispatch],
+  );
+
+  useEffect(() => {
+    if (!householdData || householdData.length === 0) return;
+    const formattedHouseholds = formatHouseholdData(householdData);
+    dispatch({ payload: formattedHouseholds, type: "SET_HOUSEHOLDS" });
+    if (!selectedHouseholdId) {
+      selectDefaultHousehold(formattedHouseholds);
+    }
+  }, [
+    householdData,
+    selectedHouseholdId,
+    formatHouseholdData,
+    selectDefaultHousehold,
+    dispatch,
+  ]);
+}
+
+function useAnimalsManagement(
+  selectedHouseholdId: string | null,
+  selectedAnimalId: string | null,
+  dispatch: React.Dispatch<AppAction>,
+) {
+  const { data: animalData } = trpc.animals.list.useQuery(
+    { householdId: selectedHouseholdId || "" },
+    { enabled: Boolean(selectedHouseholdId) },
+  );
+
+  const pendingMedsData = undefined;
+
+  const formatAnimalData = useCallback(
+    (
+      data: AnimalFromDatabase[],
+      pendingByAnimal: Record<string, number> = {},
+    ) =>
+      data.map((animal) => ({
+        avatar: animal.photoUrl || undefined,
+        id: animal.id,
+        name: animal.name,
+        pendingMeds: pendingByAnimal[animal.id] || 0,
+        species: animal.species,
+        timezone: animal.timezone,
+      })),
+    [],
+  );
+
+  const restoreAnimalFromStorage = useCallback(
+    (animals: Animal[]): Animal | null => {
+      if (typeof window === "undefined") return null;
+      const savedAnimalId = localStorage.getItem("selectedAnimalId");
+      return animals.find((a) => a.id === savedAnimalId) || null;
+    },
+    [],
+  );
+
+  const validateSelectedAnimal = useCallback(
+    (animals: Animal[]) => {
+      if (selectedAnimalId) {
+        const stillExists = animals.some((a) => a.id === selectedAnimalId);
+        if (!stillExists) {
+          dispatch({ payload: null, type: "SET_ANIMAL" });
+        }
+      } else {
+        const savedAnimal = restoreAnimalFromStorage(animals);
+        if (savedAnimal) {
+          dispatch({ payload: savedAnimal, type: "SET_ANIMAL" });
+        }
+      }
+    },
+    [selectedAnimalId, restoreAnimalFromStorage, dispatch],
+  );
+
+  useEffect(() => {
+    if (!animalData) return;
+    const pendingByAnimal =
+      (pendingMedsData as { byAnimal?: Record<string, number> } | undefined)
+        ?.byAnimal || {};
+    const formattedAnimals = formatAnimalData(animalData, pendingByAnimal);
+    dispatch({ payload: formattedAnimals, type: "SET_ANIMALS" });
+    validateSelectedAnimal(formattedAnimals);
+  }, [
+    animalData,
+    pendingMedsData,
+    formatAnimalData,
+    validateSelectedAnimal,
+    dispatch,
+  ]);
+}
+
+function useSyncManagement(dispatch: React.Dispatch<AppAction>) {
+  const updatePendingSyncCount = useCallback(() => {
+    dispatch({ payload: 0, type: "SET_PENDING_SYNC_COUNT" });
+  }, [dispatch]);
+
+  useEffect(() => {
+    updatePendingSyncCount();
+    const interval = setInterval(updatePendingSyncCount, 5000);
+    return () => clearInterval(interval);
+  }, [updatePendingSyncCount]);
+}
+
+function useAccessibilityManagement(
+  announcements: AccessibilityState["announcements"],
+  dispatch: React.Dispatch<AppAction>,
+) {
+  const timeoutRefs = useRef<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    const { polite, assertive } = announcements;
+
+    if (polite) {
+      const timeoutId = window.setTimeout(() => {
+        dispatch({
+          payload: { message: "", priority: "polite" },
+          type: "ANNOUNCE",
+        });
+      }, 1000);
+      timeoutRefs.current.set("polite", timeoutId);
+    }
+
+    if (assertive) {
+      const timeoutId = window.setTimeout(() => {
+        dispatch({
+          payload: { message: "", priority: "assertive" },
+          type: "ANNOUNCE",
+        });
+      }, 1000);
+      timeoutRefs.current.set("assertive", timeoutId);
+    }
+
+    return () => {
+      timeoutRefs.current.forEach((id) => {
+        clearTimeout(id);
+      });
+      timeoutRefs.current.clear();
+    };
+  }, [announcements, dispatch]);
+}
+
+function useUtilityFunctions(
+  preferences: VetMedPreferences,
+  householdSettings: HouseholdSettings,
+) {
+  const formatTime = useCallback(
+    (date: Date) =>
+      preferences.displayPreferences.use24HourTime
+        ? date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            hour12: false,
+            minute: "2-digit",
+          })
+        : date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            hour12: true,
+            minute: "2-digit",
+          }),
+    [preferences.displayPreferences.use24HourTime],
+  );
+
+  const formatWeight = useCallback(
+    (weightInKg: number) => {
+      if (preferences.displayPreferences.weightUnit === "lbs") {
+        return `${(weightInKg * 2.20462).toFixed(1)} lbs`;
+      }
+      return `${weightInKg.toFixed(1)} kg`;
+    },
+    [preferences.displayPreferences.weightUnit],
+  );
+
+  const formatTemperature = useCallback(
+    (tempInCelsius: number) => {
+      if (preferences.displayPreferences.temperatureUnit === "fahrenheit") {
+        return `${((tempInCelsius * 9) / 5 + 32).toFixed(1)}°F`;
+      }
+      return `${tempInCelsius.toFixed(1)}°C`;
+    },
+    [preferences.displayPreferences.temperatureUnit],
+  );
+
+  const getUserTimezone = useCallback(
+    () =>
+      preferences.defaultTimezone ||
+      householdSettings.defaultLocation.timezone ||
+      "America/New_York",
+    [preferences.defaultTimezone, householdSettings.defaultLocation.timezone],
+  );
+
+  return { formatTemperature, formatTime, formatWeight, getUserTimezone };
+}
+
+// =============================================================================
+// CONSOLIDATED PROVIDER
+// =============================================================================
+
+function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(appReducer, initialState);
+  const stackUser = useUser();
+  const utils = trpc.useUtils();
+  const { mutateAsync: persistPreferences } =
+    trpc.user.updatePreferences.useMutation();
+
+  const selectedHousehold = useMemo(
+    () =>
+      state.households.find((h) => h.id === state.selectedHouseholdId) || null,
+    [state.households, state.selectedHouseholdId],
+  );
+
+  const selectedAnimal = useMemo(
+    () => state.animals.find((a) => a.id === state.selectedAnimalId) || null,
+    [state.animals, state.selectedAnimalId],
+  );
+
+  const { refetchProfile } = useUserAuthManagement(stackUser, dispatch);
+
   const handlePreferencesUpdate = useCallback(
     (preferences: VetMedPreferences) => {
       dispatch({ payload: preferences, type: "SET_PREFERENCES" });
@@ -681,225 +879,30 @@ function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
     stackUser,
   });
 
-  // =============================================================================
-  // HOUSEHOLDS & ANIMALS MANAGEMENT
-  // =============================================================================
-
-  // Fetch household details from API
-  const { data: householdData } = trpc.household.list.useQuery(undefined, {
-    enabled: Boolean(stackUser),
-  });
-
-  // Helper function to format household data
-  const formatHouseholdData = useCallback(
-    (data: HouseholdListItem[]) =>
-      data.map((h) => ({
-        avatar: undefined, // Avatar support will be added when avatar storage is implemented
-        id: h.id,
-        name: h.name,
-        timezone: h.timezone,
-      })),
-    [],
-  );
-
-  // Helper function to restore household selection from localStorage
-  const restoreHouseholdFromStorage = useCallback(
-    (households: Household[]): Household | null => {
-      if (typeof window === "undefined") return null;
-
-      const savedHouseholdId = localStorage.getItem("selectedHouseholdId");
-      return households.find((h) => h.id === savedHouseholdId) || null;
-    },
-    [],
-  );
-
-  // Helper function to select default household
-  const selectDefaultHousehold = useCallback(
-    (households: Household[]) => {
-      const savedHousehold = restoreHouseholdFromStorage(households);
-
-      if (savedHousehold) {
-        dispatch({ payload: savedHousehold, type: "SET_HOUSEHOLD" });
-      } else if (households.length > 0) {
-        // Fallback to first household
-        dispatch({ payload: households[0] || null, type: "SET_HOUSEHOLD" });
-      }
-    },
-    [restoreHouseholdFromStorage],
-  );
-
-  // Update households when data is fetched
-  useEffect(() => {
-    if (!householdData || householdData.length === 0) return;
-
-    const formattedHouseholds = formatHouseholdData(householdData);
-    dispatch({ payload: formattedHouseholds, type: "SET_HOUSEHOLDS" });
-
-    // Auto-select household if none selected
-    if (!state.selectedHouseholdId) {
-      selectDefaultHousehold(formattedHouseholds);
-    }
-  }, [
-    householdData,
+  useHouseholdsManagement(stackUser, state.selectedHouseholdId, dispatch);
+  useAnimalsManagement(
     state.selectedHouseholdId,
-    formatHouseholdData,
-    selectDefaultHousehold,
-  ]);
-
-  // Fetch animals for selected household
-  const { data: animalData } = trpc.animals.list.useQuery(
-    { householdId: state.selectedHouseholdId || "" },
-    { enabled: Boolean(state.selectedHouseholdId) },
+    state.selectedAnimalId,
+    dispatch,
   );
+  useSyncManagement(dispatch);
+  useAccessibilityManagement(state.accessibility.announcements, dispatch);
 
-  // Fetch pending medications count
-  // TODO: getPendingMeds doesn't exist on any router - needs implementation
-  // Temporarily using undefined until the API method is added
-  const pendingMedsData = undefined;
-  /*
-  const { data: pendingMedsData } = trpc.household.getPendingMeds.useQuery(
-    { householdId: state.selectedHouseholdId || "" },
-    {
-      enabled: Boolean(state.selectedHouseholdId),
-      refetchInterval: 60000, // Refresh every minute
-    },
-  );
-  */
-
-  // Helper function to format animal data with pending meds
-  const formatAnimalData = useCallback(
-    (
-      data: AnimalFromDatabase[],
-      pendingByAnimal: Record<string, number> = {},
-    ) =>
-      data.map((animal) => ({
-        avatar: animal.photoUrl || undefined, // Use animal's photo as avatar
-        id: animal.id,
-        name: animal.name,
-        pendingMeds: pendingByAnimal[animal.id] || 0,
-        species: animal.species,
-        timezone: animal.timezone,
-      })),
-    [],
-  );
-
-  // Helper function to restore animal selection from localStorage
-  const restoreAnimalFromStorage = useCallback(
-    (animals: Animal[]): Animal | null => {
-      if (typeof window === "undefined") return null;
-
-      const savedAnimalId = localStorage.getItem("selectedAnimalId");
-      return animals.find((a) => a.id === savedAnimalId) || null;
-    },
-    [],
-  );
-
-  // Helper function to validate and update selected animal
-  const validateSelectedAnimal = useCallback(
-    (animals: Animal[]) => {
-      if (state.selectedAnimalId) {
-        // Check if currently selected animal still exists
-        const stillExists = animals.some(
-          (a) => a.id === state.selectedAnimalId,
-        );
-        if (!stillExists) {
-          dispatch({ payload: null, type: "SET_ANIMAL" });
-        }
-      } else {
-        // Try to restore from localStorage
-        const savedAnimal = restoreAnimalFromStorage(animals);
-        if (savedAnimal) {
-          dispatch({ payload: savedAnimal, type: "SET_ANIMAL" });
-        }
-      }
-    },
-    [state.selectedAnimalId, restoreAnimalFromStorage],
-  );
-
-  // Update animals when data changes
-  useEffect(() => {
-    if (!animalData) return;
-
-    const pendingByAnimal =
-      (pendingMedsData as { byAnimal?: Record<string, number> } | undefined)
-        ?.byAnimal || {};
-    const formattedAnimals = formatAnimalData(animalData, pendingByAnimal);
-
-    dispatch({ payload: formattedAnimals, type: "SET_ANIMALS" });
-    validateSelectedAnimal(formattedAnimals);
-  }, [animalData, pendingMedsData, formatAnimalData, validateSelectedAnimal]);
-
-  // =============================================================================
-  // SYNC MANAGEMENT
-  // =============================================================================
-
-  // Simplified: No pending sync queue currently implemented
-  const updatePendingSyncCount = useCallback(async () => {
-    dispatch({ payload: 0, type: "SET_PENDING_SYNC_COUNT" });
-  }, []);
-
-  useEffect(() => {
-    updatePendingSyncCount();
-    const interval = setInterval(updatePendingSyncCount, 5000);
-    return () => clearInterval(interval);
-  }, [updatePendingSyncCount]);
-
-  // =============================================================================
-  // ACCESSIBILITY MANAGEMENT
-  // =============================================================================
-
-  // Clear announcements after timeout
-  useEffect(() => {
-    const { polite, assertive } = state.accessibility.announcements;
-
-    if (polite) {
-      const timeoutId = window.setTimeout(() => {
-        dispatch({
-          payload: { message: "", priority: "polite" },
-          type: "ANNOUNCE",
-        });
-      }, 1000);
-      timeoutRefs.current.set("polite", timeoutId);
-    }
-
-    if (assertive) {
-      const timeoutId = window.setTimeout(() => {
-        dispatch({
-          payload: { message: "", priority: "assertive" },
-          type: "ANNOUNCE",
-        });
-      }, 1000);
-      timeoutRefs.current.set("assertive", timeoutId);
-    }
-
-    return () => {
-      const refs = timeoutRefs.current;
-      refs.forEach((id) => {
-        clearTimeout(id);
-      });
-      refs.clear();
-    };
-  }, [state.accessibility.announcements]);
-
-  // =============================================================================
-  // ACTION HANDLERS
-  // =============================================================================
+  const { formatTime, formatWeight, formatTemperature, getUserTimezone } =
+    useUtilityFunctions(state.preferences, state.householdSettings);
 
   const { refreshPendingMeds, setSelectedAnimal, setSelectedHousehold } =
     useHouseholdActions<Household, Animal>({
       dispatch,
-      // TODO: invalidatePendingMeds needs implementation when getPendingMeds is added
       invalidatePendingMeds: () => Promise.resolve(),
       selectedHouseholdId: state.selectedHouseholdId,
     });
 
   const login = useCallback(() => {
-    // Stack Auth uses redirects for sign-in
     window.location.href = "/handler/sign-in";
   }, []);
 
   const logout = useCallback(async () => {
-    // Stack Auth logout
     if (stackUser) {
       await stackUser.signOut();
     }
@@ -928,7 +931,6 @@ function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
 
       dispatch({ payload: updates, type: "SET_PREFERENCES" });
 
-      // Sync to backend
       try {
         await fetch("/api/user/metadata", {
           body: JSON.stringify({ vetMedPreferences: newPreferences }),
@@ -984,7 +986,6 @@ function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
 
       dispatch({ payload: updates, type: "SET_HOUSEHOLD_SETTINGS" });
 
-      // Sync to backend
       try {
         await fetch("/api/user/metadata", {
           body: JSON.stringify({ householdSettings: newSettings }),
@@ -1022,71 +1023,11 @@ function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
     [],
   );
 
-  // =============================================================================
-  // UTILITY FUNCTIONS
-  // =============================================================================
-
-  const formatTime = useCallback(
-    (date: Date) =>
-      state.preferences.displayPreferences.use24HourTime
-        ? date.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            hour12: false,
-            minute: "2-digit",
-          })
-        : date.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            hour12: true,
-            minute: "2-digit",
-          }),
-    [state.preferences.displayPreferences.use24HourTime],
-  );
-
-  const formatWeight = useCallback(
-    (weightInKg: number) => {
-      if (state.preferences.displayPreferences.weightUnit === "lbs") {
-        return `${(weightInKg * 2.20462).toFixed(1)} lbs`;
-      }
-      return `${weightInKg.toFixed(1)} kg`;
-    },
-    [state.preferences.displayPreferences.weightUnit],
-  );
-
-  const formatTemperature = useCallback(
-    (tempInCelsius: number) => {
-      if (
-        state.preferences.displayPreferences.temperatureUnit === "fahrenheit"
-      ) {
-        return `${((tempInCelsius * 9) / 5 + 32).toFixed(1)}°F`;
-      }
-      return `${tempInCelsius.toFixed(1)}°C`;
-    },
-    [state.preferences.displayPreferences.temperatureUnit],
-  );
-
-  const getUserTimezone = useCallback(
-    () =>
-      state.preferences.defaultTimezone ||
-      state.householdSettings.defaultLocation.timezone ||
-      "America/New_York",
-    [
-      state.preferences.defaultTimezone,
-      state.householdSettings.defaultLocation.timezone,
-    ],
-  );
-
-  // =============================================================================
-  // CONTEXT VALUE
-  // =============================================================================
-
   const contextValue: AppContextType = useMemo(
     () => ({
-      // State
       ...state,
       announce,
       formatTemperature,
-
-      // Utilities
       formatTime,
       formatWeight,
       getUserTimezone,
@@ -1098,8 +1039,6 @@ function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
       selectedAnimal,
       selectedHousehold,
       setSelectedAnimal,
-
-      // Actions
       setSelectedHousehold,
       updateHouseholdSettings,
       updateVetMedPreferences,
@@ -1128,7 +1067,6 @@ function ConsolidatedAppProviderInner({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={contextValue}>
       {children}
-      {/* Global accessibility live regions */}
       <output
         aria-atomic="true"
         aria-live="polite"

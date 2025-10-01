@@ -54,10 +54,7 @@ export function convertToUserTimezone(date: Date, timezone?: string): Date {
   const targetTimezone = timezone || getUserTimezone();
   try {
     const utcTime = date.getTime() + date.getTimezoneOffset() * 60000;
-    const targetTime = new Date(
-      utcTime + getTimezoneOffset(targetTimezone) * 3600000,
-    );
-    return targetTime;
+    return new Date(utcTime + getTimezoneOffset(targetTimezone) * 3600000);
   } catch {
     return date;
   }

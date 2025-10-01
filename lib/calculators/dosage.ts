@@ -520,60 +520,77 @@ export class DosageCalculator {
   }
 
   /**
+   * Convert animal age to days for consistent comparison
+   */
+  private static convertAgeToDays(animal: Animal): number | null {
+    if (animal.age) {
+      const conversions: Record<"days" | "weeks" | "months" | "years", number> =
+        // biome-ignore assist/source/useSortedKeys: just no
+        {
+          days: 1,
+          weeks: DAYS_PER_WEEK,
+          months: DAYS_PER_MONTH_APPROX,
+          years: DAYS_PER_YEAR,
+        };
+      return animal.age.value * conversions[animal.age.unit];
+    }
+
+    if (animal.ageYears) {
+      return animal.ageYears * DAYS_PER_YEAR;
+    }
+
+    if (animal.ageMonths) {
+      return animal.ageMonths * DAYS_PER_MONTH_APPROX;
+    }
+
+    return null;
+  }
+
+  /**
+   * Determine age category for dosage adjustments
+   */
+  private static determineAgeCategory(
+    ageInDays: number,
+    speciesLifespan: number,
+  ): keyof typeof AGE_MULTIPLIERS {
+    if (ageInDays < AGE_THRESHOLDS_DAYS.neonatal) {
+      return "neonatal";
+    }
+
+    if (ageInDays < AGE_THRESHOLDS_DAYS.juvenile) {
+      return "juvenile";
+    }
+
+    const geriatricThreshold =
+      speciesLifespan * GERIATRIC_THRESHOLD_RATIO * DAYS_PER_YEAR;
+
+    if (ageInDays > geriatricThreshold) {
+      return "geriatric";
+    }
+
+    return "adult";
+  }
+
+  /**
    * Apply age-based adjustments
    */
   private static getAgeAdjustment(
     _medication: Medication,
     animal: Animal,
   ): { multiplier: number; reason: string } {
-    // Convert age to days for consistent comparison
-    let ageInDays: number | null = null;
-
-    // Handle different age formats
-    if (animal.age) {
-      switch (animal.age.unit) {
-        case "days":
-          ageInDays = animal.age.value;
-          break;
-        case "weeks":
-          ageInDays = animal.age.value * DAYS_PER_WEEK;
-          break;
-        case "months":
-          ageInDays = animal.age.value * DAYS_PER_MONTH_APPROX;
-          break;
-        case "years":
-          ageInDays = animal.age.value * DAYS_PER_YEAR;
-          break;
-      }
-    } else if (animal.ageYears) {
-      ageInDays = animal.ageYears * DAYS_PER_YEAR;
-    } else if (animal.ageMonths) {
-      ageInDays = animal.ageMonths * DAYS_PER_MONTH_APPROX;
-    }
+    const ageInDays = DosageCalculator.convertAgeToDays(animal);
 
     if (ageInDays === null) {
       return { multiplier: 1.0, reason: "Age not specified" };
     }
 
-    // Pediatric adjustments (young animals)
-    if (ageInDays < AGE_THRESHOLDS_DAYS.neonatal) {
-      // Under 2 months
-      return AGE_MULTIPLIERS.neonatal;
-    } else if (ageInDays < AGE_THRESHOLDS_DAYS.juvenile) {
-      // 2-4 months
-      return AGE_MULTIPLIERS.juvenile;
-    }
-
-    // Geriatric adjustments (older animals - species dependent)
     const speciesLifespan = DosageCalculator.getSpeciesLifespan(animal.species);
-    const geriatricThreshold =
-      speciesLifespan * GERIATRIC_THRESHOLD_RATIO * DAYS_PER_YEAR;
+    const category = DosageCalculator.determineAgeCategory(
+      ageInDays,
+      speciesLifespan,
+    );
 
-    if (ageInDays > geriatricThreshold) {
-      return AGE_MULTIPLIERS.geriatric;
-    }
-
-    return AGE_MULTIPLIERS.adult;
+    return AGE_MULTIPLIERS[category];
   }
 
   /**

@@ -29,7 +29,7 @@ export class EmergencyDialService {
 
   static formatPhoneForDialing(phone: string): string {
     // Remove formatting and return clean phone number
-    return phone.replace(/[^\d]/g, "");
+    return phone.replace(/\D/g, "");
   }
 
   static formatPhoneForDisplay(phone: string): string {
@@ -65,10 +65,9 @@ export class EmergencyDialService {
   }
 
   static canMakePhoneCalls(): boolean {
-    // Check if device can make phone calls
-    return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent,
-    );
+    // Always return true - desktop browsers just ignore tel: links
+    // Mobile devices will handle them appropriately
+    return true;
   }
 
   static initiateCall(phone: string): void {

@@ -45,14 +45,15 @@ export function useSettingsTabs() {
   const setActiveTab = useCallback(
     (tab: SettingsTab) => {
       // Validate the tab value before setting
+      let validTab = tab;
       if (!isValidSettingsTab(tab)) {
         console.warn(`Invalid settings tab: ${tab}, falling back to 'data'`);
-        tab = "data";
+        validTab = "data";
       }
 
       const queryString = updateSearchParams(
         new URLSearchParams(searchParamsString),
-        { tab },
+        { tab: validTab },
       );
       router.push(`${pathname}?${queryString}` as Route, { scroll: false });
     },

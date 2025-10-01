@@ -11,8 +11,7 @@ export function useLoadingButton() {
   ): Promise<T | undefined> => {
     try {
       setIsLoading(true);
-      const result = await asyncFunction();
-      return result;
+      return await asyncFunction();
     } catch (error) {
       console.error("Button action failed:", error);
       throw error;

@@ -48,6 +48,7 @@ const passesSectionFilter = (
   filters: DashboardFilters,
 ) => {
   if (regimen.isPRN && !filters.showPRN) return false;
+  // noinspection RedundantIfStatementJS
   if (!regimen.isPRN && !filters.showDue) return false;
   return true;
 };

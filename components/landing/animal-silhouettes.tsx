@@ -22,8 +22,9 @@ function hashCode(str: string): number {
 
 // Seeded random number generator
 function seededRandom(seed: number): () => number {
+  let currentSeed = seed;
   return () => {
-    const x = Math.sin(seed++) * 10000;
+    const x = Math.sin(currentSeed++) * 10000;
     return x - Math.floor(x);
   };
 }
@@ -42,6 +43,7 @@ export function AnimalSilhouettes() {
   const velocityRef = useRef(0);
   const lastXRef = useRef(0);
   const lastTimeRef = useRef(0);
+  const lastFrameTimeRef = useRef(0);
   const sessionSeedRef = useRef(0);
   const imageWidthRef = useRef(144); // 96px + 48px gap
 
@@ -99,15 +101,21 @@ export function AnimalSilhouettes() {
 
   // Animation loop - runs outside React's render cycle for smoothness
   useEffect(() => {
-    if (!isReady || !scrollerRef.current) return;
+    if (!isReady || !scrollerRef.current) {
+      return () => {
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+        }
+      };
+    }
 
-    let lastFrameTime = performance.now();
+    lastFrameTimeRef.current = performance.now();
     const baseSpeed = 30; // pixels per second
     let frameCount = 0;
 
     const animate = (currentTime: number) => {
-      const deltaTime = (currentTime - lastFrameTime) / 1000; // Convert to seconds
-      lastFrameTime = currentTime;
+      const deltaTime = (currentTime - lastFrameTimeRef.current) / 1000; // Convert to seconds
+      lastFrameTimeRef.current = currentTime;
 
       if (!isDraggingRef.current) {
         // Auto-scroll when not dragging

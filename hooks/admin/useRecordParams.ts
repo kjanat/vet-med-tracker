@@ -68,13 +68,11 @@ export function useRecordParams() {
   }, []);
 
   const validateURL = useCallback((value: string) => {
-    try {
-      new URL(value);
-      return true;
-    } catch {
+    const isValid = URL.canParse(value);
+    if (!isValid) {
       console.warn(`Invalid URL for returnTo: ${value}`);
-      return false;
     }
+    return isValid;
   }, []);
 
   /**

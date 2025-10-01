@@ -1,3 +1,5 @@
+// noinspection MagicNumberJS
+
 import { describe, expect, it } from "bun:test";
 import type { InventoryFormData } from "../lib/schemas/inventory";
 import {

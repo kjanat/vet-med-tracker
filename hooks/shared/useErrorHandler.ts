@@ -228,8 +228,7 @@ export function useAsyncErrorHandler() {
       },
     ): Promise<T | null> => {
       try {
-        const result = await operation();
-        return result;
+        return await operation();
       } catch (error) {
         const standardError = handleError(error, context, {
           showToast: options?.showToast,

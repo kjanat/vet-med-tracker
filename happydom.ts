@@ -1,3 +1,5 @@
+// noinspection AssignmentToFunctionParameterJS
+
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
 // Register happy-dom globals
@@ -26,6 +28,7 @@ type JestCompat = {
 declare global {
   // noinspection ES6ConvertVarToLetConst
   var jest: JestCompat | undefined;
+  // noinspection ES6ConvertVarToLetConst
   var __TEST_TIMEZONE__: string | undefined;
 }
 

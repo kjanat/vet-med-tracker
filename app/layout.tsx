@@ -11,7 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TRPCProvider } from "@/server/trpc/client";
 import { siteConfig } from "./config";
 
-export const inter = Inter({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
 });

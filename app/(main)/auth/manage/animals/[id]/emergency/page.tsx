@@ -350,9 +350,9 @@ export default function EmergencyCardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background print:bg-white">
       {/* Print Button - hidden when printing */}
-      <div className="no-print border-b p-4">
+      <div className="border-b p-4 print:hidden">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <h1 className="font-bold text-2xl">
             Emergency Card - {animalData.name}
@@ -363,13 +363,13 @@ export default function EmergencyCardPage() {
 
       {/* Emergency Card Content */}
       <div className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8 print:p-4">
-        <div className="rounded-lg border-2 border-red-500 p-4 sm:p-6 print:border-black">
+        <div className="rounded-lg border-2 border-red-500 p-4 sm:p-6 print:border-2 print:border-black">
           {/* Header */}
           <div className="mb-6 text-center">
             <h1 className="mb-2 font-bold text-2xl text-red-600 sm:text-3xl print:text-black">
               EMERGENCY CARD
             </h1>
-            <p className="text-base text-muted-foreground sm:text-lg">
+            <p className="text-base text-muted-foreground sm:text-lg print:text-gray-600">
               Keep this information accessible at all times
             </p>
           </div>
@@ -394,7 +394,7 @@ export default function EmergencyCardPage() {
           <MedicationsCard regimens={regimens} />
 
           {/* Footer */}
-          <div className="border-t pt-4 text-center text-muted-foreground text-sm">
+          <div className="border-t pt-4 text-center text-muted-foreground text-sm print:border-gray-300 print:text-gray-600">
             <p>
               Generated on{" "}
               {new Date().toLocaleDateString("en-US", { timeZone: timezone })} •
@@ -406,50 +406,6 @@ export default function EmergencyCardPage() {
           </div>
         </div>
       </div>
-
-      <style global jsx>{`
-				@media print {
-					.no-print {
-						display: none !important;
-					}
-
-					body {
-						-webkit-print-color-adjust: exact;
-						color-adjust: exact;
-						background: white !important;
-						color: black !important;
-					}
-
-					.print:bg-gray-100 {
-						background-color: #f3f4f6 !important;
-					}
-
-					.print:bg-gray-300 {
-						background-color: #d1d5db !important;
-					}
-
-					.print:text-black {
-						color: #000000 !important;
-					}
-
-					.print:border-black {
-						border-color: #000000 !important;
-					}
-
-					/* Force light theme colors for print */
-					.bg-background {
-						background-color: white !important;
-					}
-
-					.text-muted-foreground {
-						color: #6b7280 !important;
-					}
-
-					.border {
-						border-color: #e5e7eb !important;
-					}
-				}
-			`}</style>
     </div>
   );
 }

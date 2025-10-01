@@ -1,0 +1,24 @@
+<component name="libraryTable">
+  <library name="ts-external-references" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/.next/types/routes.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.es2015.iterable.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.es2015.symbol.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.es2020.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.esnext.disposable.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.esnext.float16.d.ts" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/.next/types/routes.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.es2015.iterable.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.es2015.symbol.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.es2020.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.esnext.disposable.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/@typescript/native-preview-linux-x64/lib/lib.esnext.float16.d.ts" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

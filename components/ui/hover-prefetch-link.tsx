@@ -6,7 +6,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils/general";
 
 interface HoverPrefetchLinkProps {
-  href: string;
+  href: Route;
   children: React.ReactNode;
   className?: string;
   prefetch?: boolean;
@@ -39,7 +39,7 @@ export function HoverPrefetchLink({
   return (
     <Link
       className={cn("transition-colors hover:text-foreground", className)}
-      href={href as Route}
+      href={href}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       prefetch={isPrefetched}

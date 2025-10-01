@@ -181,7 +181,7 @@ export function useAnimalForm(
     },
     onSuccess: (data): void => {
       // Invalidate queries to refresh data
-      utils.animals.list.invalidate();
+      void utils.animals.list.invalidate();
 
       if (showSuccessToast && data) {
         const message: string =
@@ -204,7 +204,7 @@ export function useAnimalForm(
     },
     onSuccess: (data): void => {
       // Invalidate queries to refresh data
-      utils.animals.list.invalidate();
+      void utils.animals.list.invalidate();
 
       if (showSuccessToast && data) {
         const message: string =
@@ -298,39 +298,35 @@ export function useAnimalForm(
       // Clear any previous errors on successful validation
       clearError();
 
-      try {
-        if (!selectedHousehold) {
-          throw new Error("No household selected");
-        }
+      if (!selectedHousehold) {
+        console.error("No household selected");
+        return;
+      }
 
-        const isNew: boolean = !editingAnimal;
-        fireInstrumentationEvent(data, isNew);
+      const isNew: boolean = !editingAnimal;
+      fireInstrumentationEvent(data, isNew);
 
-        if (editingAnimal) {
-          // Update existing animal
-          const updatePayload = AnimalDataTransformer.toUpdatePayload(
-            data,
-            editingAnimal.id,
-            selectedHousehold.id,
-          );
-          await updateMutation.mutateAsync(updatePayload);
-        } else {
-          // Create new animal
-          const createPayload = AnimalDataTransformer.toCreatePayload(
-            data,
-            selectedHousehold.id,
-          );
-          await createMutation.mutateAsync(createPayload);
-        }
+      if (editingAnimal) {
+        // Update existing animal
+        const updatePayload = AnimalDataTransformer.toUpdatePayload(
+          data,
+          editingAnimal.id,
+          selectedHousehold.id,
+        );
+        await updateMutation.mutateAsync(updatePayload);
+      } else {
+        // Create new animal
+        const createPayload = AnimalDataTransformer.toCreatePayload(
+          data,
+          selectedHousehold.id,
+        );
+        await createMutation.mutateAsync(createPayload);
+      }
 
-        if (autoClose) {
-          closeForm();
-        } else {
-          setIsDirty(false);
-        }
-      } catch (error) {
-        console.error("Error saving animal:", error);
-        // Error handling is done in the mutation onError callbacks
+      if (autoClose) {
+        closeForm();
+      } else {
+        setIsDirty(false);
       }
     },
     [
