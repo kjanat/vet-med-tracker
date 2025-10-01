@@ -2,9 +2,9 @@
   "name": "vetmed-tracker",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "repository": "https://github.com/kjanat/vet-met-tracker",
   "author": "Kaj Kowalski <vetmed@kjanat.com>",
-  "type": "module",
   "scripts": {
     "build": "next build --turbopack",
     "bundle:size": "size-limit",
@@ -19,17 +19,17 @@
     "db:studio": "drizzle-kit studio",
     "deploy:production": "bun run build && vercel deploy --prebuilt --prod",
     "deploy:staging": "bun run build && vercel deploy --prebuilt",
-    "deploy:validate": "bun prod:validate",
+    "deploy:validate": "bun run prod:validate",
     "dev": "next dev --turbopack",
     "format": "biome format --fix",
     "format:md": "markdownlint-cli2 \"**/*.{md,markdown}\" \"#node_modules\" --fix",
     "lighthouse": "bun run build && lhci autorun",
     "lighthouse:ci": "lhci autorun --upload.target=temporary-public-storage",
-    "lint": "biome check",
-    "lint:fix": "biome check --fix",
+    "lint": "bun run format && biome lint",
+    "lint:fix": "bun run format && biome check --fix",
     "monitoring:health": "curl http://localhost:3000/api/health",
     "perf:audit": "bun run build && lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
-    "phylopic:curate": "bun scripts/fetch-phylopic-curated.ts",
+    "phylopic:curate": "bun run scripts/fetch-phylopic-curated.ts",
     "prepare": "husky",
     "preview": "next build && next start",
     "preview:dev": "vercel dev",
@@ -39,13 +39,13 @@
     "test:agent": "cross-env AGENT=1 bun test",
     "test:coverage": "bun test --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:firefox": "playwright test --project=firefox",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
     "typecheck": "next typegen && tsgo --noEmit --strict && echo \"Success: No type errors detected\"",
     "typegen": "next typegen",
-    "validate": "next typegen && bun typecheck && biome lint && cross-env AGENT=1 bun test --coverage && bun run build"
+    "validate": "bun run typegen && bun run typecheck && biome lint && cross-env AGENT=1 bun test --coverage && bun run build"
   },
   "trustedDependencies": [
     "@tailwindcss/oxide",
@@ -125,6 +125,7 @@
     "@lhci/cli": "^0.15.1",
     "@next/bundle-analyzer": "^15.5.4",
     "@playwright/test": "^1.55.1",
+    "@react-buddy/ide-toolbox": "^2.4.0",
     "@size-limit/preset-app": "^11.2.0",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.13",
@@ -171,15 +172,13 @@
     "typescript": "^5.9.2",
     "vercel": "^48.1.6"
   },
-  "engines": {
-    "bun": ">=1.2",
-    "pnpm": ">=10",
-    "node": "22.x"
-  },
-  "resolutions": {
+  "overrides": {
     "react-is": "^19.0.0-rc-69d4b800-20241021"
   },
-  "packageManager": "bun@1.2.22",
+  "engines": {
+    "bun": ">=1.2"
+  },
+  "packageManager": "bun@1.2.23",
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
       "bunx biome check --staged --write --no-errors-on-unmatched --files-ignore-unknown=true --diagnostic-level=error"

@@ -38,7 +38,7 @@ RUN npm install -g bun@1.2.22 \
 FROM base AS builder
 
 # Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /src/app/node_modules ./node_modules
 
 # Copy source code
 COPY . .
@@ -54,14 +54,14 @@ RUN npm install -g bun@1.2.22 \
 FROM base AS production
 
 # Copy built application
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /src/app/public ./public
+COPY --from=builder /src/app/.next/standalone ./
+COPY --from=builder /src/app/.next/static ./.next/static
+COPY --from=builder /src/app/node_modules ./node_modules
 
 # Copy production configuration
-COPY --from=builder /app/next.config.ts ./
-COPY --from=builder /app/package.json ./
+COPY --from=builder /src/app/next.config.ts ./
+COPY --from=builder /src/app/package.json ./
 
 # Security hardening
 RUN chown -R vetmed:nodejs /app \

@@ -171,7 +171,11 @@ if (typeof globalThis.expect !== "undefined") {
 
   // Mock asymmetric matchers that jest-dom might need
   if (!originalExpected.anything) {
-    originalExpected.anything = () => ({ asymmetricMatch: () => true });
+    originalExpected.anything = () => ({
+      asymmetricMatch() {
+        return true;
+      },
+    });
   }
 
   if (!originalExpected.stringMatching) {

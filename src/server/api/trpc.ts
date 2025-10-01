@@ -1,0 +1,338 @@
+import { initTRPC, TRPCError } from "@trpc/server";
+import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
+import { eq } from "drizzle-orm";
+import SuperJSON from "superjson";
+import { ZodError, z } from "zod";
+import { dbPooled as db } from "@/db/drizzle";
+import {
+  vetmedHouseholds as householdsTable,
+  vetmedMemberships as membershipsTable,
+  vetmedUsers as usersTable,
+} from "@/db/schema";
+import {
+  defaultUserPreferences,
+  defaultUserProfile,
+} from "@/db/schema/user-defaults";
+// Connection middleware functionality removed during simplification
+// Error handling infrastructure removed during simplification
+import { auditHelpers, logAuditEvent } from "@/lib/security/audit-logger";
+import { stackServerApp } from "@/stack/server";
+
+// Context type definition
+export interface Context {
+  db: typeof db;
+  headers: Headers;
+  requestedHouseholdId: string | null;
+  stackUser: Awaited<ReturnType<typeof stackServerApp.getUser>>;
+  dbUser: typeof usersTable.$inferSelect | null;
+  currentHouseholdId: string | null;
+  currentMembership: typeof membershipsTable.$inferSelect | null;
+  availableHouseholds: Array<
+    typeof householdsTable.$inferSelect & {
+      membership: typeof membershipsTable.$inferSelect;
+    }
+  >;
+}
+
+// Helper function to sync Stack user to the database
+async function syncStackUserToDatabase(
+  stackUser: NonNullable<Context["stackUser"]>,
+) {
+  try {
+    // Upsert user in database
+    // Only sync essential fields from Stack Auth
+    // Users can manually fill in firstName, lastName, and other profile details
+    const [dbUser] = await db
+      .insert(usersTable)
+      .values({
+        createdAt: new Date(),
+        email: stackUser.primaryEmail || "",
+        id: crypto.randomUUID(),
+        image: stackUser.profileImageUrl || null,
+        name: stackUser.displayName || stackUser.primaryEmail || null,
+        preferences: structuredClone(defaultUserPreferences),
+        profile: structuredClone(defaultUserProfile),
+        stackUserId: stackUser.id,
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        set: {
+          email: stackUser.primaryEmail || "",
+          // Don't overwrite existing firstName/lastName if the user has set them
+          image: stackUser.profileImageUrl || null,
+          name: stackUser.displayName || null,
+          updatedAt: new Date(),
+        },
+        target: usersTable.stackUserId,
+      })
+      .returning();
+
+    return dbUser;
+  } catch (error) {
+    console.error("Error syncing Stack user to database:", error);
+    throw error;
+  }
+}
+
+// Helper function to get user's households
+async function getUserHouseholds(userId: string) {
+  const householdsWithMemberships = await db
+    .select({
+      household: householdsTable,
+      membership: membershipsTable,
+    })
+    .from(membershipsTable)
+    .innerJoin(
+      householdsTable,
+      eq(householdsTable.id, membershipsTable.householdId),
+    )
+    .where(eq(membershipsTable.userId, userId));
+
+  return householdsWithMemberships.map(({ household, membership }) => ({
+    ...household,
+    membership,
+  }));
+}
+
+// Create a context function for Next.js App Router with Stack Auth
+export const createTRPCContext = async (
+  opts: FetchCreateContextFnOptions,
+): Promise<Context> => {
+  // Extract householdId from headers (sent by the frontend)
+  const requestedHouseholdId = opts.req.headers.get("x-household-id") || null;
+
+  // Get Stack Auth user
+  const stackUser = await stackServerApp.getUser();
+
+  // Initialize empty context
+  const baseContext = {
+    availableHouseholds: [] as Context["availableHouseholds"],
+    currentHouseholdId: null as string | null,
+    currentMembership: null as typeof membershipsTable.$inferSelect | null,
+    db,
+    dbUser: null as typeof usersTable.$inferSelect | null,
+    headers: opts.req.headers,
+    requestedHouseholdId,
+    stackUser,
+  };
+
+  // If the user is not authenticated, return base context
+  if (!stackUser) {
+    return baseContext;
+  }
+
+  // Sync user to database and get user data
+  const dbUser = await syncStackUserToDatabase(stackUser);
+  if (!dbUser) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to sync user to database",
+    });
+  }
+
+  // Get user's households
+  const availableHouseholds = await getUserHouseholds(dbUser.id);
+
+  // Determine current household
+  let currentHouseholdId = null;
+  let currentMembership = null;
+
+  if (requestedHouseholdId) {
+    // Use requested household if user has access
+    const requestedHousehold = availableHouseholds.find(
+      (h) => h.id === requestedHouseholdId,
+    );
+    if (requestedHousehold) {
+      currentHouseholdId = requestedHousehold.id;
+      currentMembership = requestedHousehold.membership;
+    }
+  }
+
+  // Fall back to the first available household
+  if (!currentHouseholdId && availableHouseholds.length > 0) {
+    const firstHousehold = availableHouseholds[0];
+    if (firstHousehold) {
+      currentHouseholdId = firstHousehold.id;
+      currentMembership = firstHousehold.membership;
+    }
+  }
+
+  return {
+    ...baseContext,
+    availableHouseholds,
+    currentHouseholdId,
+    currentMembership,
+    dbUser,
+  };
+};
+
+// Global error handling simplified
+
+// Initialize tRPC with Stack context and enhanced error handling
+const t = initTRPC.context<Context>().create({
+  errorFormatter({ shape, error, path }) {
+    // Simplified error handling
+    console.error("tRPC Error:", {
+      cause: error.cause,
+      error: error.message,
+      path,
+    });
+
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.cause instanceof ZodError ? z.treeifyError(error.cause) : null,
+      },
+    };
+  },
+  transformer: SuperJSON,
+});
+
+// Export router and procedure helpers
+export const router = t.router;
+export const createTRPCRouter = t.router;
+export const createCallerFactory = t.createCallerFactory;
+
+// Audit middleware for security logging
+const auditMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
+  const startTime = Date.now();
+  const actionMap: Record<string, "READ" | "UPDATE"> = {
+    mutation: "UPDATE",
+    query: "READ",
+    subscription: "READ",
+  };
+  const action = actionMap[type] ?? "READ";
+  const userId = ctx.dbUser?.id ?? undefined;
+
+  try {
+    const result = await next();
+    await logAuditEvent({
+      action,
+      duration: Date.now() - startTime,
+      endpoint: `${type}.${path}`,
+      resourceType: "SYSTEM",
+      success: true,
+      timestamp: new Date(),
+      userId,
+    });
+    return result;
+  } catch (error) {
+    await logAuditEvent({
+      action,
+      duration: Date.now() - startTime,
+      endpoint: `${type}.${path}`,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      resourceType: "SYSTEM",
+      success: false,
+      timestamp: new Date(),
+      userId,
+    });
+    throw error;
+  }
+});
+
+// Base procedures
+export const publicProcedure = t.procedure.use(auditMiddleware);
+
+// Protected procedure - requires Stack authentication
+export const protectedProcedure = t.procedure
+  .use(auditMiddleware)
+  .use(async ({ ctx, next }) => {
+    if (!ctx.stackUser || !ctx.dbUser) {
+      // Log failed authentication attempt
+      const clientIp = ctx.headers
+        ?.get?.("x-forwarded-for")
+        ?.split(",")[0]
+        ?.trim();
+      await auditHelpers.logThreat(
+        "unauthorized_access_attempt",
+        "medium",
+        clientIp,
+        undefined,
+        { reason: "missing_authentication" },
+      );
+
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be logged in to perform this action",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        dbUser: ctx.dbUser,
+        // TypeScript now knows these are non-null
+        stackUser: ctx.stackUser,
+      },
+    });
+  });
+
+// Household-scoped procedure - requires household membership
+export const householdProcedure = protectedProcedure.use(
+  async ({ ctx, next, input }) => {
+    // Get householdId from input, context, or headers
+    const householdId =
+      (input as { householdId?: string })?.householdId ||
+      ctx.currentHouseholdId ||
+      ctx.requestedHouseholdId;
+
+    if (!householdId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "householdId is required",
+      });
+    }
+
+    // Check if user has membership in this household
+    let membership = ctx.currentMembership;
+
+    // If the requested household is different from current context, verify membership
+    if (householdId !== ctx.currentHouseholdId) {
+      const householdMembership = ctx.availableHouseholds.find(
+        (h) => h.id === householdId,
+      );
+
+      if (!householdMembership) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not a member of this household",
+        });
+      }
+
+      membership = householdMembership.membership;
+    }
+
+    if (!membership) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You are not a member of this household",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        householdId,
+        membership,
+      },
+    });
+  },
+);
+
+// Owner-only procedure - requires OWNER role in household
+export const ownerProcedure = householdProcedure.use(async ({ ctx, next }) => {
+  if (ctx.membership.role !== "OWNER") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You must be a household owner to perform this action",
+    });
+  }
+
+  return next({ ctx });
+});
+
+// Export types
+export type AppRouter = ReturnType<typeof createTRPCRouter>;

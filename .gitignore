@@ -313,10 +313,10 @@ architectural-clarity-analysis.md
 DOMAIN_ARCHITECTURE_SUMMARY.md
 API_REFACTORING_PLAN.md
 REFACTOR_CAMPAIGN_RESULTS.md
-components/FACTORY_REFACTOR_SUMMARY.md
-components/providers/ARCHITECTURE_DEMO.md
-components/providers/MIGRATION_GUIDE.md
-components/providers/REFACTOR_SUMMARY.md
+src/components/FACTORY_REFACTOR_SUMMARY.md
+src/components/providers/ARCHITECTURE_DEMO.md
+src/components/providers/MIGRATION_GUIDE.md
+src/components/providers/REFACTOR_SUMMARY.md
 
 # Claude documentation artifacts
 claudedocs/
@@ -329,7 +329,7 @@ scripts/finalize-*.sh
 /debug-button.mjs
 *.demo
 
-tests/junit.xml
+**/junit.xml
 renovate.json
 
 # Vapid

@@ -5,8 +5,8 @@ import { defineConfig } from "drizzle-kit";
 loadEnvConfig(process.cwd());
 
 export default defineConfig({
-  schema: "./db/schema",
-  out: "./db/migrations/generated",
+  schema: "./src/server/db/schema/*",
+  out: "./src/server/db/migrations/generated",
   dialect: "postgresql",
   dbCredentials: {
     // Use unpooled connection for migrations and schema operations
