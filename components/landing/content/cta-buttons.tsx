@@ -2,6 +2,7 @@
 
 import { useStackApp, useUser } from "@stackframe/stack";
 import { ArrowRight } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/app/button";
 import { cn } from "@/lib/utils/general";
@@ -38,7 +39,7 @@ export function CtaButtons({
       )}
       {user && (
         <Button asChild className="px-8 text-lg" size="lg">
-          <Link href="/auth/dashboard">
+          <Link href={"/auth/dashboard" satisfies Route}>
             Go to Dashboard
             <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
@@ -47,9 +48,9 @@ export function CtaButtons({
       {showSecondary && (
         <Button asChild className="px-8 text-lg" size="lg" variant="outline">
           {variant === "hero" ? (
-            <a href="#demo">See How It Works</a>
+            <Link href={"#demo" satisfies Route}>See How It Works</Link>
           ) : (
-            <Link href="/help">Questions? Contact Us</Link>
+            <Link href={"/help" satisfies Route}>Questions? Contact Us</Link>
           )}
         </Button>
       )}

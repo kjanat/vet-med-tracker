@@ -3,6 +3,7 @@
 import { ArrowLeft, Database, Download, Filter, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/app/badge";
 import { Button } from "@/components/app/button";
 import { useApp } from "@/components/providers/app-provider-consolidated";
@@ -85,8 +86,62 @@ function AuditLogContent() {
   }, [auditData]);
 
   const handleExport = () => {
-    // TODO: Implement export functionality
-    // Export functionality to be implemented
+    if (!auditData || auditData.length === 0) {
+      toast.error("No audit data to export");
+      return;
+    }
+
+    try {
+      // Convert audit entries to CSV format
+      const headers = [
+        "Timestamp",
+        "Action",
+        "Resource",
+        "User",
+        "Details",
+      ].join(",");
+
+      const rows = auditData.map((entry) => {
+        const timestamp = new Date(entry.timestamp).toISOString();
+        const action = entry.action;
+        const resource = entry.resource || "";
+        const user = entry.userId || "System";
+        const details = (
+          entry.details ? JSON.stringify(entry.details) : ""
+        ).replace(/"/g, '""'); // Escape quotes for CSV
+
+        return [
+          `"${timestamp}"`,
+          `"${action}"`,
+          `"${resource}"`,
+          `"${user}"`,
+          `"${details}"`,
+        ].join(",");
+      });
+
+      const csv = [headers, ...rows].join("\n");
+
+      // Create blob and download
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `audit-log-${new Date().toISOString().split("T")[0]}.csv`,
+      );
+      link.style.visibility = "hidden";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Audit log exported successfully");
+    } catch (error) {
+      console.error("Failed to export audit log:", error);
+      toast.error("Failed to export audit log");
+    }
   };
 
   // Show loading state

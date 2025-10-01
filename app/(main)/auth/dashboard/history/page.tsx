@@ -3,6 +3,7 @@
 import { endOfMonth, parseISO, startOfMonth } from "date-fns";
 import { DateTime } from "luxon";
 import { Suspense, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { FilterBar } from "@/components/history/filter-bar";
 import { HistoryCalendar } from "@/components/history/history-calendar";
 import { HistoryList } from "@/components/history/history-list";
@@ -176,10 +177,11 @@ function HistoryContent() {
     onSuccess: () => {
       // Refetch the administration list
       void utils.admin.list.invalidate();
+      toast.success("Administration undone successfully");
     },
     onError: (error) => {
       console.error("Failed to undo administration:", error);
-      // TODO: Show error toast
+      toast.error(`Failed to undo administration: ${error.message}`);
     },
   });
 
@@ -187,10 +189,11 @@ function HistoryContent() {
     onSuccess: () => {
       // Refetch the administration list
       void utils.admin.list.invalidate();
+      toast.success("Administration deleted successfully");
     },
     onError: (error) => {
       console.error("Failed to delete administration:", error);
-      // TODO: Show error toast
+      toast.error(`Failed to delete administration: ${error.message}`);
     },
   });
 
@@ -198,10 +201,11 @@ function HistoryContent() {
     onSuccess: () => {
       // Refetch the administration list
       void utils.admin.list.invalidate();
+      toast.success("Administration co-signed successfully");
     },
     onError: (error) => {
       console.error("Failed to co-sign administration:", error);
-      // TODO: Show error toast
+      toast.error(`Failed to co-sign administration: ${error.message}`);
     },
   });
 

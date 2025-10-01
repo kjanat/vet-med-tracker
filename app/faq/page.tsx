@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
 import { siteConfig } from "@/app/config";
@@ -215,10 +216,10 @@ export default function FAQPage() {
         </p>
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
           <Button asChild>
-            <Link href="/help">Visit Help Center</Link>
+            <Link href={"/help" satisfies Route}>Visit Help Center</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href={`mailto:${siteConfig.contact.support}`}>
+            <Link href={`mailto:${siteConfig.contact.support}` satisfies Route}>
               Email Support
             </Link>
           </Button>

@@ -12,6 +12,7 @@ import {
   Smartphone,
   Users,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/app/config";
 import { Button } from "@/components/app/button";
@@ -28,7 +29,7 @@ export default async function HelpPage() {
     icon: typeof BookOpen;
     title: string;
     description: string;
-    links: Array<{ label: string; href: string }>;
+    links: Array<{ label: string; href: Route }>;
   }> = [
     {
       icon: BookOpen,
@@ -72,14 +73,14 @@ export default async function HelpPage() {
         { label: "Login Issues", href: "#login" },
       ],
     },
-  ];
+  ] as const;
 
   const contactMethods: Array<{
     icon: typeof Mail;
     title: string;
     description: string;
     action: string;
-    href: string;
+    href: Route | `mailto:${string}`;
   }> = [
     {
       icon: Mail,
@@ -109,7 +110,7 @@ export default async function HelpPage() {
       action: "Visit Forum",
       href: "#forum",
     },
-  ];
+  ] as const;
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-12">
@@ -173,12 +174,12 @@ export default async function HelpPage() {
                 <ul className="space-y-2">
                   {category.links.map((link) => (
                     <li key={link.label}>
-                      <a
+                      <Link
                         className="text-primary transition-colors hover:text-primary/80 hover:underline"
                         href={link.href}
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -240,7 +241,11 @@ export default async function HelpPage() {
                     {method.description}
                   </p>
                   <Button asChild className="w-full" variant="outline">
-                    <a href={method.href}>{method.action}</a>
+                    {method.href.startsWith("mailto:") ? (
+                      <a href={method.href}>{method.action}</a>
+                    ) : (
+                      <Link href={method.href}>{method.action}</Link>
+                    )}
                   </Button>
                 </CardContent>
               </Card>
