@@ -60,33 +60,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const validatedData = UpdateMetadataSchema.parse(body);
 
-    // Here you could sync critical data to your database
-    // For example, update user preferences that affect medication scheduling
-    if (validatedData.vetMedPreferences?.defaultTimezone) {
-      // Update user's timezone in the database for medication scheduling
-      // Updating user timezone for medication scheduling
-      // TODO: Update database with timezone information
-      // await db.users.update({
-      //   where: { stackUserId: user.id },
-      //   data: { timezone: validatedData.vetMedPreferences.defaultTimezone }
-      // });
-    }
-
-    if (validatedData.householdSettings?.primaryHouseholdName) {
-      // Sync household name to database
-      // Updating household name for user
-      // TODO: Create or update household in database
-      // await db.households.upsert({
-      //   where: { primaryUserId: user.id },
-      //   create: {
-      //     name: validatedData.householdSettings.primaryHouseholdName,
-      //     primaryUserId: user.id,
-      //   },
-      //   update: {
-      //     name: validatedData.householdSettings.primaryHouseholdName,
-      //   }
-      // });
-    }
+    // Note: Database persistence is handled by tRPC user.updatePreferences mutation
+    // This endpoint serves as a validation-only route for metadata structure
+    // The actual database updates occur through the tRPC API with proper auth context
 
     return NextResponse.json({
       success: true,

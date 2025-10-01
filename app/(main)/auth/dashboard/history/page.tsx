@@ -17,8 +17,9 @@ import { localDayISO } from "@/utils/tz";
 // We'll fetch real data using tRPC instead of mock data
 
 function HistoryContent() {
-  const { filters } = useHistoryFilters();
+  const { filters, setFilters } = useHistoryFilters();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [displayLimit, setDisplayLimit] = useState(50);
   const { selectedHousehold, selectedAnimal } = useApp();
   // Simplified: Always assume online connection
 
@@ -97,11 +98,14 @@ function HistoryContent() {
     );
   }, [transformedRecords, filters]);
 
-  // Group records by local day for list view
-  const groupedRecords = useMemo(() => {
+  // Group records by local day for list view with pagination
+  const { groupedRecords, hasMore, totalRecords } = useMemo(() => {
     const groups = new Map<string, AdministrationRecord[]>();
 
-    filteredRecords.forEach((record) => {
+    // Apply display limit for pagination
+    const paginatedRecords = filteredRecords.slice(0, displayLimit);
+
+    paginatedRecords.forEach((record) => {
       const localDay = localDayISO(record.recordedAt, timezone);
       if (!groups.has(localDay)) {
         groups.set(localDay, []);
@@ -109,7 +113,7 @@ function HistoryContent() {
       groups.get(localDay)?.push(record);
     });
 
-    return Array.from(groups.entries())
+    const grouped = Array.from(groups.entries())
       .map(([dateStr, records]) => ({
         date: parseISO(dateStr),
         records: records.sort(
@@ -117,7 +121,13 @@ function HistoryContent() {
         ),
       }))
       .sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [filteredRecords, timezone]);
+
+    return {
+      groupedRecords: grouped,
+      hasMore: filteredRecords.length > displayLimit,
+      totalRecords: filteredRecords.length,
+    };
+  }, [filteredRecords, timezone, displayLimit]);
 
   // Generate daily counts for calendar view
   const dailyCounts = useMemo(() => {
@@ -250,15 +260,14 @@ function HistoryContent() {
   };
 
   const handleLoadMore = () => {
-    // Implement pagination
-    // TODO: Implement pagination
+    // Increase display limit by 50 records
+    setDisplayLimit((prev) => prev + 50);
   };
 
-  const handleSelectDay = (_day: Date) => {
-    // Update filters to show only that day
-    // const dayStr = day.toISOString().slice(0, 10)
-    // setFilters({ ...filters, from: dayStr, to: dayStr, view: "list" })
-    // TODO: Update filters to show only selected day
+  const handleSelectDay = (day: Date) => {
+    // Update filters to show only selected day
+    const dayStr = day.toISOString().slice(0, 10);
+    setFilters({ ...filters, from: dayStr, to: dayStr, view: "list" });
   };
 
   // Initial loading state (when households are still loading)
@@ -360,11 +369,12 @@ function HistoryContent() {
         {filters.view === "list" ? (
           <HistoryList
             groups={groupedRecords}
-            hasMore={false}
-            onCosign={(id: string) => handleCosign(id)} // Implement pagination logic
+            hasMore={hasMore}
+            onCosign={(id: string) => handleCosign(id)}
             onDelete={handleDelete}
             onLoadMore={handleLoadMore}
             onUndo={handleUndo}
+            totalCount={totalRecords}
           />
         ) : (
           <HistoryCalendar
