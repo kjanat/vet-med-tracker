@@ -43,7 +43,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:firefox": "playwright test --project=firefox",
-    "typecheck": "next typegen && tsgo --noEmit --noUnusedParameters --noUnusedLocals --noUncheckedSideEffectImports --noPropertyAccessFromIndexSignature --noUncheckedIndexedAccess && echo \"Success: No type errors detected\"",
+    "typecheck": "next typegen && tsgo --noEmit --strict && echo \"Success: No type errors detected\"",
     "typegen": "next typegen",
     "validate": "next typegen && bun typecheck && biome lint && cross-env AGENT=1 bun test --coverage && bun run build"
   },

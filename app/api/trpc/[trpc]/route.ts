@@ -1,6 +1,6 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import type { NextRequest } from "next/server";
-import { appRouter } from "@/server/api/routers/_app";
+import { appRouter } from "@/server/api";
 import { createTRPCContext } from "@/server/api/trpc";
 
 // Export methods for Next.js App Router

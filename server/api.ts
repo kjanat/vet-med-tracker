@@ -424,25 +424,6 @@ export const appRouter = createTRPCRouter({
         return { success: true };
       }),
 
-    deleteAdministration: protectedProcedure
-      .input(
-        z.object({
-          administrationId: z.uuid(),
-          householdId: z.uuid(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        await ctx.db
-          .delete(administrations)
-          .where(
-            and(
-              eq(administrations.id, input.administrationId),
-              eq(administrations.householdId, input.householdId),
-            ),
-          );
-        return { success: true };
-      }),
-
     list: protectedProcedure
       .input(
         z.object({
