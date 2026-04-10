@@ -3,24 +3,36 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { afterAll, beforeAll, beforeEach } from "vitest";
 import { animals, households, memberships, users } from "@/db/schema";
+import { hasTestDatabase, testDatabaseUrl } from "./neon-detect";
 
-// Test database connection
-const testDbUrl =
-	process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || "";
+export { hasTestDatabase } from "./neon-detect";
 
-// Check if we have a valid Neon-compatible database URL
-// Neon HTTP driver requires a neon.tech host or explicit websocket proxy
-const isNeonUrl =
-	testDbUrl.includes("neon.tech") || testDbUrl.includes("neon.database");
-export const hasTestDatabase = Boolean(testDbUrl) && isNeonUrl;
+const sqlClient = hasTestDatabase ? neon(testDatabaseUrl) : null;
 
-const sqlClient = hasTestDatabase ? neon(testDbUrl) : null;
 const _testDb = sqlClient ? drizzle(sqlClient) : null;
 
-// Exported as non-null since callers use describe.skipIf(!hasTestDatabase)
-// to guard against missing DB. The runtime guard in setupTestDatabase()
-// provides additional safety.
-export const testDb = _testDb as NonNullable<typeof _testDb>;
+/**
+ * Test database instance.  `null` when no Neon-compatible URL is available.
+ * Prefer {@link requireTestDb} in test bodies (guarded by
+ * `describe.skipIf(!hasTestDatabase)`) to get a non-null reference with a
+ * clear error if the invariant is violated.
+ */
+export const testDb = _testDb;
+
+/**
+ * Return the test database or throw.
+ * Use inside `describe.skipIf(!hasTestDatabase)` blocks where the DB is
+ * guaranteed to exist at runtime.
+ */
+export function requireTestDb(): NonNullable<typeof _testDb> {
+	if (!_testDb) {
+		throw new Error(
+			"requireTestDb() called without a Neon-compatible test database. " +
+				"Wrap your describe block with describe.skipIf(!hasTestDatabase).",
+		);
+	}
+	return _testDb;
+}
 
 // Database lifecycle hooks
 export function setupTestDatabase() {
@@ -47,7 +59,7 @@ export function setupTestDatabase() {
 
 // Clean database helper
 export async function cleanDatabase() {
-	if (!_testDb) {
+	if (!testDb) {
 		throw new Error(
 			"cleanDatabase() requires a valid test database connection",
 		);
@@ -90,7 +102,7 @@ export async function cleanDatabase() {
 
 // Seed helpers
 export async function seedTestData() {
-	if (!_testDb) {
+	if (!testDb) {
 		throw new Error("seedTestData() requires a valid test database connection");
 	}
 	// Create test user
@@ -141,7 +153,7 @@ export async function seedTestData() {
 export async function withTransaction<T>(
 	fn: (tx: NonNullable<typeof testDb>) => Promise<T>,
 ): Promise<T> {
-	if (!_testDb) {
+	if (!testDb) {
 		throw new Error(
 			"withTransaction() requires a valid test database connection",
 		);

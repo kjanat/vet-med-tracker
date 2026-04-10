@@ -10,7 +10,7 @@ import {
 import { createTestTRPCContext } from "../helpers/test-trpc-context";
 
 describe.skipIf(!hasTestDatabase)("Inventory CRUD Operations", () => {
-	const db = createTestDatabase();
+	const db = createTestDatabase()!;
 	let testData: {
 		user: typeof schema.users.$inferSelect;
 		household: typeof schema.households.$inferSelect;

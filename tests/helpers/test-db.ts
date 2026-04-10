@@ -4,21 +4,18 @@ import { eq, inArray } from "drizzle-orm";
 import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
 import type { db } from "@/db/drizzle";
 import * as schema from "@/db/schema";
+import { hasTestDatabase, testDatabaseUrl } from "./neon-detect";
 
-// Check if a Neon-compatible database URL is available for integration tests
-const testDatabaseUrl =
-	process.env.TEST_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
-const isNeonUrl =
-	testDatabaseUrl?.includes("neon.tech") ||
-	testDatabaseUrl?.includes("neon.database");
-export const hasTestDatabase = Boolean(testDatabaseUrl) && Boolean(isNeonUrl);
+export { hasTestDatabase } from "./neon-detect";
 
-// For integration tests, we'll use a test-specific schema or database
-// This requires a Neon-compatible test database URL in your environment
-export function createTestDatabase(): typeof db {
-	if (!testDatabaseUrl || !isNeonUrl) {
-		// Return null; tests using this should be skipped via hasTestDatabase
-		return null as unknown as typeof db;
+/**
+ * Create a test database connection.
+ * Returns `null` when no Neon-compatible URL is available.
+ * Callers should guard with `describe.skipIf(!hasTestDatabase)`.
+ */
+export function createTestDatabase(): typeof db | null {
+	if (!hasTestDatabase) {
+		return null;
 	}
 
 	const sql = neon(testDatabaseUrl, {
@@ -26,10 +23,9 @@ export function createTestDatabase(): typeof db {
 	});
 	const testDb = drizzleHttp(sql, {
 		schema,
-		logger: false, // Disable logging in tests
+		logger: false,
 	});
 
-	// Type assertion to ensure compatibility with main db type
 	return testDb as typeof db;
 }
 
@@ -97,7 +93,7 @@ export const testFactories = {
 
 // Helper to clean up test data after each test
 export async function cleanupTestData(
-	db: ReturnType<typeof createTestDatabase>,
+	db: NonNullable<ReturnType<typeof createTestDatabase>>,
 	householdId: string,
 ) {
 	// Delete in reverse order of foreign key dependencies

@@ -19,6 +19,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       postgres:
@@ -67,10 +68,16 @@ jobs:
         run: pnpm test:integration
 
       - name: Install Playwright browsers
+        if: ${{ env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY != '' }}
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
         run: pnpm playwright install --with-deps
 
       - name: Run E2E tests
+        if: ${{ env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY != '' }}
         env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           DATABASE_URL: ${{ inputs.database_url || 'postgresql://postgres:postgres@localhost:5432/vetmed_test' }}
           DATABASE_URL_UNPOOLED: ${{ inputs.database_url_unpooled || 'postgresql://postgres:postgres@localhost:5432/vetmed_test' }}
           AUTH_SECRET: test-secret-key-for-testing
@@ -79,6 +86,12 @@ jobs:
           OPENAUTH_CLIENT_SECRET: test-client-secret
           OPENAUTH_ISSUER: https://auth.example.com
         run: pnpm test:e2e
+
+      - name: Skip E2E tests (no Clerk keys)
+        if: ${{ env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY == '' }}
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+        run: echo "Skipping E2E tests - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY not configured"
 
       - uses: actions/upload-artifact@v4
         if: failure()

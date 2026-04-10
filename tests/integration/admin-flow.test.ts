@@ -11,7 +11,7 @@ import {
 import { createTestTRPCContext } from "../helpers/test-trpc-context";
 
 describe.skipIf(!hasTestDatabase)("Admin Flow Integration", () => {
-	const db = createTestDatabase();
+	const db = createTestDatabase()!;
 	let testData: {
 		user: typeof schema.users.$inferSelect;
 		household: typeof schema.households.$inferSelect;

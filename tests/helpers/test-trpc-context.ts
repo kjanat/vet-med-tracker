@@ -14,6 +14,7 @@ export function createTestTRPCContext(options: {
 }): ClerkContext {
 	const { user, household, membership } = options;
 	const db = createTestDatabase();
+	if (!db) throw new Error("createTestTRPCContext requires a test database");
 
 	// Create a complete membership object with defaults
 	const fullMembership: typeof schema.memberships.$inferSelect = {
@@ -64,6 +65,10 @@ export function createTestTRPCContext(options: {
  */
 export function createUnauthenticatedTestContext(): ClerkContext {
 	const db = createTestDatabase();
+	if (!db)
+		throw new Error(
+			"createUnauthenticatedTestContext requires a test database",
+		);
 
 	return {
 		db,
