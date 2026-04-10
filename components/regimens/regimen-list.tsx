@@ -254,7 +254,7 @@ export function RegimenList() {
 		if (!editingRegimen) {
 			throw new Error("No regimen selected for editing");
 		}
-		const updateData: Record<string, unknown> = {
+		return {
 			id: editingRegimen.id,
 			householdId,
 			name: data.medicationName,
@@ -266,21 +266,13 @@ export function RegimenList() {
 			requiresCoSign: data.highRisk, // High risk medications require co-sign
 			dose: data.medicationName, // TODO: Get actual dose from form
 			route: data.route,
+			startDate: data.startDate ? formatDateForAPI(data.startDate) : undefined,
+			endDate: data.endDate ? formatDateForAPI(data.endDate) : undefined,
 		};
-
-		// Only add dates if they exist
-		if (data.startDate) {
-			updateData.startDate = formatDateForAPI(data.startDate);
-		}
-		if (data.endDate) {
-			updateData.endDate = formatDateForAPI(data.endDate);
-		}
-
-		return updateData;
 	};
 
 	const buildCreateData = (data: Partial<Regimen>, householdId: string) => {
-		const createData: Record<string, unknown> = {
+		return {
 			householdId,
 			animalId: data.animalId || "",
 			medicationId: data.medicationId || "",
@@ -289,20 +281,15 @@ export function RegimenList() {
 			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			timesLocal: data.timesLocal,
 			startDate:
-				formatDateForAPI(data.startDate) || formatDateForAPI(new Date()),
+				formatDateForAPI(data.startDate) ??
+				(new Date().toISOString().split("T")[0] as string),
 			cutoffMinutes: data.cutoffMins || 240,
 			highRisk: data.highRisk || false,
 			requiresCoSign: data.highRisk || false, // High risk medications require co-sign
 			dose: data.medicationName, // TODO: Get actual dose from form
 			route: data.route,
+			endDate: data.endDate ? formatDateForAPI(data.endDate) : undefined,
 		};
-
-		// Only add endDate if it exists
-		if (data.endDate) {
-			createData.endDate = formatDateForAPI(data.endDate);
-		}
-
-		return createData;
 	};
 
 	const fireInstrumentationEvent = (data: Partial<Regimen>) => {
