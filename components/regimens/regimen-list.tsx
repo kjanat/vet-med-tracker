@@ -269,6 +269,18 @@ export function RegimenList() {
 		};
 	};
 
+	const getTodayLocal = (): string => {
+		const parts = new Intl.DateTimeFormat("en-CA", {
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+		}).formatToParts(new Date());
+		const year = parts.find((p) => p.type === "year")?.value ?? "1970";
+		const month = parts.find((p) => p.type === "month")?.value ?? "01";
+		const day = parts.find((p) => p.type === "day")?.value ?? "01";
+		return `${year}-${month}-${day}`;
+	};
+
 	const buildCreateData = (data: Partial<Regimen>, householdId: string) => {
 		return {
 			householdId,
@@ -277,9 +289,7 @@ export function RegimenList() {
 			name: data.medicationName,
 			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			timesLocal: data.timesLocal,
-			startDate:
-				formatDateForAPI(data.startDate) ??
-				(new Date().toISOString().split("T")[0] as string),
+			startDate: formatDateForAPI(data.startDate) ?? getTodayLocal(),
 			cutoffMinutes: data.cutoffMins || 240,
 			highRisk: data.highRisk || false,
 			requiresCoSign: data.highRisk || false,

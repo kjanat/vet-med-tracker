@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { afterAll, beforeAll, beforeEach } from "vitest";
+import { animals, households, memberships, users } from "@/db/schema";
 
 // Test database connection
 const testDbUrl =
@@ -148,6 +149,3 @@ export async function withTransaction<T>(
 	// Neon HTTP doesn't support transactions, so we just execute normally
 	return await fn(testDb);
 }
-
-// Import your schema tables (you'll need to update these imports based on your actual schema)
-import { animals, households, memberships, users } from "@/db/schema";
