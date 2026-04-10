@@ -14,7 +14,12 @@ const isNeonUrl =
 export const hasTestDatabase = Boolean(testDbUrl) && isNeonUrl;
 
 const sqlClient = hasTestDatabase ? neon(testDbUrl) : null;
-export const testDb = sqlClient ? drizzle(sqlClient) : (null as never);
+const _testDb = sqlClient ? drizzle(sqlClient) : null;
+
+// Exported as non-null since callers use describe.skipIf(!hasTestDatabase)
+// to guard against missing DB. The runtime guard in setupTestDatabase()
+// provides additional safety.
+export const testDb = _testDb as NonNullable<typeof _testDb>;
 
 // Database lifecycle hooks
 export function setupTestDatabase() {
@@ -41,6 +46,11 @@ export function setupTestDatabase() {
 
 // Clean database helper
 export async function cleanDatabase() {
+	if (!_testDb) {
+		throw new Error(
+			"cleanDatabase() requires a valid test database connection",
+		);
+	}
 	// Get all table names
 	const tablesResult = await testDb.execute<{ tablename: string }>(
 		`SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT LIKE '%drizzle%'`,
@@ -79,6 +89,9 @@ export async function cleanDatabase() {
 
 // Seed helpers
 export async function seedTestData() {
+	if (!_testDb) {
+		throw new Error("seedTestData() requires a valid test database connection");
+	}
 	// Create test user
 	const userResult = await testDb
 		.insert(users)
@@ -125,8 +138,13 @@ export async function seedTestData() {
 
 // Transaction helper for tests
 export async function withTransaction<T>(
-	fn: (tx: typeof testDb) => Promise<T>,
+	fn: (tx: NonNullable<typeof testDb>) => Promise<T>,
 ): Promise<T> {
+	if (!_testDb) {
+		throw new Error(
+			"withTransaction() requires a valid test database connection",
+		);
+	}
 	// Neon HTTP doesn't support transactions, so we just execute normally
 	return await fn(testDb);
 }

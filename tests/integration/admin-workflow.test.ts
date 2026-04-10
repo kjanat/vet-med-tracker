@@ -7,11 +7,8 @@ import {
 	seedTestData,
 	setupTestDatabase,
 	testDb,
-} from "@/tests/helpers/db-utils";
-import {
-	createAuthenticatedContext,
-	mockSession,
-} from "@/tests/helpers/trpc-utils";
+} from "../helpers/db-utils";
+import { createAuthenticatedContext, mockSession } from "../helpers/trpc-utils";
 
 describe.skipIf(!hasTestDatabase)("Administration Workflow Integration", () => {
 	setupTestDatabase();
