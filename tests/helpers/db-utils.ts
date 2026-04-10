@@ -2,17 +2,44 @@ import { randomUUID } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { afterAll, beforeAll, beforeEach } from "vitest";
+import { animals, households, memberships, users } from "@/db/schema";
+import { hasTestDatabase, testDatabaseUrl } from "./neon-detect";
 
-// Test database connection
-const testDbUrl =
-	process.env.DATABASE_URL_UNPOOLED ||
-	process.env.DATABASE_URL ||
-	"postgresql://test:test@localhost:5432/vetmed_test";
-const sqlClient = neon(testDbUrl);
-export const testDb = drizzle(sqlClient);
+export { hasTestDatabase } from "./neon-detect";
+
+const sqlClient = hasTestDatabase ? neon(testDatabaseUrl) : null;
+
+const _testDb = sqlClient ? drizzle(sqlClient) : null;
+
+/**
+ * Test database instance.  `null` when no Neon-compatible URL is available.
+ * Prefer {@link requireTestDb} in test bodies (guarded by
+ * `describe.skipIf(!hasTestDatabase)`) to get a non-null reference with a
+ * clear error if the invariant is violated.
+ */
+export const testDb = _testDb;
+
+/**
+ * Return the test database or throw.
+ * Use inside `describe.skipIf(!hasTestDatabase)` blocks where the DB is
+ * guaranteed to exist at runtime.
+ */
+export function requireTestDb(): NonNullable<typeof _testDb> {
+	if (!_testDb) {
+		throw new Error(
+			"requireTestDb() called without a Neon-compatible test database. " +
+				"Wrap your describe block with describe.skipIf(!hasTestDatabase).",
+		);
+	}
+	return _testDb;
+}
 
 // Database lifecycle hooks
 export function setupTestDatabase() {
+	if (!hasTestDatabase) {
+		return;
+	}
+
 	beforeAll(async () => {
 		// Run migrations - currently skipped in test, assuming database schema is already set up
 		// TODO: Enable migrations when ready
@@ -32,6 +59,11 @@ export function setupTestDatabase() {
 
 // Clean database helper
 export async function cleanDatabase() {
+	if (!testDb) {
+		throw new Error(
+			"cleanDatabase() requires a valid test database connection",
+		);
+	}
 	// Get all table names
 	const tablesResult = await testDb.execute<{ tablename: string }>(
 		`SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT LIKE '%drizzle%'`,
@@ -70,6 +102,9 @@ export async function cleanDatabase() {
 
 // Seed helpers
 export async function seedTestData() {
+	if (!testDb) {
+		throw new Error("seedTestData() requires a valid test database connection");
+	}
 	// Create test user
 	const userResult = await testDb
 		.insert(users)
@@ -116,11 +151,13 @@ export async function seedTestData() {
 
 // Transaction helper for tests
 export async function withTransaction<T>(
-	fn: (tx: typeof testDb) => Promise<T>,
+	fn: (tx: NonNullable<typeof testDb>) => Promise<T>,
 ): Promise<T> {
+	if (!testDb) {
+		throw new Error(
+			"withTransaction() requires a valid test database connection",
+		);
+	}
 	// Neon HTTP doesn't support transactions, so we just execute normally
 	return await fn(testDb);
 }
-
-// Import your schema tables (you'll need to update these imports based on your actual schema)
-import { animals, households, memberships, users } from "@/db/schema";

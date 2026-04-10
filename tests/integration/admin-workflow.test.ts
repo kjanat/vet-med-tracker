@@ -3,16 +3,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { animals, households, memberships, regimens } from "@/db/schema";
 import { appRouter } from "@/server/api/routers/_app";
 import {
+	hasTestDatabase,
+	requireTestDb,
 	seedTestData,
 	setupTestDatabase,
-	testDb,
-} from "@/tests/helpers/db-utils";
-import {
-	createAuthenticatedContext,
-	mockSession,
-} from "@/tests/helpers/trpc-utils";
+} from "../helpers/db-utils";
+import { createAuthenticatedContext, mockSession } from "../helpers/trpc-utils";
 
-describe("Administration Workflow Integration", () => {
+describe.skipIf(!hasTestDatabase)("Administration Workflow Integration", () => {
 	setupTestDatabase();
 
 	let testData: Awaited<ReturnType<typeof seedTestData>>;
@@ -52,7 +50,7 @@ describe("Administration Workflow Integration", () => {
 				instructions: "Take with food",
 				active: true,
 			};
-			const regimenResult = await testDb
+			const regimenResult = await requireTestDb()
 				.insert(regimens)
 				.values(regimenData)
 				.returning();
@@ -151,7 +149,7 @@ describe("Administration Workflow Integration", () => {
 					.split("T")[0]!,
 				active: true,
 			};
-			const regimenResult = await testDb
+			const regimenResult = await requireTestDb()
 				.insert(regimens)
 				.values(regimenData)
 				.returning();
@@ -217,7 +215,7 @@ describe("Administration Workflow Integration", () => {
 					.split("T")[0]!,
 				active: true,
 			};
-			const regimenResult = await testDb
+			const regimenResult = await requireTestDb()
 				.insert(regimens)
 				.values(regimenData)
 				.returning();
@@ -268,7 +266,7 @@ describe("Administration Workflow Integration", () => {
 				instructions: "As needed for pain",
 				active: true,
 			};
-			const prnRegimenResult = await testDb
+			const prnRegimenResult = await requireTestDb()
 				.insert(regimens)
 				.values(prnRegimenData)
 				.returning();
@@ -322,7 +320,7 @@ describe("Administration Workflow Integration", () => {
 					.split("T")[0]!,
 				active: true,
 			};
-			const regimenResult = await testDb
+			const regimenResult = await requireTestDb()
 				.insert(regimens)
 				.values(regimenData)
 				.returning();
@@ -361,7 +359,7 @@ describe("Administration Workflow Integration", () => {
 		it("should prevent access to resources from other households", async () => {
 			// Create another household
 			const otherHousehold = (
-				await testDb
+				await requireTestDb()
 					.insert(households)
 					.values({
 						name: "Other Household",
@@ -370,7 +368,7 @@ describe("Administration Workflow Integration", () => {
 			)[0]!;
 
 			const _otherAnimal = (
-				await testDb
+				await requireTestDb()
 					.insert(animals)
 					.values({
 						name: "Max",
@@ -404,7 +402,7 @@ describe("Administration Workflow Integration", () => {
 		it("should allow users with multiple household memberships to switch context", async () => {
 			// Add user to second household
 			const secondHousehold = (
-				await testDb
+				await requireTestDb()
 					.insert(households)
 					.values({
 						name: "Second Household",
@@ -412,14 +410,14 @@ describe("Administration Workflow Integration", () => {
 					.returning()
 			)[0]!;
 
-			await testDb.insert(memberships).values({
+			await requireTestDb().insert(memberships).values({
 				userId: testData.user.id,
 				householdId: secondHousehold.id,
 				role: "CAREGIVER",
 			});
 
 			const secondAnimal = (
-				await testDb
+				await requireTestDb()
 					.insert(animals)
 					.values({
 						name: "Luna",

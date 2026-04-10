@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, Database, Home, Settings2 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useApp } from "@/components/providers/app-provider";
 import {
@@ -48,7 +49,7 @@ export default function SettingsPage() {
 
 			<div className="grid gap-4 md:grid-cols-2">
 				{settingsCards.map((card) => (
-					<Link key={card.href} href={card.href as any}>
+					<Link key={card.href} href={card.href as Route}>
 						<Card className="h-full transition-colors hover:bg-accent">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">

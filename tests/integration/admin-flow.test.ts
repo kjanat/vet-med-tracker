@@ -5,12 +5,13 @@ import { adminRouter } from "@/server/api/routers/admin";
 import {
 	cleanupTestData,
 	createTestDatabase,
+	hasTestDatabase,
 	testFactories,
 } from "../helpers/test-db";
 import { createTestTRPCContext } from "../helpers/test-trpc-context";
 
-describe("Admin Flow Integration", () => {
-	const db = createTestDatabase();
+describe.skipIf(!hasTestDatabase)("Admin Flow Integration", () => {
+	const db = createTestDatabase()!;
 	let testData: {
 		user: typeof schema.users.$inferSelect;
 		household: typeof schema.households.$inferSelect;

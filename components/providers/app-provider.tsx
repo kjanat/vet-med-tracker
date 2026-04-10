@@ -24,6 +24,7 @@ interface Animal {
 	id: string;
 	name: string;
 	species: string;
+	timezone: string;
 	avatar?: string;
 	pendingMeds: number;
 }
@@ -290,6 +291,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 			id: animal.id,
 			name: animal.name,
 			species: animal.species,
+			timezone: animal.timezone,
 			avatar: undefined, // TODO: Add avatar support
 			pendingMeds: pendingByAnimal[animal.id] || 0,
 		}));

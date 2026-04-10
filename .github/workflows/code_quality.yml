@@ -17,10 +17,5 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
-      - name: Setup Biome
-        uses: biomejs/setup-biome@v2
-        with:
-          version: latest
-
       - name: Run Biome CI Check
-        run: biome ci . --reporter=github
+        run: pnpm biome ci . --reporter=github

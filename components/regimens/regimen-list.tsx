@@ -246,63 +246,64 @@ export function RegimenList() {
 	});
 
 	// Helper functions to reduce cognitive complexity
-	const formatDateForAPI = (date?: Date) => {
-		return date?.toISOString().split("T")[0];
+	const formatDateInZone = (date: Date | undefined, timeZone?: string) => {
+		if (!date) return undefined;
+		const parts = new Intl.DateTimeFormat("en-CA", {
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			timeZone,
+		}).formatToParts(date);
+		const year = parts.find((p) => p.type === "year")?.value ?? "1970";
+		const month = parts.find((p) => p.type === "month")?.value ?? "01";
+		const day = parts.find((p) => p.type === "day")?.value ?? "01";
+		return `${year}-${month}-${day}`;
+	};
+
+	const getAnimalTimezone = (animalId?: string): string | undefined => {
+		if (!animalId) return undefined;
+		return animals.find((a) => a.id === animalId)?.timezone;
 	};
 
 	const buildUpdateData = (data: Partial<Regimen>, householdId: string) => {
 		if (!editingRegimen) {
 			throw new Error("No regimen selected for editing");
 		}
-		const updateData: any = {
+		const tz = getAnimalTimezone(editingRegimen.animalId);
+		return {
 			id: editingRegimen.id,
 			householdId,
 			name: data.medicationName,
-			instructions: data.medicationName, // TODO: Get actual instructions from form
 			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			timesLocal: data.timesLocal,
 			cutoffMinutes: data.cutoffMins,
 			highRisk: data.highRisk,
-			requiresCoSign: data.highRisk, // High risk medications require co-sign
-			dose: data.medicationName, // TODO: Get actual dose from form
+			requiresCoSign: data.highRisk,
 			route: data.route,
+			startDate: data.startDate
+				? formatDateInZone(data.startDate, tz)
+				: undefined,
+			endDate: data.endDate ? formatDateInZone(data.endDate, tz) : undefined,
 		};
-
-		// Only add dates if they exist
-		if (data.startDate) {
-			updateData.startDate = formatDateForAPI(data.startDate);
-		}
-		if (data.endDate) {
-			updateData.endDate = formatDateForAPI(data.endDate);
-		}
-
-		return updateData;
 	};
 
 	const buildCreateData = (data: Partial<Regimen>, householdId: string) => {
-		const createData: any = {
+		const tz = getAnimalTimezone(data.animalId);
+		const todayInAnimalZone = formatDateInZone(new Date(), tz) ?? "1970-01-01";
+		return {
 			householdId,
 			animalId: data.animalId || "",
 			medicationId: data.medicationId || "",
 			name: data.medicationName,
-			instructions: data.medicationName, // TODO: Get actual instructions from form
 			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			timesLocal: data.timesLocal,
-			startDate:
-				formatDateForAPI(data.startDate) || formatDateForAPI(new Date()),
+			startDate: formatDateInZone(data.startDate, tz) ?? todayInAnimalZone,
 			cutoffMinutes: data.cutoffMins || 240,
 			highRisk: data.highRisk || false,
-			requiresCoSign: data.highRisk || false, // High risk medications require co-sign
-			dose: data.medicationName, // TODO: Get actual dose from form
+			requiresCoSign: data.highRisk || false,
 			route: data.route,
+			endDate: data.endDate ? formatDateInZone(data.endDate, tz) : undefined,
 		};
-
-		// Only add endDate if it exists
-		if (data.endDate) {
-			createData.endDate = formatDateForAPI(data.endDate);
-		}
-
-		return createData;
 	};
 
 	const fireInstrumentationEvent = (data: Partial<Regimen>) => {
