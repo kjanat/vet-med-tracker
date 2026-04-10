@@ -73,7 +73,7 @@ const NoHouseholdState = () => (
 	</div>
 );
 
-const ErrorState = ({ error }: { error?: any }) => (
+const ErrorState = ({ error }: { error?: { message?: string } }) => (
 	<div className="min-h-screen bg-background">
 		<div className="no-print border-b p-4">
 			<div className="mx-auto flex max-w-4xl items-center justify-between">

@@ -4,11 +4,12 @@ import { inventoryRouter } from "@/server/api/routers/inventory";
 import {
 	cleanupTestData,
 	createTestDatabase,
+	hasTestDatabase,
 	testFactories,
 } from "../helpers/test-db";
 import { createTestTRPCContext } from "../helpers/test-trpc-context";
 
-describe("Inventory CRUD Operations", () => {
+describe.skipIf(!hasTestDatabase)("Inventory CRUD Operations", () => {
 	const db = createTestDatabase();
 	let testData: {
 		user: typeof schema.users.$inferSelect;

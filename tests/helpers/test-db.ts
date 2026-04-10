@@ -5,24 +5,22 @@ import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
 import type { db } from "@/db/drizzle";
 import * as schema from "@/db/schema";
 
-// For integration tests, we'll use a test-specific schema or database
-// This requires a test database URL in your environment
-export function createTestDatabase(): typeof db {
-	const testDatabaseUrl =
-		process.env.TEST_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
+// Check if a Neon-compatible database URL is available for integration tests
+const testDatabaseUrl =
+	process.env.TEST_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
+const isNeonUrl =
+	testDatabaseUrl?.includes("neon.tech") ||
+	testDatabaseUrl?.includes("neon.database");
+export const hasTestDatabase = Boolean(testDatabaseUrl) && Boolean(isNeonUrl);
 
-	if (!testDatabaseUrl) {
-		throw new Error(
-			"TEST_DATABASE_URL or DATABASE_URL_UNPOOLED must be set for integration tests",
-		);
+// For integration tests, we'll use a test-specific schema or database
+// This requires a Neon-compatible test database URL in your environment
+export function createTestDatabase(): typeof db {
+	if (!testDatabaseUrl || !isNeonUrl) {
+		// Return null; tests using this should be skipped via hasTestDatabase
+		return null as unknown as typeof db;
 	}
 
-	// Always use Neon HTTP driver to match the main application database type
-	// This ensures type compatibility with ClerkContext
-	console.log(
-		"Using Neon HTTP driver for tests:",
-		testDatabaseUrl.split("@")[1]?.split("?")[0],
-	);
 	const sql = neon(testDatabaseUrl, {
 		disableWarningInBrowsers: true,
 	});

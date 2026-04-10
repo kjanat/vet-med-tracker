@@ -5,14 +5,23 @@ import { afterAll, beforeAll, beforeEach } from "vitest";
 
 // Test database connection
 const testDbUrl =
-	process.env.DATABASE_URL_UNPOOLED ||
-	process.env.DATABASE_URL ||
-	"postgresql://test:test@localhost:5432/vetmed_test";
-const sqlClient = neon(testDbUrl);
-export const testDb = drizzle(sqlClient);
+	process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || "";
+
+// Check if we have a valid Neon-compatible database URL
+// Neon HTTP driver requires a neon.tech host or explicit websocket proxy
+const isNeonUrl =
+	testDbUrl.includes("neon.tech") || testDbUrl.includes("neon.database");
+export const hasTestDatabase = Boolean(testDbUrl) && isNeonUrl;
+
+const sqlClient = hasTestDatabase ? neon(testDbUrl) : null;
+export const testDb = sqlClient ? drizzle(sqlClient) : (null as never);
 
 // Database lifecycle hooks
 export function setupTestDatabase() {
+	if (!hasTestDatabase) {
+		return;
+	}
+
 	beforeAll(async () => {
 		// Run migrations - currently skipped in test, assuming database schema is already set up
 		// TODO: Enable migrations when ready

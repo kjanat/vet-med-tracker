@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { animals, households, memberships, regimens } from "@/db/schema";
 import { appRouter } from "@/server/api/routers/_app";
 import {
+	hasTestDatabase,
 	seedTestData,
 	setupTestDatabase,
 	testDb,
@@ -12,7 +13,7 @@ import {
 	mockSession,
 } from "@/tests/helpers/trpc-utils";
 
-describe("Administration Workflow Integration", () => {
+describe.skipIf(!hasTestDatabase)("Administration Workflow Integration", () => {
 	setupTestDatabase();
 
 	let testData: Awaited<ReturnType<typeof seedTestData>>;
