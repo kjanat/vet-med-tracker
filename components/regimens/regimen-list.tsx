@@ -258,13 +258,11 @@ export function RegimenList() {
 			id: editingRegimen.id,
 			householdId,
 			name: data.medicationName,
-			instructions: data.medicationName, // TODO: Get actual instructions from form
 			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			timesLocal: data.timesLocal,
 			cutoffMinutes: data.cutoffMins,
 			highRisk: data.highRisk,
-			requiresCoSign: data.highRisk, // High risk medications require co-sign
-			dose: data.medicationName, // TODO: Get actual dose from form
+			requiresCoSign: data.highRisk,
 			route: data.route,
 			startDate: data.startDate ? formatDateForAPI(data.startDate) : undefined,
 			endDate: data.endDate ? formatDateForAPI(data.endDate) : undefined,
@@ -277,7 +275,6 @@ export function RegimenList() {
 			animalId: data.animalId || "",
 			medicationId: data.medicationId || "",
 			name: data.medicationName,
-			instructions: data.medicationName, // TODO: Get actual instructions from form
 			scheduleType: data.scheduleType as "FIXED" | "PRN" | "INTERVAL" | "TAPER",
 			timesLocal: data.timesLocal,
 			startDate:
@@ -285,8 +282,7 @@ export function RegimenList() {
 				(new Date().toISOString().split("T")[0] as string),
 			cutoffMinutes: data.cutoffMins || 240,
 			highRisk: data.highRisk || false,
-			requiresCoSign: data.highRisk || false, // High risk medications require co-sign
-			dose: data.medicationName, // TODO: Get actual dose from form
+			requiresCoSign: data.highRisk || false,
 			route: data.route,
 			endDate: data.endDate ? formatDateForAPI(data.endDate) : undefined,
 		};
